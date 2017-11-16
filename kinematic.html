@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+    </head>
+	<body>
+		<canvas id="canvas" style="border: 1px solid black;"></canvas>
+        <div id="message"></div>
+	</body>
+    <script type="module">
+        import Vector from './Vector.js';
+        import Pantograph from './Pantograph.js';
+
+        // localhost:8080/kinematic.html
+
+        const canvas = document.getElementById("canvas"),
+              context = canvas.getContext("2d"),
+              message = document.getElementById("message");
+        canvas.width = 1000;
+        canvas.height = 600;
+        canvas.onmousemove = function(event) {
+            panto.target.x = event.pageX-canvas.offsetLeft;
+            panto.target.y = event.pageY-canvas.offsetTop;
+            panto.target.subtract(panto.base);
+
+            panto.inverseKinematics();
+            // panto.baseAngleL = panto.targetAngleL;
+            // panto.baseAngleR = panto.targetAngleR;
+
+            const data = JSON.stringify({
+                'angles': [
+                Math.round((panto.targetAngleR-0)/Math.PI*5800/2),
+                Math.round((panto.targetAngleL-Math.PI)/Math.PI*5800/2)
+            ], 'forces': [
+                0,
+                0
+            ]});
+            ws.send(data);
+        };
+        const panto = new Pantograph(canvas.width);
+
+        window.setInterval(function() {
+            panto.drawOpLimits(context);
+            panto.forwardKinematics();
+            panto.draw(context);
+            // message.innerText = [panto.baseAngleL, panto.baseAngleR, panto.targetAngleL, panto.targetAngleR];
+        }, 10);
+
+
+        const ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
+        ws.onopen = function(event) {
+            console.log('Connection open');
+        }
+        ws.onclose = function(event) {
+            console.log('Connection closed');
+        }
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            panto.baseAngleL = (data.angles[1]/5800*Math.PI*2)+Math.PI;
+            panto.baseAngleR = (data.angles[0]/5800*Math.PI*2)+0;
+            // message.innerText = data.angles;
+        }
+        ws.onerror = function(event) {
+
+        }
+    </script>
+</html>
