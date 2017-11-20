@@ -30,7 +30,7 @@ proc.on('exit', (code) => {
 });*/
 
 
-const serial = child_process.spawn('node/serial', [process.argv[2]]);
+const serial = child_process.spawn('./serial', [process.argv[2]]);
 
 function serialSend(data) {
     let packet = '';
@@ -77,7 +77,7 @@ serial.on('exit', (code) => {
 
 
 const server = http.createServer((request, response) => {
-    let filePath = 'node/' + ((request.url == '/') ? '/index.html' : request.url);
+    let filePath = './' + ((request.url == '/') ? '/index.html' : request.url);
 
     const extname = path.extname(filePath);
     let contentType = 'text/plain';
