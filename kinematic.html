@@ -13,41 +13,38 @@
 
         // localhost:8080/kinematic.html
 
+        let ws;
         const canvas = document.getElementById("canvas"),
               context = canvas.getContext("2d"),
               message = document.getElementById("message");
         canvas.width = 1000;
         canvas.height = 600;
         canvas.onmousemove = function(event) {
-            panto.target.x = event.pageX-canvas.offsetLeft;
-            panto.target.y = event.pageY-canvas.offsetTop;
-            panto.target.subtract(panto.base);
+            upperPanto.target.x = event.pageX-canvas.offsetLeft;
+            upperPanto.target.y = event.pageY-canvas.offsetTop;
+            upperPanto.target.subtract(upperPanto.base);
+            upperPanto.inverseKinematics();
 
-            panto.inverseKinematics();
-            // panto.baseAngleL = panto.targetAngleL;
-            // panto.baseAngleR = panto.targetAngleR;
-
+            if(!ws) {
+                upperPanto.drawOpLimits(context);
+                upperPanto.draw(context);
+                return;
+            }
             const data = JSON.stringify({
                 'angles': [
-                Math.round((panto.targetAngleR-0)/Math.PI*5800/2),
-                Math.round((panto.targetAngleL-Math.PI)/Math.PI*5800/2)
+                upperPanto.targetAngleR,
+                upperPanto.targetAngleL-Math.PI
             ], 'forces': [
                 0,
                 0
             ]});
             ws.send(data);
         };
-        const panto = new Pantograph(canvas.width);
+        const upperPanto = new Pantograph(canvas.width),
+              lowerPanto = new Pantograph(canvas.width),
+              encoderStepsPerTurn = 5540;
 
-        window.setInterval(function() {
-            panto.drawOpLimits(context);
-            panto.forwardKinematics();
-            panto.draw(context);
-            // message.innerText = [panto.baseAngleL, panto.baseAngleR, panto.targetAngleL, panto.targetAngleR];
-        }, 10);
-
-
-        const ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
+        ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
         ws.onopen = function(event) {
             console.log('Connection open');
         }
@@ -56,12 +53,30 @@
         }
         ws.onmessage = function(event) {
             const data = JSON.parse(event.data);
-            panto.baseAngleL = (data.angles[1]/5800*Math.PI*2)+Math.PI;
-            panto.baseAngleR = (data.angles[0]/5800*Math.PI*2)+0;
-            // message.innerText = data.angles;
+            upperPanto.baseAngleL = (data.angles[1])+Math.PI;
+            upperPanto.baseAngleR = (data.angles[0]);
+            upperPanto.forwardKinematics();
+            upperPanto.pointerAngle = upperPanto.middleAngleR+data.angles[4];
+
+            lowerPanto.baseAngleL = (data.angles[3])+Math.PI;
+            lowerPanto.baseAngleR = (data.angles[2]);
+            lowerPanto.forwardKinematics();
+            lowerPanto.pointerAngle = lowerPanto.middleAngleR+data.angles[5];
         }
         ws.onerror = function(event) {
 
         }
+
+        if(ws)
+            window.setInterval(function() {
+                upperPanto.forwardKinematics();
+                context.strokeStyle = 'black';
+                upperPanto.drawOpLimits(context);
+                context.strokeStyle = 'green';
+                lowerPanto.draw(context);
+                context.strokeStyle = 'red';
+                upperPanto.draw(context);
+                // message.innerText = [panto.baseAngleL, panto.baseAngleR, panto.targetAngleL, panto.targetAngleR];
+            }, 10);
     </script>
 </html>

@@ -46,13 +46,22 @@ function serialSend(data) {
 function serialRecv(data) {
     const angles = [];
     for(let i = 0; i < 6; ++i)
-        angles[i] = data.readInt32LE(i*4);
+        angles[i] = data.readFloatLE(i*4);
+    const packet = JSON.stringify({'angles': angles});
     for(const connection of connections)
-        connection.send(JSON.stringify({'angles': angles}));
+        connection.send(packet);
 }
 
+let partialPacket;
 serial.stdout.on('data', (data) => {
     const packets = data.toString().split('\n');
+    if(partialPacket)
+        packets[0] = partialPacket+packets[0];
+
+    partialPacket = (packets.length > 0) ? packets.pop() : undefined;
+    if(partialPacket.length == 0)
+        partialPacket = undefined;
+
     for(let data of packets) {
         if(data.length == 0)
             return;
@@ -134,8 +143,8 @@ wsServer.on('request', function(request) {
         const data = new Buffer(9);
         for(let i = 0; i < 2; ++i) {
             data[0] = i;
-            data.writeInt32LE(message.angles[i], 1);
-            data.writeInt32LE(message.forces[i], 5);
+            data.writeFloatLE(message.angles[i], 1);
+            data.writeFloatLE(message.forces[i], 5);
             serialSend(data);
         }
     });

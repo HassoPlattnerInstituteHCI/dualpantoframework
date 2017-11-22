@@ -9,8 +9,9 @@ export default class Pantograph {
     constructor(width) {
         this.target = new Vector(0, 1);
 
-        this.baseAngleL = Math.PI*0.5+0.2;
-        this.baseAngleR = Math.PI*0.5-0.2;
+        this.baseAngleL = Math.PI*0.5+0.5;
+        this.baseAngleR = Math.PI*0.5-0.5;
+        this.pointerAngle = -Math.PI*0.5;
 
         this.baseDist = 48*2;
         this.middleDist = 98*2;
@@ -43,13 +44,13 @@ export default class Pantograph {
         this.targetAngleL = this.baseAngleL;
         this.targetAngleR = this.baseAngleR;
 
-        for(let i = 0; i < 32; ++i) {
+        for(let i = 0; i < 10; ++i) {
             this.forwardKinematics(this.targetAngleL, this.targetAngleR);
             const currentPolar = new Polar(this.outer.difference(this.base)),
                   radiusDiff = targetPolar.length.clamp(this.opMinDist, this.opMaxDist)-currentPolar.length,
                   angleDiff = targetPolar.angle.clamp((Math.PI-this.opAngle)*0.5, (Math.PI+this.opAngle)*0.5)-currentPolar.angle;
 
-            const radiusSpeed = Math.abs(radiusDiff)*0.001;
+            const radiusSpeed = Math.abs(radiusDiff)*0.002;
             if(radiusSpeed < 0.001) {} else
             if(radiusDiff < 0) {
                 this.targetAngleL += radiusSpeed;
@@ -58,7 +59,7 @@ export default class Pantograph {
                 this.targetAngleL -= radiusSpeed;
                 this.targetAngleR += radiusSpeed;
             }
-            const angleSpeed = Math.abs(angleDiff)*0.1;
+            const angleSpeed = Math.abs(angleDiff)*0.5;
             if(angleSpeed < 0.001) {} else
             if(angleDiff < 0) {
                 this.targetAngleL -= angleSpeed;
@@ -92,6 +93,11 @@ export default class Pantograph {
         this.outer.draw(context);
         this.middleR.draw(context);
         this.baseR.draw(context);
+        context.stroke();
+        context.strokeStyle = 'blue';
+        context.beginPath();
+        this.outer.draw(context);
+        new Vector({'angle':this.pointerAngle, 'length':30}).add(this.outer).draw(context);
         context.stroke();
         context.lineWidth = 1;
     }

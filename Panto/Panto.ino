@@ -4,11 +4,6 @@
 #define OUTPUT_POWER_LIMIT 0.1 // 10%
 #define PWM_MAX 4095 // (2^12)-1
 
-// PID
-#define P_FACTOR 1
-#define I_FACTOR 1
-#define D_FACTOR 1
-
 // All Pantos: J2, J3, J4, J5, ME, IT
 const unsigned char pwmPin[] = {
   8, 9, 7, 6, 5, 4
@@ -34,19 +29,25 @@ const unsigned char flipMotor[] = {
   0, 0, 1, 1, 0, 1
 };
 const unsigned char flipEncoder[] = {
-  0, 0, 1, 1, 0, 1
+  0, 0, 1, 1, 0, 0
+};
+const int32_t encoderSteps[] = {
+  5540, 5540, 5540, 5540, 512, 15360
 };
 
 const unsigned char dof = 6;
 unsigned long prevTime;
 Encoder* encoder[dof];
-int32_t angle[dof], target[dof], force[dof], previousDiff[dof];
-float integral[dof];
+float angle[dof], target[dof], force[dof], previousDiff[dof], integral[dof], pidFactor[] = { 0, 0, 0 };
 unsigned char inChecksum, outChecksum;
 
 void setup() {
   SerialUSB.begin(0); // Default is 9600
   analogWriteResolution(12);
+
+  // https://forum.arduino.cc/index.php?topic=367154.0
+  // http://playground.arduino.cc/Main/TimerPWMCheatsheet
+  
   for(unsigned char i = 0; i < dof; ++i) {
     angle[i] = 0;
     target[i] = 0;
@@ -61,21 +62,28 @@ void setup() {
   prevTime = micros();
 }
 
-void sendInt32(int32_t value) {
+union Number32 {
+  float f;
+  int32_t i;
+};
+
+void sendNumber32(union Number32 value) {
   unsigned char buffer[4];
   for(unsigned char i = 0; i < sizeof(buffer); ++i) {
-    buffer[i] = (unsigned char)(value>>(i*8));
+    buffer[i] = (unsigned char)(value.i>>(i*8));
     outChecksum ^= buffer[i];
   }
   SerialUSB.write(buffer, sizeof(buffer));
 }
 
-int32_t receiveInt32() {
+union Number32 receiveNumber32() {
   unsigned char buffer[4];
   SerialUSB.readBytes(buffer, sizeof(buffer));
   for(unsigned char i = 0; i < sizeof(buffer); ++i)
     inChecksum ^= buffer[i];
-  return buffer[0] | (buffer[1]<<8) | (buffer[2]<<16) | (buffer[3]<<24);
+  Number32 result;
+  result.i = buffer[0] | (buffer[1]<<8) | (buffer[2]<<16) | (buffer[3]<<24);
+  return result;
 }
 
 void loop() {
@@ -86,7 +94,7 @@ void loop() {
 
   // Read and store encoder angles
   for(unsigned char i = 0; i < dof; ++i) {
-    angle[i] = encoder[i]->read();
+    angle[i] = 2.0 * M_PI * encoder[i]->read() / encoderSteps[i];
     if(flipEncoder[i])
       angle[i] *= -1;
   }
@@ -95,8 +103,11 @@ void loop() {
   outChecksum = 0;
   SerialUSB.write("SYNC");
   SerialUSB.write(24);
-  for(unsigned char i = 0; i < dof; ++i)
-    sendInt32(angle[i]);
+  union Number32 aux;
+  for(unsigned char i = 0; i < dof; ++i) {
+    aux.f = angle[i];
+    sendNumber32(aux);
+  }
   SerialUSB.write(outChecksum);
   SerialUSB.flush();
 
@@ -110,8 +121,8 @@ void loop() {
       continue;
     unsigned char i = SerialUSB.read();
     inChecksum ^= i;
-    int32_t targetI = receiveInt32(),
-            forceI = receiveInt32();
+    float targetI = receiveNumber32().f,
+           forceI = receiveNumber32().f;
     unsigned char checksum = SerialUSB.read();
     if(checksum == inChecksum) {
       target[i] = targetI;
@@ -123,21 +134,21 @@ void loop() {
   float dt = now-prevTime;
   prevTime = now;
   for(unsigned char i = 0; i < dof; ++i) {
-    int32_t diff = target[i] - angle[i];
-    unsigned char dir = diff < 0;
+    float error = target[i] - angle[i];
+    unsigned char dir = error < 0;
     if(flipMotor[i])
       dir = !dir;
     digitalWrite(dirPin[i], dir);
 
     /* PID
-    integral[i] += diff * dt;
-    derivative = (diff - previousDiff[i]) / dt;
-    float power = P_FACTOR*diff + I_FACTOR*integral[i] + D_FACTOR*derivative;
-    previousDiff[i] = diff;
+    integral[i] += error * dt;
+    derivative = (error - previousDiff[i]) / dt;
+    float power = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
+    previousDiff[i] = error;
     */
 
     // TODO: Implement PID here and take force[i] into account too
-    float power = diff*0.01; // P-Factor
+    float power = error; // P-Factor
     power *= power;
     
     analogWrite(pwmPin[i], min(power, OUTPUT_POWER_LIMIT) * PWM_MAX);

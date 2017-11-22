@@ -82,7 +82,6 @@ int main(int argc, char** argv) {
         for(unsigned int i = 0; i < packetLength; ++i)
             printf("%02X ", packetBuffer[i]);
         printf("\n");
-        fflush(stdout);
     }
 
     fclose(stream);
