@@ -144,7 +144,6 @@ wsServer.on('request', function(request) {
         for(let i = 0; i < 2; ++i) {
             data[0] = i;
             data.writeFloatLE(message.angles[i], 1);
-            data.writeFloatLE(message.forces[i], 5);
             serialSend(data);
         }
     });

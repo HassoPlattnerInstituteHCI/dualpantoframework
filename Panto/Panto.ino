@@ -38,7 +38,7 @@ const int32_t encoderSteps[] = {
 const unsigned char dof = 6;
 unsigned long prevTime;
 Encoder* encoder[dof];
-float angle[dof], target[dof], force[dof], previousDiff[dof], integral[dof], pidFactor[] = { 0, 0, 0 };
+float angle[dof], target[dof], previousDiff[dof], integral[dof], pidFactor[] = { 1, 0, 0 };
 unsigned char inChecksum, outChecksum;
 
 void setup() {
@@ -51,7 +51,6 @@ void setup() {
   for(unsigned char i = 0; i < dof; ++i) {
     angle[i] = 0;
     target[i] = 0;
-    force[i] = 0;
     previousDiff[i] = 0;
     integral[i] = 0;
     encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
@@ -117,16 +116,17 @@ void loop() {
     inChecksum = 0;
     SerialUSB.readBytes(syncBuffer, sizeof(syncBuffer));
     unsigned char len = SerialUSB.read();
-    if(strcmp(syncBuffer, "SYNC") != 0 || len != 9)
+    if(strcmp(syncBuffer, "SYNC") != 0 || len != 5)
       continue;
     unsigned char i = SerialUSB.read();
     inChecksum ^= i;
-    float targetI = receiveNumber32().f,
-           forceI = receiveNumber32().f;
+    Number32 value = receiveNumber32();
     unsigned char checksum = SerialUSB.read();
     if(checksum == inChecksum) {
-      target[i] = targetI;
-      force[i] = forceI;
+      if(i > dof)
+        pidFactor[i-dof] = value.f;
+      else
+        target[i] = value.f;
     }
   }
 
@@ -134,23 +134,24 @@ void loop() {
   float dt = now-prevTime;
   prevTime = now;
   for(unsigned char i = 0; i < dof; ++i) {
+    if(isnan(target[i])) { // target[i] != target[i]
+      digitalWrite(pwmPin[i], LOW);
+      continue;
+    }
+
     float error = target[i] - angle[i];
+
+    // Direction
     unsigned char dir = error < 0;
     if(flipMotor[i])
       dir = !dir;
     digitalWrite(dirPin[i], dir);
 
-    /* PID
+    // Power: PID
     integral[i] += error * dt;
-    derivative = (error - previousDiff[i]) / dt;
+    float derivative = (error - previousDiff[i]) / dt;
     float power = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
     previousDiff[i] = error;
-    */
-
-    // TODO: Implement PID here and take force[i] into account too
-    float power = error; // P-Factor
-    power *= power;
-    
     analogWrite(pwmPin[i], min(power, OUTPUT_POWER_LIMIT) * PWM_MAX);
   }
 
