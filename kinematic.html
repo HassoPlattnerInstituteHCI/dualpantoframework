@@ -5,7 +5,12 @@
     </head>
 	<body>
 		<canvas id="canvas" style="border: 1px solid black;"></canvas>
-        <div id="message"></div>
+        <div>
+            <input type="range" min="0" max="20" step="0.1" value="15" id="factorP" /><br />
+            <input type="range" min="0" max="10" step="0.1" value="0" id="factorI" /><br />
+            <input type="range" min="0" max="10" step="0.1" value="0" id="factorD" /><br />
+            <p id="message"></p>
+        </div>
 	</body>
     <script type="module">
         import Vector from './Vector.js';
@@ -30,16 +35,19 @@
                 upperPanto.draw(context);
                 return;
             }
-            const data = JSON.stringify({
-                'angles': [
-                upperPanto.targetAngleR,
-                upperPanto.targetAngleL-Math.PI
-            ]});
-            ws.send(data);
+            ws.send(JSON.stringify({
+                'angles': {
+                0: upperPanto.targetAngleR,
+                1: upperPanto.targetAngleL-Math.PI
+            }}));
         };
         const upperPanto = new Pantograph(canvas.width),
               lowerPanto = new Pantograph(canvas.width),
-              encoderStepsPerTurn = 5540;
+              pidSliders = [
+                  document.getElementById('factorP'),
+                  document.getElementById('factorI'),
+                  document.getElementById('factorD')
+              ];
 
         ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
         ws.onopen = function(event) {
@@ -59,10 +67,21 @@
             lowerPanto.baseAngleR = (data.angles[2]);
             lowerPanto.forwardKinematics();
             lowerPanto.pointerAngle = lowerPanto.middleAngleR+data.angles[5];
+
+            message.innerText = data.angles;
         }
         ws.onerror = function(event) {
 
         }
+
+        function pidUpdate(index, event) {
+            const angles = {};
+            angles[6+index] = parseFloat(event.target.value);
+            ws.send(JSON.stringify({'angles': angles}));
+        }
+        pidSliders[0].oninput = pidUpdate.bind(this, 0);
+        pidSliders[1].oninput = pidUpdate.bind(this, 1);
+        pidSliders[2].oninput = pidUpdate.bind(this, 2);
 
         if(ws)
             window.setInterval(function() {
@@ -73,7 +92,6 @@
                 lowerPanto.draw(context);
                 context.strokeStyle = 'red';
                 upperPanto.draw(context);
-                // message.innerText = [panto.baseAngleL, panto.baseAngleR, panto.targetAngleL, panto.targetAngleR];
             }, 10);
     </script>
 </html>

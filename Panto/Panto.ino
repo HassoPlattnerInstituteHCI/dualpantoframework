@@ -1,7 +1,7 @@
 #include <Encoder.h>
 #include <string.h>
 
-#define OUTPUT_POWER_LIMIT 0.1 // 10%
+#define OUTPUT_POWER_LIMIT 0.2 // 20%
 #define PWM_MAX 4095 // (2^12)-1
 
 // All Pantos: J2, J3, J4, J5, ME, IT
@@ -23,7 +23,11 @@ const unsigned char flipMotor[] = {
 };
 const unsigned char flipEncoder[] = {
   0, 0, 1, 1, 0, 1
-};*/
+};
+const int32_t encoderSteps[] = {
+  15360, 15360, 15360, 15360, 512, 15360
+};
+*/
 // Big Panto
 const unsigned char flipMotor[] = {
   0, 0, 1, 1, 0, 1
@@ -38,7 +42,7 @@ const int32_t encoderSteps[] = {
 const unsigned char dof = 6;
 unsigned long prevTime;
 Encoder* encoder[dof];
-float angle[dof], target[dof], previousDiff[dof], integral[dof], pidFactor[] = { 1, 0, 0 };
+float angle[dof], target[dof], previousDiff[dof], integral[dof], pidFactor[3] = { 15.0, 0.0, 0.0 };
 unsigned char inChecksum, outChecksum;
 
 void setup() {
@@ -49,10 +53,10 @@ void setup() {
   // http://playground.arduino.cc/Main/TimerPWMCheatsheet
   
   for(unsigned char i = 0; i < dof; ++i) {
-    angle[i] = 0;
-    target[i] = 0;
-    previousDiff[i] = 0;
-    integral[i] = 0;
+    angle[i] = 0.0;
+    target[i] = 0.0;
+    previousDiff[i] = 0.0;
+    integral[i] = 0.0;
     encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
     pinMode(dirPin[i], OUTPUT);
     pinMode(pwmPin[i], OUTPUT);
@@ -87,8 +91,8 @@ union Number32 receiveNumber32() {
 
 void loop() {
   // BEGIN MAGIC: Really strange compiler / optimizer issue:
-  angle[4] = target[0];
-  angle[5] = target[1];
+  // angle[4] = target[0];
+  // angle[5] = target[1];
   // END MAGIC
 
   // Read and store encoder angles
@@ -101,10 +105,14 @@ void loop() {
   // Send encoder angles
   outChecksum = 0;
   SerialUSB.write("SYNC");
-  SerialUSB.write(24);
+  SerialUSB.write(4*(dof+3));
   union Number32 aux;
   for(unsigned char i = 0; i < dof; ++i) {
     aux.f = angle[i];
+    sendNumber32(aux);
+  }
+  for(unsigned char i = 0; i < 3; ++i) {
+    aux.f = pidFactor[i];
     sendNumber32(aux);
   }
   SerialUSB.write(outChecksum);
@@ -146,6 +154,7 @@ void loop() {
     if(flipMotor[i])
       dir = !dir;
     digitalWrite(dirPin[i], dir);
+    error = fabs(error);
 
     // Power: PID
     integral[i] += error * dt;

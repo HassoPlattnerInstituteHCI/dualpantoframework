@@ -45,7 +45,7 @@ function serialSend(data) {
 
 function serialRecv(data) {
     const angles = [];
-    for(let i = 0; i < 6; ++i)
+    for(let i = 0; i < 9; ++i)
         angles[i] = data.readFloatLE(i*4);
     const packet = JSON.stringify({'angles': angles});
     for(const connection of connections)
@@ -136,12 +136,12 @@ wsServer.on('request', function(request) {
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function(message) {
-        // console.log('< '+message.utf8Data);
         // proc.stdin.write(message.utf8Data);
-
         message = JSON.parse(message.utf8Data);
-        const data = new Buffer(9);
-        for(let i = 0; i < 2; ++i) {
+        const data = new Buffer(5);
+        for(let i = 0; i < 9; ++i) {
+            if(message.angles[i] == undefined)
+                continue;
             data[0] = i;
             data.writeFloatLE(message.angles[i], 1);
             serialSend(data);
