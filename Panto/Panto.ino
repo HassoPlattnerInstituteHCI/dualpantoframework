@@ -42,7 +42,7 @@ const int32_t encoderSteps[] = {
 const unsigned char dof = 6;
 unsigned long prevTime;
 Encoder* encoder[dof];
-float angle[dof], target[dof], previousDiff[dof], integral[dof], pidFactor[3] = { 15.0, 0.0, 0.0 };
+float angle[dof], target[dof], previousDiff[dof], integral[dof], pidFactor[3] = { 25.0, 0.0, 0.0 };
 unsigned char inChecksum, outChecksum;
 
 void setup() {
@@ -120,18 +120,20 @@ void loop() {
 
   // Receive motor commands
   char syncBuffer[4];
-  while(SerialUSB.available() >= 15) {
+  while(SerialUSB.available() >= 11) {
     inChecksum = 0;
-    SerialUSB.readBytes(syncBuffer, sizeof(syncBuffer));
-    unsigned char len = SerialUSB.read();
-    if(strcmp(syncBuffer, "SYNC") != 0 || len != 5)
+    if(SerialUSB.read() != 'S' ||
+       SerialUSB.read() != 'Y' ||
+       SerialUSB.read() != 'N' ||
+       SerialUSB.read() != 'C' ||
+       SerialUSB.read() != 5)
       continue;
     unsigned char i = SerialUSB.read();
     inChecksum ^= i;
     Number32 value = receiveNumber32();
     unsigned char checksum = SerialUSB.read();
     if(checksum == inChecksum) {
-      if(i > dof)
+      if(i >= dof)
         pidFactor[i-dof] = value.f;
       else
         target[i] = value.f;
@@ -159,9 +161,9 @@ void loop() {
     // Power: PID
     integral[i] += error * dt;
     float derivative = (error - previousDiff[i]) / dt;
-    float power = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
+    float voltage = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
     previousDiff[i] = error;
-    analogWrite(pwmPin[i], min(power, OUTPUT_POWER_LIMIT) * PWM_MAX);
+    analogWrite(pwmPin[i], min(voltage, OUTPUT_POWER_LIMIT) * PWM_MAX);
   }
 
   /*SerialUSB.println("");
