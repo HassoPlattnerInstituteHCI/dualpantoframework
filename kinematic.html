@@ -6,9 +6,9 @@
 	<body>
 		<canvas id="canvas" style="border: 1px solid black;"></canvas>
         <div>
-            <input type="range" min="0" max="20" step="0.1" value="15" id="factorP" /><br />
-            <input type="range" min="0" max="10" step="0.1" value="0" id="factorI" /><br />
-            <input type="range" min="0" max="10" step="0.1" value="0" id="factorD" /><br />
+            <input type="range" min="0" max="100" step="0.1" value="15" id="factorP" /><br />
+            <input type="range" min="0" max="20" step="0.1" value="0" id="factorI" /><br />
+            <input type="range" min="0" max="20" step="0.1" value="0" id="factorD" /><br />
             <p id="message"></p>
         </div>
 	</body>
@@ -41,8 +41,9 @@
                 1: upperPanto.targetAngleL-Math.PI
             }}));
         };
-        const upperPanto = new Pantograph(canvas.width),
-              lowerPanto = new Pantograph(canvas.width),
+        const base = new Vector(canvas.width*0.5, 50),
+              upperPanto = new Pantograph(base),
+              lowerPanto = new Pantograph(base),
               pidSliders = [
                   document.getElementById('factorP'),
                   document.getElementById('factorI'),

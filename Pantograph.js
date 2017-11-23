@@ -6,7 +6,7 @@ Number.prototype.clamp = function(min, max) {
 };
 
 export default class Pantograph {
-    constructor(width) {
+    constructor(base) {
         this.target = new Vector(0, 1);
 
         this.baseAngleL = Math.PI*0.5+0.5;
@@ -21,7 +21,7 @@ export default class Pantograph {
         this.opMaxDist = (this.middleDist+this.outerDist)*0.95;
         this.opAngle = 2.2;
 
-        this.base = new Vector(width*0.5, 50);
+        this.base = base;
         this.baseL = new Vector(-this.baseDist*0.5, 0).add(this.base);
         this.baseR = new Vector(this.baseDist*0.5, 0).add(this.base);
     }
