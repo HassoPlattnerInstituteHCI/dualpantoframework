@@ -30,10 +30,10 @@ const int32_t encoderSteps[] = {
 */
 // Big Panto
 const unsigned char flipMotor[] = {
-  0, 0, 1, 1, 0, 1
+  1, 1, 0, 0, 1, 0
 };
 const unsigned char flipEncoder[] = {
-  0, 0, 1, 1, 0, 0
+  1, 1, 0, 0, 1, 1
 };
 const int32_t encoderSteps[] = {
   5540, 5540, 5540, 5540, 512, 15360
@@ -51,7 +51,7 @@ void setup() {
 
   // https://forum.arduino.cc/index.php?topic=367154.0
   // http://playground.arduino.cc/Main/TimerPWMCheatsheet
-  
+
   for(unsigned char i = 0; i < dof; ++i) {
     angle[i] = 0.0;
     target[i] = 0.0;
@@ -90,11 +90,6 @@ union Number32 receiveNumber32() {
 }
 
 void loop() {
-  // BEGIN MAGIC: Really strange compiler / optimizer issue:
-  // angle[4] = target[0];
-  // angle[5] = target[1];
-  // END MAGIC
-
   // Read and store encoder angles
   for(unsigned char i = 0; i < dof; ++i) {
     angle[i] = 2.0 * M_PI * encoder[i]->read() / encoderSteps[i];

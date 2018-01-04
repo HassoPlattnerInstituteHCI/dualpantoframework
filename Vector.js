@@ -54,7 +54,18 @@ export default class Vector {
         return Math.atan2(this.y, this.x);
     }
 
+    normalized() {
+        return this.scaled(1.0/this.length());
+    }
+
+    product(matrix) {
+        return new Vector(
+            matrix[0]*this.x + matrix[1]*this.y,
+            matrix[2]*this.x + matrix[3]*this.y
+        );
+    }
+
     draw(context) {
-        context.lineTo(this.x, this.y);
+        context.lineTo(this.x, -this.y);
     }
 }
