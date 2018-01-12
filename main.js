@@ -1,13 +1,17 @@
 const child_process = require('child_process'),
       fs = require('fs'),
       path = require('path'),
+      say = require('say'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./node_modules/dpf/Vector.js'),
       Pantograph = require('./node_modules/dpf/Pantograph.js');
-const base = new Vector(100, -100), scale = 10,
+const base = new Vector(100, -100),
+      scale = 10,
       upperPanto = new Pantograph(base),
       lowerPanto = new Pantograph(base);
+
+
 
 serial.open(process.argv[2]);
 function serialRecv() {
@@ -17,7 +21,7 @@ function serialRecv() {
         return;
 
     const angles = [];
-    for(const data of packets) // TODO: Optimize
+    for(const data of packets)
         for(let i = 0; i < 9; ++i)
             angles[i] = data.readFloatLE(i*4);
 
@@ -30,10 +34,19 @@ function serialRecv() {
     lowerPanto.baseAngleR = angles[2];
     lowerPanto.forwardKinematics();
     lowerPanto.pointerAngle = lowerPanto.innerAngleR+angles[5];
-
-    // console.log('playerInput', playerInput);
 }
 serialRecv();
+
+function serialSend(angles) {
+    data = new Buffer(5);
+    for(let i = 0; i < 9; ++i) {
+        if(angles[i] == undefined)
+            continue;
+        data[0] = i;
+        data.writeFloatLE(angles[i], 1);
+        serial.send(data);
+    }
+}
 
 function doomToPantoCoord(pos) {
     return new Vector(pos[0]/scale, pos[1]/scale);
@@ -48,12 +61,13 @@ function pantoToDoomCoord(panto) {
 }
 
 const proc = child_process.spawn('../gzdoom.app/Contents/MacOS/gzdoom'),
-      enemyCache = {};
+      enemyCache = {},
+      wallCache = {},
+      bookmarks = [];
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();
     let player;
-    const walls = [];
     for(const line of data.split('\n')) {
         if(line.length == 0 || line[0] != '{')
             continue;
@@ -70,7 +84,7 @@ proc.stdout.on('data', (data) => {
             case 'wall':
                 packet.begin = doomToPantoCoord(packet.begin);
                 packet.end = doomToPantoCoord(packet.end);
-                walls.push(packet);
+                wallCache[packet.id] = packet;
                 break;
             case 'enemy':
                 packet.pos = doomToPantoCoord(packet.pos);
@@ -80,7 +94,11 @@ proc.stdout.on('data', (data) => {
                 delete enemyCache[packet.id];
                 break;
             case 'spawn':
-                console.log(packet);
+                // TODO
+                break;
+            case 'bookmark':
+                packet.pos = doomToPantoCoord(packet.pos);
+                bookmarks.push(packet);
                 break;
         }
     }
@@ -89,7 +107,18 @@ proc.stdout.on('data', (data) => {
     if(!player)
         return;
 
-    const angles = [NaN, NaN];
+    // Check if the player reached a bookmarked spot
+    for(const bookmark of bookmarks) {
+        const dist = player.pos.difference(bookmark.pos).length();
+        if(dist > 10)
+            continue;
+        // Rising edge detection
+        if(bookmark.tic < player.tic-1)
+            console.log('Bookmark:', bookmark.name, bookmark.tic, player.tic);
+        bookmark.tic = player.tic;
+    }
+
+    const angles = [NaN, NaN, NaN, NaN, NaN, NaN];
     function movePantoTo(panto, target) {
         panto.target = target.difference(panto.base);
         panto.inverseKinematics();
@@ -100,23 +129,25 @@ proc.stdout.on('data', (data) => {
             angles[5] = -panto.pointerAngle/180*Math.PI;
     }
 
-    // Calculate wall collisions and movement speed limit
-    const dist = player.pos.difference(upperPanto.outer).length(),
-          threshold = 150,
-          force = new Vector(0, 0);
-    if(dist > threshold)
-        force.add(player.pos.difference(upperPanto.outer).scale((dist-threshold)/1000));
-    else for(const wall of walls) {
-        const begin = wall.begin,
-              tangent = begin.difference(wall.end),
+    // Render haptics of wall collisions
+    const force = new Vector(0, 0);
+    for(const id in wallCache) {
+        const wall = wallCache[id],
+              tangent = wall.begin.difference(wall.end),
               normal = new Vector(-tangent.y, tangent.x).normalized(),
-              distance = begin.difference(player.pos).dot(normal);
-        let penetration = begin.difference(upperPanto.outer).dot(normal);
+              distance = wall.begin.difference(player.pos).dot(normal);
+        let penetration = wall.begin.difference(upperPanto.outer).dot(normal);
         if(distance > 0)
             penetration *= -1;
         if(penetration > 2)
             force.add(normal.scaled(0.2*penetration));
+        delete wallCache[id];
     }
+    // Calculate movement speed limit
+    const dist = player.pos.difference(upperPanto.outer).length(),
+          threshold = 15;
+    if(force.length() === 0 && dist > threshold)
+        force.add(player.pos.difference(upperPanto.outer).scale((dist-threshold)/1000));
     // Render force to upper panto (ME-Handle)
     if(force.length() > 0)
         movePantoTo(upperPanto, force.add(upperPanto.outer));
@@ -125,30 +156,26 @@ proc.stdout.on('data', (data) => {
     const poi = [];
     for(const id in enemyCache) {
         const enemy = enemyCache[id];
+        if(!enemy.visible)
+            continue;
         enemy.distance = player.pos.difference(enemy.pos).length(),
         poi.push(enemy);
     }
     poi.sort(function(a, b) {
-        return a.distance < b.distance;
+        return a.distance > b.distance;
     });
     // Render POI to lower panto (IT-Handle)
     if(poi.length > 0)
         movePantoTo(lowerPanto, poi[0].pos);
 
     // Send angles to pantograph
-    data = new Buffer(5);
-    for(let i = 0; i < 9; ++i) {
-        if(angles[i] == undefined)
-            continue;
-        data[0] = i;
-        data.writeFloatLE(angles[i], 1);
-        serial.send(data);
-    }
+    serialSend(angles);
 });
 proc.stderr.on('error', (err) => {
     console.log(`error: ${err}`);
 });
 proc.on('exit', (code) => {
-    console.log(`Child exited with code ${code}`);
+    console.log(`DOOM exited with code ${code}`);
+    serialSend([NaN, NaN, NaN, NaN, NaN, NaN]); // Release motors
     process.exit(code);
 });
