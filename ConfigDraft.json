@@ -1,0 +1,94 @@
+operational limits,
+encoder index,
+hardware name,
+version,
+
+{
+    "baseDist": 48,
+    "innerDist": 98,
+    "outerDist": 128,
+    "pantos": {
+        "upper": {
+            "left": {
+                "motor": {
+                    "pwmPin": 8,
+                    "dirPin": 22,
+                    "flipped": true
+                },
+                "encoder": {
+                    "aPin": 24,
+                    "bPin": 25,
+                    "flipped": true,
+                    "steps": 5540
+                }
+            },
+            "right": {
+                "motor": {
+                    "pwmPin": 9,
+                    "dirPin": 26,
+                    "flipped": true
+                },
+                "encoder": {
+                    "aPin": 28,
+                    "bPin": 29,
+                    "flipped": true,
+                    "steps": 5540
+                }
+            },
+            "handle": {
+                "motor": {
+                    "pwmPin": 5,
+                    "dirPin": 38,
+                    "flipped": true
+                },
+                "encoder": {
+                    "aPin": 40,
+                    "bPin": 41,
+                    "flipped": true,
+                    "steps": 512
+                }
+            },
+        },
+        "lower": {
+            "left": {
+                "motor": {
+                    "pwmPin": 7,
+                    "dirPin": 30,
+                    "flipped": false
+                },
+                "encoder": {
+                    "aPin": 32,
+                    "bPin": 33,
+                    "flipped": false,
+                    "steps": 5540
+                }
+            },
+            "right": {
+                "motor": {
+                    "pwmPin": 6,
+                    "dirPin": 34,
+                    "flipped": false
+                },
+                "encoder": {
+                    "aPin": 36,
+                    "bPin": 37,
+                    "flipped": false,
+                    "steps": 5540
+                }
+            },
+            "handle": {
+                "motor": {
+                    "pwmPin": 4,
+                    "dirPin": 42,
+                    "flipped": false
+                },
+                "encoder": {
+                    "aPin": 44,
+                    "bPin": 45,
+                    "flipped": true,
+                    "steps": 15360
+                }
+            }
+        }
+    }
+}
