@@ -1,8 +1,3 @@
-operational limits,
-encoder index,
-hardware name,
-version,
-
 {
     "baseDist": 48,
     "innerDist": 98,
@@ -47,7 +42,7 @@ version,
                     "flipped": true,
                     "steps": 512
                 }
-            },
+            }
         },
         "lower": {
             "left": {
