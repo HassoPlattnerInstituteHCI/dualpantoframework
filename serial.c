@@ -1,7 +1,6 @@
-#include <node/node_api.h>
-
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -11,38 +10,73 @@
 int fd;
 FILE* stream;
 const char* packetStart = "SYNC";
-unsigned char buffer[255];
+unsigned char packetBuffer[255+6];
+
+bool setup(const char* path) {
+    fd = open(path, O_RDWR | O_NOCTTY);
+    if(fd < 0)
+        return false;
+    struct termios tty;
+    memset(&tty, 0, sizeof(tty));
+    if(tcgetattr(fd, &tty) < 0)
+        return false;
+    const speed_t speed = B9600; // B115200
+    cfsetospeed(&tty, speed);
+    cfsetispeed(&tty, speed);
+    cfmakeraw(&tty);
+    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VTIME] = 0;
+    if(tcsetattr(fd, TCSANOW, &tty) < 0)
+        return false;
+    stream = fdopen(fd, "rw");
+    return true;
+}
+
+unsigned char receive() {
+    unsigned int available = 0;
+    if(ioctl(fd, FIONREAD, &available) < 0)
+        return 0;
+    if(available < sizeof(packetBuffer))
+        return 0;
+    unsigned int index = 0;
+    while(index < strlen(packetStart)) {
+        if(fgetc(stream) == packetStart[index])
+            ++index;
+        else
+            index = 0;
+    }
+    unsigned char packetLength = fgetc(stream);
+    fread(packetBuffer, 1, packetLength, stream);
+    unsigned char packetChecksum = fgetc(stream), calculatedChecksum = 0;
+    for(unsigned int i = 0; i < packetLength; ++i)
+        calculatedChecksum ^= packetBuffer[i];
+    return (calculatedChecksum == packetChecksum) ? packetLength : 0;
+}
+
+void send(unsigned char packetLength) {
+    memcpy(packetBuffer, packetStart, 4);
+    packetBuffer[4] = packetLength;
+    unsigned char packetChecksum = 0;
+    for(unsigned int i = 0; i < packetLength; ++i)
+        packetChecksum ^= packetBuffer[5+i];
+    packetBuffer[5+packetLength] = packetChecksum;
+    write(fd, packetBuffer, 6+packetLength);
+}
+
+
+#ifdef NODE_GYP
+#include <node/node_api.h>
 
 napi_value nodeOpen(napi_env env, napi_callback_info info) {
     size_t argc = 1;
     napi_value argv[1];
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-
     size_t length;
     char buffer[64];
     napi_get_value_string_utf8(env, argv[0], buffer, sizeof(buffer), &length);
-
-    fd = open(buffer, O_RDWR | O_NOCTTY);
-    if(fd < 0)
+    if(!setup(buffer))
         napi_throw_error(env, NULL, "open failed");
-    struct termios tty;
-    memset(&tty, 0, sizeof(tty));
-    if(tcgetattr(fd, &tty) < 0)
-        napi_throw_error(env, NULL, "tcgetattr failed");
-    // const int speed = B9600; // B115200
-    // cfsetospeed(&tty, speed);
-    // cfsetispeed(&tty, speed);
-    tty.c_cflag = CS8 | CLOCAL | CREAD;
-    tty.c_iflag = 0;
-    tty.c_lflag = 0;
-    tty.c_oflag = 0;
-    tty.c_cc[VMIN]  = 0;
-    tty.c_cc[VTIME] = 5;
-    if(tcsetattr(fd, TCSANOW, &tty) < 0)
-        napi_throw_error(env, NULL, "tcsetattr failed");
-    stream = fdopen(fd, "rw");
-
     return NULL;
 }
 
@@ -50,32 +84,13 @@ napi_value nodePoll(napi_env env, napi_callback_info info) {
     napi_value result, value;
     napi_create_array(env, &result);
     size_t packet = 0;
-
     while(true) {
-        unsigned int available = 0;
-        if(ioctl(fd, FIONREAD, &available) < 0)
-            napi_throw_error(env, NULL, "ioctl failed");
-        if(available < sizeof(buffer))
+        unsigned char length = receive(), *underlyingBuffer;
+        if(length == 0)
             break;
-
-        unsigned int index = 0;
-        while(index < strlen(packetStart)) {
-            if(fgetc(stream) == packetStart[index])
-                ++index;
-            else
-                index = 0;
-        }
-
-        unsigned char length = fgetc(stream), *underlyingBuffer;
-        napi_create_buffer(env, length, (void**)&underlyingBuffer, &value);
-        fread(underlyingBuffer, 1, length, stream);
-        unsigned char checksum = fgetc(stream), calculatedChecksum = 0;
-        for(unsigned int i = 0; i < length; ++i)
-            calculatedChecksum ^= underlyingBuffer[i];
-        if(calculatedChecksum == checksum)
-            napi_set_element(env, result, packet++, value);
+        napi_create_buffer_copy(env, length, packetBuffer, (void**)&underlyingBuffer, &value);
+        napi_set_element(env, result, packet++, value);
     }
-
     return result;
 }
 
@@ -84,21 +99,13 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
     napi_value argv[1];
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-
-    unsigned char checksum = 0, *payload;
+    unsigned char *payload;
     size_t length;
     napi_get_buffer_info(env, argv[0], (void**)&payload, &length);
-    memcpy(buffer, packetStart, 4);
-    buffer[4] = length;
-    memcpy(&buffer[5], payload, length);
-    for(unsigned int i = 0; i < length; ++i)
-        checksum ^= buffer[5+i];
-    buffer[5+length] = checksum;
-    write(fd, buffer, 6+length);
-
+    memcpy(&packetBuffer[5], payload, length);
+    send(length);
     return NULL;
 }
-
 
 #define defFunc(name, ptr) \
 if(napi_create_function(env, NULL, 0, ptr, NULL, &fn) != napi_ok) \
@@ -115,3 +122,51 @@ napi_value Init(napi_env env, napi_value exports) {
 }
 
 NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
+
+#else
+#include <signal.h>
+#include <stdlib.h>
+
+void terminate(int signal) {
+    fclose(stream);
+    exit(0);
+}
+
+int main(int argc, char** argv) {
+    if(argc != 2) {
+        fprintf(stderr, "Expected /dev/serialport\n");
+        return -1;
+    }
+    if(!setup(argv[1])) {
+        fprintf(stderr, "Could not open %s\n", argv[1]);
+        return -2;
+    }
+    signal(SIGINT, &terminate);
+    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+
+    char lineBuffer[255*3];
+    while(true) {
+        unsigned char packetLength;
+        int lineLength = fread(lineBuffer, 1, sizeof(lineBuffer), stdin);
+        if(lineLength > 0) {
+            packetLength = lineLength/3;
+            for(unsigned int byte, i = 0; i < packetLength; ++i) {
+                sscanf(&lineBuffer[i*3], "%02X", &byte);
+                packetBuffer[5+i] = byte;
+            }
+            send(packetLength);
+        }
+
+        packetLength = receive();
+        if(packetLength > 0) {
+            for(unsigned int i = 0; i < packetLength; ++i)
+                printf("%02X ", packetBuffer[i]);
+            printf("\n");
+            fflush(stdout);
+        }
+    }
+
+    return 0;
+}
+
+#endif
