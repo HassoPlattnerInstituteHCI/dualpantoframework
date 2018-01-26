@@ -1,15 +1,8 @@
 export default class Vector {
-    constructor(x = 0, y = 0) {
-        if(x.x !== undefined && x.y !== undefined) {
-            this.x = x.x;
-            this.y = x.y;
-        } else if(x.angle !== undefined && x.length !== undefined) {
-            this.x = Math.cos(x.angle)*x.length;
-            this.y = Math.sin(x.angle)*x.length;
-        } else {
-            this.x = x;
-            this.y = y;
-        }
+    constructor(x = 0, y = 0, r) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
     }
 
     dot(vector) {
