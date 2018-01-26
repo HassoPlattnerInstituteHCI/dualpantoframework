@@ -11,8 +11,9 @@ function insert(index, categoryName, valueName, value) {
     aggregates[aggregate][index] = value;
 }
 
-let index = 0;
+let index = 0, pantoCount = 0;
 for(const pantoName in input.pantos) {
+    ++pantoCount;
     const panto = input.pantos[pantoName];
     for(const dofName in panto) {
         const dof = panto[dofName];
@@ -31,7 +32,11 @@ const output =
 `const unsigned char configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
 const float baseDist = ${input.baseDist},
             innerDist = ${input.innerDist},
-            outerDist = ${input.outerDist};
+            outerDist = ${input.outerDist},
+            opMinDist = ${input.opMinDist},
+            opMaxDist = ${input.opMaxDist},
+            opAngle = ${input.opAngle};
+const unsigned char pantoCount = ${pantoCount};
 const unsigned char dofCount = ${aggregates['encoder_steps'].length};
 const unsigned char motorPwmPin[] = {
     ${aggregates['motor_pwmPin'].join(', ')}
@@ -53,6 +58,9 @@ const bool encoderFlipped[] = {
 };
 const uint32_t encoderSteps[] = {
     ${aggregates['encoder_steps'].join(', ')}
+};
+float actuationAngle[] = {
+    ${aggregates['encoder_setup'].join(', ')}
 };`;
 
 /*const unsigned char encoderIndexPin[] = {
