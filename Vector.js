@@ -1,4 +1,6 @@
-export default class Vector {
+'use strict';
+
+class Vector {
     constructor(x = 0, y = 0, r) {
         this.x = x;
         this.y = y;
@@ -62,3 +64,5 @@ export default class Vector {
         context.lineTo(this.x, -this.y);
     }
 }
+
+module.exports = Vector;

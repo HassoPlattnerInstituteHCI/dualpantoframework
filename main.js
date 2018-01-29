@@ -4,7 +4,7 @@ const child_process = require('child_process'),
       say = require('say'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
-      Vector = require('./node_modules/dpf/Vector.js');
+      Vector = require('./Vector.js');
 const origin = new Vector(1500, -1000),
       scale = 20;
 let upperPanto, lowerPanto;

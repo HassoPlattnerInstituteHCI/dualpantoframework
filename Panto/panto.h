@@ -28,30 +28,30 @@ struct Panto {
     pointingAngle = actuationAngle[dofIndex+2]+innerAngle[1];
   }
 
-  void inverseKinematicsHelper(float inverted, float diff, float speedFactor, float speedThreshold=0.001) {
-    float speed = fabs(diff)*speedFactor;
-    if(speed < speedThreshold)
+  void inverseKinematicsHelper(float inverted, float diff, float factor, float threshold=0.001) {
+    diff *= factor;
+    if(fabs(diff) < threshold)
       return;
-    if(diff < 0) {
-      actuationAngle[dofIndex+0] -= speed;
-      actuationAngle[dofIndex+1] += speed*inverted;
-    } else {
-      actuationAngle[dofIndex+0] += speed;
-      actuationAngle[dofIndex+1] -= speed*inverted;
-    }
+    actuationAngle[dofIndex+0] += diff;
+    actuationAngle[dofIndex+1] += diff*inverted;
   }
 
   void inverseKinematics() {
-    float savedActuationAngle[] = {actuationAngle[dofIndex+0], actuationAngle[dofIndex+1]};
+    if(isnan(target.x) || isnan(target.y)) {
+      destinationAngle[dofIndex+0] = NAN;
+      destinationAngle[dofIndex+1] = NAN;
+      return;
+    }
     const unsigned int iterations = 10;
     float targetAngle = clamp(target.angle(), (-M_PI-opAngle)*0.5, (-M_PI+opAngle)*0.5),
-          targetRadius = clamp(target.length(), opMinDist, opMaxDist);
+          targetRadius = clamp(target.length(), opMinDist, opMaxDist),
+          savedActuationAngle[] = {actuationAngle[dofIndex+0], actuationAngle[dofIndex+1]};
     for(unsigned int i = 0; i < iterations; ++i) {
       forwardKinematics();
       float currentAngle = handle.angle(),
             currentRadius = handle.length();
-      inverseKinematicsHelper(-1, targetAngle-currentAngle, 0.5);
-      inverseKinematicsHelper(+1, targetRadius-currentRadius, 0.002);
+      inverseKinematicsHelper(+1, targetAngle-currentAngle, 0.5);
+      inverseKinematicsHelper(-1, targetRadius-currentRadius, 0.002);
     }
     destinationAngle[dofIndex+0] = actuationAngle[dofIndex+0];
     destinationAngle[dofIndex+1] = actuationAngle[dofIndex+1];
@@ -86,9 +86,8 @@ struct Panto {
   }
 
   void actuateMotors() {
-    bool active = !isnan(target.x) && !isnan(target.y);
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
-      if(!active) {
+      if(isnan(destinationAngle[i])) {
         digitalWrite(motorPwmPin[i], LOW);
         continue;
       }
