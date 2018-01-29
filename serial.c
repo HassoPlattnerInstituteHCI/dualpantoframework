@@ -20,7 +20,7 @@ bool setup(const char* path) {
     memset(&tty, 0, sizeof(tty));
     if(tcgetattr(fd, &tty) < 0)
         return false;
-    const speed_t speed = B9600; // B115200
+    const speed_t speed = B115200;
     cfsetospeed(&tty, speed);
     cfsetispeed(&tty, speed);
     cfmakeraw(&tty);

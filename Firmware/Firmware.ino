@@ -3,7 +3,7 @@
 unsigned long prevTime;
 
 void setup() {
-  SerialUSB.begin(9600);
+  SerialUSB.begin(115200);
   analogWriteResolution(12);
 
   // https://forum.arduino.cc/index.php?topic=367154.0
