@@ -145,11 +145,10 @@ int main(int argc, char** argv) {
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 
     char lineBuffer[255*3];
+    unsigned char packetLength;
     while(true) {
-        unsigned char packetLength;
-        int lineLength = fread(lineBuffer, 1, sizeof(lineBuffer), stdin);
-        if(lineLength > 0) {
-            packetLength = lineLength/3;
+        if(fgets(lineBuffer, sizeof(lineBuffer), stdin)) {
+            packetLength = strlen(lineBuffer)/3;
             for(unsigned int byte, i = 0; i < packetLength; ++i) {
                 sscanf(&lineBuffer[i*3], "%02X", &byte);
                 packetBuffer[5+i] = byte;
