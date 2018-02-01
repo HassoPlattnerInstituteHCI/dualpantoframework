@@ -4,7 +4,8 @@ const child_process = require('child_process'),
       say = require('say'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
-      Vector = require('./Vector.js');
+      Vector = require('./Vector.js'),
+      persistent = JSON.parse(fs.readFileSync('persistent.json'));
 const origin = new Vector(1500, -1000),
       scale = 20;
 let upperPanto, lowerPanto;
@@ -49,8 +50,7 @@ function pantoToDoomCoord(pos) {
 
 const proc = child_process.spawn('../gzdoom.app/Contents/MacOS/gzdoom'),
       enemyCache = {},
-      wallCache = {},
-      bookmarks = [];
+      wallCache = {};
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();
@@ -86,7 +86,7 @@ proc.stdout.on('data', (data) => {
                 break;
             case 'bookmark':
                 packet.pos = doomToPantoCoord(packet.pos);
-                bookmarks.push(packet);
+                persistent.bookmarks.push(packet);
                 break;
         }
     }
@@ -96,7 +96,7 @@ proc.stdout.on('data', (data) => {
         return;
 
     // Check if the player reached a bookmarked spot
-    for(const bookmark of bookmarks) {
+    for(const bookmark of persistent.bookmarks) {
         const dist = player.pos.difference(bookmark.pos).length(),
               radius = bookmark.radius * ((bookmark.active) ? 1.1 : 1.0);
         if(dist > radius) {
@@ -104,8 +104,15 @@ proc.stdout.on('data', (data) => {
             continue;
         }
         // Rising edge detection
-        if(!bookmark.active)
+        if(!bookmark.active) {
             console.log('Bookmark:', bookmark.name, bookmark.tic, player.tic);
+            say.speak(bookmark.name, 'Alex', 1.0, (err) => {
+                if(err) {
+                    console.error(err);
+                    return;
+                }
+            });
+        }
         bookmark.tic = player.tic;
         bookmark.active = true;
     }
@@ -155,5 +162,7 @@ proc.on('exit', (code) => {
     // Release motors
     movePantoTo(0);
     movePantoTo(1);
+    // Save persistent
+    fs.writeFileSync('persistent.json', JSON.stringify(persistent));
     process.exit(code);
 });
