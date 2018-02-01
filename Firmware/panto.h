@@ -6,7 +6,7 @@
 #define PWM_MAX 4095 // (2^12)-1
 
 Encoder* encoder[dofCount];
-float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount], pidFactor[3] = { 15.0, 0.0, 0.0 };
+float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount], pidFactor[3] = { 5.0, 0.0, 0.0 };
 
 struct Panto {
   unsigned char dofIndex;
@@ -64,13 +64,13 @@ struct Panto {
     target = Vector2D(NAN, NAN);
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
       actuationAngle[i] *= 2.0 * M_PI;
-      destinationAngle[i] = actuationAngle[i];
+      destinationAngle[i] = NAN;
       previousDiff[i] = 0.0;
       integral[i] = 0.0;
       // pinMode(encoderIndexPin[i], INPUT); // TODO
+      digitalWrite(motorPwmPin[i], LOW);
       pinMode(motorDirPin[i], OUTPUT);
       pinMode(motorPwmPin[i], OUTPUT);
-      digitalWrite(motorPwmPin[i], LOW);
       encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
       encoder[i]->write(actuationAngle[i] / (2.0 * M_PI) * encoderSteps[i] * ((encoderFlipped[i]) ? -1 : 1));
     }
@@ -106,7 +106,6 @@ struct Panto {
       float derivative = (error - previousDiff[i]) / dt,
             voltage = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
       previousDiff[i] = error;
-      error = 0.2;
       analogWrite(motorPwmPin[i], min(voltage, OUTPUT_POWER_LIMIT) * PWM_MAX);
     }
   }
