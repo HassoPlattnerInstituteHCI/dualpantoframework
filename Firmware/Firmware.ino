@@ -17,26 +17,6 @@ void setup() {
 }
 
 void loop() {
-  for(unsigned char i = 0; i < pantoCount; ++i) {
-    pantos[i].readEncoders();
-    pantos[i].forwardKinematics();
-  }
-
-  // Send encoder angles
-  // TODO: Send configHash
-  outChecksum = 0;
-  SerialUSB.write("SYNC");
-  SerialUSB.write(sizeof(Number32)*3*pantoCount);
-  for(unsigned char i = 0; i < pantoCount; ++i) {
-    sendNumber32(pantos[i].handle.x);
-    sendNumber32(pantos[i].handle.y);
-    // sendNumber32(destinationAngle[i*3+0]);
-    // sendNumber32(destinationAngle[i*3+1]);
-    sendNumber32(pantos[i].pointingAngle);
-  }
-  SerialUSB.write(outChecksum);
-  SerialUSB.flush();
-
   // Receive motor commands
   const unsigned char expectedPayloadLength = sizeof(Number32)*3+1;
   while(SerialUSB.available() >= 6+expectedPayloadLength) {
@@ -62,6 +42,23 @@ void loop() {
       }
     }
   }
+  
+  for(unsigned char i = 0; i < pantoCount; ++i) {
+    pantos[i].readEncoders();
+    pantos[i].forwardKinematics();
+  }
+
+  // Send encoder angles
+  // TODO: Send configHash
+  outChecksum = 0;
+  SerialUSB.write("SYNC");
+  SerialUSB.write(sizeof(Number32)*(3*pantoCount));
+  for(unsigned char i = 0; i < pantoCount; ++i) {
+    sendNumber32(pantos[i].handle.x);
+    sendNumber32(pantos[i].handle.y);
+    sendNumber32(pantos[i].pointingAngle);
+  }
+  SerialUSB.write(outChecksum);
 
   unsigned long now = micros();
   dt = now-prevTime;
