@@ -50,7 +50,7 @@ function pantoToDoomCoord(pos) {
 
 const proc = child_process.spawn('../gzdoom.app/Contents/MacOS/gzdoom'),
       enemyCache = {},
-      wallCache = {};
+      collisionCache = {};
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();
@@ -72,7 +72,11 @@ proc.stdout.on('data', (data) => {
             case 'wall':
                 packet.begin = doomToPantoCoord(packet.begin);
                 packet.end = doomToPantoCoord(packet.end);
-                wallCache[packet.id] = packet;
+                collisionCache[packet.id] = packet;
+                break;
+            case 'collision':
+                packet.pos = doomToPantoCoord(packet.pos);
+                collisionCache[packet.id] = packet;
                 break;
             case 'enemy':
                 packet.pos = doomToPantoCoord(packet.pos);
@@ -82,6 +86,8 @@ proc.stdout.on('data', (data) => {
                 delete enemyCache[packet.id];
                 break;
             case 'spawn':
+            case 'weaponchange':
+                console.log(packet);
                 // TODO
                 break;
             case 'bookmark':
@@ -117,19 +123,25 @@ proc.stdout.on('data', (data) => {
         bookmark.active = true;
     }
 
-    // Render haptics of wall collisions
+    // Render haptics of collisions
     const force = new Vector(0, 0);
-    for(const id in wallCache) {
-        const wall = wallCache[id],
-              tangent = wall.begin.difference(wall.end),
-              normal = new Vector(-tangent.y, tangent.x).normalized(),
-              distance = wall.begin.difference(player.pos).dot(normal);
-        let penetration = wall.begin.difference(upperPanto).dot(normal);
-        if(distance > 0)
-            penetration *= -1;
+    for(const id in collisionCache) {
+        const collision = collisionCache[id];
+        let normal, penetration;
+        if(collision.type == 'wall') {
+            const tangent = collision.begin.difference(collision.end);
+            normal = new Vector(-tangent.y, tangent.x).normalized();
+            const distance = collision.begin.difference(player.pos).dot(normal);
+            penetration = collision.begin.difference(upperPanto).dot(normal);
+            if(distance > 0)
+                penetration *= -1;
+        } else {
+            normal = player.pos.difference(collision.pos).normalized();
+            penetration = collision.pos.difference(upperPanto).dot(normal);
+        }
         if(penetration > 2)
             force.add(normal.scaled(0.2*penetration));
-        delete wallCache[id];
+        delete collisionCache[id];
     }
     // Calculate movement speed limit
     const dist = player.pos.difference(upperPanto).length(),
