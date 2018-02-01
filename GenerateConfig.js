@@ -1,4 +1,4 @@
-const input = require('./'+process.argv[2]+'.json'),
+const input = require('./Hardware/'+process.argv[2]+'.json'),
       fs = require('fs'),
       crypto = require('crypto'),
       hash = crypto.createHash('md5').update(JSON.stringify(input)).digest(),
@@ -68,4 +68,4 @@ float actuationAngle[] = {
 };*/
 
 console.log(output);
-fs.writeFileSync('./config.h', output);
+fs.writeFileSync('Firmware/config.h', output);
