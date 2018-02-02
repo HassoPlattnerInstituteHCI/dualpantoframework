@@ -5,6 +5,7 @@
     "opMinDist": 65,
     "opMaxDist": 210,
     "opAngle": 2.2,
+    "powerLimit": 0.2,
     "pantos": {
         "upper": {
             "left": {

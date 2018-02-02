@@ -9,10 +9,11 @@ void setup() {
   // https://forum.arduino.cc/index.php?topic=367154.0
   // http://playground.arduino.cc/Main/TimerPWMCheatsheet
 
-  for(unsigned char i = 0; i < pantoCount; ++i) {
+  for(unsigned char i = 0; i < pantoCount; ++i)
     pantos[i].setup(i);
-    pantos[i].calibration();
-  }
+  delay(1000);
+  for(unsigned char i = 0; i < pantoCount; ++i)
+    pantos[i].calibrationEnd();
   prevTime = micros();
 }
 

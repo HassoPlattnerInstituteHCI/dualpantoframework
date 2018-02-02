@@ -2,7 +2,6 @@
 #include "config.h"
 #include "utils.h"
 
-#define OUTPUT_POWER_LIMIT 0.2 // 20%
 #define PWM_MAX 4095 // (2^12)-1
 
 Encoder* encoder[dofCount];
@@ -67,17 +66,26 @@ struct Panto {
       destinationAngle[i] = NAN;
       previousDiff[i] = 0.0;
       integral[i] = 0.0;
+      encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
       // pinMode(encoderIndexPin[i], INPUT); // TODO
-      digitalWrite(motorPwmPin[i], LOW);
       pinMode(motorDirPin[i], OUTPUT);
       pinMode(motorPwmPin[i], OUTPUT);
-      encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
-      encoder[i]->write(actuationAngle[i] / (2.0 * M_PI) * encoderSteps[i] * ((encoderFlipped[i]) ? -1 : 1));
+
+      // TODO: Calibration
+      bool dir = (i % 3 == 0);
+      if(motorFlipped[i])
+        dir = !dir;
+      digitalWrite(motorDirPin[i], dir);
+      analogWrite(motorPwmPin[i], 0.1 * PWM_MAX);
     }
   }
 
-  void calibration() {
-    // TODO: Use encoder index pin and actuate the motors to reach it
+  // TODO: Use encoder index pin and actuate the motors to reach it
+  void calibrationEnd() {
+    for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
+      digitalWrite(motorPwmPin[i], LOW);
+      encoder[i]->write(actuationAngle[i] / (2.0 * M_PI) * encoderSteps[i] * ((encoderFlipped[i]) ? -1 : 1));
+    }
   }
 
   void readEncoders() {
@@ -106,7 +114,7 @@ struct Panto {
       float derivative = (error - previousDiff[i]) / dt,
             voltage = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
       previousDiff[i] = error;
-      analogWrite(motorPwmPin[i], min(voltage, OUTPUT_POWER_LIMIT) * PWM_MAX);
+      analogWrite(motorPwmPin[i], min(voltage, powerLimit) * PWM_MAX);
     }
   }
 } pantos[pantoCount];
