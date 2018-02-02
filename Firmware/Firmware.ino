@@ -1,6 +1,6 @@
 #include "panto.h"
 
-unsigned long prevTime;
+unsigned long prevTime, heartbeatCountdown = 0;
 
 void setup() {
   SerialUSB.begin(115200);
@@ -14,6 +14,7 @@ void setup() {
   delay(1000);
   for(unsigned char i = 0; i < pantoCount; ++i)
     pantos[i].calibrationEnd();
+  
   prevTime = micros();
 }
 
@@ -49,8 +50,19 @@ void loop() {
     pantos[i].forwardKinematics();
   }
 
+  // Send config hash
+  if(heartbeatCountdown-- == 0) {
+    heartbeatCountdown = 1024;
+    outChecksum = 0;
+    SerialUSB.write("SYNC");
+    SerialUSB.write(sizeof(configHash));
+    SerialUSB.write(configHash, sizeof(configHash));
+    for(unsigned char i = 0; i < sizeof(configHash); ++i)
+      outChecksum ^= configHash[i];
+    SerialUSB.write(outChecksum);
+  }
+
   // Send encoder angles
-  // TODO: Send configHash
   outChecksum = 0;
   SerialUSB.write("SYNC");
   SerialUSB.write(sizeof(Number32)*(3*pantoCount));

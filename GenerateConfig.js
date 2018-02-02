@@ -38,7 +38,6 @@ const float baseDist = ${input.baseDist},
             opAngle = ${input.opAngle},
             powerLimit = ${input.powerLimit};
 const unsigned char pantoCount = ${pantoCount};
-const unsigned char dofCount = ${aggregates['encoder_steps'].length};
 const unsigned char motorPwmPin[] = {
     ${aggregates['motor_pwmPin'].join(', ')}
 };

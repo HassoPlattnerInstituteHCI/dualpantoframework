@@ -4,6 +4,7 @@
 
 #define PWM_MAX 4095 // (2^12)-1
 
+const unsigned char dofCount = pantoCount*3;
 Encoder* encoder[dofCount];
 float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount], pidFactor[3] = { 5.0, 0.0, 0.0 };
 

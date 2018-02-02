@@ -17,10 +17,13 @@ function serialRecv() {
     const packets = serial.poll();
     if(packets.length == 0)
         return;
+    const packet = packets[packets.length-1];
+    if(packet.length != 4*6)
+        return;
 
     const values = [];
     for(let i = 0; i < 6; ++i)
-        values[i] = packets[packets.length-1].readFloatLE(i*4);
+        values[i] = packet.readFloatLE(i*4);
     upperPanto = new Vector(values[0], values[1], values[2]);
     lowerPanto = new Vector(values[3], values[4], values[5]);
 }
