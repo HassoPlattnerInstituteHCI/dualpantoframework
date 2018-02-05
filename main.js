@@ -5,13 +5,13 @@ const child_process = require('child_process'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
-      persistent = JSON.parse(fs.readFileSync('persistent.json'));
+      config = JSON.parse(fs.readFileSync('config.json')),
+      persistent = JSON.parse(fs.readFileSync('persistent.json')); // TODO: Initalize
 const origin = new Vector(1500, -1000),
       scale = 20;
 let upperPanto, lowerPanto;
 
-if(process.argv.length === 3)
-    serial.open(process.argv[2]);
+serial.open(config.serialDevicePath);
 function serialRecv() {
     setImmediate(serialRecv);
     const packets = serial.poll();
@@ -51,7 +51,7 @@ function pantoToDoomCoord(pos) {
     ];
 }
 
-const proc = child_process.spawn('../gzdoom.app/Contents/MacOS/gzdoom'),
+const proc = child_process.spawn(config.doomExecutablePath),
       enemyCache = {},
       collisionCache = {};
 proc.stdout.on('data', (data) => {
