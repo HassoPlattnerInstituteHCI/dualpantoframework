@@ -3,3 +3,5 @@ build/
 node_modules/
 package-lock.json
 Firmware/*config.h
+config.json
+persistent.json
