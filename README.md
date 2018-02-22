@@ -16,7 +16,8 @@
 
 
 
-## Configuration Files
+## Node
+use node version 9.5.0
 
 ### gzdoom.ini
 - Mac OS: ~/Library/Preferences/gzdoom.ini
