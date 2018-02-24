@@ -31,6 +31,18 @@ let upperPanto, lowerPanto;
 const DEBUG_WITHOUT_SERIAL = true;
 var SERIAL_EXISTS = true;
 
+
+//**********************
+// SIGHT SURVEY MECHANICS
+//**********************
+
+// Trigger management for sight survey
+var last_N_bookmarks = []; //finite buffer of bookmark names encountered
+var last_N_bookmarks_length = 5; //size of buffer of bookmark names encountered
+var bookmark_triggers = {}; //hashmap: [""] -> function, where keys are lists of last bookmark names to compare against, and functions are callbacks
+
+
+
 //**********************
 // SERIAL COMMUNICATION
 //**********************
@@ -155,6 +167,12 @@ proc.stdout.on('data', (data) => {
         // Rising edge detection
         if(!bookmark.active) {
             console.log('Bookmark:', bookmark.name, bookmark.tic, player.tic);
+            //update last N bookmarks
+            last_N_bookmarks.push(bookmark.name); 
+            last_N_bookmarks = last_N_bookmarks.slice(-last_N_bookmarks_length); //maintain buffer size
+            console.log('last_N_bookmarks:', last_N_bookmarks);
+
+            //TODO: switch this with trigger callback
             say.speak(bookmark.name, 'Alex', 1.0, (err) => {
                 if(err) {
                     console.error(err);
