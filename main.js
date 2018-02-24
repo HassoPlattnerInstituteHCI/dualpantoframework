@@ -31,6 +31,22 @@ let upperPanto, lowerPanto;
 const DEBUG_WITHOUT_SERIAL = true;
 var SERIAL_EXISTS = true;
 
+//**********************
+// UTIL (todo: move to different file)
+//**********************
+var first_then_after = (function(function1, function2) {
+    var first = true;
+    
+    return (function() {
+      if (first)
+      {
+        first = false;
+        function1();
+      } else {
+        function2();
+      }
+    })
+  });
 
 //**********************
 // SIGHT SURVEY MECHANICS
@@ -45,14 +61,26 @@ function add_bookmark_trigger(key, fn) {
     bookmark_triggers[String(key)] = fn;
 }
 
-//tests for triggers (DEBUG)
-add_bookmark_trigger(["test"], function() {
-    console.log("test function! :)");
-});
+var speaktext = ( (txt) => say.speak(txt, 'Alex', 1.0, (err) => {
+    if(err) {
+        console.error(err);
+        return;
+    }
+}));
 
-add_bookmark_trigger(["test","exit hall to armory"], function() {
-    console.log("test -> exit hall called! :D");
-});
+
+
+add_bookmark_trigger(["exit hall to armory", "ENTER ARMORY"],first_then_after(
+        ()=> {
+            speaktext("This is the armory. Stairs lead to armor here and here.");
+        },
+        ()=> {speaktext("Armory")}
+));
+
+add_bookmark_trigger(["ENTER ARMORY","exit hall to armory"],first_then_after(
+    ()=> {speaktext("Welcome back to the hall. Let's try some target practice.")},
+    ()=> {speaktext("Hall")}
+));
 
 
 //**********************
@@ -192,14 +220,6 @@ proc.stdout.on('data', (data) => {
                     bookmark_triggers[trigger_key]();
                 }
             }
-          
-            //DEBUG: remove later, when this is in the trigger function
-            say.speak(bookmark.name, 'Alex', 1.0, (err) => {
-                if(err) {
-                    console.error(err);
-                    return;
-                }
-            });
         }
         bookmark.tic = player.tic;
         bookmark.active = true;
