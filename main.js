@@ -11,7 +11,21 @@ const origin = new Vector(1500, -1000),
       scale = 20;
 let upperPanto, lowerPanto;
 
-serial.open(config.serialDevicePath);
+
+//Debugging without serial
+const DEBUG_WITHOUT_SERIAL = true;
+var SERIAL_EXISTS = true;
+
+try{
+	serial.open(config.serialDevicePath);
+} catch (e) {
+    console.log("ERROR: No serial port attached.");
+    if (DEBUG_WITHOUT_SERIAL)
+    {
+        console.log("DEBUG: DEBUG_WITHOUT_SERIALis true, so running with SERIAL_EXISTS=false.");
+        SERIAL_EXISTS = false;
+    }
+}
 function serialRecv() {
     setImmediate(serialRecv);
     const packets = serial.poll();
@@ -27,7 +41,10 @@ function serialRecv() {
     upperPanto = new Vector(values[0], values[1], values[2]);
     lowerPanto = new Vector(values[3], values[4], values[5]);
 }
+if (SERIAL_EXISTS)
+{
 serialRecv();
+}
 
 function movePantoTo(index, target) {
     const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
@@ -69,8 +86,13 @@ proc.stdout.on('data', (data) => {
                 packet.pos = doomToPantoCoord(packet.pos);
                 player = packet;
                 // Send controls to DOOM
-                if(upperPanto)
-                    proc.stdin.write(pantoToDoomCoord(upperPanto).join(' ')+'\n');
+                if(SERIAL_EXISTS)
+                {
+                    if(upperPanto)
+                        proc.stdin.write(pantoToDoomCoord(upperPanto).join(' ')+'\n');
+                } else {
+                    proc.stdin.write(pantoToDoomCoord(packet.pos).join(' ')+'\n');
+                }
                 break;
             case 'wall':
                 packet.begin = doomToPantoCoord(packet.begin);
@@ -127,6 +149,8 @@ proc.stdout.on('data', (data) => {
     }
 
     // Render haptics of collisions
+    if (SERIAL_EXISTS)
+{
     const force = new Vector(0, 0);
     for(const id in collisionCache) {
         const collision = collisionCache[id];
@@ -168,6 +192,7 @@ proc.stdout.on('data', (data) => {
     });
     // Render POI to lower panto (IT-Handle)
     movePantoTo(1, (poi.length > 0) ? poi[0].pos : undefined);
+}
 });
 proc.stderr.on('error', (err) => {
     console.log(`error: ${err}`);
