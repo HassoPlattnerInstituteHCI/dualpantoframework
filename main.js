@@ -38,9 +38,21 @@ var SERIAL_EXISTS = true;
 
 // Trigger management for sight survey
 var last_N_bookmarks = []; //finite buffer of bookmark names encountered
-var last_N_bookmarks_length = 5; //size of buffer of bookmark names encountered
+var last_N_bookmarks_length = 2; //size of buffer of bookmark names encountered
+//NOTE: right now we only care about one and two bookmark combinations
 var bookmark_triggers = {}; //hashmap: [""] -> function, where keys are lists of last bookmark names to compare against, and functions are callbacks
+function add_bookmark_trigger(key, fn) {
+    bookmark_triggers[String(key)] = fn;
+}
 
+//tests for triggers (DEBUG)
+add_bookmark_trigger(["test"], function() {
+    console.log("test function! :)");
+});
+
+add_bookmark_trigger(["test","exit hall to armory"], function() {
+    console.log("test -> exit hall called! :D");
+});
 
 
 //**********************
@@ -170,9 +182,18 @@ proc.stdout.on('data', (data) => {
             //update last N bookmarks
             last_N_bookmarks.push(bookmark.name); 
             last_N_bookmarks = last_N_bookmarks.slice(-last_N_bookmarks_length); //maintain buffer size
-            console.log('last_N_bookmarks:', last_N_bookmarks);
 
-            //TODO: switch this with trigger callback
+            //call all triggers from encountered bookmark
+            for (var i_bookmarksize = 1; i_bookmarksize <= last_N_bookmarks.length; i_bookmarksize++)
+            {
+                var trigger_key = String(last_N_bookmarks.slice(-i_bookmarksize));
+                if (trigger_key in bookmark_triggers)
+                {
+                    bookmark_triggers[trigger_key]();
+                }
+            }
+          
+            //DEBUG: remove later, when this is in the trigger function
             say.speak(bookmark.name, 'Alex', 1.0, (err) => {
                 if(err) {
                     console.error(err);
