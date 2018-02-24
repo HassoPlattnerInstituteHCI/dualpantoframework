@@ -1,3 +1,7 @@
+//**********************
+// REQUIRE
+//**********************
+
 const child_process = require('child_process'),
       fs = require('fs'),
       path = require('path'),
@@ -7,15 +11,29 @@ const child_process = require('child_process'),
       Vector = require('./Vector.js'),
       config = JSON.parse(fs.readFileSync('config.json')),
       persistent = JSON.parse(fs.readFileSync('persistent.json')); // TODO: Initalize
+
+//**********************
+// DOOM CONSTANTS
+//**********************
 const origin = new Vector(1500, -1000),
       scale = 20;
+
+//**********************
+// PANTO
+//**********************
 let upperPanto, lowerPanto;
 
+//**********************
+// DEBUG
+//**********************
 
-//Debugging without serial
+// Debugging without serial
 const DEBUG_WITHOUT_SERIAL = true;
 var SERIAL_EXISTS = true;
 
+//**********************
+// SERIAL COMMUNICATION
+//**********************
 try{
 	serial.open(config.serialDevicePath);
 } catch (e) {
