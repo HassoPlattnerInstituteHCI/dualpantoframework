@@ -46,11 +46,11 @@ const float baseDist = ${input.baseDist},
             opAngle = ${input.opAngle},
             powerLimit = ${input.powerLimit};
 const unsigned char pantoCount = ${pantoCount};
-const float linkageInnerDist[] = {
-    ${aggregate('linkage_innerDist')}
+const float linkageInnerLength[] = {
+    ${aggregate('linkage_innerLength')}
 };
-const float linkageOuterDist[] = {
-    ${aggregate('linkage_outerDist')}
+const float linkageOuterLength[] = {
+    ${aggregate('linkage_outerLength')}
 };
 const unsigned char motorPwmPin[] = {
     ${aggregate('motor_pwmPin')}
