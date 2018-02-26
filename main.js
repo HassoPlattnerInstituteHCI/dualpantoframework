@@ -9,6 +9,7 @@ const child_process = require('child_process'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
+      DoomTutorial = require('./DoomTutorial.js')
       config = JSON.parse(fs.readFileSync('config.json')),
       persistent = JSON.parse(fs.readFileSync('persistent.json')); // TODO: Initalize
 
@@ -32,55 +33,9 @@ const DEBUG_WITHOUT_SERIAL = true;
 var SERIAL_EXISTS = true;
 
 //**********************
-// UTIL (todo: move to different file)
+// tutorial
 //**********************
-var first_then_after = (function(function1, function2) {
-    var first = true;
-    
-    return (function() {
-      if (first)
-      {
-        first = false;
-        function1();
-      } else {
-        function2();
-      }
-    })
-  });
-
-//**********************
-// SIGHT SURVEY MECHANICS
-//**********************
-
-// Trigger management for sight survey
-var last_N_bookmarks = []; //finite buffer of bookmark names encountered
-var last_N_bookmarks_length = 2; //size of buffer of bookmark names encountered
-//NOTE: right now we only care about one and two bookmark combinations
-var bookmark_triggers = {}; //hashmap: [""] -> function, where keys are lists of last bookmark names to compare against, and functions are callbacks
-function add_bookmark_trigger(key, fn) {
-    bookmark_triggers[String(key)] = fn;
-}
-
-var speaktext = ( (txt) => say.speak(txt, 'Alex', 1.0, (err) => {
-    if(err) {
-        console.error(err);
-        return;
-    }
-}));
-
-
-
-add_bookmark_trigger(["exit hall to armory", "ENTER ARMORY"],first_then_after(
-        ()=> {
-            speaktext("This is the armory. Stairs lead to armor here and here.");
-        },
-        ()=> {speaktext("Armory")}
-));
-
-add_bookmark_trigger(["ENTER ARMORY","exit hall to armory"],first_then_after(
-    ()=> {speaktext("Welcome back to the hall. Let's try some target practice.")},
-    ()=> {speaktext("Hall")}
-));
+const doomTutorial = new DoomTutorial();
 
 
 //**********************
@@ -207,19 +162,7 @@ proc.stdout.on('data', (data) => {
         // Rising edge detection
         if(!bookmark.active) {
             console.log('Bookmark:', bookmark.name, bookmark.tic, player.tic);
-            //update last N bookmarks
-            last_N_bookmarks.push(bookmark.name); 
-            last_N_bookmarks = last_N_bookmarks.slice(-last_N_bookmarks_length); //maintain buffer size
-
-            //call all triggers from encountered bookmark
-            for (var i_bookmarksize = 1; i_bookmarksize <= last_N_bookmarks.length; i_bookmarksize++)
-            {
-                var trigger_key = String(last_N_bookmarks.slice(-i_bookmarksize));
-                if (trigger_key in bookmark_triggers)
-                {
-                    bookmark_triggers[trigger_key]();
-                }
-            }
+            doomTutorial.handleBookmark(bookmark.name);
         }
         bookmark.tic = player.tic;
         bookmark.active = true;
