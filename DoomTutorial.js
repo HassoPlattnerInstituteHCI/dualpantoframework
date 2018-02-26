@@ -39,6 +39,8 @@ class DoomTutorial {
 
         this.doomProcess = null;
 
+        this.firstHandlePlayer=true;
+
         this.initializeTestTutorial();
     }
     
@@ -49,6 +51,20 @@ class DoomTutorial {
 
     addBookmarkTrigger(key, fn) {
         this.bookmark_triggers[String(key)] = fn;
+    }
+
+
+    
+    //handles player update on every tic - currently used for startup
+    handlePlayer(player) {
+        if(this.firstHandlePlayer)
+        {
+            this.pauseDoom();
+            this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
+            .then(()=> this.resumeDoom());
+            this.firstHandlePlayer = false;
+        }
+        
     }
 
     handleBookmark(bookmarkName) {
