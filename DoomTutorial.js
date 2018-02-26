@@ -38,6 +38,7 @@ class DoomTutorial {
         this.bookmark_triggers = {}; 
 
         this.doomProcess = null;
+        this.movePantoFunction = function(a,b) {console.log("ERROR: MovePantoFunction not set");};
 
 
         this.initializeTestTutorial();
@@ -48,14 +49,25 @@ class DoomTutorial {
         this.doomProcess = newDoomProcess;
     }
 
+    setMovePantoFunction(movePanto_fn)
+    {
+        this.movePantoFunction = movePanto_fn;
+    }
+
     addBookmarkTrigger(key, fn) {
         this.bookmark_triggers[String(key)] = fn;
     }
 
 
-    handlePlayerSpawn() {
+    handlePlayerSpawn(spawnpacket) {
+            console.log(spawnpacket); //dev + debug
+            var playerX = spawnpacket.pos[0];
+            var playerY = spawnpacket.pos[1];
+
             this.pauseDoom();
             this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
+            .then(() => this.speakText("You are currently here."))
+            .then( () => this.movePantoFunction(0, [playerX,playerX,NaN]))
             .then(()=> this.resumeDoom());
     }
 

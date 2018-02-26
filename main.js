@@ -96,6 +96,7 @@ const proc = child_process.spawn(config.doomExecutablePath),
       enemyCache = {},
       collisionCache = {};
 doomTutorial.setDoomProcess(proc);
+doomTutorial.setMovePantoFunction(movePantoTo);
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();
@@ -138,7 +139,7 @@ proc.stdout.on('data', (data) => {
             case 'spawn':
                 if(packet.class === "DoomPlayer")
                 {
-                    doomTutorial.handlePlayerSpawn();
+                    doomTutorial.handlePlayerSpawn(packet);
                 }
                 break;
             case 'weaponchange':
