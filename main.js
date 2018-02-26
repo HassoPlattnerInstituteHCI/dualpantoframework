@@ -46,7 +46,7 @@ try{
     console.log("ERROR: No serial port attached.");
     if (DEBUG_WITHOUT_SERIAL)
     {
-        console.log("DEBUG: DEBUG_WITHOUT_SERIALis true, so running with SERIAL_EXISTS=false.");
+        console.log("DEBUG: DEBUG_WITHOUT_SERIAL is true, so running with SERIAL_EXISTS=false.");
         SERIAL_EXISTS = false;
     }
 }
