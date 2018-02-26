@@ -19,12 +19,11 @@ struct Panto {
   }
 
   void forwardKinematics() {
-    inner[0] = base[0]+Vector2D::fromPolar(actuationAngle[dofIndex+0], linkageInnerDist[dofIndex+0]);
-    inner[1] = base[1]+Vector2D::fromPolar(actuationAngle[dofIndex+1], linkageInnerDist[dofIndex+1]);
+    inner[0] = base[0]+Vector2D::fromPolar(actuationAngle[dofIndex+0], linkageInnerLength[dofIndex+0]);
+    inner[1] = base[1]+Vector2D::fromPolar(actuationAngle[dofIndex+1], linkageInnerLength[dofIndex+1]);
     Vector2D diagonal = inner[1]-inner[0];
-    // TODO: Asymmetric linkage lengths
-    innerAngle[0] = diagonal.angle()-acos(diagonal.length()*0.5/linkageOuterDist[dofIndex+0]);
-    handle = Vector2D::fromPolar(innerAngle[0], linkageOuterDist[dofIndex+0])+inner[0];
+    innerAngle[0] = diagonal.angle()-acos(diagonal.length()/(linkageOuterLength[dofIndex+0]+linkageOuterLength[dofIndex+1]));
+    handle = Vector2D::fromPolar(innerAngle[0], linkageOuterLength[dofIndex+0])+inner[0];
     innerAngle[1] = (handle-inner[1]).angle();
     pointingAngle = actuationAngle[dofIndex+2]+innerAngle[1];
   }
