@@ -57,7 +57,6 @@ class DoomTutorial {
             this.pauseDoom();
             this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
             .then(()=> this.resumeDoom());
-            this.firstHandlePlayer = false;
     }
 
     handleBookmark(bookmarkName) {
