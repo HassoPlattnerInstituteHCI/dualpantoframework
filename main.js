@@ -139,6 +139,7 @@ proc.stdout.on('data', (data) => {
             case 'spawn':
                 if(packet.class === "DoomPlayer")
                 {
+                    packet.pos = doomToPantoCoord(packet.pos);
                     doomTutorial.handlePlayerSpawn(packet);
                 }
                 break;

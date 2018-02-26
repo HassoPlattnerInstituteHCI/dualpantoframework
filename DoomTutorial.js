@@ -2,7 +2,6 @@
 
 const say = require('say-promise');
 
-
 //**********************
 // UTIL (todo: move to different file)
 //**********************
@@ -61,13 +60,14 @@ class DoomTutorial {
 
     handlePlayerSpawn(spawnpacket) {
             console.log(spawnpacket); //dev + debug
-            var playerX = spawnpacket.pos[0];
-            var playerY = spawnpacket.pos[1];
-
+            
             this.pauseDoom();
             this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
+            .then(() => this.waitMS(1000))
             .then(() => this.speakText("You are currently here."))
-            .then( () => this.movePantoFunction(0, [playerX,playerX,NaN]))
+            .then(() => this.movePantoFunction(0, spawnpacket.pos))
+            .then(() => this.waitMS(1000))
+            .then(() => this.speakText("good luck!"))
             .then(()=> this.resumeDoom());
     }
 
@@ -94,6 +94,10 @@ class DoomTutorial {
                 return;
             }
         });
+    }
+
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     setDoomPause(b)
