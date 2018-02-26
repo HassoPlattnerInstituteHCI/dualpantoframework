@@ -19,11 +19,12 @@ struct Panto {
   }
 
   void forwardKinematics() {
-    inner[0] = base[0]+Vector2D::fromPolar(actuationAngle[dofIndex+0], innerDist);
-    inner[1] = base[1]+Vector2D::fromPolar(actuationAngle[dofIndex+1], innerDist);
+    inner[0] = base[0]+Vector2D::fromPolar(actuationAngle[dofIndex+0], linkageInnerDist[dofIndex+0]);
+    inner[1] = base[1]+Vector2D::fromPolar(actuationAngle[dofIndex+1], linkageInnerDist[dofIndex+1]);
     Vector2D diagonal = inner[1]-inner[0];
-    innerAngle[0] = diagonal.angle()-acos(diagonal.length()*0.5/outerDist);
-    handle = Vector2D::fromPolar(innerAngle[0], outerDist)+inner[0];
+    // TODO: Asymmetric linkage lengths
+    innerAngle[0] = diagonal.angle()-acos(diagonal.length()*0.5/linkageOuterDist[dofIndex+0]);
+    handle = Vector2D::fromPolar(innerAngle[0], linkageOuterDist[dofIndex+0])+inner[0];
     innerAngle[1] = (handle-inner[1]).angle();
     pointingAngle = actuationAngle[dofIndex+2]+innerAngle[1];
   }
@@ -59,6 +60,13 @@ struct Panto {
     actuationAngle[dofIndex+1] = savedActuationAngle[dofIndex+1];
   }
 
+  void setMotor(unsigned char i, bool dir, float power) {
+    digitalWrite(motorDirAPin[i], dir);
+    if(motorDirBPin[i])
+      digitalWrite(motorDirBPin[i], !dir);
+    analogWrite(motorPwmPin[i], min(power, powerLimit) * PWM_MAX);
+  }
+
   void setup(unsigned char _dofIndex) {
     dofIndex = _dofIndex*3;
     target = Vector2D(NAN, NAN);
@@ -68,16 +76,18 @@ struct Panto {
       previousDiff[i] = 0.0;
       integral[i] = 0.0;
       encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
-      // pinMode(encoderIndexPin[i], INPUT); // TODO
-      pinMode(motorDirPin[i], OUTPUT);
+      if(encoderIndexPin[i])
+        pinMode(encoderIndexPin[i], INPUT);
+      pinMode(motorDirAPin[i], OUTPUT);
+      if(motorDirBPin[i])
+        pinMode(motorDirBPin[i], OUTPUT);
       pinMode(motorPwmPin[i], OUTPUT);
 
       // TODO: Calibration
       bool dir = (i % 3 == 0);
       if(motorFlipped[i])
         dir = !dir;
-      digitalWrite(motorDirPin[i], dir);
-      analogWrite(motorPwmPin[i], 0.1 * PWM_MAX);
+      setMotor(i, dir, 0.1);
     }
   }
 
@@ -107,15 +117,16 @@ struct Panto {
       unsigned char dir = error < 0;
       if(motorFlipped[i])
         dir = !dir;
-      digitalWrite(motorDirPin[i], dir);
+      digitalWrite(motorDirAPin[i], dir);
+      if(motorDirAPin[i])
+        digitalWrite(motorDirBPin[i], !dir);
       error = fabs(error);
 
       // Power: PID
       integral[i] += error * dt;
-      float derivative = (error - previousDiff[i]) / dt,
-            voltage = pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative;
+      float derivative = (error - previousDiff[i]) / dt;
       previousDiff[i] = error;
-      analogWrite(motorPwmPin[i], min(voltage, powerLimit) * PWM_MAX);
+      setMotor(i, dir, pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative);
     }
   }
 } pantos[pantoCount];
