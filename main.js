@@ -110,7 +110,6 @@ proc.stdout.on('data', (data) => {
             case 'player':
                 packet.pos = doomToPantoCoord(packet.pos);
                 player = packet;
-                doomTutorial.handlePlayer(player);
                 // Send controls to DOOM
                 if(SERIAL_EXISTS)
                 {
@@ -137,6 +136,11 @@ proc.stdout.on('data', (data) => {
                 delete enemyCache[packet.id];
                 break;
             case 'spawn':
+                if(packet.class === "DoomPlayer")
+                {
+                    doomTutorial.handlePlayerSpawn();
+                }
+                break;
             case 'weaponchange':
                 console.log(packet);
                 // TODO

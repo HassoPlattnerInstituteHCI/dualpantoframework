@@ -39,7 +39,6 @@ class DoomTutorial {
 
         this.doomProcess = null;
 
-        this.firstHandlePlayer=true;
 
         this.initializeTestTutorial();
     }
@@ -54,17 +53,11 @@ class DoomTutorial {
     }
 
 
-    
-    //handles player update on every tic - currently used for startup
-    handlePlayer(player) {
-        if(this.firstHandlePlayer)
-        {
+    handlePlayerSpawn() {
             this.pauseDoom();
             this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
             .then(()=> this.resumeDoom());
             this.firstHandlePlayer = false;
-        }
-        
     }
 
     handleBookmark(bookmarkName) {
@@ -84,7 +77,7 @@ class DoomTutorial {
     }
 
     speakText(txt) {
-        return say.speak(txt, 'Alex', 1.0, (err) => {
+        return say.speak(txt, 'Alex', 2.0, (err) => {
             if(err) {
                 console.error(err);
                 return;
