@@ -5,7 +5,6 @@
 const child_process = require('child_process'),
       fs = require('fs'),
       path = require('path'),
-      say = require('say'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
@@ -96,6 +95,7 @@ function pantoToDoomCoord(pos) {
 const proc = child_process.spawn(config.doomExecutablePath),
       enemyCache = {},
       collisionCache = {};
+doomTutorial.setDoomProcess(proc);
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();

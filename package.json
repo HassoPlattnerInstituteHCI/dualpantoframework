@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "node": "^9.0.0",
-    "say": "^0.14.0"
+    "say": "^0.14.0",
+    "say-promise": "0.0.2"
   }
 }
