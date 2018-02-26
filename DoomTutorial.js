@@ -36,13 +36,16 @@ class DoomTutorial {
         //hashmap: [""] -> function, where keys are lists of last bookmark names to compare against, and functions are callbacks
         this.bookmark_triggers = {}; 
 
+        //todo: put the DoomController into an object, pass to Doom Tutorial, make these functions part of that interface
         this.doomProcess = null;
         this.movePantoFunction = function(a,b) {console.log("ERROR: MovePantoFunction not set");};
+        this.doomToPantoCoordFunction = function(a) {console.log("ERROR: doomToPantoCoordFunction not set");};
 
 
         this.initializeTestTutorial();
     }
     
+    //todo: put the DoomController into an object, pass to Doom Tutorial, make these functions part of that interface
     setDoomProcess(newDoomProcess)
     {
         this.doomProcess = newDoomProcess;
@@ -51,6 +54,11 @@ class DoomTutorial {
     setMovePantoFunction(movePanto_fn)
     {
         this.movePantoFunction = movePanto_fn;
+    }
+
+    setDoomToPantoCoordFunction(new_doomToPantoCoordFunction)
+    {
+        this.doomToPantoCoordFunction = new_doomToPantoCoordFunction;
     }
 
     addBookmarkTrigger(key, fn) {
@@ -63,11 +71,24 @@ class DoomTutorial {
             
             this.pauseDoom();
             this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
-            .then(() => this.waitMS(1000))
+            .then(() => this.waitMS(500))
             .then(() => this.speakText("You are currently here."))
-            .then(() => this.movePantoFunction(0, spawnpacket.pos))
-            .then(() => this.waitMS(1000))
-            .then(() => this.speakText("good luck!"))
+            .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos)))
+            .then(() => this.waitMS(500))
+            .then(() => this.speakText("in the main hall. Let me show you around the room."))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos)))
+            .then(() => this.speakText("If you walk around,"))
+            .then(() => this.speakText("You will find the room is rectangular."))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3500, NaN])))
+            .then(() => this.waitMS(250))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3016, NaN])))
+            .then(() => this.waitMS(250))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3016, NaN])))
+            .then(() => this.waitMS(250))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN])))
+            .then(() => this.waitMS(250))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
+            .then(() => this.speakText("Good luck!"))
             .then(()=> this.resumeDoom());
     }
 

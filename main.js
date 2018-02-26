@@ -95,8 +95,12 @@ function pantoToDoomCoord(pos) {
 const proc = child_process.spawn(config.doomExecutablePath),
       enemyCache = {},
       collisionCache = {};
+
+//TODO: Wrap this controller in an object/interface, pass it to doomTutorial instead of all these functions
 doomTutorial.setDoomProcess(proc);
 doomTutorial.setMovePantoFunction(movePantoTo);
+doomTutorial.setDoomToPantoCoordFunction(doomToPantoCoord);
+
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();
@@ -139,7 +143,6 @@ proc.stdout.on('data', (data) => {
             case 'spawn':
                 if(packet.class === "DoomPlayer")
                 {
-                    packet.pos = doomToPantoCoord(packet.pos);
                     doomTutorial.handlePlayerSpawn(packet);
                 }
                 break;
