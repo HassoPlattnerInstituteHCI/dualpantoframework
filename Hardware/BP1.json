@@ -1,7 +1,5 @@
 {
     "baseDist": 48,
-    "innerDist": 98,
-    "outerDist": 128,
     "opMinDist": 65,
     "opMaxDist": 210,
     "opAngle": 2.2,
@@ -9,9 +7,13 @@
     "pantos": {
         "upper": {
             "left": {
+                "linkage": {
+                    "innerDist": 98,
+                    "outerDist": 128
+                },
                 "motor": {
                     "pwmPin": 9,
-                    "dirPin": 26,
+                    "dirAPin": 26,
                     "flipped": true
                 },
                 "encoder": {
@@ -23,9 +25,13 @@
                 }
             },
             "right": {
+                "linkage": {
+                    "innerDist": 98,
+                    "outerDist": 128
+                },
                 "motor": {
                     "pwmPin": 8,
-                    "dirPin": 22,
+                    "dirAPin": 22,
                     "flipped": true
                 },
                 "encoder": {
@@ -39,7 +45,7 @@
             "handle": {
                 "motor": {
                     "pwmPin": 5,
-                    "dirPin": 38,
+                    "dirAPin": 38,
                     "flipped": true
                 },
                 "encoder": {
@@ -53,9 +59,13 @@
         },
         "lower": {
             "left": {
+                "linkage": {
+                    "innerDist": 98,
+                    "outerDist": 128
+                },
                 "motor": {
                     "pwmPin": 6,
-                    "dirPin": 34,
+                    "dirAPin": 34,
                     "flipped": false
                 },
                 "encoder": {
@@ -67,9 +77,13 @@
                 }
             },
             "right": {
+                "linkage": {
+                    "innerDist": 98,
+                    "outerDist": 128
+                },
                 "motor": {
                     "pwmPin": 7,
-                    "dirPin": 30,
+                    "dirAPin": 30,
                     "flipped": false
                 },
                 "encoder": {
@@ -83,7 +97,7 @@
             "handle": {
                 "motor": {
                     "pwmPin": 4,
-                    "dirPin": 42,
+                    "dirAPin": 42,
                     "flipped": false
                 },
                 "encoder": {

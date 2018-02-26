@@ -28,44 +28,60 @@ for(const pantoName in input.pantos) {
     }
 }
 
+function aggregate(name) {
+    let array = aggregates[name];
+    if(!array)
+        array = [];
+    for(let i = 0; i < index; ++i)
+        if(array[i] == undefined)
+            array[i] = 0;
+    return array.join(', ');
+}
+
 const output =
 `const unsigned char configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
 const float baseDist = ${input.baseDist},
-            innerDist = ${input.innerDist},
-            outerDist = ${input.outerDist},
             opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle},
             powerLimit = ${input.powerLimit};
 const unsigned char pantoCount = ${pantoCount};
-const unsigned char motorPwmPin[] = {
-    ${aggregates['motor_pwmPin'].join(', ')}
+const float linkageInnerDist[] = {
+    ${aggregate('linkage_innerDist')}
 };
-const unsigned char motorDirPin[] = {
-    ${aggregates['motor_dirPin'].join(', ')}
+const float linkageOuterDist[] = {
+    ${aggregate('linkage_outerDist')}
+};
+const unsigned char motorPwmPin[] = {
+    ${aggregate('motor_pwmPin')}
+};
+const unsigned char motorDirAPin[] = {
+    ${aggregate('motor_dirAPin')}
+};
+const unsigned char motorDirBPin[] = {
+    ${aggregate('motor_dirBPin')}
 };
 const bool motorFlipped[] = {
-    ${aggregates['motor_flipped'].join(', ')}
+    ${aggregate('motor_flipped')}
 };
 const unsigned char encoderAPin[] = {
-    ${aggregates['encoder_aPin'].join(', ')}
+    ${aggregate('encoder_aPin')}
 };
 const unsigned char encoderBPin[] = {
-    ${aggregates['encoder_bPin'].join(', ')}
+    ${aggregate('encoder_bPin')}
+};
+const unsigned char encoderIndexPin[] = {
+    ${aggregate('encoder_indexPin')}
 };
 const bool encoderFlipped[] = {
-    ${aggregates['encoder_flipped'].join(', ')}
+    ${aggregate('encoder_flipped')}
 };
 const uint32_t encoderSteps[] = {
-    ${aggregates['encoder_steps'].join(', ')}
+    ${aggregate('encoder_steps')}
 };
 float actuationAngle[] = {
-    ${aggregates['encoder_setup'].join(', ')}
+    ${aggregate('encoder_setup')}
 };`;
-
-/*const unsigned char encoderIndexPin[] = {
-    ${aggregates['encoder_indexPin'].join(', ')}
-};*/
 
 console.log(output);
 fs.writeFileSync('Firmware/config.h', output);
