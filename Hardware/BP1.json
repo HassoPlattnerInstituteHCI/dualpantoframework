@@ -4,6 +4,7 @@
     "opMaxDist": 210,
     "opAngle": 2.2,
     "powerLimit": 0.2,
+    "pidFactor": [5.0, 0.0, 0.0],
     "pantos": {
         "upper": {
             "left": {
@@ -17,9 +18,8 @@
                     "flipped": true
                 },
                 "encoder": {
-                    "aPin": 28,
-                    "bPin": 29,
-                    "flipped": true,
+                    "aPin": 29,
+                    "bPin": 28,
                     "steps": 5540,
                     "setup": -0.5
                 }
@@ -35,9 +35,8 @@
                     "flipped": true
                 },
                 "encoder": {
-                    "aPin": 24,
-                    "bPin": 25,
-                    "flipped": true,
+                    "aPin": 25,
+                    "bPin": 24,
                     "steps": 5540,
                     "setup": 0.0
                 }
@@ -49,9 +48,8 @@
                     "flipped": true
                 },
                 "encoder": {
-                    "aPin": 40,
-                    "bPin": 41,
-                    "flipped": true,
+                    "aPin": 41,
+                    "bPin": 40,
                     "steps": 512,
                     "setup": 0.0
                 }
@@ -71,7 +69,6 @@
                 "encoder": {
                     "aPin": 36,
                     "bPin": 37,
-                    "flipped": false,
                     "steps": 5540,
                     "setup": -0.5
                 }
@@ -89,7 +86,6 @@
                 "encoder": {
                     "aPin": 32,
                     "bPin": 33,
-                    "flipped": false,
                     "steps": 5540,
                     "setup": 0.0
                 }
@@ -101,9 +97,8 @@
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 44,
-                    "bPin": 45,
-                    "flipped": true,
+                    "aPin": 45,
+                    "bPin": 44,
                     "steps": 15360,
                     "setup": 0.0
                 }

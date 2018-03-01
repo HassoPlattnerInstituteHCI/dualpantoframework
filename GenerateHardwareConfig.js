@@ -45,6 +45,7 @@ const float baseDist = ${input.baseDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle},
             powerLimit = ${input.powerLimit};
+float pidFactor[] = {${input.pidFactor.join(', ')}};
 const unsigned char pantoCount = ${pantoCount};
 const float linkageInnerLength[] = {
     ${aggregate('linkage_innerLength')}
@@ -72,9 +73,6 @@ const unsigned char encoderBPin[] = {
 };
 const unsigned char encoderIndexPin[] = {
     ${aggregate('encoder_indexPin')}
-};
-const bool encoderFlipped[] = {
-    ${aggregate('encoder_flipped')}
 };
 const uint32_t encoderSteps[] = {
     ${aggregate('encoder_steps')}
