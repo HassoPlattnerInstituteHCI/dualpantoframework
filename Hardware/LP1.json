@@ -1,0 +1,115 @@
+{
+    "baseDist": 43,
+    "opMinDist": 65,
+    "opMaxDist": 210,
+    "opAngle": 2.2,
+    "powerLimit": 0.2,
+    "pantos": {
+        "upper": {
+            "left": {
+                "linkage": {
+                    "innerLength": 72,
+                    "outerLength": 86
+                },
+                "motor": {
+                    "pwmPin": 2,
+                    "dirAPin": 3,
+                    "dirBPin": 4,
+                    "flipped": true
+                },
+                "encoder": {
+                    "aPin": 10,
+                    "bPin": 11,
+                    "flipped": true,
+                    "steps": 15360,
+                    "setup": -0.5
+                }
+            },
+            "right": {
+                "linkage": {
+                    "innerLength": 55,
+                    "outerLength": 86
+                },
+                "motor": {
+                    "pwmPin": 7,
+                    "dirAPin": 6,
+                    "dirBPin": 5,
+                    "flipped": true
+                },
+                "encoder": {
+                    "aPin": 8,
+                    "bPin": 9,
+                    "flipped": true,
+                    "steps": 15360,
+                    "setup": 0.0
+                }
+            },
+            "handle": {
+                "motor": {
+                    "pwmPin": 40,
+                    "dirAPin": 41,
+                    "flipped": true
+                },
+                "encoder": {
+                    "aPin": 42,
+                    "bPin": 43,
+                    "flipped": true,
+                    "steps": 512,
+                    "setup": 0.0
+                }
+            }
+        },
+        "lower": {
+            "left": {
+                "linkage": {
+                    "innerLength": 98,
+                    "outerLength": 128
+                },
+                "motor": {
+                    "pwmPin": 44,
+                    "dirAPin": 45,
+                    "flipped": false
+                },
+                "encoder": {
+                    "aPin": 46,
+                    "bPin": 47,
+                    "flipped": false,
+                    "steps": 5540,
+                    "setup": -0.5
+                }
+            },
+            "right": {
+                "linkage": {
+                    "innerLength": 98,
+                    "outerLength": 128
+                },
+                "motor": {
+                    "pwmPin": 48,
+                    "dirAPin": 49,
+                    "flipped": false
+                },
+                "encoder": {
+                    "aPin": 50,
+                    "bPin": 51,
+                    "flipped": false,
+                    "steps": 5540,
+                    "setup": 0.0
+                }
+            },
+            "handle": {
+                "motor": {
+                    "pwmPin": 52,
+                    "dirAPin": 53,
+                    "flipped": false
+                },
+                "encoder": {
+                    "aPin": 39,
+                    "bPin": 38,
+                    "flipped": true,
+                    "steps": 15360,
+                    "setup": 0.0
+                }
+            }
+        }
+    }
+}
