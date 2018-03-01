@@ -4,6 +4,7 @@
     "opMaxDist": 210,
     "opAngle": 2.2,
     "powerLimit": 0.2,
+    "pidFactor": [5.0, 0.0, 0.0],
     "pantos": {
         "upper": {
             "left": {
@@ -13,14 +14,13 @@
                 },
                 "motor": {
                     "pwmPin": 2,
-                    "dirAPin": 3,
-                    "dirBPin": 4,
-                    "flipped": true
+                    "dirAPin": 4,
+                    "dirBPin": 3,
+                    "flipped": false
                 },
                 "encoder": {
-                    "aPin": 10,
-                    "bPin": 11,
-                    "flipped": true,
+                    "aPin": 11,
+                    "bPin": 10,
                     "steps": 15360,
                     "setup": -0.5
                 }
@@ -32,28 +32,26 @@
                 },
                 "motor": {
                     "pwmPin": 7,
-                    "dirAPin": 6,
-                    "dirBPin": 5,
-                    "flipped": true
+                    "dirAPin": 5,
+                    "dirBPin": 6,
+                    "flipped": false
                 },
                 "encoder": {
-                    "aPin": 8,
-                    "bPin": 9,
-                    "flipped": true,
+                    "aPin": 9,
+                    "bPin": 8,
                     "steps": 15360,
                     "setup": 0.0
                 }
             },
             "handle": {
                 "motor": {
-                    "pwmPin": 40,
-                    "dirAPin": 41,
-                    "flipped": true
+                    "pwmPin": 0,
+                    "dirAPin": 0,
+                    "flipped": false
                 },
                 "encoder": {
-                    "aPin": 42,
-                    "bPin": 43,
-                    "flipped": true,
+                    "aPin": 0,
+                    "bPin": 0,
                     "steps": 512,
                     "setup": 0.0
                 }
@@ -66,14 +64,13 @@
                     "outerLength": 128
                 },
                 "motor": {
-                    "pwmPin": 44,
-                    "dirAPin": 45,
+                    "pwmPin": 0,
+                    "dirAPin": 0,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 46,
-                    "bPin": 47,
-                    "flipped": false,
+                    "aPin": 0,
+                    "bPin": 0,
                     "steps": 5540,
                     "setup": -0.5
                 }
@@ -84,28 +81,26 @@
                     "outerLength": 128
                 },
                 "motor": {
-                    "pwmPin": 48,
-                    "dirAPin": 49,
+                    "pwmPin": 0,
+                    "dirAPin": 0,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 50,
-                    "bPin": 51,
-                    "flipped": false,
+                    "aPin": 0,
+                    "bPin": 0,
                     "steps": 5540,
                     "setup": 0.0
                 }
             },
             "handle": {
                 "motor": {
-                    "pwmPin": 52,
-                    "dirAPin": 53,
+                    "pwmPin": 0,
+                    "dirAPin": 0,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 39,
-                    "bPin": 38,
-                    "flipped": true,
+                    "aPin": 0,
+                    "bPin": 0,
                     "steps": 15360,
                     "setup": 0.0
                 }
