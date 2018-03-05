@@ -282,6 +282,6 @@ proc.on('exit', (code) => {
     movePantoTo(0);
     movePantoTo(1);
     // Save persistent
-    fs.writeFileSync('persistent.json', JSON.stringify(persistent));
+    fs.writeFileSync('persistent.json', JSON.stringify(persistent, null, 2));
     process.exit(code);
 });
