@@ -10,7 +10,8 @@ const child_process = require('child_process'),
       Vector = require('./Vector.js'),
       DoomTutorial = require('./DoomTutorial.js')
       config = JSON.parse(fs.readFileSync('config.json')),
-      persistent = JSON.parse(fs.readFileSync('persistent.json')); // TODO: Initalize
+      persistent = JSON.parse(fs.readFileSync('persistent.json')), // TODO: Initalize
+      TWEEN = require('@tweenjs/tween.js');
 
 //**********************
 // DOOM CONSTANTS
@@ -22,6 +23,13 @@ const origin = new Vector(1500, -1000),
 // PANTO
 //**********************
 let upperPanto, lowerPanto;
+
+//**********************
+// ANIMATION AND TWEENING
+//**********************
+// Setup the tween animation loop.
+const TWEEN_INTERVAL = 30; //ms
+setInterval(() => TWEEN.update(), TWEEN_INTERVAL);
 
 //**********************
 // DEBUG
@@ -70,6 +78,26 @@ if (SERIAL_EXISTS)
 serialRecv();
 }
 
+function tweenPantoTo(index, target, duration)
+{
+    if (duration == undefined) {
+        duration = 500;
+    }
+    var tweenPosition = undefined;
+    if (index == 0 && upperPanto) {
+        tweenPosition = upperPanto;
+    } else if (index == 1 && lowerPanto) {
+        tweenPosition = lowerPanto;
+    }
+    var tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
+            .to(target, duration)
+            .easing(TWEEN.Easing.Quadratic.Out) // Use an easing function to make the animation smooth.
+            .onUpdate(function() { // Called after tween.js updates 'tweenPosition'.
+                movePantoTo(index, tweenPosition)
+            })
+            .start(); // Start the tween immediately.
+}
+
 function movePantoTo(index, target) {
     const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
           data = new Buffer(1+3*4);
@@ -98,7 +126,7 @@ const proc = child_process.spawn(config.doomExecutablePath),
 
 //TODO: Wrap this controller in an object/interface, pass it to doomTutorial instead of all these functions
 doomTutorial.setDoomProcess(proc);
-doomTutorial.setMovePantoFunction(movePantoTo);
+doomTutorial.setMovePantoFunction(tweenPantoTo);
 doomTutorial.setDoomToPantoCoordFunction(doomToPantoCoord);
 
 proc.stdout.on('data', (data) => {
