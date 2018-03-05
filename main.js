@@ -29,7 +29,14 @@ let upperPanto, lowerPanto;
 //**********************
 // Setup the tween animation loop.
 const TWEEN_INTERVAL = 30; //ms
-setInterval(() => TWEEN.update(), TWEEN_INTERVAL);
+var tween_stack_counter = 0; //keeps track of how many tweens are going on so we only update when needed
+
+function animateTween() {
+    TWEEN.update();
+    if(tween_stack_counter > 0) {
+        setTimeout(animateTween, TWEEN_INTERVAL);
+    }
+}
 
 //**********************
 // DEBUG
@@ -80,6 +87,7 @@ serialRecv();
 
 function tweenPantoTo(index, target, duration)
 {
+    
     if (duration == undefined) {
         duration = 500;
     }
@@ -89,13 +97,26 @@ function tweenPantoTo(index, target, duration)
     } else if (index == 1 && lowerPanto) {
         tweenPosition = lowerPanto;
     }
-    var tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
+    if(tweenPosition)
+    {
+        tween_stack_counter++;
+
+        if(tween_stack_counter == 1)
+        {
+            setTimeout(animateTween, TWEEN_INTERVAL);
+        }
+
+        var tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
             .to(target, duration)
             .easing(TWEEN.Easing.Quadratic.Out) // Use an easing function to make the animation smooth.
             .onUpdate(function() { // Called after tween.js updates 'tweenPosition'.
-                movePantoTo(index, tweenPosition)
+                movePantoTo(index, tweenPosition);
+            })
+            .onComplete(function() {
+                tween_stack_counter--;
             })
             .start(); // Start the tween immediately.
+        }
 }
 
 function movePantoTo(index, target) {
