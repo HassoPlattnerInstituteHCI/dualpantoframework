@@ -96,7 +96,7 @@ class DoomTutorial {
             console.log(spawnpacket); //dev + debug
             
             this.pauseDoom();
-            this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of...um...demons. We need you to contain the threat.")
+            this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.")
             .then(() => this.waitMS(500))
             .then(() => this.speakText("You are currently here."))
             .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos, 500)))
@@ -113,8 +113,11 @@ class DoomTutorial {
             .then(() => this.waitMS(500))
             .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN], 500)))
             .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
-            .then(() => this.speakText("Good luck!"))
+            // .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
+            .then(() => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([761,-3530,NaN, 250])))
+            .then(() => this.waitMS(250))
+            .then(() => this.speakText("Here is a health bonus. You can pick it up by walking over it."))
             .then(()=> this.resumeDoom());
     }
 
@@ -135,7 +138,7 @@ class DoomTutorial {
     }
 
     speakText(txt) {
-        return say.speak(txt, 'Alex', 2.0, (err) => {
+        return say.speak(txt, 'Tom', 2.0, (err) => {
             if(err) {
                 console.error(err);
                 return;
@@ -192,6 +195,32 @@ class DoomTutorial {
                 ()=> {
                     this.speakText("Hall");
                 }));
+
+        this.addBookmarkTrigger(
+            ["armor armory"],
+            first_then_after(
+                ()=> {
+                    this.pauseDoom();
+                    this.speakText("This is a set of armor - it sets your armor to a full 100.")
+                    .then(() => this.resumeDoom());
+                },
+                ()=> {}));
+
+        this.addBookmarkTrigger(
+            ["health bonus hall left"],
+            first_then_after(
+                ()=> {
+                    this.pauseDoom();
+                    this.speakText("Your health is now 101. Over here")
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([770,-3221], 250)))
+                    .then(() => this.waitMS(250))
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221], 250)))
+                    .then(() => this.waitMS(250))
+                    .then(() => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it."))
+                    .then(()=> this.resumeDoom());
+                },
+                ()=> {}));
+
     }
 
 };
