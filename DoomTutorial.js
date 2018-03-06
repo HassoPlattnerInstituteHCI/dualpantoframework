@@ -99,23 +99,25 @@ class DoomTutorial {
             this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.")
             .then(() => this.waitMS(500))
             .then(() => this.speakText("You are currently here."))
-            .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos, 500)))
+            .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
             .then(() => this.waitMS(500))
             .then(() => this.speakText("in the main hall. Let me show you around the room."))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos, 500)))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
             .then(() => this.speakText("If you walk around,"))
             .then(() => this.speakText("You will find the room is rectangular."))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3500, NaN], 500)))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3500, NaN]), 500))
             .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3016, NaN], 500)))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3016, NaN]), 500))
             .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3016, NaN], 500)))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3016, NaN]), 500))
             .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN], 500)))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN]), 500))
+            .then(() => this.waitMS(500))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
             .then(() => this.waitMS(500))
             // .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
             .then(() => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([761,-3530,NaN, 250])))
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([761,-3530,NaN]), 250))
             .then(() => this.waitMS(250))
             .then(() => this.speakText("Here is a health bonus. You can pick it up by walking over it."))
             .then(()=> this.resumeDoom());
@@ -138,7 +140,7 @@ class DoomTutorial {
     }
 
     speakText(txt) {
-        return say.speak(txt, 'Tom', 2.0, (err) => {
+        return say.speak(txt, 'Tom', 1.4, (err) => {
             if(err) {
                 console.error(err);
                 return;
@@ -176,7 +178,14 @@ class DoomTutorial {
             first_then_after(
                 ()=> {
                     this.pauseDoom();
-                    this.speakText("This is the armory. Stairs lead to armor here and here.")
+                    this.speakText("This is the armory. Stairs")
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500))
+                    .then(() => this.waitMS(500))
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500))
+                    .then(() => this.waitMS(500))
+                    .then(() => this.speakText("Lead up to a ledge with armor here."))
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
+                    .then(() => this.waitMS(500))
                     .then(() => this.resumeDoom());
                     
                 },
@@ -201,7 +210,9 @@ class DoomTutorial {
             first_then_after(
                 ()=> {
                     this.pauseDoom();
-                    this.speakText("This is a set of armor - it sets your armor to a full 100.")
+                    this.speakText("Suit of armor. Armor set from 0 to 100.")
+                    .then(() => this.waitMS(250))
+                    .then(() => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."))
                     .then(() => this.resumeDoom());
                 },
                 ()=> {}));
@@ -212,9 +223,9 @@ class DoomTutorial {
                 ()=> {
                     this.pauseDoom();
                     this.speakText("Your health is now 101. Over here")
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([770,-3221], 250)))
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([770,-3221, NaN]), 250))
                     .then(() => this.waitMS(250))
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221], 250)))
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250))
                     .then(() => this.waitMS(250))
                     .then(() => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it."))
                     .then(()=> this.resumeDoom());
