@@ -20,6 +20,32 @@ var first_then_after = (function(function1, function2) {
   });
 
 
+function inBoundingBox(x, y, left, right, top, bottom) {
+    return (x > left && x < right && y < top && y > bottom);
+}
+
+function doomcoords2room(x, y) {
+    var room = "";
+
+    if (inBoundingBox(x, y, -303, 513, -3024, -3437)) {
+        room = "armory";
+    } else if (inBoundingBox(x, y, 720, 1327, -2900, -3663)) {
+        room = "hall";     
+    } else if (inBoundingBox(x, y, 1568, 2479, -2128, -2735)) {
+        room = "guardpost";
+    } else if (inBoundingBox(x, y, 2479, 2943, -2576, -2800)) {
+        room = "cave";
+    } else if (inBoundingBox(x, y, 2768, 3447, -2928, -3650)) {
+        room = "bridge";
+    } else if (inBoundingBox(x, y, 2704, 3311, -4048, -4591)) {
+        room = "lobby";
+    } else if (inBoundingBox(x, y, 2928, 3087, -4688, -4847)) {
+        room = "elevator";
+    }
+    //todo add the secrets
+}
+
+
 //**********************
 // DoomTutorial object
 //**********************
