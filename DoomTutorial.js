@@ -1,6 +1,11 @@
 'use strict';
 
-const say = require('say-promise');
+const   say = require('say-promise'),
+        PlaySound = require('play-sound')();
+
+
+
+const FAST_DEBUG = true;
 
 //**********************
 // UTIL (todo: move to different file)
@@ -74,20 +79,27 @@ class DoomTutorial {
 
     _initialize_pickup_functions() {
         this._pickup_healthbonus = first_then_after(
-            () => this.speakText("Health Bonus. Health is now " + (this.player.health+1)),
-            () => this.speakText("Health " + (this.player.health+1)));
+            () => this.speakText("Health Bonus.")
+                    .then(() => this.playSound("audio/collectHealth.wav"))
+                    .then(()=> this.speakText("Health is now " + (this.player.health+1))),
+            () => this.playSound('audio/collectHealth.wav')
+                .then(()=> this.speakText(""+(this.player.health+1))));
+            // () => this.speakText("Health " + (this.player.health+1)));
 
         this._pickup_armorbonus = first_then_after(
-            ()=>this.speakText("Armor Bonus. Armor is now " + (this.player.armor+1)),
-            () => this.speakText("Armor " + (this.player.armor+1)));
+            ()=> this.speakText("Armor Bonus.")
+                .then(() => this.playSound('audio/dswpnup_armor.wav'))
+                .then(() => this.speakText("Armor is now " + (this.player.armor+1))),
+            () => this.playSound('audio/dswpnup_armor.wav')
+                .then(()=> this.speakText(""+(this.player.armor+1))));
 
         this._pickup_greenarmor = first_then_after(
-            () => this.speakText("Green Armor. Armor set to 100.")
-                .then(() => this.pauseDoom())
-                .then(() => this.waitMS(250))
-                .then(() => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."))
-                .then(() => this.resumeDoom()),
-            () => this.speakText("Green Armor 100"));
+            () => this.speakText("Set of Armor.")
+                .then(() => this.playSound('audio/dswpnup_armor.wav'))
+                .then(() => this.speakText("Armor set to 100.")),
+            // () => this.speakText("Green Armor 100"));
+            () => this.playSound('audio/dswpnup_armor.wav')
+                .then(()=> this.speakText("100")));
 
         this._pickup_bullets = first_then_after(
             () => this.speakText("Bullets. " + (this.player.bullets)),
@@ -142,7 +154,16 @@ class DoomTutorial {
                     } 
                 });
             } else if (pickuppacket.class == "ArmorBonus") {
-                this._pickup_armorbonus();
+                this._pickup_armorbonus()
+                .then( () => {
+                    if(pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
+                    {
+                        this.pauseDoom()
+                        .then(() => this.waitMS(250))
+                        .then(() => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."))
+                        .then(() => this.resumeDoom());
+                    }
+                });
             } else if (pickuppacket.class == "GreenArmor") {
                 this._pickup_greenarmor();
             } else if (pickuppacket.class == "Bullets") {
@@ -158,32 +179,35 @@ class DoomTutorial {
     handlePlayerSpawn(spawnpacket) {
             console.log(spawnpacket); //dev + debug
             
-            this.pauseDoom();
-            this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.")
-            .then(() => this.waitMS(500))
-            .then(() => this.speakText("You are currently here."))
-            .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
-            .then(() => this.waitMS(500))
-            .then(() => this.speakText("in the main hall. Let me show you around the room."))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
-            .then(() => this.speakText("If you walk around,"))
-            .then(() => this.speakText("You will find the room is rectangular."))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3500, NaN]), 500))
-            .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3016, NaN]), 500))
-            .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3016, NaN]), 500))
-            .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN]), 500))
-            .then(() => this.waitMS(500))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
-            .then(() => this.waitMS(500))
-            // .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
-            .then(() => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."))
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([761,-3530,NaN]), 250))
-            .then(() => this.waitMS(250))
-            .then(() => this.speakText("Here is a health bonus. You can pick it up by walking over it."))
-            .then(()=> this.resumeDoom());
+            if(!FAST_DEBUG)
+            {
+                this.pauseDoom();
+                this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.")
+                .then(() => this.waitMS(500))
+                .then(() => this.speakText("You are currently here."))
+                .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
+                .then(() => this.waitMS(500))
+                .then(() => this.speakText("in the main hall. Let me show you around the room."))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
+                .then(() => this.speakText("If you walk around,"))
+                .then(() => this.speakText("You will find the room is rectangular."))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3500, NaN]), 500))
+                .then(() => this.waitMS(500))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3016, NaN]), 500))
+                .then(() => this.waitMS(500))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3016, NaN]), 500))
+                .then(() => this.waitMS(500))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN]), 500))
+                .then(() => this.waitMS(500))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
+                .then(() => this.waitMS(500))
+                // .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
+                .then(() => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."))
+                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([761,-3530,NaN]), 250))
+                .then(() => this.waitMS(250))
+                .then(() => this.speakText("Here is a health bonus. You can pick it up by walking over it."))
+                .then(()=> this.resumeDoom());
+            }
     }
 
     handleBookmark(bookmarkName) {
@@ -208,6 +232,16 @@ class DoomTutorial {
                 console.error(err);
                 return;
             }
+        });
+    }
+
+    playSound(filename) {
+        return new Promise(function(resolve, reject) {
+            PlaySound.play(filename, function(err) {
+                if (err){
+                    console.error(err);
+                }});
+                resolve();
         });
     }
 
