@@ -12,9 +12,9 @@ var first_then_after = (function(function1, function2) {
       if (first)
       {
         first = false;
-        function1();
+        return function1();
       } else {
-        function2();
+        return function2();
       }
     })
   });
@@ -66,9 +66,32 @@ class DoomTutorial {
         this.doomProcess = null;
         this.movePantoFunction = function(a,b) {console.log("ERROR: MovePantoFunction not set");};
         this.doomToPantoCoordFunction = function(a) {console.log("ERROR: doomToPantoCoordFunction not set");};
-
+        this.player = null;
+        this._initialize_pickup_functions();
 
         this.initializeTestTutorial();
+    }
+
+    _initialize_pickup_functions() {
+        this._pickup_healthbonus = first_then_after(
+            () => this.speakText("Health Bonus. Health is now " + (this.player.health+1)),
+            () => this.speakText("Health " + (this.player.health+1)));
+
+        this._pickup_armorbonus = first_then_after(
+            ()=>this.speakText("Armor Bonus. Armor is now " + (this.player.armor+1)),
+            () => this.speakText("Armor " + (this.player.armor+1)));
+
+        this._pickup_greenarmor = first_then_after(
+            () => this.speakText("Green Armor. Armor set to 100.")
+                .then(() => this.pauseDoom())
+                .then(() => this.waitMS(250))
+                .then(() => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."))
+                .then(() => this.resumeDoom()),
+            () => this.speakText("Green Armor 100"));
+
+        this._pickup_bullets = first_then_after(
+            () => this.speakText("Bullets. " + (this.player.bullets)),
+            () => this.speakText("Bullets " + (this.player.bullets)));
     }
     
     //todo: put the DoomController into an object, pass to Doom Tutorial, make these functions part of that interface
@@ -91,6 +114,46 @@ class DoomTutorial {
         this.bookmark_triggers[String(key)] = fn;
     }
 
+    handlePlayer(playerpacket) {
+        this.player = Object.assign({}, playerpacket);
+    }
+
+    handlePickup(pickuppacket) {
+        const PICKUP_EPSILON = 60; 
+        
+        if (this.player != null
+            && Math.abs(this.player.pos[0] - pickuppacket.pos[0]) < PICKUP_EPSILON
+            && Math.abs(this.player.pos[1] - pickuppacket.pos[1]) < PICKUP_EPSILON)
+        {
+            if(pickuppacket.class == "HealthBonus")
+            {
+                this._pickup_healthbonus()
+                .then(() => {
+                    if (pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
+                    {
+                            this.pauseDoom();
+                            this.speakText("Good. Over here")
+                            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([770,-3221, NaN]), 250))
+                            .then(() => this.waitMS(250))
+                            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250))
+                            .then(() => this.waitMS(250))
+                            .then(() => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it."))
+                            .then(()=> this.resumeDoom());
+                    } 
+                });
+            } else if (pickuppacket.class == "ArmorBonus") {
+                this._pickup_armorbonus();
+            } else if (pickuppacket.class == "GreenArmor") {
+                this._pickup_greenarmor();
+            } else if (pickuppacket.class == "Bullets") {
+                this._pickup_bullets();
+            } else {
+                console.log("picked up '"+pickuppacket.class+"'");
+            }   
+        }
+
+
+    }
 
     handlePlayerSpawn(spawnpacket) {
             console.log(spawnpacket); //dev + debug
@@ -204,34 +267,6 @@ class DoomTutorial {
                 ()=> {
                     this.speakText("Hall");
                 }));
-
-        this.addBookmarkTrigger(
-            ["armor armory"],
-            first_then_after(
-                ()=> {
-                    this.pauseDoom();
-                    this.speakText("Suit of armor. Armor set from 0 to 100.")
-                    .then(() => this.waitMS(250))
-                    .then(() => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."))
-                    .then(() => this.resumeDoom());
-                },
-                ()=> {}));
-
-        this.addBookmarkTrigger(
-            ["health bonus hall left"],
-            first_then_after(
-                ()=> {
-                    this.pauseDoom();
-                    this.speakText("Your health is now 101. Over here")
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([770,-3221, NaN]), 250))
-                    .then(() => this.waitMS(250))
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250))
-                    .then(() => this.waitMS(250))
-                    .then(() => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it."))
-                    .then(()=> this.resumeDoom());
-                },
-                ()=> {}));
-
     }
 
 };

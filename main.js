@@ -162,6 +162,7 @@ proc.stdout.on('data', (data) => {
         const packet = JSON.parse(line);
         switch(packet.type) {
             case 'player':
+                doomTutorial.handlePlayer(packet);
                 packet.pos = doomToPantoCoord(packet.pos);
                 player = packet;
                 // Send controls to DOOM
@@ -198,6 +199,10 @@ proc.stdout.on('data', (data) => {
             case 'weaponchange':
                 console.log(packet);
                 // TODO
+                break;
+            case 'pickup':
+                // console.log(packet);
+                doomTutorial.handlePickup(packet);
                 break;
             case 'bookmark':
                 packet.pos = doomToPantoCoord(packet.pos);
