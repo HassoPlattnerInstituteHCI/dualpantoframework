@@ -81,7 +81,7 @@ class DoomTutorial {
         this._pickup_healthbonus = first_then_after(
             () => this.speakText("Health Bonus.")
                     .then(() => this.playSound("audio/collectHealth.wav"))
-                    .then(()=> this.speakText("Health is now " + (this.player.health+1))),
+                    .then(()=> this.speakText("Health is now " + (this.player.health))),
             () => this.playSound('audio/collectHealth.wav')
                 .then(()=> this.speakText(""+(this.player.health+1))));
             // () => this.speakText("Health " + (this.player.health+1)));
@@ -89,12 +89,14 @@ class DoomTutorial {
         this._pickup_armorbonus = first_then_after(
             ()=> this.speakText("Armor Bonus.")
                 .then(() => this.playSound('audio/dswpnup_armor.wav'))
-                .then(() => this.speakText("Armor is now " + (this.player.armor+1))),
+                .then(() => this.speakText("Armor is now " + (this.player.armor))),
             () => this.playSound('audio/dswpnup_armor.wav')
                 .then(()=> this.speakText(""+(this.player.armor+1))));
 
         this._pickup_greenarmor = first_then_after(
             () => this.speakText("Set of Armor.")
+                .then(() => this.playSound('audio/dswpnup_armor.wav'))
+                .then(() => this.waitMS(100))
                 .then(() => this.playSound('audio/dswpnup_armor.wav'))
                 .then(() => this.speakText("Armor set to 100.")),
             // () => this.speakText("Green Armor 100"));
