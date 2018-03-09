@@ -246,7 +246,7 @@ class DoomTutorial {
                     .then(() => this.waitMS(500))
                     .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500))
                     .then(() => this.waitMS(500))
-                    .then(() => this.speakText("Lead up to a ledge with armor here."))
+                    .then(() => this.speakText("leed up to a ledge with armor here."))
                     .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
                     .then(() => this.waitMS(500))
                     .then(() => this.resumeDoom());
