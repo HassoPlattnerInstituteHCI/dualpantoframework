@@ -200,6 +200,8 @@ proc.stdout.on('data', (data) => {
                 if(packet.class === "DoomPlayer")
                 {
                     doomTutorial.handlePlayerSpawn(packet);
+                } else {
+                    doomTutorial.handleSpawn(packet);
                 }
                 break;
             case 'weaponchange':

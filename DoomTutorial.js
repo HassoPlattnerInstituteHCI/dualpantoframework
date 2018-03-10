@@ -4,6 +4,18 @@ const   say = require('say-promise'),
         PlaySound = require('play-sound')();
 
 
+const SIGHT_SURVEY_INCLUDE_CLASSES = [
+    'ArmorBonus',
+    'GreenArmor',
+    'HealthBonus',
+    'ShellBox',
+    'Medikit',
+    'ClipBox',
+    'BlueArmor',
+    'Zombieman',
+    'HexenArmor',
+    'ExplosiveBarrel'
+]
 
 const FAST_DEBUG = true;
 
@@ -77,6 +89,7 @@ class DoomTutorial {
                 'Bullets':50,
                 'Shotgun Shells':0
         };
+        this.room_item_dictionary = {}; //dictionary of rooms to list of items
         this._initialize_pickup_functions();
 
         this.initializeTestTutorial();
@@ -141,6 +154,11 @@ class DoomTutorial {
         this.player = Object.assign({}, playerpacket);
         var old_location = this.playerlocation;
         this.playerlocation = doomcoords2room(this.player.pos[0], this.player.pos[1]);
+        if (old_location != this.playerlocation)
+        {
+            // this.speakText(this.playerlocation);
+            console.log(this.room_item_dictionary[this.playerlocation]);
+        }
     }
 
     handleWeaponChange(weaponChangePacket) {
@@ -155,11 +173,15 @@ class DoomTutorial {
 
     handlePickup(pickuppacket) {
         const PICKUP_EPSILON = 60; 
-        
+
+        delete this.room_item_dictionary[this.playerlocation][""+pickuppacket.id];
+
+        //if it actually _is_ a pickup, then notify the user as needed
         if (this.player != null
             && Math.abs(this.player.pos[0] - pickuppacket.pos[0]) < PICKUP_EPSILON
             && Math.abs(this.player.pos[1] - pickuppacket.pos[1]) < PICKUP_EPSILON)
         {
+            console.log(pickuppacket)
             if(pickuppacket.class == "HealthBonus")
             {
                 this._pickup_healthbonus()
@@ -203,6 +225,18 @@ class DoomTutorial {
         }
 
 
+    }
+
+    handleSpawn(spawnpacket) {
+        var room = doomcoords2room(spawnpacket.pos[0], spawnpacket.pos[1]);
+        console.log("adding " + spawnpacket.class + " " + spawnpacket.id + " to room " + room);
+        if (!(room in this.room_item_dictionary)) {
+            this.room_item_dictionary[room] = {};
+        }
+        if (SIGHT_SURVEY_INCLUDE_CLASSES.includes(spawnpacket.class))
+        {
+            this.room_item_dictionary[room][spawnpacket.id] = spawnpacket;
+        }
     }
 
     handlePlayerSpawn(spawnpacket) {
