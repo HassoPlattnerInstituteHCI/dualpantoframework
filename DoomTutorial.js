@@ -294,10 +294,10 @@ class DoomTutorial {
         {
             if(keypresspacket.event == "EV_KeyDown")
             {
-                this.pauseDoom();
+                this.startSightSurvey();
             } else if (keypresspacket.event == "EV_KeyUp")
             {
-                this.resumeDoom();
+                this.stopSightSurvey();
             }
         }
     }
@@ -377,6 +377,54 @@ class DoomTutorial {
                 ()=> {
                     this.speakText("Hall");
                 }));
+    }
+
+
+    //**************************
+    // SIGHT SURVEY
+    //**************************
+    stopSightSurvey() {
+        this._running_sight_survey = false;
+        this.resumeDoom();
+    }
+
+    _ifRunningSightSurvey(fn) {
+        if (this._running_sight_survey)
+        {
+            return fn();
+        } else {
+            return reject("No longer running sight survey");
+        }
+    }
+
+    startSightSurvey() {
+        if(!this._running_sight_survey)
+        {
+            var room = this.playerlocation;
+            var items_to_survey = this.room_item_dictionary[this.playerlocation];
+            this._running_sight_survey = true;
+
+
+            if (room == "armory") {
+                //"You are in the armory"
+                this.pauseDoom();
+                this.speakText("You are in the armory.")
+                .then(() => this._ifRunningSightSurvey(
+                    () =>  this.speakText("Stairs are in the middle of the room.")))
+                .then(() => this._ifRunningSightSurvey(
+                    () =>  this.speakText("Armor is up here.")))
+                .catch( () => null);
+                //here is the passage to the main hall
+
+                //stairs lead up to a ledge
+
+                //Green armor, if it's in the room
+
+                //Armor and health bonuses, if they are in the room
+        }
+
+        } 
+
     }
 
 };
