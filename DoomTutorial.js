@@ -72,6 +72,10 @@ class DoomTutorial {
         this.movePantoFunction = function(a,b) {console.log("ERROR: MovePantoFunction not set");};
         this.doomToPantoCoordFunction = function(a) {console.log("ERROR: doomToPantoCoordFunction not set");};
         this.player = null;
+        this.ammo_dictionary = {
+                'Bullets':50,
+                'Shotgun Shells':0
+        };
         this._initialize_pickup_functions();
 
         this.initializeTestTutorial();
@@ -104,8 +108,12 @@ class DoomTutorial {
                 .then(()=> this.speakText("100")));
 
         this._pickup_bullets = first_then_after(
-            () => this.speakText("Bullets. " + (this.player.bullets)),
-            () => this.speakText("Bullets " + (this.player.bullets)));
+            () => this.speakText("Bullets. " + (this.ammo_dictionary['Bullets'])), 
+            () => this.speakText("Bullets. " + (this.ammo_dictionary['Bullets'])));
+
+        this._pickup_shotgun_shells = first_then_after(
+            () => this.speakText("Shotgun Shells. " + (this.ammo_dictionary['Shotgun Shells'])), 
+            () => this.speakText("Shotgun Shells. " + (this.ammo_dictionary['Shotgun Shells'])));
     }
     
     //todo: put the DoomController into an object, pass to Doom Tutorial, make these functions part of that interface
@@ -130,6 +138,16 @@ class DoomTutorial {
 
     handlePlayer(playerpacket) {
         this.player = Object.assign({}, playerpacket);
+    }
+
+    handleWeaponChange(weaponChangePacket) {
+        console.log(weaponChangePacket);
+        //this.ammo_dictionary
+    }
+    
+    handleWeaponShot(weaponShotPacket) {
+        console.log(weaponShotPacket);
+        this.ammo_dictionary[weaponShotPacket.ammotype] = weaponShotPacket.ammo[0];
     }
 
     handlePickup(pickuppacket) {
@@ -169,8 +187,14 @@ class DoomTutorial {
             } else if (pickuppacket.class == "GreenArmor") {
                 this._pickup_greenarmor();
             } else if (pickuppacket.class == "Bullets") {
+                var amount_of_bullets = parseInt(pickuppacket.amount);
+                this.ammo_dictionary['Bullets'] += amount_of_bullets;
                 this._pickup_bullets();
-            } else {
+            } else if (pickuppacket.class == "Shotgun Shells") {
+                var amount_of_shotgunshells = parseInt(pickuppacket.amount);
+                this.ammo_dictionary['Shotgun Shells'] += amount_of_shotgunshells; //TODO: there's a bug, the pickupevent is not always triggered on the first shotgun shells picked up
+                this._pickup_shotgun_shells();
+            }else {
                 console.log("picked up '"+pickuppacket.class+"'");
             }   
         }

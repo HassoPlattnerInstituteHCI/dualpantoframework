@@ -190,7 +190,7 @@ proc.stdout.on('data', (data) => {
                 enemyCache[packet.id] = packet;
                 break;
             case 'impball':
-                console.log(packet);
+                // console.log(packet);
                 break;
             case 'dead':
                 delete enemyCache[packet.id];
@@ -204,13 +204,14 @@ proc.stdout.on('data', (data) => {
                 break;
             case 'weaponchange':
                 // console.log(packet);
-                // TODO
+                doomTutorial.handleWeaponChange(packet);
                 break;
             case 'weaponshot':
-                console.log(packet);
+                // console.log(packet);
+                doomTutorial.handleWeaponShot(packet);
                 break;
             case 'pickup':
-                console.log(packet);
+                // console.log(packet);
                 doomTutorial.handlePickup(packet);
                 break;
             case 'key':
