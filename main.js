@@ -215,7 +215,8 @@ proc.stdout.on('data', (data) => {
                 doomTutorial.handlePickup(packet);
                 break;
             case 'key':
-                console.log(packet); //will want packet.event
+                // console.log(packet);
+                doomTutorial.handleKeyPress(packet);
                 break;
             case 'bookmark':
                 packet.pos = doomToPantoCoord(packet.pos);

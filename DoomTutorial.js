@@ -252,6 +252,19 @@ class DoomTutorial {
         }
     }
 
+    handleKeyPress(keypresspacket) {
+        if(keypresspacket.keyCode == 38) //38 == "j", use for sight survey
+        {
+            if(keypresspacket.event == "EV_KeyDown")
+            {
+                this.pauseDoom();
+            } else if (keypresspacket.event == "EV_KeyUp")
+            {
+                this.resumeDoom();
+            }
+        }
+    }
+
     speakText(txt) {
         return say.speak(txt, 'Tom', 1.4, (err) => {
             if(err) {
