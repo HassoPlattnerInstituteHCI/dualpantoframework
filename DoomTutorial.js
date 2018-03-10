@@ -31,7 +31,6 @@ function inBoundingBox(x, y, left, right, top, bottom) {
 
 function doomcoords2room(x, y) {
     var room = "";
-
     if (inBoundingBox(x, y, -303, 513, -3024, -3437)) {
         room = "armory";
     } else if (inBoundingBox(x, y, 720, 1327, -2900, -3663)) {
@@ -48,6 +47,7 @@ function doomcoords2room(x, y) {
         room = "elevator";
     }
     //todo add the secrets
+    return room;
 }
 
 
@@ -72,6 +72,7 @@ class DoomTutorial {
         this.movePantoFunction = function(a,b) {console.log("ERROR: MovePantoFunction not set");};
         this.doomToPantoCoordFunction = function(a) {console.log("ERROR: doomToPantoCoordFunction not set");};
         this.player = null;
+        this.playerlocation = "hall";
         this.ammo_dictionary = {
                 'Bullets':50,
                 'Shotgun Shells':0
@@ -138,6 +139,8 @@ class DoomTutorial {
 
     handlePlayer(playerpacket) {
         this.player = Object.assign({}, playerpacket);
+        var old_location = this.playerlocation;
+        this.playerlocation = doomcoords2room(this.player.pos[0], this.player.pos[1]);
     }
 
     handleWeaponChange(weaponChangePacket) {
