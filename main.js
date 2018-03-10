@@ -162,6 +162,7 @@ proc.stdout.on('data', (data) => {
         const packet = JSON.parse(line);
         switch(packet.type) {
             case 'player':
+                // console.log(packet);
                 doomTutorial.handlePlayer(packet);
                 packet.pos = doomToPantoCoord(packet.pos);
                 player = packet;
@@ -184,25 +185,36 @@ proc.stdout.on('data', (data) => {
                 collisionCache[packet.id] = packet;
                 break;
             case 'enemy':
+                // console.log(packet);
                 packet.pos = doomToPantoCoord(packet.pos);
                 enemyCache[packet.id] = packet;
+                break;
+            case 'impball':
+                console.log(packet);
                 break;
             case 'dead':
                 delete enemyCache[packet.id];
                 break;
             case 'spawn':
+                // console.log(packet);
                 if(packet.class === "DoomPlayer")
                 {
                     doomTutorial.handlePlayerSpawn(packet);
                 }
                 break;
             case 'weaponchange':
-                console.log(packet);
+                // console.log(packet);
                 // TODO
                 break;
+            case 'weaponshot':
+                console.log(packet);
+                break;
             case 'pickup':
-                // console.log(packet);
+                console.log(packet);
                 doomTutorial.handlePickup(packet);
+                break;
+            case 'key':
+                console.log(packet); //will want packet.event
                 break;
             case 'bookmark':
                 packet.pos = doomToPantoCoord(packet.pos);
