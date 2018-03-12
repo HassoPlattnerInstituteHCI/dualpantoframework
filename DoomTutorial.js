@@ -1,7 +1,8 @@
 'use strict';
 
 const   say = require('say-promise'),
-        PlaySound = require('play-sound')();
+        PlaySound = require('play-sound')(),
+        TWEEN = require('@tweenjs/tween.js');
 
 
 const SIGHT_SURVEY_INCLUDE_CLASSES = [
@@ -17,7 +18,7 @@ const SIGHT_SURVEY_INCLUDE_CLASSES = [
     'ExplosiveBarrel'
 ]
 
-const FAST_DEBUG = true;
+const FAST_DEBUG = false;
 
 //**********************
 // UTIL (todo: move to different file)
@@ -290,7 +291,8 @@ class DoomTutorial {
     }
 
     handleKeyPress(keypresspacket) {
-        if(keypresspacket.keyCode == 38) //38 == "j", use for sight survey
+        // console.log(keypresspacket.keyCode);
+        if(keypresspacket.keyCode == 11) //38 == "j", use for sight survey; 11=='b', sight survey debug
         {
             if(keypresspacket.event == "EV_KeyDown")
             {
@@ -354,11 +356,12 @@ class DoomTutorial {
                     this.speakText("This is the armory. Stairs")
                     .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500))
                     .then(() => this.waitMS(500))
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500))
+                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None))
                     .then(() => this.waitMS(500))
                     .then(() => this.speakText("leed up to a ledge with armor here.")) //leed => phonetic for speech output
                     .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
                     .then(() => this.waitMS(500))
+                    .then(() => this.speakText("You can press and hold the middle pedal anytime to look around the room.")) //leed => phonetic for speech output
                     .then(() => this.resumeDoom());
                     
                 },
@@ -405,6 +408,9 @@ class DoomTutorial {
             this._running_sight_survey = true;
 
 
+            //*******
+            // Armory
+            //*******
             if (room == "armory") {
                 var bonuses_to_survey = [];
                 var greenarmors_to_survey = [];
@@ -428,17 +434,18 @@ class DoomTutorial {
                 this.pauseDoom();
                 var displayPromise = this.speakText("You are in the armory.")
                 .then(() => this._ifRunningSightSurvey(
-                    () =>  this.speakText("Stairs are in the middle of the room.")))
+                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250)))
+                .then(() => this._ifRunningSightSurvey(
+                    () =>  this.speakText("Passage to hall is here.")))
+                // .then(() => this.waitMS(250))
                 .then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 250)))
-                .then(() => this.waitMS(500))
+                // .then(() => this.waitMS(350))
                 .then(() => this._ifRunningSightSurvey(
-                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 250)))
+                    () =>  this.speakText("Stairs to ledge.")))
+                .then(() => this._ifRunningSightSurvey(
+                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 250, TWEEN.Easing.Linear.None)))
                 .then(() => this.waitMS(750))
-                //here is the passage to the main hall
-
-                
-                //stairs lead up to a ledge
                 
                 //Green armor, if it's in the room
                 for(var greenarmor in greenarmors_to_survey)
@@ -454,7 +461,6 @@ class DoomTutorial {
                     }
                     
                 }
-
                 //Armor and health bonuses, if they are in the room
                 //TODO: use this structure if you can figure out the scoping rules
                 //  Object.keys(a).forEach((value) => console.log(value))
@@ -466,8 +472,14 @@ class DoomTutorial {
                                 displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
                                     () => {
                                         this.movePantoFunction(1, this.doomToPantoCoordFunction(bonuses_to_survey[bonusName].pos), 250);
-                                        // .then(() => this.playSound('audio/dswpnup_armor.wav'))
-                                        this.speakText(""+bonuses_to_survey[bonusName].class);
+                                        if(bonuses_to_survey[bonusName].class == "ArmorBonus")
+                                        {
+                                            this.playSound('audio/dswpnup_armor.wav');
+                                        } else if (bonuses_to_survey[bonusName].class == "HealthBonus")
+                                        {
+                                            this.playSound('audio/collectHealth.wav');
+                                        }
+                                        // this.speakText(""+bonuses_to_survey[bonusName].class);
                                         //this.speakText('b');
                                     }))
                                     .then(() => this.waitMS(500));
@@ -480,7 +492,9 @@ class DoomTutorial {
 
         //After rooms, display player health, armor, ammo, and help menu --> offer to reset 
 
-        } 
+        } else if (room == "hall") {
+
+        }
 
     }
 

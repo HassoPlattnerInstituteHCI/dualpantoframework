@@ -85,7 +85,7 @@ if (SERIAL_EXISTS)
 serialRecv();
 }
 
-function tweenPantoTo(index, target, duration)
+function tweenPantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
 {
     
     if (duration == undefined) {
@@ -108,7 +108,7 @@ function tweenPantoTo(index, target, duration)
 
         var tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
             .to(target, duration)
-            .easing(TWEEN.Easing.Quadratic.Out) // Use an easing function to make the animation smooth.
+            .easing(interpolation_method) // Use an easing function to make the animation smooth.
             .onUpdate(function() { // Called after tween.js updates 'tweenPosition'.
                 movePantoTo(index, tweenPosition);
             })
