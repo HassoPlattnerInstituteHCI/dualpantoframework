@@ -434,7 +434,7 @@ class DoomTutorial {
                 .then(() => this.waitMS(500))
                 .then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 250)))
-                .then(() => this.waitMS(1500))
+                .then(() => this.waitMS(750))
                 //here is the passage to the main hall
 
                 
@@ -450,24 +450,30 @@ class DoomTutorial {
                                 this.speakText(greenarmors_to_survey[greenarmor].class);
                             }
                             ))
-                            .then(() => this.waitMS(500));
+                            .then(() => this.waitMS(750));
                     }
                     
                 }
 
                 //Armor and health bonuses, if they are in the room
+                //TODO: use this structure if you can figure out the scoping rules
+                //  Object.keys(a).forEach((value) => console.log(value))
+                //  bonuses_to_survey.forEach((bonusName,) => {})
                 for(var bonus in bonuses_to_survey)
                 {
-                    if (bonuses_to_survey.hasOwnProperty(bonus)) {           
-                        // console.log(bonuses_to_survey[bonus].class)
-                        displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
-                            () => {
-                                this.movePantoFunction(1, this.doomToPantoCoordFunction(bonuses_to_survey[bonus].pos), 250);
-                                // .then(() => this.playSound('audio/dswpnup_armor.wav'))
-                                this.speakText('b');
-                            }))
-                            .then(() => this.waitMS(500));
-                    }
+                        if (bonuses_to_survey.hasOwnProperty(bonus)) {           
+                            var executeNow = ((bonusName) => {
+                                displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
+                                    () => {
+                                        this.movePantoFunction(1, this.doomToPantoCoordFunction(bonuses_to_survey[bonusName].pos), 250);
+                                        // .then(() => this.playSound('audio/dswpnup_armor.wav'))
+                                        this.speakText(""+bonuses_to_survey[bonusName].class);
+                                        //this.speakText('b');
+                                    }))
+                                    .then(() => this.waitMS(500));
+                                });
+                            executeNow(bonus);
+                            }
                 }
                 displayPromise = displayPromise.catch( () => null);
         }

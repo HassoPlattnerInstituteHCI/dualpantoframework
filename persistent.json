@@ -13,7 +13,7 @@
       "active": false
     },
     {
-      "tic": 652,
+      "tic": 895,
       "type": "bookmark",
       "radius": 6,
       "name": "exit hall to armory",
@@ -25,7 +25,7 @@
       "active": false
     },
     {
-      "tic": 656,
+      "tic": 900,
       "type": "bookmark",
       "radius": 3,
       "name": "ENTER ARMORY",
@@ -37,7 +37,7 @@
       "active": false
     },
     {
-      "tic": 552,
+      "tic": 668,
       "type": "bookmark",
       "radius": 3,
       "name": "health bonus hall left",
@@ -49,7 +49,7 @@
       "active": false
     },
     {
-      "tic": 585,
+      "tic": 316,
       "type": "bookmark",
       "radius": 2,
       "name": "health bonus hall right",
