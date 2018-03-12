@@ -157,7 +157,7 @@ class DoomTutorial {
         if (old_location != this.playerlocation)
         {
             // this.speakText(this.playerlocation);
-            console.log(this.room_item_dictionary[this.playerlocation]);
+            // console.log(this.room_item_dictionary[this.playerlocation]);
         }
     }
 
@@ -181,7 +181,7 @@ class DoomTutorial {
             && Math.abs(this.player.pos[0] - pickuppacket.pos[0]) < PICKUP_EPSILON
             && Math.abs(this.player.pos[1] - pickuppacket.pos[1]) < PICKUP_EPSILON)
         {
-            console.log(pickuppacket)
+            // console.log(pickuppacket)
             if(pickuppacket.class == "HealthBonus")
             {
                 this._pickup_healthbonus()
@@ -229,7 +229,7 @@ class DoomTutorial {
 
     handleSpawn(spawnpacket) {
         var room = doomcoords2room(spawnpacket.pos[0], spawnpacket.pos[1]);
-        console.log("adding " + spawnpacket.class + " " + spawnpacket.id + " to room " + room);
+        // console.log("adding " + spawnpacket.class + " " + spawnpacket.id + " to room " + room);
         if (!(room in this.room_item_dictionary)) {
             this.room_item_dictionary[room] = {};
         }
@@ -240,7 +240,7 @@ class DoomTutorial {
     }
 
     handlePlayerSpawn(spawnpacket) {
-            console.log(spawnpacket); //dev + debug
+            // console.log(spawnpacket); //dev + debug
             
             if(!FAST_DEBUG)
             {
@@ -356,7 +356,7 @@ class DoomTutorial {
                     .then(() => this.waitMS(500))
                     .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500))
                     .then(() => this.waitMS(500))
-                    .then(() => this.speakText("leed up to a ledge with armor here."))
+                    .then(() => this.speakText("leed up to a ledge with armor here.")) //leed => phonetic for speech output
                     .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
                     .then(() => this.waitMS(500))
                     .then(() => this.resumeDoom());
@@ -421,8 +421,8 @@ class DoomTutorial {
                     }
                 }
                 // console.log("items to survey: "+ items_to_survey);
-                console.log("greenarmors_to_survey: " + greenarmors_to_survey[0]);
-                console.log("bonuses_to_survey: " + bonuses_to_survey);
+                // console.log("greenarmors_to_survey: " + greenarmors_to_survey[0]);
+                // console.log("bonuses_to_survey: " + bonuses_to_survey);
 
                 //"You are in the armory"
                 this.pauseDoom();
@@ -430,9 +430,14 @@ class DoomTutorial {
                 .then(() => this._ifRunningSightSurvey(
                     () =>  this.speakText("Stairs are in the middle of the room.")))
                 .then(() => this._ifRunningSightSurvey(
-                    () =>  this.speakText("Armor is up here.")));
+                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 250)))
+                .then(() => this.waitMS(500))
+                .then(() => this._ifRunningSightSurvey(
+                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 250)))
+                .then(() => this.waitMS(1500))
                 //here is the passage to the main hall
 
+                
                 //stairs lead up to a ledge
                 
                 //Green armor, if it's in the room
@@ -440,7 +445,12 @@ class DoomTutorial {
                 {
                     if (greenarmors_to_survey.hasOwnProperty(greenarmor)) {           
                         displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
-                            () => this.speakText(greenarmors_to_survey[greenarmor].class)));
+                            () => {
+                                this.movePantoFunction(1, this.doomToPantoCoordFunction(greenarmors_to_survey[greenarmor].pos), 250);
+                                this.speakText(greenarmors_to_survey[greenarmor].class);
+                            }
+                            ))
+                            .then(() => this.waitMS(500));
                     }
                     
                 }
@@ -451,10 +461,13 @@ class DoomTutorial {
                     if (bonuses_to_survey.hasOwnProperty(bonus)) {           
                         // console.log(bonuses_to_survey[bonus].class)
                         displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
-                            () => this.speakText(bonuses_to_survey[bonus].class)))
-                            .then(() => this.waitMS(100));
-                        }
-
+                            () => {
+                                this.movePantoFunction(1, this.doomToPantoCoordFunction(bonuses_to_survey[bonus].pos), 250);
+                                // .then(() => this.playSound('audio/dswpnup_armor.wav'))
+                                this.speakText('b');
+                            }))
+                            .then(() => this.waitMS(500));
+                    }
                 }
                 displayPromise = displayPromise.catch( () => null);
         }
