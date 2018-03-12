@@ -18,6 +18,16 @@ const SIGHT_SURVEY_INCLUDE_CLASSES = [
     'ExplosiveBarrel'
 ]
 
+const TARGET_PRACTICE_STATE = {
+    BEFORE_TARGET_PRACTICE:0, 
+    REQUESTED_FIRSTSHOT:1,
+    SHOOTING_BARREL1:2,
+    SHOOTING_BARREL2:3,
+    SHOOTING_BARREL3:4,
+    AFTER_TARGET_PRACTICE:99
+}
+
+
 const FAST_DEBUG = false;
 
 //**********************
@@ -90,6 +100,7 @@ class DoomTutorial {
                 'Bullets':50,
                 'Shotgun Shells':0
         };
+        this._target_practice_status = TARGET_PRACTICE_STATE.BEFORE_TARGET_PRACTICE;
         this.room_item_dictionary = {}; //dictionary of rooms to list of items
         this._initialize_pickup_functions();
 
@@ -168,8 +179,18 @@ class DoomTutorial {
     }
     
     handleWeaponShot(weaponShotPacket) {
-        console.log(weaponShotPacket);
+        // console.log(weaponShotPacket);
         this.ammo_dictionary[weaponShotPacket.ammotype] = weaponShotPacket.ammo[0];
+        if(this._target_practice_status == TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT)
+        {
+            this._target_practice_status = this._target_practice_status.SHOOTING_BARREL1;
+            this.pauseDoom();
+            this.speakText("Good, looks like your pistol is working. Let's try some target practice.")
+            //move to explosive barrel 1
+            .then(() => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it three times - it should explode."))
+            //after "you can aim at it": wiggle it handle? "Like so."
+            .then(() => this.resumeDoom());
+        }
     }
 
     handlePickup(pickuppacket) {
@@ -374,8 +395,10 @@ class DoomTutorial {
             first_then_after(
                 ()=> {
                     this.pauseDoom();
-                    this.speakText("Welcome back to the hall. Let's try some target practice.")
+                    this.speakText("Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot.")
                     .then(() => this.resumeDoom());
+                    this._target_practice_status = TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT;
+                    //
                 },
                 ()=> {
                     this.speakText("Hall");
