@@ -406,22 +406,60 @@ class DoomTutorial {
 
 
             if (room == "armory") {
+                var bonuses_to_survey = [];
+                var greenarmors_to_survey = [];
+
+                for (var item in items_to_survey) {
+                    // console.log("item: " + item);
+                    if(items_to_survey[item].class == "GreenArmor")
+                    {
+                        greenarmors_to_survey.push(items_to_survey[item])
+                    } else if (items_to_survey[item].class == "HealthBonus") {
+                        bonuses_to_survey.push(items_to_survey[item])
+                    } else if (items_to_survey[item].class == "ArmorBonus") {
+                        bonuses_to_survey.push(items_to_survey[item])
+                    }
+                }
+                // console.log("items to survey: "+ items_to_survey);
+                console.log("greenarmors_to_survey: " + greenarmors_to_survey[0]);
+                console.log("bonuses_to_survey: " + bonuses_to_survey);
+
                 //"You are in the armory"
                 this.pauseDoom();
-                this.speakText("You are in the armory.")
+                var displayPromise = this.speakText("You are in the armory.")
                 .then(() => this._ifRunningSightSurvey(
                     () =>  this.speakText("Stairs are in the middle of the room.")))
                 .then(() => this._ifRunningSightSurvey(
-                    () =>  this.speakText("Armor is up here.")))
-                .catch( () => null);
+                    () =>  this.speakText("Armor is up here.")));
                 //here is the passage to the main hall
 
                 //stairs lead up to a ledge
-
+                
                 //Green armor, if it's in the room
+                for(var greenarmor in greenarmors_to_survey)
+                {
+                    if (greenarmors_to_survey.hasOwnProperty(greenarmor)) {           
+                        displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
+                            () => this.speakText(greenarmors_to_survey[greenarmor].class)));
+                    }
+                    
+                }
 
                 //Armor and health bonuses, if they are in the room
+                for(var bonus in bonuses_to_survey)
+                {
+                    if (bonuses_to_survey.hasOwnProperty(bonus)) {           
+                        // console.log(bonuses_to_survey[bonus].class)
+                        displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
+                            () => this.speakText(bonuses_to_survey[bonus].class)))
+                            .then(() => this.waitMS(100));
+                        }
+
+                }
+                displayPromise = displayPromise.catch( () => null);
         }
+
+        //After rooms, display player health, armor, ammo, and help menu --> offer to reset 
 
         } 
 
