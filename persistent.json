@@ -1,0 +1,76 @@
+{
+  "bookmarks": [
+    {
+      "tic": 525,
+      "type": "bookmark",
+      "radius": 8,
+      "name": "first door",
+      "pos": {
+        "x": 0.9988640000000032,
+        "y": -73.57485879999999,
+        "r": -0.017453292519943295
+      },
+      "active": false
+    },
+    {
+      "tic": 652,
+      "type": "bookmark",
+      "radius": 6,
+      "name": "exit hall to armory",
+      "pos": {
+        "x": -42.848666550000004,
+        "y": -110.50921450000001,
+        "r": -3.193952531149623
+      },
+      "active": false
+    },
+    {
+      "tic": 656,
+      "type": "bookmark",
+      "radius": 3,
+      "name": "ENTER ARMORY",
+      "pos": {
+        "x": -49.817517050000006,
+        "y": -112.07263474999999,
+        "r": -4.799655442984406
+      },
+      "active": false
+    },
+    {
+      "tic": 552,
+      "type": "bookmark",
+      "radius": 3,
+      "name": "health bonus hall left",
+      "pos": {
+        "x": -36.63505955,
+        "y": -126.797373,
+        "r": 1.5707963267948966
+      },
+      "active": false
+    },
+    {
+      "tic": 585,
+      "type": "bookmark",
+      "radius": 2,
+      "name": "health bonus hall right",
+      "pos": {
+        "x": -10.616791049999994,
+        "y": -126.2560322,
+        "r": 1.5707963267948966
+      },
+      "active": false
+    },
+    {
+      "tic": 612,
+      "type": "bookmark",
+      "radius": 2,
+      "name": "armor armory",
+      "pos": {
+        "x": -86.2911675,
+        "y": -112.46584995,
+        "r": 1.5707963267948966
+      },
+      "active": false
+    }
+  ]
+}
