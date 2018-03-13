@@ -27,6 +27,8 @@ const TARGET_PRACTICE_STATE = {
     AFTER_TARGET_PRACTICE:99
 }
 
+const FIRST_BARREL_LOCATION = [864, -3328, NaN];
+
 
 const FAST_DEBUG = false;
 
@@ -184,9 +186,11 @@ class DoomTutorial {
         if(this._target_practice_status == TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT)
         {
             this._target_practice_status = this._target_practice_status.SHOOTING_BARREL1;
-            this.pauseDoom();
-            this.speakText("Good, looks like your pistol is working. Let's try some target practice.")
+            this.waitMS(500)
+            .then(() => this.pauseDoom())
+            .then(()=> this.speakText("Good, looks like your pistol is working. Let's try some target practice."))
             //move to explosive barrel 1
+            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(FIRST_BARREL_LOCATION), 500))
             .then(() => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it three times - it should explode."))
             //after "you can aim at it": wiggle it handle? "Like so."
             .then(() => this.resumeDoom());
