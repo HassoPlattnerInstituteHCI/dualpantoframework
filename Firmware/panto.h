@@ -6,7 +6,7 @@
 
 const unsigned char dofCount = pantoCount*3;
 Encoder* encoder[dofCount];
-float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount], pidFactor[3] = { 5.0, 0.0, 0.0 };
+float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount];
 
 struct Panto {
   unsigned char dofIndex;
@@ -60,10 +60,14 @@ struct Panto {
   }
 
   void setMotor(unsigned char i, bool dir, float power) {
-    digitalWrite(motorDirAPin[i], dir);
+    if(motorFlipped[i])
+        dir = !dir;
+    if(motorDirAPin[i])
+      digitalWrite(motorDirAPin[i], dir);
     if(motorDirBPin[i])
       digitalWrite(motorDirBPin[i], !dir);
-    analogWrite(motorPwmPin[i], min(power, powerLimit) * PWM_MAX);
+    if(motorPwmPin[i])
+      analogWrite(motorPwmPin[i], min(power, powerLimit) * PWM_MAX);
   }
 
   void setup(unsigned char _dofIndex) {
@@ -74,51 +78,47 @@ struct Panto {
       destinationAngle[i] = NAN;
       previousDiff[i] = 0.0;
       integral[i] = 0.0;
-      encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
+      if(encoderAPin[i] && encoderBPin[i])
+        encoder[i] = new Encoder(encoderAPin[i], encoderBPin[i]);
+      else
+        encoder[i] = NULL;
       if(encoderIndexPin[i])
         pinMode(encoderIndexPin[i], INPUT);
-      pinMode(motorDirAPin[i], OUTPUT);
+      if(motorDirAPin[i])
+        pinMode(motorDirAPin[i], OUTPUT);
       if(motorDirBPin[i])
         pinMode(motorDirBPin[i], OUTPUT);
-      pinMode(motorPwmPin[i], OUTPUT);
+      if(motorPwmPin[i])
+        pinMode(motorPwmPin[i], OUTPUT);
 
       // TODO: Calibration
-      bool dir = (i % 3 == 0);
-      if(motorFlipped[i])
-        dir = !dir;
-      setMotor(i, dir, 0.1);
+      // Use encoder index pin and actuate the motors to reach it
+      setMotor(i, false, 0);
     }
   }
 
-  // TODO: Use encoder index pin and actuate the motors to reach it
   void calibrationEnd() {
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
-      digitalWrite(motorPwmPin[i], LOW);
-      encoder[i]->write(actuationAngle[i] / (2.0 * M_PI) * encoderSteps[i] * ((encoderFlipped[i]) ? -1 : 1));
+      // setMotor(i, false, 0);
+      if(encoder[i])
+        encoder[i]->write(actuationAngle[i] / (2.0 * M_PI) * encoderSteps[i]);
     }
   }
 
   void readEncoders() {
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i)
-      actuationAngle[i] = 2.0 * M_PI * encoder[i]->read() / encoderSteps[i] * ((encoderFlipped[i]) ? -1 : 1);
+      actuationAngle[i] = (encoder[i]) ? 2.0 * M_PI * encoder[i]->read() / encoderSteps[i] : NAN;
   }
 
   void actuateMotors() {
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
       if(isnan(destinationAngle[i])) {
-        digitalWrite(motorPwmPin[i], LOW);
+        setMotor(i, false, 0);
         continue;
       }
 
       float error = destinationAngle[i] - actuationAngle[i];
-
-      // Direction
       unsigned char dir = error < 0;
-      if(motorFlipped[i])
-        dir = !dir;
-      digitalWrite(motorDirAPin[i], dir);
-      if(motorDirAPin[i])
-        digitalWrite(motorDirBPin[i], !dir);
       error = fabs(error);
 
       // Power: PID
