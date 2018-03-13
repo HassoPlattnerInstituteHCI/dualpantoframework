@@ -4,6 +4,7 @@ const   say = require('say-promise'),
         PlaySound = require('play-sound')(),
         TWEEN = require('@tweenjs/tween.js');
 
+const PICKUP_EPSILON = 60; 
 
 const SIGHT_SURVEY_INCLUDE_CLASSES = [
     'ArmorBonus',
@@ -23,14 +24,13 @@ const TARGET_PRACTICE_STATE = {
     REQUESTED_FIRSTSHOT:1,
     SHOOTING_BARREL1:2,
     SHOOTING_BARREL2:3,
-    SHOOTING_BARREL3:4,
-    AFTER_TARGET_PRACTICE:99
+    AFTER_TARGET_PRACTICE:99 //not currently used
 }
 
 const FIRST_BARREL_LOCATION = [864, -3328, NaN];
 
 
-const TUTORIAL_ENABLED = true;
+const TUTORIAL_ENABLED = false;
 
 //**********************
 // UTIL (todo: move to different file)
@@ -194,17 +194,31 @@ class DoomTutorial {
             .then(()=> this.speakText("Good, looks like your pistol is working. Let's try some target practice."))
             //move to explosive barrel 1
             .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(FIRST_BARREL_LOCATION), 500))
-            .then(() => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it three times - it should explode."))
+            .then(() => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it - it should explode after two direct hits."))
             //after "you can aim at it": wiggle it handle? "Like so."
             .then(() => this.resumeDoom());
         }
     }
 
+    //"pickup" is actually triggered when an object is destroyed, we need to check if it is a pickup
     handlePickup(pickuppacket) {
-        const PICKUP_EPSILON = 60; 
-
         delete this.room_item_dictionary[this.playerlocation][""+pickuppacket.id];
 
+        //handle triggers based on destroying something
+        //TODO: UNFORTUNATELY barrels aren't destroyed in the same way, and don't call this trigger
+        // if(pickuppacket.id == this._first_barrel_id
+        //     && this._target_practice_status == TARGET_PRACTICE_STATE.SHOOTING_BARREL1
+        //     && this._tutorial_enabled) {
+        //     //TRIGGER NEXT STAGE OF THE TUTORIAL
+        //     this._target_practice_status = TARGET_PRACTICE_STATE.SHOOTING_BARREL2;
+        //     this.waitMS(500)
+        //     .then(() => this.pauseDoom())
+        //     .then(()=> this.speakText("Good shot! There are two more barrels in the room. You can look for them by pressing and holding the middle pedal. Hold the pedal until it is on a barrel, let go, and try to shoot it. Don't get too close!"))
+        //     //move to explosive barrel 2
+        //     .then(() => this.resumeDoom());
+        // }
+
+        
         //if it actually _is_ a pickup, then notify the user as needed
         if (this.player != null
             && Math.abs(this.player.pos[0] - pickuppacket.pos[0]) < PICKUP_EPSILON
@@ -265,6 +279,14 @@ class DoomTutorial {
         if (SIGHT_SURVEY_INCLUDE_CLASSES.includes(spawnpacket.class))
         {
             this.room_item_dictionary[room][spawnpacket.id] = spawnpacket;
+        }
+
+        //handle special barrel triggers
+        if (room == "hall"
+            && spawnpacket.class == "ExplosiveBarrel"
+            && Math.abs(spawnpacket.pos[0] - FIRST_BARREL_LOCATION[0]) < PICKUP_EPSILON
+            && Math.abs(spawnpacket.pos[1] - FIRST_BARREL_LOCATION[1]) < PICKUP_EPSILON) {
+                this._first_barrel_id = spawnpacket.id;
         }
     }
 
