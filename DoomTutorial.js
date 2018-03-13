@@ -391,7 +391,7 @@ class DoomTutorial {
                         .then(() => this.speakText("leed up to a ledge with armor here.")) //leed => phonetic for speech output
                         .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
                         .then(() => this.waitMS(500))
-                        .then(() => this.speakText("You can press and hold the middle pedal anytime to look around the room.")) //leed => phonetic for speech output
+                        .then(() => this.speakText("You can press and hold the middle pedal anytime to look around the room. As long as you hold it, it will show you things in the room. You can let go at any point to track that object. Try it now by pressing and holding the middle pedal!")) //leed => phonetic for speech output
                         .then(() => this.resumeDoom());
                         
                     },
