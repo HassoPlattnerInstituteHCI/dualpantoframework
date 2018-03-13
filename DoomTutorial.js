@@ -30,7 +30,7 @@ const TARGET_PRACTICE_STATE = {
 const FIRST_BARREL_LOCATION = [864, -3328, NaN];
 
 
-const FAST_DEBUG = false;
+const TUTORIAL_ENABLED = true;
 
 //**********************
 // UTIL (todo: move to different file)
@@ -86,6 +86,9 @@ const last_N_bookmarks_length = 2; //size of buffer of bookmark names encountere
 class DoomTutorial { 
     constructor() {
 
+        //do we play tutorial segments?
+        this._tutorial_enabled = TUTORIAL_ENABLED;
+        
         //finite buffer of bookmark names encountered
         this.last_N_bookmarks = []; 
 
@@ -183,7 +186,7 @@ class DoomTutorial {
     handleWeaponShot(weaponShotPacket) {
         // console.log(weaponShotPacket);
         this.ammo_dictionary[weaponShotPacket.ammotype] = weaponShotPacket.ammo[0];
-        if(this._target_practice_status == TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT)
+        if(this._tutorial_enabled && (this._target_practice_status == TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT))
         {
             this._target_practice_status = this._target_practice_status.SHOOTING_BARREL1;
             this.waitMS(500)
@@ -212,7 +215,7 @@ class DoomTutorial {
             {
                 this._pickup_healthbonus()
                 .then(() => {
-                    if (pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
+                    if (this._tutorial_enabled && pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
                     {
                             this.pauseDoom();
                             this.speakText("Good. Over here")
@@ -227,7 +230,7 @@ class DoomTutorial {
             } else if (pickuppacket.class == "ArmorBonus") {
                 this._pickup_armorbonus()
                 .then( () => {
-                    if(pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
+                    if(this._tutorial_enabled && pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
                     {
                         this.pauseDoom()
                         .then(() => this.waitMS(250))
@@ -268,7 +271,7 @@ class DoomTutorial {
     handlePlayerSpawn(spawnpacket) {
             // console.log(spawnpacket); //dev + debug
             
-            if(!FAST_DEBUG)
+            if(this._tutorial_enabled)
             {
                 this.pauseDoom();
                 this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.")
@@ -373,40 +376,43 @@ class DoomTutorial {
     
 
     initializeTestTutorial() {
-        this.addBookmarkTrigger(
-            ["exit hall to armory", "ENTER ARMORY"],
-            first_then_after(
-                ()=> {
-                    this.pauseDoom();
-                    this.speakText("This is the armory. Stairs")
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500))
-                    .then(() => this.waitMS(500))
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None))
-                    .then(() => this.waitMS(500))
-                    .then(() => this.speakText("leed up to a ledge with armor here.")) //leed => phonetic for speech output
-                    .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
-                    .then(() => this.waitMS(500))
-                    .then(() => this.speakText("You can press and hold the middle pedal anytime to look around the room.")) //leed => phonetic for speech output
-                    .then(() => this.resumeDoom());
-                    
-                },
-                ()=> {
-                    this.speakText("Armory");
-                }));
+        if(this._tutorial_enabled)
+        {
+            this.addBookmarkTrigger(
+                ["exit hall to armory", "ENTER ARMORY"],
+                first_then_after(
+                    ()=> {
+                        this.pauseDoom();
+                        this.speakText("This is the armory. Stairs")
+                        .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500))
+                        .then(() => this.waitMS(500))
+                        .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None))
+                        .then(() => this.waitMS(500))
+                        .then(() => this.speakText("leed up to a ledge with armor here.")) //leed => phonetic for speech output
+                        .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
+                        .then(() => this.waitMS(500))
+                        .then(() => this.speakText("You can press and hold the middle pedal anytime to look around the room.")) //leed => phonetic for speech output
+                        .then(() => this.resumeDoom());
+                        
+                    },
+                    ()=> {
+                        this.speakText("Armory");
+                    }));
 
-        this.addBookmarkTrigger(
-            ["ENTER ARMORY","exit hall to armory"],
-            first_then_after(
-                ()=> {
-                    this.pauseDoom();
-                    this.speakText("Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot.")
-                    .then(() => this.resumeDoom());
-                    this._target_practice_status = TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT;
-                    //
-                },
-                ()=> {
-                    this.speakText("Hall");
-                }));
+            this.addBookmarkTrigger(
+                ["ENTER ARMORY","exit hall to armory"],
+                first_then_after(
+                    ()=> {
+                        this.pauseDoom();
+                        this.speakText("Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot.")
+                        .then(() => this.resumeDoom());
+                        this._target_practice_status = TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT;
+                        //
+                    },
+                    ()=> {
+                        this.speakText("Hall");
+                    }));
+            }
     }
 
 
