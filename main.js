@@ -24,6 +24,8 @@ const origin = new Vector(1500, -1000),
 //**********************
 let upperPanto, lowerPanto;
 
+var last_poi_length = 0;
+
 //**********************
 // ANIMATION AND TWEENING
 //**********************
@@ -278,6 +280,7 @@ proc.stdout.on('data', (data) => {
     // Render force to upper panto (ME-Handle)
     movePantoTo(0, (force.length() > 0) ? upperPanto.sum(force) : undefined);
 
+
     // Find closest point of interest (POI)
     const poi = [];
     for(const id in enemyCache) {
@@ -290,8 +293,16 @@ proc.stdout.on('data', (data) => {
     poi.sort(function(a, b) {
         return a.distance > b.distance;
     });
+    
     // Render POI to lower panto (IT-Handle)
-    movePantoTo(1, (poi.length > 0) ? poi[0].pos : undefined);
+    //this method fixes the it-handle when no poi is present (i.e., after the sight survey, the it handle remains in place)
+    if(poi.length > 0) {
+        movePantoTo(1, poi[0].pos);
+    } else if (last_poi_length > 0) {
+        movePantoTo(1, undefined); //disable when we lose track of a POI as a falling edge
+    }
+    last_poi_length = poi.length;
+    // movePantoTo(1, (poi.length > 0) ? poi[0].pos : undefined); //this always disables it-handle when we don't need it
 }
 });
 proc.stderr.on('error', (err) => {
