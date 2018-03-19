@@ -30,7 +30,7 @@ const TARGET_PRACTICE_STATE = {
 const FIRST_BARREL_LOCATION = [864, -3328, NaN];
 
 
-const TUTORIAL_ENABLED = false;
+const TUTORIAL_ENABLED = true;
 
 //**********************
 // UTIL (todo: move to different file)
@@ -61,7 +61,7 @@ function doomcoords2room(x, y) {
     } else if (inBoundingBox(x, y, 720, 1327, -2900, -3663)) {
         room = "hall";     
     } else if (inBoundingBox(x, y, 1568, 2479, -2128, -2735)) {
-        room = "guardpost";
+        room = "gardpost";
     } else if (inBoundingBox(x, y, 2479, 2943, -2576, -2800)) {
         room = "cave";
     } else if (inBoundingBox(x, y, 2768, 3447, -2928, -3650)) {
@@ -355,7 +355,7 @@ class DoomTutorial {
     }
 
     speakText(txt) {
-        return say.speak(txt, 'Tom', 1.4, (err) => {
+        return say.speak(txt, 'Tom', 1.2, (err) => {
             if(err) {
                 console.error(err);
                 return;
