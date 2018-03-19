@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@tweenjs/tween.js": "^17.2.0",
+    "co": "^4.6.0",
     "node": "^9.0.0",
     "play-sound": "^1.1.2",
     "say": "^0.14.0",

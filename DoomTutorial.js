@@ -2,7 +2,8 @@
 
 const   say = require('say-promise'),
         PlaySound = require('play-sound')(),
-        TWEEN = require('@tweenjs/tween.js');
+        TWEEN = require('@tweenjs/tween.js'),
+        co = require('co');
 
 const PICKUP_EPSILON = 60; 
 
@@ -48,6 +49,15 @@ var first_then_after = (function(function1, function2) {
       }
     })
   });
+
+
+// condition_fn:: promise_list :: list of arrow functions returning promises
+function *conditional_promise_generator(promise_list, condition_fn){
+    for(var i = 0; condition_fn() && i < promise_list.length; i++) {
+        yield promise_list[i]();
+    }
+}
+
 
 
 function inBoundingBox(x, y, left, right, top, bottom) {
@@ -112,6 +122,15 @@ class DoomTutorial {
         this.initializeTestTutorial();
     }
 
+    run_script(promise_list, condition_fn = () => {return true;}) {
+        this._running_script = true;
+        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+        this.pauseDoom();
+        co(script_generator)
+        .catch(console.log)
+        .then(() => this.resumeDoom());
+    }
+
     _initialize_pickup_functions() {
         this._pickup_healthbonus = first_then_after(
             () => this.speakText("Health Bonus.")
@@ -156,6 +175,15 @@ class DoomTutorial {
     setMovePantoFunction(movePanto_fn)
     {
         this.movePantoFunction = movePanto_fn;
+    }
+
+    movePantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
+    {
+        return new Promise (resolve => 
+        {
+            this.movePantoFunction(index, target, duration, interpolation_method);
+            resolve(resolve);
+        });
     }
 
     setDoomToPantoCoordFunction(new_doomToPantoCoordFunction)
@@ -293,35 +321,35 @@ class DoomTutorial {
     handlePlayerSpawn(spawnpacket) {
             // console.log(spawnpacket); //dev + debug
             
-            if(this._tutorial_enabled)
-            {
-                this.pauseDoom();
-                this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.")
-                .then(() => this.waitMS(500))
-                .then(() => this.speakText("You are currently here."))
-                .then(() => this.movePantoFunction(0, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
-                .then(() => this.waitMS(500))
-                .then(() => this.speakText("in the main hall. Let me show you around the room."))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
-                .then(() => this.speakText("If you walk around,"))
-                .then(() => this.speakText("You will find the room is rectangular."))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3500, NaN]), 500))
-                .then(() => this.waitMS(500))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([784,-3016, NaN]), 500))
-                .then(() => this.waitMS(500))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3016, NaN]), 500))
-                .then(() => this.waitMS(500))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([1298,-3500, NaN]), 500))
-                .then(() => this.waitMS(500))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500))
-                .then(() => this.waitMS(500))
-                // .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])))
-                .then(() => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."))
-                .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([761,-3530,NaN]), 250))
-                .then(() => this.waitMS(250))
-                .then(() => this.speakText("Here is a health bonus. You can pick it up by walking over it."))
-                .then(()=> this.resumeDoom());
-            }
+            // this.pauseDoom();
+            this.run_script([
+                () => this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat."),
+                () => this.waitMS(500),
+                () => this.speakText("You are currently here."),
+                () => this.movePantoTo(0, this.doomToPantoCoordFunction(spawnpacket.pos), 500),
+                () => this.waitMS(500),
+                () => this.speakText("in the main hall. Let me show you around the room."),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500),
+                () => this.speakText("If you walk around,"),
+                () => this.speakText("You will find the room is rectangular."),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction([784,-3500, NaN]), 500),
+                () => this.waitMS(500),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction([784,-3016, NaN]), 500),
+                () => this.waitMS(500),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction([1298,-3016, NaN]), 500),
+                () => this.waitMS(500),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction([1298,-3500, NaN]), 500),
+                () => this.waitMS(500),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500),
+                () => this.waitMS(500),
+                // () => this.movePantoTo(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])),
+                () => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."),
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction([761,-3530,NaN]), 250),
+                () => this.waitMS(250),
+                () => this.speakText("Here is a health bonus. You can pick it up by walking over it."),
+                ()=> this.resumeDoom()
+            ]);
+            
     }
 
     handleBookmark(bookmarkName) {
@@ -351,6 +379,10 @@ class DoomTutorial {
             {
                 this.stopSightSurvey();
             }
+        } else if  (keypresspacket.keyCode == 8) { //8 == 'c' for shooting
+            this._running_script = false;
+        } else {
+            // console.log(keypresspacket.keyCode);
         }
     }
 
