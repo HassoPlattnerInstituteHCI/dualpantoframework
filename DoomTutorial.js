@@ -401,7 +401,7 @@ class DoomTutorial {
                 if (err){
                     console.error(err);
                 }});
-                resolve();
+                resolve(); //this should be resolve(resolve); I think
         });
     }
 
