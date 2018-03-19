@@ -386,6 +386,10 @@ class DoomTutorial {
             if (b)
             {
                 this.doomProcess.stdin.write("PAUSE 0\n"); //set pause to true
+                if (this.player)
+                {
+                    this.movePantoFunction(0, this.doomToPantoCoordFunction(this.player.pos), 100);
+                }
             } else {
                 this.doomProcess.stdin.write("PAUSE 1\n"); //set pause to false;
             }
