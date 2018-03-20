@@ -1,28 +1,67 @@
+//**********************
+// REQUIRE
+//**********************
+
 const child_process = require('child_process'),
       fs = require('fs'),
       path = require('path'),
-      say = require('say'),
       serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
+      DoomTutorial = require('./DoomTutorial.js')
       config = JSON.parse(fs.readFileSync('config.json')),
-      persistent = JSON.parse(fs.readFileSync('persistent.json')); // TODO: Initalize
+      persistent = JSON.parse(fs.readFileSync('persistent.json')), // TODO: Initalize
+      TWEEN = require('@tweenjs/tween.js');
+
+//**********************
+// DOOM CONSTANTS
+//**********************
 const origin = new Vector(1500, -1000),
       scale = 20;
+
+//**********************
+// PANTO
+//**********************
 let upperPanto, lowerPanto;
 
+//**********************
+// ANIMATION AND TWEENING
+//**********************
+// Setup the tween animation loop.
+const TWEEN_INTERVAL = 30; //ms
+var tween_stack_counter = 0; //keeps track of how many tweens are going on so we only update when needed
 
-//Debugging without serial
+function animateTween() {
+    TWEEN.update();
+    if(tween_stack_counter > 0) {
+        setTimeout(animateTween, TWEEN_INTERVAL);
+    }
+}
+
+//**********************
+// DEBUG
+//**********************
+
+// Debugging without serial
 const DEBUG_WITHOUT_SERIAL = true;
 var SERIAL_EXISTS = true;
 
+//**********************
+// tutorial
+//**********************
+const doomTutorial = new DoomTutorial();
+
+
+//**********************
+// SERIAL COMMUNICATION
+//**********************
 try{
 	serial.open(config.serialDevicePath);
 } catch (e) {
     console.log("ERROR: No serial port attached.");
     if (DEBUG_WITHOUT_SERIAL)
     {
-        console.log("DEBUG: DEBUG_WITHOUT_SERIALis true, so running with SERIAL_EXISTS=false.");
+        console.log("DEBUG: DEBUG_WITHOUT_SERIAL is true, so running with SERIAL_EXISTS=false.");
         SERIAL_EXISTS = false;
     }
 }
@@ -44,6 +83,40 @@ function serialRecv() {
 if (SERIAL_EXISTS)
 {
 serialRecv();
+}
+
+function tweenPantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
+{
+    
+    if (duration == undefined) {
+        duration = 500;
+    }
+    var tweenPosition = undefined;
+    if (index == 0 && upperPanto) {
+        tweenPosition = upperPanto;
+    } else if (index == 1 && lowerPanto) {
+        tweenPosition = lowerPanto;
+    }
+    if(tweenPosition)
+    {
+        tween_stack_counter++;
+
+        if(tween_stack_counter == 1)
+        {
+            setTimeout(animateTween, TWEEN_INTERVAL);
+        }
+
+        var tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
+            .to(target, duration)
+            .easing(interpolation_method) // Use an easing function to make the animation smooth.
+            .onUpdate(function() { // Called after tween.js updates 'tweenPosition'.
+                movePantoTo(index, tweenPosition);
+            })
+            .onComplete(function() {
+                tween_stack_counter--;
+            })
+            .start(); // Start the tween immediately.
+        }
 }
 
 function movePantoTo(index, target) {
@@ -71,6 +144,12 @@ function pantoToDoomCoord(pos) {
 const proc = child_process.spawn(config.doomExecutablePath),
       enemyCache = {},
       collisionCache = {};
+
+//TODO: Wrap this controller in an object/interface, pass it to doomTutorial instead of all these functions
+doomTutorial.setDoomProcess(proc);
+doomTutorial.setMovePantoFunction(tweenPantoTo);
+doomTutorial.setDoomToPantoCoordFunction(doomToPantoCoord);
+
 proc.stdout.on('data', (data) => {
     // Receive and analyse DOOMs output
     data = data.toString();
@@ -83,6 +162,8 @@ proc.stdout.on('data', (data) => {
         const packet = JSON.parse(line);
         switch(packet.type) {
             case 'player':
+                // console.log(packet);
+                doomTutorial.handlePlayer(packet);
                 packet.pos = doomToPantoCoord(packet.pos);
                 player = packet;
                 // Send controls to DOOM
@@ -104,16 +185,40 @@ proc.stdout.on('data', (data) => {
                 collisionCache[packet.id] = packet;
                 break;
             case 'enemy':
+                // console.log(packet);
                 packet.pos = doomToPantoCoord(packet.pos);
                 enemyCache[packet.id] = packet;
+                break;
+            case 'impball':
+                // console.log(packet);
                 break;
             case 'dead':
                 delete enemyCache[packet.id];
                 break;
             case 'spawn':
+                // console.log(packet);
+                if(packet.class === "DoomPlayer")
+                {
+                    doomTutorial.handlePlayerSpawn(packet);
+                } else {
+                    doomTutorial.handleSpawn(packet);
+                }
+                break;
             case 'weaponchange':
-                console.log(packet);
-                // TODO
+                // console.log(packet);
+                doomTutorial.handleWeaponChange(packet);
+                break;
+            case 'weaponshot':
+                // console.log(packet);
+                doomTutorial.handleWeaponShot(packet);
+                break;
+            case 'pickup':
+                // console.log(packet);
+                doomTutorial.handlePickup(packet);
+                break;
+            case 'key':
+                // console.log(packet);
+                doomTutorial.handleKeyPress(packet);
                 break;
             case 'bookmark':
                 packet.pos = doomToPantoCoord(packet.pos);
@@ -137,12 +242,7 @@ proc.stdout.on('data', (data) => {
         // Rising edge detection
         if(!bookmark.active) {
             console.log('Bookmark:', bookmark.name, bookmark.tic, player.tic);
-            say.speak(bookmark.name, 'Alex', 1.0, (err) => {
-                if(err) {
-                    console.error(err);
-                    return;
-                }
-            });
+            doomTutorial.handleBookmark(bookmark.name);
         }
         bookmark.tic = player.tic;
         bookmark.active = true;
@@ -203,6 +303,6 @@ proc.on('exit', (code) => {
     movePantoTo(0);
     movePantoTo(1);
     // Save persistent
-    fs.writeFileSync('persistent.json', JSON.stringify(persistent));
+    fs.writeFileSync('persistent.json', JSON.stringify(persistent, null, 2));
     process.exit(code);
 });
