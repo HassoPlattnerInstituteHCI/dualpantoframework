@@ -122,7 +122,7 @@ class DoomTutorial {
         this.initializeTestTutorial();
     }
 
-    run_script(promise_list, condition_fn = () => {return true;}) {
+    run_script(promise_list) {
         this._running_script = true;
         var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
         this.pauseDoom();
@@ -218,13 +218,14 @@ class DoomTutorial {
         {
             this._target_practice_status = this._target_practice_status.SHOOTING_BARREL1;
             this.waitMS(500)
-            .then(() => this.pauseDoom())
-            .then(()=> this.speakText("Good, looks like your pistol is working. Let's try some target practice."))
-            //move to explosive barrel 1
-            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction(FIRST_BARREL_LOCATION), 500))
-            .then(() => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it - it should explode after two direct hits."))
-            //after "you can aim at it": wiggle it handle? "Like so."
-            .then(() => this.resumeDoom());
+            .then(() => this.run_script([
+                ()=> this.speakText("Good, looks like your pistol is working. Let's try some target practice."),
+                //move to explosive barrel 1
+                () => this.movePantoTo(1, this.doomToPantoCoordFunction(FIRST_BARREL_LOCATION), 500),
+                () => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it - it should explode after two direct hits."),
+                //after "you can aim at it": wiggle it handle? "Like so."
+                () => this.resumeDoom()
+            ]));   
         }
     }
 
@@ -259,14 +260,14 @@ class DoomTutorial {
                 .then(() => {
                     if (this._tutorial_enabled && pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
                     {
-                            this.pauseDoom();
-                            this.speakText("Good. Over here")
-                            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([770,-3221, NaN]), 250))
-                            .then(() => this.waitMS(250))
-                            .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250))
-                            .then(() => this.waitMS(250))
-                            .then(() => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it."))
-                            .then(()=> this.resumeDoom());
+                        this.run_script([
+                            () => this.speakText("Good. Over here"),
+                            () => this.movePantoTo(1, this.doomToPantoCoordFunction([770,-3221, NaN]), 250),
+                            () => this.waitMS(250),
+                            () => this.movePantoTo(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250),
+                            () => this.waitMS(250),
+                            () => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it.")
+                        ]);   
                     } 
                 });
             } else if (pickuppacket.class == "ArmorBonus") {
@@ -274,10 +275,11 @@ class DoomTutorial {
                 .then( () => {
                     if(this._tutorial_enabled && pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
                     {
-                        this.pauseDoom()
-                        .then(() => this.waitMS(250))
-                        .then(() => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."))
-                        .then(() => this.resumeDoom());
+                        this.run_script([
+                            () => this.waitMS(250),
+                            () => this.speakText("There are more supplies in the room. You can press the left foot pedal at any time to look around the current room."),
+                            () => this.resumeDoom()
+                        ]);
                     }
                 });
             } else if (pickuppacket.class == "GreenArmor") {
@@ -381,13 +383,14 @@ class DoomTutorial {
             }
         } else if  (keypresspacket.keyCode == 8) { //8 == 'c' for shooting
             this._running_script = false;
+            say.stop();
         } else {
             // console.log(keypresspacket.keyCode);
         }
     }
 
     speakText(txt) {
-        return say.speak(txt, 'Tom', 1.2, (err) => {
+        return say.speak(txt, 'Tom', 2.0, (err) => {
             if(err) {
                 console.error(err);
                 return;
@@ -439,20 +442,18 @@ class DoomTutorial {
             this.addBookmarkTrigger(
                 ["exit hall to armory", "ENTER ARMORY"],
                 first_then_after(
-                    ()=> {
-                        this.pauseDoom();
-                        this.speakText("This is the armory. Stairs")
-                        .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500))
-                        .then(() => this.waitMS(500))
-                        .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None))
-                        .then(() => this.waitMS(500))
-                        .then(() => this.speakText("leed up to a ledge with armor here.")) //leed => phonetic for speech output
-                        .then(() => this.movePantoFunction(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500))
-                        .then(() => this.waitMS(500))
-                        .then(() => this.speakText("You can press and hold the middle pedal anytime to look around the room. As long as you hold it, it will show you things in the room. You can let go at any point to track that object. Try it now by pressing and holding the middle pedal!")) //leed => phonetic for speech output
-                        .then(() => this.resumeDoom());
-                        
-                    },
+                    ()=> this.run_script([
+                            () => this.speakText("This is the armory. Stairs"),
+                            () => this.movePantoTo(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500),
+                            () => this.waitMS(500),
+                            () => this.movePantoTo(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None),
+                            () => this.waitMS(500),
+                            () => this.speakText("leed up to a ledge with armor here."), //leed => phonetic for speech outpu,
+                            () => this.movePantoTo(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500),
+                            () => this.waitMS(500),
+                            () => this.speakText("You can press and hold the middle pedal anytime to look around the room. As long as you hold it, it will show you things in the room. You can let go at any point to track that object. Try it now by pressing and holding the middle pedal!"),
+                            () => this.resumeDoom(),
+                    ]),
                     ()=> {
                         this.speakText("Armory");
                     }));
@@ -461,11 +462,11 @@ class DoomTutorial {
                 ["ENTER ARMORY","exit hall to armory"],
                 first_then_after(
                     ()=> {
-                        this.pauseDoom();
-                        this.speakText("Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot.")
-                        .then(() => this.resumeDoom());
+                        this.run_script([
+                            () => this.speakText("Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot."),
+                            () => this.resumeDoom()
+                        ]);
                         this._target_practice_status = TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT;
-                        //
                     },
                     ()=> {
                         this.speakText("Hall");
