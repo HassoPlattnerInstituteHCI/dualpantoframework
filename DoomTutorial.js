@@ -7,6 +7,9 @@ const   say = require('say-promise'),
 
 const PICKUP_EPSILON = 60; 
 
+
+const TUTORIAL_LANGUAGE = "EN"; //or "EN"
+
 const SIGHT_SURVEY_INCLUDE_CLASSES = [
     'ArmorBonus',
     'GreenArmor',
@@ -83,6 +86,48 @@ function doomcoords2room(x, y) {
     }
     //todo add the secrets
     return room;
+}
+
+var TUTORIAL_TEXT;
+if (TUTORIAL_LANGUAGE == "EN") {
+    TUTORIAL_TEXT = {
+        HALL_INTRO : [
+            "Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.",
+            "You are currently here.",
+            "in the main hall. Let me show you around the room.",
+            "If you walk around",
+            "You will find the room is rectangular",
+            "Your goal is to find the exit. Before you do, you better get some supplies. You'll need them.",
+            "Here is a health bonus. You can pick it up by walking over it"
+        ],
+        HALL_PICKEDUP_HEALTH_BONUS : [
+            "Good. Over here",
+            "Is the passage to the armory. That will have some armor for you. Try following the wall to get to it."
+        ],
+        ARMORY_INTRO : [
+            "This is the armory. Stairs",
+            "leed up to a ledge with armor here", //leed => phonetic for speech output
+            "You can press and hold the middle pedal anytime to look around the room. As long as you hold it, it will show you things in the room. You can let go at any point to track that object. Try it now by pressing and holding the middle pedal!"
+        ],
+        HALL_SHOOTPISTOL : [
+            "Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot."
+        ],
+        HALL_TARGET_PRACTICE : [
+            "Good, looks like your pistol is working. Let's try some target practice",
+            "Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it - it should explode after two direct hits."
+        ],
+        SURVEY : {
+            YOU_ARE_IN : "You are in the ",
+            PASSAGE_TO_ARMORY : "Passage to armory is here",
+            PASSAGE_TO_GUARDPOST : "Passage to the gard post",
+            PASSAGE_TO_HALL : "Passage to hall is here",
+            STAIRS : "Stairs to ledge"
+        }
+    };
+} else if (TUTORIAL_LANGUAGE == "DE") {
+    const TUTORIAL_TEXT = {
+
+    };    
 }
 
 
@@ -219,10 +264,10 @@ class DoomTutorial {
             this._target_practice_status = this._target_practice_status.SHOOTING_BARREL1;
             this.waitMS(500)
             .then(() => this.run_script([
-                ()=> this.speakText("Good, looks like your pistol is working. Let's try some target practice."),
+                ()=> this.speakText(TUTORIAL_TEXT.HALL_TARGET_PRACTICE[0]),
                 //move to explosive barrel 1
                 () => this.movePantoTo(1, this.doomToPantoCoordFunction(FIRST_BARREL_LOCATION), 500),
-                () => this.speakText("Here's an explosive barrel. You can aim at it by rotating the me handle. Try shooting it - it should explode after two direct hits."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_TARGET_PRACTICE[1]),
                 //after "you can aim at it": wiggle it handle? "Like so."
                 () => this.resumeDoom()
             ]));   
@@ -261,12 +306,12 @@ class DoomTutorial {
                     if (this._tutorial_enabled && pickuppacket.pos[0] ==  736 && pickuppacket.pos[1] == -3520)
                     {
                         this.run_script([
-                            () => this.speakText("Good. Over here"),
+                            () => this.speakText(TUTORIAL_TEXT.HALL_PICKEDUP_HEALTH_BONUS[0]),
                             () => this.movePantoTo(1, this.doomToPantoCoordFunction([770,-3221, NaN]), 250),
                             () => this.waitMS(250),
                             () => this.movePantoTo(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250),
                             () => this.waitMS(250),
-                            () => this.speakText("Is the passage to the armory. That will have some armor for you. Try following the wall to get to it.")
+                            () => this.speakText(TUTORIAL_TEXT.HALL_PICKEDUP_HEALTH_BONUS[1])
                         ]);   
                     } 
                 });
@@ -325,15 +370,15 @@ class DoomTutorial {
             
             // this.pauseDoom();
             this.run_script([
-                () => this.speakText("Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[0]),
                 () => this.waitMS(500),
-                () => this.speakText("You are currently here."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[1]),
                 () => this.movePantoTo(0, this.doomToPantoCoordFunction(spawnpacket.pos), 500),
                 () => this.waitMS(500),
-                () => this.speakText("in the main hall. Let me show you around the room."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[2]),
                 () => this.movePantoTo(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500),
-                () => this.speakText("If you walk around,"),
-                () => this.speakText("You will find the room is rectangular."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[3]),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[4]),
                 () => this.movePantoTo(1, this.doomToPantoCoordFunction([784,-3500, NaN]), 500),
                 () => this.waitMS(500),
                 () => this.movePantoTo(1, this.doomToPantoCoordFunction([784,-3016, NaN]), 500),
@@ -345,10 +390,10 @@ class DoomTutorial {
                 () => this.movePantoTo(1, this.doomToPantoCoordFunction(spawnpacket.pos), 500),
                 () => this.waitMS(500),
                 // () => this.movePantoTo(1, this.doomToPantoCoordFunction([NaN,NaN,NaN])),
-                () => this.speakText("Your goal is to find the exit. Before you do, you better get some supplies. You'll need them."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[5]),
                 () => this.movePantoTo(1, this.doomToPantoCoordFunction([761,-3530,NaN]), 250),
                 () => this.waitMS(250),
-                () => this.speakText("Here is a health bonus. You can pick it up by walking over it."),
+                () => this.speakText(TUTORIAL_TEXT.HALL_INTRO[6]),
                 ()=> this.resumeDoom()
             ]);
             
@@ -443,15 +488,15 @@ class DoomTutorial {
                 ["exit hall to armory", "ENTER ARMORY"],
                 first_then_after(
                     ()=> this.run_script([
-                            () => this.speakText("This is the armory. Stairs"),
+                            () => this.speakText(TUTORIAL_TEXT.ARMORY_INTRO[0]),
                             () => this.movePantoTo(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 500),
                             () => this.waitMS(500),
                             () => this.movePantoTo(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None),
                             () => this.waitMS(500),
-                            () => this.speakText("leed up to a ledge with armor here."), //leed => phonetic for speech outpu,
+                            () => this.speakText(TUTORIAL_TEXT.ARMORY_INTRO[1]),
                             () => this.movePantoTo(1, this.doomToPantoCoordFunction([-210,-3220, NaN]), 500),
                             () => this.waitMS(500),
-                            () => this.speakText("You can press and hold the middle pedal anytime to look around the room. As long as you hold it, it will show you things in the room. You can let go at any point to track that object. Try it now by pressing and holding the middle pedal!"),
+                            () => this.speakText(TUTORIAL_TEXT.ARMORY_INTRO[2]),
                             () => this.resumeDoom(),
                     ]),
                     ()=> {
@@ -463,7 +508,7 @@ class DoomTutorial {
                 first_then_after(
                     ()=> {
                         this.run_script([
-                            () => this.speakText("Welcome back to the hall. Before you move on, let's make sure your pistol is working. Press the right pedal to shoot."),
+                            () => this.speakText(TUTORIAL_TEXT.HALL_SHOOTPISTOL[0]),
                             () => this.resumeDoom()
                         ]);
                         this._target_practice_status = TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT;
@@ -518,14 +563,14 @@ class DoomTutorial {
             }
 
             this.pauseDoom();
-            var displayPromise = this.speakText("You are in the " + room);
+            var displayPromise = this.speakText(TUTORIAL_TEXT.SURVEY.YOU_ARE_IN + room);
 
             //landmarks
             if (room == "armory") {
                 displayPromise = displayPromise.then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250)))
                 .then(() => this._ifRunningSightSurvey(
-                    () =>  this.speakText("Passage to hall is here.")))
+                    () =>  this.speakText(TUTORIAL_TEXT.SURVEY.PASSAGE_TO_HALL)))
                 // .then(() => this.waitMS(250))
                 .then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 250)))
@@ -533,7 +578,7 @@ class DoomTutorial {
                 .then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 750, TWEEN.Easing.Linear.None)))
                 .then(() => this._ifRunningSightSurvey(
-                    () =>  this.speakText("Stairs to ledge.")))
+                    () =>  this.speakText(TUTORIAL_TEXT.SURVEY.STAIRS)))
                 .then(() => this.waitMS(500));
         //*******
         // Armory
@@ -542,13 +587,13 @@ class DoomTutorial {
             displayPromise = displayPromise.then(() => this._ifRunningSightSurvey(
                 () => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 500)))
             .then(() => this._ifRunningSightSurvey(
-                () =>  this.speakText("Passage to armory is here.")))
+                () =>  this.speakText(TUTORIAL_TEXT.SURVEY.PASSAGE_TO_ARMORY)))
             // .then(() => this.waitMS(250))
             .then(() => this._ifRunningSightSurvey(
                 () => this.movePantoFunction(1, this.doomToPantoCoordFunction([1272,-2906, NaN]), 500)))
             // .then(() => this.waitMS(350))
             .then(() => this._ifRunningSightSurvey(
-                () =>  this.speakText("Passage to the gard post."))) //phonetic for speech output
+                () =>  this.speakText(TUTORIAL_TEXT.SURVEY.PASSAGE_TO_GUARDPOST))) //phonetic for speech output
             .then(() => this._ifRunningSightSurvey(
                 () => this.movePantoFunction(1, this.doomToPantoCoordFunction([1272,-2559, NaN]), 500, TWEEN.Easing.Linear.None)))
             .then(() => this.waitMS(500)) 
