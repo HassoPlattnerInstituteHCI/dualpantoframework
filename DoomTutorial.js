@@ -529,12 +529,12 @@ class DoomTutorial {
                 // .then(() => this.waitMS(250))
                 .then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([354,-3220, NaN]), 250)))
-                // .then(() => this.waitMS(350))
+                .then(() => this.waitMS(250))
+                .then(() => this._ifRunningSightSurvey(
+                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 750, TWEEN.Easing.Linear.None)))
                 .then(() => this._ifRunningSightSurvey(
                     () =>  this.speakText("Stairs to ledge.")))
-                .then(() => this._ifRunningSightSurvey(
-                    () => this.movePantoFunction(1, this.doomToPantoCoordFunction([122,-3220, NaN]), 500, TWEEN.Easing.Linear.None)))
-                .then(() => this.waitMS(750));
+                .then(() => this.waitMS(500));
         //*******
         // Armory
         //*******
