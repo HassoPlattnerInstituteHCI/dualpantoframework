@@ -8,7 +8,7 @@ const   say = require('say-promise'),
 const PICKUP_EPSILON = 60; 
 
 
-const TUTORIAL_LANGUAGE = "EN"; //or "EN"
+const TUTORIAL_LANGUAGE = "DE"; //"EN" or "DE"
 
 const SIGHT_SURVEY_INCLUDE_CLASSES = [
     'ArmorBonus',
@@ -89,7 +89,42 @@ function doomcoords2room(x, y) {
 }
 
 var TUTORIAL_TEXT;
-if (TUTORIAL_LANGUAGE == "EN") {
+if (TUTORIAL_LANGUAGE == "DE") {
+    TUTORIAL_TEXT = {
+        HALL_INTRO : [
+            "Hallo Soldat. Wir brauchen Ihre Hilfe. Unsere Einrichtung auf dem Planeten Mars wurde von Dämonen überrannt. Wir brauchen Sie, um die Bedrohung einzudämmen.",
+            "Sie sind aktuell hier.",
+            "In der Haupthalle. Lassen Sie mich Ihnen den Raum zeigen.",
+            "Wenn sie durch den Raum laufen ",
+            "werden sie feststellen, dass der Raum rechteckig ist",
+            "Ihr Ziel ist es den Ausgang zu finden. Vorher sollten sie sich Ausrüstung aufzufüllen. . Sie werden sie brauchen.",
+            "Hier finden sie einen Verbandskasten, um ihre Gesundheit aufzufüllen. Sie können es einsammeln indem sie durch es hindurch laufen."
+        ],
+        HALL_PICKEDUP_HEALTH_BONUS : [
+            "Gut. Hier drüben",
+            "ist der Übergang zur Waffenkammer. Dort wird es etwas Rüstung für sie geben. Versuchen sie an der Wand entlang zu laufen, um den Übergang zu finden."
+        ],
+        ARMORY_INTRO : [
+            "Das ist die Waffenkammer. Eine Treppe",
+            "führt zu einem Vorsprung wo sie Rüstung finden können.", //leed => phonetic for speech output
+            "Sie können das mittlere Pedal jederzeit durchdrücken und halten um sich im Raum umzusehen. So lange sie es gedrückt halten werden Ihnen Dinge im Raum präsentiert. Sie können das Pedal jederzeit loslassen, um das aktuelle Objekt auszuwählen und zu verfolgen. Probieren sie es jetzt aus, indem sie das mittlere Pedal durchdrücken!"
+        ],
+        HALL_SHOOTPISTOL : [
+            "Willkommen zurück in der Haupthalle. Ehe sie weiter tiefer in die Einrichtung vorstoßen, versichern sie sich, dass ihr Pistole funktioniert. Drücken sie das rechte Pedal um zu schießen."
+        ],
+        HALL_TARGET_PRACTICE : [
+            "Gut, es sieht so aus, als funktioniert ihre Pistole. Zeit für ein paar Schießübungen.",
+            "Hier ist ein explosives Fass. Sie können es anvisieren indem sie den Ich-Griff rotieren. Versuchen sie darauf zu schießen - es sollte nach zwei direkten Treffern explodieren."
+        ],
+        SURVEY : {
+            YOU_ARE_IN : "Sie sind jetzt im ",
+            PASSAGE_TO_ARMORY : "Der Übergang zur Waffenkammer ist hier.",
+            PASSAGE_TO_GUARDPOST : "Der Übergang zum Wachposten ist hier",
+            PASSAGE_TO_HALL : "Der Übergang zur Haupthalle ist hier.",
+            STAIRS : "Die Treppe zum Vorsprung."
+        }
+    };
+} else if (TUTORIAL_LANGUAGE == "EN") {
     TUTORIAL_TEXT = {
         HALL_INTRO : [
             "Hello space marine. We need your help. Our facility on Mars has had an outbreak of demons. We need you to contain the threat.",
@@ -123,11 +158,7 @@ if (TUTORIAL_LANGUAGE == "EN") {
             PASSAGE_TO_HALL : "Passage to hall is here",
             STAIRS : "Stairs to ledge"
         }
-    };
-} else if (TUTORIAL_LANGUAGE == "DE") {
-    const TUTORIAL_TEXT = {
-
-    };    
+    }; 
 }
 
 
@@ -435,7 +466,11 @@ class DoomTutorial {
     }
 
     speakText(txt) {
-        return say.speak(txt, 'Tom', 2.0, (err) => {
+        var speak_voice = "Tom";
+        if (TUTORIAL_LANGUAGE == "DE") {
+            speak_voice = "Markus";
+        }
+        return say.speak(txt, speak_voice, 2.0, (err) => {
             if(err) {
                 console.error(err);
                 return;
