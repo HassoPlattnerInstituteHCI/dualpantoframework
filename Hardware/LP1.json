@@ -13,46 +13,47 @@
                     "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 2,
-                    "dirAPin": 4,
-                    "dirBPin": 3,
-                    "flipped": false
+                    "pwmPin": 5,
+                    "dirAPin": 34,
+                    "dirBPin": 40,
+                    "flipped": true
                 },
                 "encoder": {
-                    "aPin": 11,
-                    "bPin": 10,
+                    "aPin": 35,
+                    "bPin": 37,
                     "steps": 15360,
                     "setup": -0.5
                 }
             },
             "right": {
                 "linkage": {
-                    "innerLength": 55,
+                    "innerLength": 57,
                     "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 7,
-                    "dirAPin": 5,
-                    "dirBPin": 6,
-                    "flipped": false
+                    "pwmPin": 2,
+                    "dirAPin": 22,
+                    "dirBPin": 28,
+                    "flipped": true
                 },
                 "encoder": {
-                    "aPin": 9,
-                    "bPin": 8,
+                    "aPin": 31,
+                    "bPin": 33,
                     "steps": 15360,
                     "setup": 0.0
                 }
             },
             "handle": {
                 "motor": {
-                    "pwmPin": 0,
-                    "dirAPin": 0,
-                    "flipped": false
+                    "pwmPin": 4,
+                    "dirAPin": 26,
+                    "dirBPin": 32,
+                    "flipped": true
                 },
                 "encoder": {
-                    "aPin": 0,
-                    "bPin": 0,
-                    "steps": 512,
+                    "aPin": 47,
+                    "bPin": 49,
+                    "steps": 15360,
                     "setup": 0.0
                 }
             }
@@ -60,47 +61,50 @@
         "lower": {
             "left": {
                 "linkage": {
-                    "innerLength": 98,
-                    "outerLength": 128
+                    "innerLength": 57,
+                    "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 0,
-                    "dirAPin": 0,
+                    "pwmPin": 6,
+                    "dirAPin": 36,
+                    "dirBPin": 42,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 0,
-                    "bPin": 0,
-                    "steps": 5540,
+                    "aPin": 43,
+                    "bPin": 45,
+                    "steps": 15360,
                     "setup": -0.5
                 }
             },
             "right": {
                 "linkage": {
-                    "innerLength": 98,
-                    "outerLength": 128
+                    "innerLength": 72,
+                    "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 0,
-                    "dirAPin": 0,
+                    "pwmPin": 3,
+                    "dirAPin": 24,
+                    "dirBPin": 30,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 0,
-                    "bPin": 0,
-                    "steps": 5540,
+                    "aPin": 39,
+                    "bPin": 41,
+                    "steps": 15360,
                     "setup": 0.0
                 }
             },
             "handle": {
                 "motor": {
-                    "pwmPin": 0,
-                    "dirAPin": 0,
+                    "pwmPin": 7,
+                    "dirAPin": 38,
+                    "dirBPin": 44,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 0,
-                    "bPin": 0,
+                    "aPin": 51,
+                    "bPin": 53,
                     "steps": 15360,
                     "setup": 0.0
                 }

@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set port [lindex $argv 0]
+
+spawn ./serial $port
+sleep 1
+send -- "00 46 66 7E 42 9C 9D 48 C2 00 00 00 00\n"
+sleep 1
+send -- "00 D0 07 57 C1 78 63 95 C2 00 00 00 00\n"
+sleep 1
+send -- "00 B5 6D 40 C2 B3 EF 6D C2 00 00 00 00\n"
+sleep 1
+send -- "00 B5 6D 40 C2 B3 EF 6D C2 24 73 45 C0\n"
+
+sleep 1
+send -- "01 46 66 7E 42 9C 9D 48 C2 00 00 00 00\n"
+sleep 1
+send -- "01 D0 07 57 C1 78 63 95 C2 00 00 00 00\n"
+sleep 1
+send -- "01 B5 6D 40 C2 B3 EF 6D C2 00 00 00 00\n"
+sleep 1
+send -- "01 B5 6D 40 C2 B3 EF 6D C2 24 73 45 C0\n"
