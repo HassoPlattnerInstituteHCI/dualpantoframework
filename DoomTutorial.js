@@ -67,27 +67,6 @@ function inBoundingBox(x, y, left, right, top, bottom) {
     return (x > left && x < right && y < top && y > bottom);
 }
 
-function doomcoords2room(x, y) {
-    var room = "";
-    if (inBoundingBox(x, y, -303, 513, -3024, -3437)) {
-        room = "armory";
-    } else if (inBoundingBox(x, y, 720, 1327, -2900, -3663)) {
-        room = "hall";     
-    } else if (inBoundingBox(x, y, 1568, 2479, -2128, -2735)) {
-        room = "gardpost";
-    } else if (inBoundingBox(x, y, 2479, 2943, -2576, -2800)) {
-        room = "cave";
-    } else if (inBoundingBox(x, y, 2768, 3447, -2928, -3650)) {
-        room = "bridge";
-    } else if (inBoundingBox(x, y, 2704, 3311, -4048, -4591)) {
-        room = "lobby";
-    } else if (inBoundingBox(x, y, 2928, 3087, -4688, -4847)) {
-        room = "elevator";
-    }
-    //todo add the secrets
-    return room;
-}
-
 var TUTORIAL_TEXT;
 if (TUTORIAL_LANGUAGE == "DE") {
     TUTORIAL_TEXT = {
@@ -123,6 +102,24 @@ if (TUTORIAL_LANGUAGE == "DE") {
             PASSAGE_TO_HALL : "Der Übergang zur Haupthalle ist hier.",
             STAIRS : "Die Treppe zum Vorsprung."
         }
+        , ROOMS : {
+            ARMORY : "Waffenkammer",
+            MAINHALL : "Haupthalle",
+            GUARDPOST : "Wachposten",
+            TUNNEL : "Tunnel",
+            BRIDGE : "Brücke",
+            LOBBY : "Lobby",
+            ELEVATOR : "Aufzug"
+        },
+        PICKUP : {
+            HEALTH_BONUS: "Gesundheitsbonus",
+            HEALTH_IS_NOW: "Aktuelle Gesundheit ist ",
+            ARMOR_BONUS:  "Rüstungsbonus",
+            ARMOR_IS_NOW: "Aktuelle Rüstung ist ",
+            SET_OF_ARMOR: "eine Rüstung",         
+            BULLETS: "Pistolenmunition",
+            SHOTGUN_SHELLS: "Schrotflintenmunition"
+     }
     };
 } else if (TUTORIAL_LANGUAGE == "EN") {
     TUTORIAL_TEXT = {
@@ -157,8 +154,50 @@ if (TUTORIAL_LANGUAGE == "DE") {
             PASSAGE_TO_GUARDPOST : "Passage to the gard post",
             PASSAGE_TO_HALL : "Passage to hall is here",
             STAIRS : "Stairs to ledge"
-        }
+        },
+
+        ROOMS : {
+            ARMORY : "armory",
+            MAINHALL : "main hall",
+            GUARDPOST : "gardpost",
+            TUNNEL : "tunnel",
+            BRIDGE : "bridge",
+            LOBBY : "lobby",
+            ELEVATOR : "elevator"
+        },
+
+        PICKUP : {
+            HEALTH_BONUS: "Health Bonus",
+            HEALTH_IS_NOW: "Health is now ",
+            ARMOR_BONUS:  "Armor Bonus",
+            ARMOR_IS_NOW: "Armor is now ",
+            SET_OF_ARMOR: "Set of Armor",         
+            BULLETS: "Bullets",
+            SHOTGUN_SHELLS: "Shotgun Shells"
+     }
     }; 
+}
+
+
+function doomcoords2room(x, y) {
+    var room = "";
+    if (inBoundingBox(x, y, -303, 513, -3024, -3437)) {
+        room = "armory";
+    } else if (inBoundingBox(x, y, 720, 1327, -2900, -3663)) {
+        room = "hall";     
+    } else if (inBoundingBox(x, y, 1568, 2479, -2128, -2735)) {
+        room = "gardpost";
+    } else if (inBoundingBox(x, y, 2479, 2943, -2576, -2800)) {
+        room = "cave";
+    } else if (inBoundingBox(x, y, 2768, 3447, -2928, -3650)) {
+        room = "bridge";
+    } else if (inBoundingBox(x, y, 2704, 3311, -4048, -4591)) {
+        room = "lobby";
+    } else if (inBoundingBox(x, y, 2928, 3087, -4688, -4847)) {
+        room = "elevator";
+    }
+    //todo add the secrets
+    return room;
 }
 
 
