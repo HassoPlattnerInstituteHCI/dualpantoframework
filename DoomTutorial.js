@@ -96,13 +96,13 @@ if (TUTORIAL_LANGUAGE == "DE") {
             "Hier ist ein explosives Fass. Sie können es anvisieren indem sie den Ich-Griff rotieren. Versuchen sie darauf zu schießen - es sollte nach zwei direkten Treffern explodieren."
         ],
         SURVEY : {
-            YOU_ARE_IN : "Sie sind jetzt im ",
+            YOU_ARE_IN : "Aktuell Ort ",
             PASSAGE_TO_ARMORY : "Der Übergang zur Waffenkammer ist hier.",
             PASSAGE_TO_GUARDPOST : "Der Übergang zum Wachposten ist hier",
             PASSAGE_TO_HALL : "Der Übergang zur Haupthalle ist hier.",
             STAIRS : "Die Treppe zum Vorsprung."
-        }
-        , ROOMS : {
+        },
+        ROOMS : {
             ARMORY : "Waffenkammer",
             MAINHALL : "Haupthalle",
             GUARDPOST : "Wachposten",
@@ -182,19 +182,19 @@ if (TUTORIAL_LANGUAGE == "DE") {
 function doomcoords2room(x, y) {
     var room = "";
     if (inBoundingBox(x, y, -303, 513, -3024, -3437)) {
-        room = "armory";
+        room = TUTORIAL_TEXT.ROOMS.ARMORY;
     } else if (inBoundingBox(x, y, 720, 1327, -2900, -3663)) {
-        room = "hall";     
+        room = TUTORIAL_TEXT.ROOMS.MAINHALL;     
     } else if (inBoundingBox(x, y, 1568, 2479, -2128, -2735)) {
-        room = "gardpost";
+        room = TUTORIAL_TEXT.ROOMS.GUARDPOST;
     } else if (inBoundingBox(x, y, 2479, 2943, -2576, -2800)) {
-        room = "cave";
+        room = TUTORIAL_TEXT.ROOMS.TUNNEL;
     } else if (inBoundingBox(x, y, 2768, 3447, -2928, -3650)) {
-        room = "bridge";
+        room = TUTORIAL_TEXT.ROOMS.BRIDGE;
     } else if (inBoundingBox(x, y, 2704, 3311, -4048, -4591)) {
-        room = "lobby";
+        room = TUTORIAL_TEXT.ROOMS.LOBBY;
     } else if (inBoundingBox(x, y, 2928, 3087, -4688, -4847)) {
-        room = "elevator";
+        room = TUTORIAL_TEXT.ROOMS.ELEVATOR;
     }
     //todo add the secrets
     return room;
@@ -225,7 +225,7 @@ class DoomTutorial {
         this.movePantoFunction = function(a,b) {console.log("ERROR: MovePantoFunction not set");};
         this.doomToPantoCoordFunction = function(a) {console.log("ERROR: doomToPantoCoordFunction not set");};
         this.player = null;
-        this.playerlocation = "hall";
+        this.playerlocation = TUTORIAL_TEXT.ROOMS.MAINHALL;
         this.ammo_dictionary = {
                 'Bullets':50,
                 'Shotgun Shells':0
@@ -248,37 +248,37 @@ class DoomTutorial {
 
     _initialize_pickup_functions() {
         this._pickup_healthbonus = first_then_after(
-            () => this.speakText("Health Bonus.")
+            () => this.speakText(TUTORIAL_TEXT.PICKUP.HEALTH_BONUS)
                     .then(() => this.playSound("audio/collectHealth.wav"))
-                    .then(()=> this.speakText("Health is now " + (this.player.health))),
+                    .then(()=> this.speakText(TUTORIAL_TEXT.PICKUP.HEALTH_IS_NOW + (this.player.health))),
             () => this.playSound('audio/collectHealth.wav')
                 .then(()=> this.speakText(""+(this.player.health+1))));
             // () => this.speakText("Health " + (this.player.health+1)));
 
         this._pickup_armorbonus = first_then_after(
-            ()=> this.speakText("Armor Bonus.")
+            ()=> this.speakText(TUTORIAL_TEXT.PICKUP.ARMOR_BONUS)
                 .then(() => this.playSound('audio/dswpnup_armor.wav'))
-                .then(() => this.speakText("Armor is now " + (this.player.armor))),
+                .then(() => this.speakText(TUTORIAL_TEXT.PICKUP.ARMOR_IS_NOW + (this.player.armor))),
             () => this.playSound('audio/dswpnup_armor.wav')
                 .then(()=> this.speakText(""+(this.player.armor+1))));
 
         this._pickup_greenarmor = first_then_after(
-            () => this.speakText("Set of Armor.")
+            () => this.speakText(TUTORIAL_TEXT.PICKUP.SET_OF_ARMOR)
                 .then(() => this.playSound('audio/dswpnup_armor.wav'))
                 .then(() => this.waitMS(100))
                 .then(() => this.playSound('audio/dswpnup_armor.wav'))
-                .then(() => this.speakText("Armor set to 100.")),
+                .then(() => this.speakText(TUTORIAL_TEXT.PICKUP.ARMOR_IS_NOW + " 100")),
             // () => this.speakText("Green Armor 100"));
             () => this.playSound('audio/dswpnup_armor.wav')
                 .then(()=> this.speakText("100")));
 
         this._pickup_bullets = first_then_after(
-            () => this.speakText("Bullets. " + (this.ammo_dictionary['Bullets'])), 
-            () => this.speakText("Bullets. " + (this.ammo_dictionary['Bullets'])));
+            () => this.speakText(TUTORIAL_TEXT.PICKUP.BULLETS + (this.ammo_dictionary['Bullets'])), 
+            () => this.speakText(TUTORIAL_TEXT.PICKUP.BULLETS + (this.ammo_dictionary['Bullets'])));
 
         this._pickup_shotgun_shells = first_then_after(
-            () => this.speakText("Shotgun Shells. " + (this.ammo_dictionary['Shotgun Shells'])), 
-            () => this.speakText("Shotgun Shells. " + (this.ammo_dictionary['Shotgun Shells'])));
+            () => this.speakText(TUTORIAL_TEXT.PICKUP.SHOTGUN_SHELLS + (this.ammo_dictionary['Shotgun Shells'])), 
+            () => this.speakText(TUTORIAL_TEXT.PICKUP.SHOTGUN_SHELLS + (this.ammo_dictionary['Shotgun Shells'])));
     }
     
     //todo: put the DoomController into an object, pass to Doom Tutorial, make these functions part of that interface
@@ -427,7 +427,7 @@ class DoomTutorial {
         }
 
         //handle special barrel triggers
-        if (room == "hall"
+        if (room == TUTORIAL_TEXT.ROOMS.MAINHALL
             && spawnpacket.class == "ExplosiveBarrel"
             && Math.abs(spawnpacket.pos[0] - FIRST_BARREL_LOCATION[0]) < PICKUP_EPSILON
             && Math.abs(spawnpacket.pos[1] - FIRST_BARREL_LOCATION[1]) < PICKUP_EPSILON) {
@@ -574,7 +574,7 @@ class DoomTutorial {
                             () => this.resumeDoom(),
                     ]),
                     ()=> {
-                        this.speakText("Armory");
+                        this.speakText(TUTORIAL_TEXT.ROOMS.ARMORY);
                     }));
 
             this.addBookmarkTrigger(
@@ -588,7 +588,7 @@ class DoomTutorial {
                         this._target_practice_status = TARGET_PRACTICE_STATE.REQUESTED_FIRSTSHOT;
                     },
                     ()=> {
-                        this.speakText("Hall");
+                        this.speakText(TUTORIAL_TEXT.ROOMS.MAINHALL);
                     }));
             }
     }
@@ -640,7 +640,7 @@ class DoomTutorial {
             var displayPromise = this.speakText(TUTORIAL_TEXT.SURVEY.YOU_ARE_IN + room);
 
             //landmarks
-            if (room == "armory") {
+            if (room == TUTORIAL_TEXT.ROOMS.ARMORY) {
                 displayPromise = displayPromise.then(() => this._ifRunningSightSurvey(
                     () => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 250)))
                 .then(() => this._ifRunningSightSurvey(
@@ -657,7 +657,7 @@ class DoomTutorial {
         //*******
         // Armory
         //*******
-        } else if (room == "hall") {
+        } else if (room == TUTORIAL_TEXT.ROOMS.MAINHALL) {
             displayPromise = displayPromise.then(() => this._ifRunningSightSurvey(
                 () => this.movePantoFunction(1, this.doomToPantoCoordFunction([518,-3221, NaN]), 500)))
             .then(() => this._ifRunningSightSurvey(
@@ -683,7 +683,7 @@ class DoomTutorial {
                     displayPromise = displayPromise.then( () => this._ifRunningSightSurvey(
                         () => {
                             this.movePantoFunction(1, this.doomToPantoCoordFunction(greenarmors_to_survey[greenarmor].pos), 250);
-                            this.speakText(greenarmors_to_survey[greenarmor].class);
+                            this.speakText(TUTORIAL_TEXT.PICKUP.SET_OF_ARMOR);
                         }
                         ))
                         .then(() => this.waitMS(750));
