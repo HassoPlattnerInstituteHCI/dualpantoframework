@@ -1,6 +1,6 @@
 {
-    "baseDist": 43,
-    "opMinDist": 65,
+    "baseDist": 21.5,
+    "opMinDist": 20,
     "opMaxDist": 210,
     "opAngle": 2.2,
     "powerLimit": 0.2,
@@ -13,14 +13,14 @@
                     "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 8,
-                    "dirAPin": 10,
-                    "dirBPin": 9,
+                    "pwmPin": 13,
+                    "dirAPin": 11,
+                    "dirBPin": 12,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 50,
-                    "bPin": 52,
+                    "aPin": 22,
+                    "bPin": 24,
                     "steps": 15360,
                     "setup": -0.5
                 }
@@ -31,14 +31,14 @@
                     "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 13,
-                    "dirAPin": 11,
-                    "dirBPin": 12,
+                    "pwmPin": 7,
+                    "dirAPin": 5,
+                    "dirBPin": 6,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 22,
-                    "bPin": 24,
+                    "aPin": 26,
+                    "bPin": 28,
                     "steps": 15360,
                     "setup": 0.0
                 }
@@ -48,12 +48,12 @@
                     "pwmPin": 3,
                     "dirAPin": 36,
                     "dirBPin": 34,
-                    "flipped": true
+                    "flipped": false
                 },
                 "encoder": {
                     "aPin": 30,
                     "bPin": 32,
-                    "steps": 15360,
+                    "steps": 60,
                     "setup": 0.0
                 }
             }
@@ -83,14 +83,14 @@
                     "outerLength": 86
                 },
                 "motor": {
-                    "pwmPin": 7,
-                    "dirAPin": 23,
-                    "dirBPin": 25,
+                    "pwmPin": 8,
+                    "dirAPin": 10,
+                    "dirBPin": 9,
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 28,
-                    "bPin": 26,
+                    "aPin": 50,
+                    "bPin": 52,
                     "steps": 15360,
                     "setup": 0.0
                 }
@@ -103,9 +103,9 @@
                     "flipped": false
                 },
                 "encoder": {
-                    "aPin": 44,
-                    "bPin": 42,
-                    "steps": 15360,
+                    "aPin": 42,
+                    "bPin": 44,
+                    "steps": 60,
                     "setup": 0.0
                 }
             }

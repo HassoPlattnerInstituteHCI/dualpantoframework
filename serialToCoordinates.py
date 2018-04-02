@@ -4,6 +4,19 @@ import struct
 import sys
 import time
 
+testPositions = ['90 88 D8 C0 50 04 96 C2 EA 32 28 C0',
+                 'E2 83 41 42 8F 69 8B C2 D6 15 F5 BF',
+                 '90 88 D8 C0 50 04 96 C2 EA 32 28 C0',
+                 '8E 3E 38 C2 44 39 80 C2 FB 9D 41 C0',
+                 '00 28 E7 C0 4C 35 A3 C1 F6 F3 3F C0']
+
+
+def readPositions(filename):
+    with open(filename) as f:
+        content = f.readlines()
+    content = [x.strip() for x in content] 
+    return content
+
 if(len(sys.argv) < 2):
     print("Script to transform coordinates from dualPanto into readable format")
     print("Usage: python serialToCoordinates.py <serialPort>")
@@ -12,35 +25,77 @@ if(len(sys.argv) < 2):
 result = subprocess.Popen("./serial " + sys.argv[1],shell=True,  stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 time.sleep(1)
 
-if(len(sys.argv) > 2):
-    print("send 1")
-    result.stdin.write(b'00 A8 49 63 41 EE 85 48 C2 00 00 00 00\n')
-    result.stdin.write("\n")
-    result.stdout.read(5)
-    time.sleep(3)
-    result.stdout.read(5)
-    print("send 2")
-    result.stdin.write(b'00 B6 C8 4B 42 9C C2 23 C1 00 00 00 00\n')
-    result.stdin.write("\n")
-    result.stdout.read(6)
-    time.sleep(3)
-    result.stdout.read(5)
-    print("send 3")
-    result.stdin.write(b'00 3E 11 FB 41 08 B7 DA C1 00 00 00 00\n')
-    result.stdin.write("\n")
-    result.stdout.read(7)
-    time.sleep(3)
-    result.stdout.read(5)
-    print("send 4")
-    result.stdin.write(b'00 B0 43 84 40 F0 8C E4 C1 00 00 00 00\n')
-    result.stdin.write("\n")
-    result.stdout.read(8)
-
 a = 0
 
 def printMap(x1,y1,r1, x2,y2,r2):
     print(chr(27) + "[2J")
     print(("%.2f" % x1) + "  |  " + ("%.2f" % y1) + "  |  " + ("%.2f" % r1) + "    :    " + ("%.2f" % x2) + "  |  " + ("%.2f" % y2) + "  |  " + ("%.2f" % r2))
+
+l = 0
+
+
+if(len(sys.argv) == 4 and sys.argv[2] == "-r1"):
+    thefile = open(sys.argv[3], 'w')
+    for line in result.stdout:
+        thefile.write("%s\n" % line[0:35])
+
+if(len(sys.argv) == 4 and sys.argv[2] == "-r2"):
+    thefile = open(sys.argv[3], 'w')
+    for line in result.stdout:
+        thefile.write("%s\n" % line[35:])
+
+
+if(len(sys.argv) == 3 and sys.argv[2] == "-d"):
+    for line in result.stdout:
+        l += 1
+        if(l == 1000):
+            result.stdin.write(b'00 ' + testPositions[0] + b'\n')
+        if(l == 1500):
+            result.stdin.write(b'01 ' + testPositions[0] + b'\n')
+        if(l == 2000):
+            result.stdin.write(b'00 ' + testPositions[1] + b'\n')
+        if(l == 2500):
+            result.stdin.write(b'01 ' + testPositions[1] + b'\n')
+        if(l == 3000):
+            result.stdin.write(b'00 ' + testPositions[2] + b'\n')
+        if(l == 3500):
+            result.stdin.write(b'01 ' + testPositions[2] + b'\n')
+        if(l == 4000):
+            result.stdin.write(b'00 ' + testPositions[3] + b'\n')
+        if(l == 4500):
+            result.stdin.write(b'01 ' + testPositions[3] + b'\n')
+        if(l == 5000):
+            result.stdin.write(b'00 ' + testPositions[4] + b'\n')
+        if(l == 5500):
+            result.stdin.write(b'01 ' + testPositions[4] + b'\n')
+
+
+if(len(sys.argv) == 4 and sys.argv[2] == "-d1"):
+    positions = readPositions(sys.argv[3])
+    print(str(len(positions)) + " positions")
+    p = 0
+    for line in result.stdout:
+        l += 1
+        if(l % 50 == 0 and  p < len(positions)):
+            print(b'00 ' + positions[p] + b'\n')
+            result.stdin.write(b'00 ' + positions[p] + b'\n')
+            p += 10
+        if(p == len(positions)):
+            sys.exit()
+
+if(len(sys.argv) == 4 and sys.argv[2] == "-d2"):
+    positions = readPositions(sys.argv[3])
+    print(str(len(positions)) + " positions")
+    p = 0
+    for line in result.stdout:
+        l += 1
+        if(l % 50 == 0 and  p < len(positions)):
+            print(b'00 ' + positions[p] + b'\n')
+            result.stdin.write(b'01 ' + positions[p] + b'\n')
+            p += 10
+        if(p == len(positions)):
+            sys.exit()
+
 
 for line in result.stdout:
     a += 1
@@ -48,10 +103,10 @@ for line in result.stdout:
         continue
     if(len(line) != 73):
         continue
-    line = line.replace(" ","");
-    x1String = line[0:8]
-    y1String = line[8:16]
-    r1String = line[16:24]
+    line1 = line.replace(" ","");
+    x1String = line1[0:8]
+    y1String = line1[8:16]
+    r1String = line1[16:24]
 
     '''
         Format:
@@ -69,9 +124,9 @@ for line in result.stdout:
     y1 = struct.unpack('!f', y1String.decode('hex'))[0]
     r1 = struct.unpack('!f', r1String.decode('hex'))[0]
 
-    x2String = line[24:32]
-    y2String = line[32:40]
-    r2String = line[40:48]
+    x2String = line1[24:32]
+    y2String = line1[32:40]
+    r2String = line1[40:48]
 
 
     x2String = codecs.encode(codecs.decode(x2String, 'hex')[::-1], 'hex').decode()
@@ -81,7 +136,16 @@ for line in result.stdout:
     x2 = struct.unpack('!f', x2String.decode('hex'))[0]
     y2 = struct.unpack('!f', y2String.decode('hex'))[0]
     r2 = struct.unpack('!f', r2String.decode('hex'))[0]
+    
+    print("")
+    print(line)
+    print(b'01 ' + line[0:35] + '\n')
+    print("")
 
+    if(len(sys.argv) > 2 and sys.argv[2] == "-f1" and a%150 == 0):
+        result.stdin.write(b'01 ' + line[0:35] + '\n')
+    if(len(sys.argv) > 2 and sys.argv[2] == "-f2" and a%150 == 0):
+        result.stdin.write(b'00 ' + line[35:] + '\n')
 
     #print(("%.2f" % x) + "    |    " + ("%.2f" % y))
     printMap(x1,y1,r1, x2,y2,r2)
