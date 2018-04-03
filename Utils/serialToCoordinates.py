@@ -70,6 +70,7 @@ if(len(sys.argv) == 3 and sys.argv[2] == "-d"):
             result.stdin.write(b'01 ' + testPositions[4] + b'\n')
 
 
+
 if(len(sys.argv) == 4 and sys.argv[2] == "-d1"):
     positions = readPositions(sys.argv[3])
     print(str(len(positions)) + " positions")
