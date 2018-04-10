@@ -1,6 +1,6 @@
 {
   "name": "dualpantoframework",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff",
   "main": "index.js",
   "scripts": {
