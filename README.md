@@ -1,3 +1,20 @@
+# DualpantoFramework
+version 0.1
+dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
+
+firstname.lastname@hpi.de
+
+## Installation
+
+under python 2.x environment:
+`make`
+
+## Examples
+
+See wiki(under construction) and `Examples` directory for more useful information.
+
+below information to be deleted...
+
 ## Position Based Protocol
 - Index 0: Upper panto
 - Index 1: Lower panto

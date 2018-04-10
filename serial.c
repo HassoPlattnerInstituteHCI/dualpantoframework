@@ -107,6 +107,11 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
     return NULL;
 }
 
+napi_value nodeTest(napi_env env, napi_callback_info info){
+    printf("node Test executing...\n");
+    return 0;
+}
+
 #define defFunc(name, ptr) \
 if(napi_create_function(env, NULL, 0, ptr, NULL, &fn) != napi_ok) \
     napi_throw_error(env, NULL, "Unable to wrap native function"); \
@@ -118,6 +123,7 @@ napi_value Init(napi_env env, napi_value exports) {
     defFunc("open", nodeOpen);
     defFunc("poll", nodePoll);
     defFunc("send", nodeSend);
+    defFunc("test", nodeTest);
     return exports;
 }
 
