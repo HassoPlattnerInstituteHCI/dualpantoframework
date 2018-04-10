@@ -1,4 +1,8 @@
 # DualpantoFramework
+
+[![CircleCI](https://circleci.com/gh/JotaroS/dualpantoframework.svg?style=svg)](https://circleci.com/gh/JotaroS/dualpantoframework)
+
+
 version 0.1
 dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
