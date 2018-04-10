@@ -1,4 +1,4 @@
-const input = require('./Hardware/'+process.argv[2]+'.json'),
+const input = require('../Hardware/'+process.argv[2]+'.json'),
       fs = require('fs'),
       crypto = require('crypto'),
       hash = crypto.createHash('md5').update(JSON.stringify(input)).digest(),
@@ -40,18 +40,25 @@ function aggregate(name) {
 
 const output =
 `const unsigned char configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
-const float baseDist = ${input.baseDist},
-            opMinDist = ${input.opMinDist},
+const float opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
-            opAngle = ${input.opAngle},
-            powerLimit = ${input.powerLimit};
+            opAngle = ${input.opAngle};
 float pidFactor[] = {${input.pidFactor.join(', ')}};
 const unsigned char pantoCount = ${pantoCount};
+const float linkageBaseX[] = {
+    ${aggregate('linkage_baseX')}
+};
+const float linkageBaseY[] = {
+    ${aggregate('linkage_baseY')}
+};
 const float linkageInnerLength[] = {
     ${aggregate('linkage_innerLength')}
 };
 const float linkageOuterLength[] = {
     ${aggregate('linkage_outerLength')}
+};
+const unsigned char motorPowerLimit[] = {
+    ${aggregate('motor_powerLimit')}
 };
 const unsigned char motorPwmPin[] = {
     ${aggregate('motor_pwmPin')}
