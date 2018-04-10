@@ -1,0 +1,24 @@
+{
+  "name": "dualpantoframework",
+  "version": "1.0.0",
+  "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "make"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JotaroS/dualpantoframework.git"
+  },
+  "author": "jotaro shigeyama",
+  "license": "ISC",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/JotaroS/dualpantoframework/issues"
+  },
+  "homepage": "https://github.com/JotaroS/dualpantoframework#readme",
+  "dependencies": {
+    "node-gyp": "^3.6.2"
+  }
+}
