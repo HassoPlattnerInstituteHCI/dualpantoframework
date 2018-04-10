@@ -1,5 +1,5 @@
 # DualpantoFramework
-
+version 0.1
 dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
 firstname.lastname@hpi.de
