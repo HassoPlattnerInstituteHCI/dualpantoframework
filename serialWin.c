@@ -156,7 +156,7 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
     size_t length;
     napi_get_buffer_info(env, argv[0], (void**)&payload, &length);
     memcpy(&packetBuffer[5], payload, length);
-    send(length);
+    sendPacket(length);
     return NULL;
 }
 
