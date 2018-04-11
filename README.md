@@ -46,7 +46,7 @@ Installing `node` requires a "packge manager" in your OS. (Linux: `apt-get`, `yu
 `git` is a version tracker.
 
 Some of you may have `git` already when you have your OS installed in your machine.
-When you type `git -v` then it it returns error, You need `git` tools to clone and track the repository.
+When you type `git -v` then it returns an error, You need `git` tools to clone and track the repository.
 
 - macOS : type `brew install git`
 - Linux : type `sudo (YOUR_PACKAGE MANAGER) git`
@@ -79,9 +79,9 @@ If your python is `3.x`, you may need to change the version. We recommend to use
 - Type `brew install pyenv`
 - Type `cd ~`
 
-In your home directory, there should be `.bash_profile` shell script. This is the list of scripts executed if you start your terminal.
+In your home directory, there should be a `.bash_profile` shell script. This is the list of scripts executed if you start your terminal.
 
-- Using any of text editor, open `.bash_profile`. `CMD + SHIFT + . ` can visualize hidden file on your Finder (file and directory starting from period means it is hidden file).
+- Using any text editor, open `.bash_profile`. `CMD + SHIFT + . ` can visualize hidden file on your Finder (file and directory starting from period means it is hidden file).
 - Add scripts below : 
 
 ```
@@ -93,13 +93,13 @@ eval "$(pyenv init -)"
 - Restart the terminal and type `pyenv -v`. If there's no error, `pyenv` is ready.
 - Type `pyenv install 2.7.10`
 - After installation type `pyenv global 2.7.10`. This switches your python version.
-- Type `python --version` to check the version switched to 2.7.x
+- Type `python --version` to check if the version switched to 2.7.x
 
 ##### 3.2(l) Linux : Install `pyenv`
 - Type `cd ~`
 - Type `git clone https://github.com/yyuu/pyenv ~/.pyenv`
 
-Below is example of Ubuntu distribution. Install any of these depencencies using your package manager.
+Below is an example of Ubuntu distribution. Install these depencencies using your package manager.
 
 ```
 sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev
@@ -107,9 +107,9 @@ sudo apt-get install -y libreadline-dev libsqlite3-dev wget curl llvm
 ```
 - Type `cd ~`
 
-In your home directory, there should be `.bash_profile` shell script. This is the list of scripts executed if you start your terminal.
+In your home directory, there should be a `.bash_profile` shell script. This is the list of scripts executed if you start your terminal.
 
-- Using any of text editor, open `.bash_profile`. 
+- Using any text editor, open `.bash_profile`. 
 - Add scripts below : 
 
 ```
