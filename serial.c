@@ -108,7 +108,9 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
 }
 
 napi_value nodeTest(napi_env env, napi_callback_info info){
-    printf("node Test executing...\n");
+    printf("node test executing...\n");
+    // TODO do something meaningful here...
+    printf("test succeeded! :P \n");
     return 0;
 }
 
