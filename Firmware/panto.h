@@ -13,11 +13,6 @@ struct Panto {
   float innerAngle[2], pointingAngle;
   Vector2D base[2], inner[2], handle, target;
 
-  Panto() {
-    base[0] = Vector2D(-0.5*baseDist, 0);
-    base[1] = Vector2D(+0.5*baseDist, 0);
-  }
-
   void forwardKinematics() {
     inner[0] = base[0]+Vector2D::fromPolar(actuationAngle[dofIndex+0], linkageInnerLength[dofIndex+0]);
     inner[1] = base[1]+Vector2D::fromPolar(actuationAngle[dofIndex+1], linkageInnerLength[dofIndex+1]);
@@ -67,11 +62,13 @@ struct Panto {
     if(motorDirBPin[i])
       digitalWrite(motorDirBPin[i], !dir);
     if(motorPwmPin[i])
-      analogWrite(motorPwmPin[i], min(power, powerLimit) * PWM_MAX);
+      analogWrite(motorPwmPin[i], min(power, motorPowerLimit[i]) * PWM_MAX);
   }
 
   void setup(unsigned char _dofIndex) {
     dofIndex = _dofIndex*3;
+    base[0] = Vector2D(linkageBaseX[dofIndex+0], linkageBaseY[dofIndex+0]);
+    base[1] = Vector2D(linkageBaseX[dofIndex+1], linkageBaseY[dofIndex+1]);
     target = Vector2D(NAN, NAN);
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
       actuationAngle[i] *= 2.0 * M_PI;
