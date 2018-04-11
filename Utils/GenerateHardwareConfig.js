@@ -57,7 +57,7 @@ const float linkageInnerLength[] = {
 const float linkageOuterLength[] = {
     ${aggregate('linkage_outerLength')}
 };
-const unsigned char motorPowerLimit[] = {
+const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
 };
 const unsigned char motorPwmPin[] = {
