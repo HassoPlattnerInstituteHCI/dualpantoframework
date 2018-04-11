@@ -27,7 +27,8 @@ For Linux, it depends on your distribution, but usually you can find `terminal` 
 
 Installing `node` requires a "packge manager" in your OS. (Linux: `apt-get`, `yum`, etc. macOS: `brew`)
 ##### 2.1(m) macOS users: install `brew` first.
-- Go to : https://brew.sh/index_ja
+- Some of you guys may have `brew` already. In that case, `brew update` now to buy some time while others are installing.
+- New to `brew`? Go to : https://brew.sh
 - copy-paste command to your terminal:
 
 `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
@@ -74,6 +75,8 @@ If your python is running and the version is `2.7.x`, skip to 4.
 ##### 3.1 If you don't have python 2.7.x
 You may uninstalled your python 2.x for some reasons(classes or projects).
 If your python is `3.x`, you may need to change the version. We recommend to use `pyenv` which you can easily switch versions of your `python`.
+
+> ___Important note___ : Below you are trying to install `pyenv` : python virtual environment. You may be using `python` for a data-science class or an introduction to programming class. `pyenv` is a great tool that you can switch between several `python` version quickly. __Just don't forget that you have installed `pyenv`__, so that you don't have to panic when you know your `python` version changed in other classes.
 
 ##### 3.2(m) macOS : Install `pyenv`
 - Type `brew install pyenv`
