@@ -150,9 +150,8 @@ Then if you type `ls` , there should be `dualpantoframework` directory in your w
 - Type `cd dualpantorframework`
 - You are now in `dualpantoframework` directory. Type `pwd` to make sure you are there.
 - Type `npm install` to install packages for `dualpantoframework`
-- Type `npm test` to check it's working
 
-If there's no error, your `dualpantoframework` is all set.
+If there's no error, your `dualpantoframework` is all set for test.
 
 
 ##### 4.3 Check what's going on.
