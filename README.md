@@ -41,31 +41,91 @@ Installing `node` requires a "packge manager" in your OS. (Linux: `apt-get`, `yu
     - `CentOS` has `yum`
     - etc...
 
-##### 2.2 install `node` using terminal
-- macOS : type `brew install node`
-- Linux : type `sudo (YOUR_PACKAGE MANAGER) node` (Please refer to your package manager instruction.)
-    - e.g. ubuntu : `sudo apt-get install node`
+##### 2.2 Install `git`
 
-##### 2.3 check if `node` is working
-- Type `node -v` (type node (space) hyphen v)
-- Also, type `npm -v`
-
-If there's no error for both, your `node` is working nice. (Once `node` installed, you will also have `npm` : node package manager.)
-
-#### 3. Install `dualpantoframework`
-
-##### 3.1 Install `git`
+`git` is a version tracker.
 
 Some of you may have `git` already when you have your OS installed in your machine.
-
-When you type `git -v` returns error, You need `git` tools to clone and track the repository.
+When you type `git -v` then it it returns error, You need `git` tools to clone and track the repository.
 
 - macOS : type `brew install git`
 - Linux : type `sudo (YOUR_PACKAGE MANAGER) git`
 
 Type `git --version` to check if it's working.
 
-##### 3.2 Clone the repository.
+##### 2.3 install `node` using terminal
+- macOS : type `brew install node`
+- Linux : type `sudo (YOUR_PACKAGE MANAGER) node` (Please refer to your package manager instruction.)
+    - e.g. ubuntu : `sudo apt-get install node`
+
+##### 2.4 check if `node` is working
+- Type `node -v` (type node (space) hyphen v)
+- Also, type `npm -v`
+
+If there's no error for both, your `node` is working nice. (Once `node` installed, you will also have `npm` : node package manager.)
+
+#### 3. Install `python 2.7.x`
+
+- for macOS users : If you have __not__ installed python 3.x, your default python should be `python 2.x`. Type `python --version` to check the version.
+- for Linux users : You may already have `python`. First, type `python --version`
+
+If your python is running and the version is `2.7.x`, skip to 4.
+
+##### 3.1 If you don't have python 2.7.x
+You may uninstalled your python 2.x for some reasons(classes or projects).
+If your python is `3.x`, you may need to change the version. We recommend to use `pyenv` which you can easily switch versions of your `python`.
+
+##### 3.2(m) macOS : Install `pyenv`
+- Type `brew install pyenv`
+- Type `cd ~`
+
+In your home directory, there should be `.bash_profile` shell script. This is the list of scripts executed if you start your terminal.
+
+- Using any of text editor, open `.bash_profile`. `CMD + SHIFT + . ` can visualize hidden file on your Finder (file and directory starting from period means it is hidden file).
+- Add scripts below : 
+
+```
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+```
+
+- Restart the terminal and type `pyenv -v`. If there's no error, `pyenv` is ready.
+- Type `pyenv install 2.7.10`
+- After installation type `pyenv global 2.7.10`. This switches your python version.
+- Type `python --version` to check the version switched to 2.7.x
+
+##### 3.2(l) Linux : Install `pyenv`
+- Type `cd ~`
+- Type `git clone https://github.com/yyuu/pyenv ~/.pyenv`
+
+Below is example of Ubuntu distribution. Install any of these depencencies using your package manager.
+
+```
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev
+sudo apt-get install -y libreadline-dev libsqlite3-dev wget curl llvm
+```
+- Type `cd ~`
+
+In your home directory, there should be `.bash_profile` shell script. This is the list of scripts executed if you start your terminal.
+
+- Using any of text editor, open `.bash_profile`. 
+- Add scripts below : 
+
+```
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+```
+
+- Restart the terminal and type `pyenv -v`. If there's no error, `pyenv` is ready.
+- Type `pyenv install 2.7.10`
+- After installation type `pyenv global 2.7.10`. This switches your python version.
+- Type `python --version` to check the version switched to 2.7.x
+
+#### 4. Install `dualpantoframework`
+
+##### 4.1 Clone the repository.
 
 ___Clone___ means that you will download the repository in your PC. You may now proceed to the directory you want to working on.
 - If you are familiar with the terminal, proceed to your desired working directory for DIS project.
@@ -82,7 +142,7 @@ Then type
 
 Then if you type `ls` , there should be `dualpantoframework` directory in your workspace.
 
-##### 3.3 Build `dualpantoframework`
+##### 4.2 Build `dualpantoframework`
 
 - Type `cd dualpantorframework`
 - You are now in `dualpantoframework` directory. Type `pwd` to make sure you are there.
@@ -92,7 +152,7 @@ Then if you type `ls` , there should be `dualpantoframework` directory in your w
 If there's no error, your `dualpantoframework` is all set.
 
 
-##### 3.4 Check what's going on.
+##### 4.3 Check what's going on.
 After installation, You will have `build` directory, which is originally not in the repository.
 
 This directory is generated when you did `npm install`. Go take a look inside the directory.
