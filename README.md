@@ -176,7 +176,11 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
 
 (BTW, I used `tree` command to generate above tree graph. You can do `brew(or sudo apt-get) install tree` to try the same.)
 
+##### 4.4 Test your panto!
 
+- Connect your panto to your PC via USB.
+- In `dualpantoframework` repository, type `npm run test`.
+- If terminal says: `your panto is connected!`, you are all set.
 
 
 ## Examples

@@ -35,6 +35,7 @@ function getConnectedArduino(callback) {
           done = true;
           callback(arduinoport);
           console.log('your arduino is found');
+          console.log('your panto is connected!');
           return arduinoport;
         }
         if (count === allports && done === false) {
