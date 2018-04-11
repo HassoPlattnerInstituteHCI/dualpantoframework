@@ -10,8 +10,8 @@ dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 firstname.lastname@hpi.de
 
 ## Installation
-Welcome to `dualpantoframework` repository!
-This repository has source codes to __read and write__ signals to the dualpanto-board, as well as some useful tools to debug and test the pantograph.
+Welcome to the `dualpantoframework` repository!
+This repository contains source codes for __reading and writing__ signals to the dualpanto-board, as well as some useful tools to debug and test the pantograph.
 
 In this section, we introduce you how to install the library in your system. Follow these steps to install required dependencies for `dualpantoframework`.
 
@@ -19,11 +19,13 @@ In this section, we introduce you how to install the library in your system. Fol
 ### For Linux / macOS system users:
 #### 1. Launch terminal.
 For macOS, search spotlight for `terminal` or goto Utility folder in your Application folder.
+For Linux, it depends on your distribution, but usually you can find `terminal` app from the menu bar of your OS.
 
 #### 2. install `node`
-`node` is a Javascript framework.
+`node` is a Javascript framework. You can do many interesting thing with `node` from web-app to robotics.
+`npm` is `node`'s package manager. Using `npm` you can manage many libraries in your project. If you install `node`, `npm` will also be installed in your machine.
 
-Installing node requires "packge manager" in your OS. (Linux: `apt-get`, `yum`, etc. macOS: `brew`)
+Installing `node` requires a "packge manager" in your OS. (Linux: `apt-get`, `yum`, etc. macOS: `brew`)
 ##### 2.1(m) macOS users: install `brew` first.
 - Go to : https://brew.sh/index_ja
 - copy-paste command to your terminal:
@@ -93,7 +95,7 @@ If there's no error, your `dualpantoframework` is all set.
 ##### 3.4 Check what's going on.
 After installation, You will have `build` directory, which is originally not in the repository.
 
-This direcotry is generated when you did `npm install`. Go take a look inside the direcory.
+This directory is generated when you did `npm install`. Go take a look inside the directory.
 
 ```
 build
