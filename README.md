@@ -10,9 +10,113 @@ dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 firstname.lastname@hpi.de
 
 ## Installation
+Welcome to `dualpantoframework` repository!
+This repository has source codes to __read and write__ signals to the dualpanto-board, as well as some useful tools to debug and test the pantograph.
 
-In latest node version: `npm i`
+In this section, we introduce you how to install the library in your system. Follow these steps to install required dependencies for `dualpantoframework`.
+
+---
+### For Linux / macOS system users:
+#### 1. Launch terminal.
+For macOS, search spotlight for `terminal` or goto Utility folder in your Application folder.
+
+#### 2. install `node`
+`node` is a Javascript framework.
+
+Installing node requires "packge manager" in your OS. (Linux: `apt-get`, `yum`, etc. macOS: `brew`)
+##### 2.1(m) macOS users: install `brew` first.
+- Go to : https://brew.sh/index_ja
+- copy-paste command to your terminal:
+
+`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+- Once installation finished, type `brew doctor` to check if it's working (it may give you some warning but that's fine for now)
+
+##### 2.1(l) Linux users: check your package manager.
+- If you already know your package manager, you may proceed to the next step.
+- If you are not sure about your package manager, tell your TA about your OS/version.
+    - Usually, `ubuntu` distribution has `apt-get` package installer.
+    - `CentOS` has `yum`
+    - etc...
+
+##### 2.2 install `node` using terminal
+- macOS : type `brew install node`
+- Linux : type `sudo (YOUR_PACKAGE MANAGER) node` (Please refer to your package manager instruction.)
+    - e.g. ubuntu : `sudo apt-get install node`
+
+##### 2.3 check if `node` is working
+- Type `node -v` (type node (space) hyphen v)
+- Also, type `npm -v`
+
+If there's no error for both, your `node` is working nice. (Once `node` installed, you will also have `npm` : node package manager.)
+
+#### 3. Install `dualpantoframework`
+
+##### 3.1 Install `git`
+
+Some of you may have `git` already when you have your OS installed in your machine.
+
+When you type `git -v` returns error, You need `git` tools to clone and track the repository.
+
+- macOS : type `brew install git`
+- Linux : type `sudo (YOUR_PACKAGE MANAGER) git`
+
+Type `git --version` to check if it's working.
+
+##### 3.2 Clone the repository.
+
+___Clone___ means that you will download the repository in your PC. You may now proceed to the directory you want to working on.
+- If you are familiar with the terminal, proceed to your desired working directory for DIS project.
+
+`cd (your DIS directory)`
+
+- If you are ___not___ familiar with the terminal, We recommend you to first clone in your home directory.
+
+`cd ~` (change directory to 'home directory' = `~`)
+
+Then type
+
+`git clone https://github.com/JotaroS/dualpantoframework.git`
+
+Then if you type `ls` , there should be `dualpantoframework` directory in your workspace.
+
+##### 3.3 Build `dualpantoframework`
+
+- Type `cd dualpantorframework`
+- You are now in `dualpantoframework` directory. Type `pwd` to make sure you are there.
+- Type `npm install` to install packages for `dualpantoframework`
+- Type `npm test` to check it's working
+
+If there's no error, your `dualpantoframework` is all set.
+
+
+##### 3.4 Check what's going on.
+After installation, You will have `build` directory, which is originally not in the repository.
+
+This direcotry is generated when you did `npm install`. Go take a look inside the direcory.
+
+```
+build
+├── Makefile
+├── Release
+│   ├── obj.target
+│   │   └── serial
+│   │       └── serial.o
+│   └── serial.node
+├── binding.Makefile
+├── config.gypi
+├── gyp-mac-tool
+└── serial.target.mk
+```
+
+In `Release` direcotry there's `serial.o` exec file. For Linux/macOS users, this is one you need to execute to communicate with the board.
+In the most examples below, we call this exec file as an ___subprocess___ to keep connecting with the panto while other software is running.
+
+(BTW, I used `tree` command to generate above tree graph. You can do `brew(or sudo apt-get) install tree` to try the same.)
+
+
+
 
 ## Examples
 
-See wiki(under construction) and `Examples` directory for more useful information.
+...under construction...
