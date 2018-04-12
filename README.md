@@ -185,7 +185,25 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
 
 - Connect your panto to your PC via USB.
 - In `dualpantoframework` repository, type `npm run test`.
-- If terminal says: `your panto is connected!`, you are all set.
+- If terminal says: `your panto is found!`, you are all set.
+- For linux users : you might proceed to next step.
+
+##### 4.5 Change your port name (Linux users)
+
+https://forum.arduino.cc/index.php?topic=346956.0
+
+In linux device, serial USB port name may not be easily auto-detect.
+Go search on your `/dev/` directory to find which one is your Arduino serial port.
+Then, open `Utils/test.js` file, then find code below.
+
+```
+//MACUSERS
+serial.open(port.replace("tty.", "cu."));
+//OTHER USERS
+// serial.open("YOUR_PORT_NAME");
+```
+
+comment out 'MAC USERS' line below, and remove comment on 'OTHER USERS'. Then replace `YOUR_PORT_NAME` to your Arduino port name. It typically looks like : `/dev/tty???`.
 
 
 ## Examples
