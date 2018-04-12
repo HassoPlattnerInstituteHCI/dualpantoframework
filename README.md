@@ -65,6 +65,9 @@ Type `git --version` to check if it's working.
 
 If there's no error for both, your `node` is working nice. (Once `node` installed, you will also have `npm` : node package manager.)
 
+##### 2.5 intsall `node-gyp` using terminal
+- macOS : type `npm install -g node-gyp`
+
 #### 3. Install `python 2.7.x`
 
 - for macOS users : If you have __not__ installed python 3.x, your default python should be `python 2.x`. Type `python --version` to check the version.
