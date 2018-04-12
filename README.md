@@ -203,13 +203,11 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
    - choose Notepad++ as the default editor
  - you probaply want to install a GUI like GitKraken (https://www.gitkraken.com/) or TortoiseGit (https://tortoisegit.org/) too
  
-#### 3. Install `python`
+#### 3. Install `python 2`
 
  - download the python 2 installer here: https://www.python.org/downloads/release/python-2714/
  - run the installer (no settings need to be changed)
- - download the python 3 installer here: https://www.python.org/downloads/release/python-365/
- - run the installer (no settings need to be changed)
- - now you can use python 2 with the command `py -2` and python 3 with `py -3` in the command line
+ - note: Python 3 will not work. If you already have python 3 thats fine, but you need to install pyton 2 too.
  
 #### 4. Install `make`
 
@@ -221,7 +219,12 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
    - select 'Path' and click edit
    - select add and insert the path
  
-#### 4. Install `dualpantoframework`
+#### 5. Install `Visual Studio 2017`
+
+ - download **Visual Studio 2017 Enterprise** here: https://hpi.de/intern/studium/elms/authentication/
+ - run the installer
+ 
+#### 6. Install `dualpantoframework`
 
  - clone the repository https://github.com/JotaroS/dualpantoframework.git
  
