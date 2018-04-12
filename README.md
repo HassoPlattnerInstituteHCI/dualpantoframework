@@ -245,9 +245,18 @@ comment out 'MAC USERS' line below, and remove comment on 'OTHER USERS'. Then re
  - download **Visual Studio 2017 Enterprise** here: https://hpi.de/intern/studium/elms/authentication/
  - run the installer
  
-#### 6. Install `dualpantoframework`
+#### 6. Get the nodejs source code
+
+ - download it here: https://nodejs.org/dist/v8.11.1/node-v8.11.1.tar.gz
+ - unpack the `node-v8.11.1.tar.gz`
+ - unpack the `node-v8.11.1.tar` to `C:\Program Files\nodejs`
+ 
+#### 7. Install `dualpantoframework`
 
  - clone the repository https://github.com/JotaroS/dualpantoframework.git
+ - open `x64 Native Tools-Eingabeaufforderung für VS 2017`
+ - run `set INCLUDE=%INCLUDE%C:\Program Files\nodejs\node-v8.11.1\src\;`
+ - run `make`
  
 ## Examples
 
