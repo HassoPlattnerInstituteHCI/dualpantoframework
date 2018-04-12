@@ -184,7 +184,21 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
 - In `dualpantoframework` repository, type `npm run test`.
 - If terminal says: `your panto is connected!`, you are all set.
 
+---
+### For Windows users:
 
+#### 1. install `node` & `npm`
+`node` is a Javascript framework. You can do many interesting thing with `node` from web-app to robotics.
+`npm` is `node`'s package manager. Using `npm` you can manage many libraries in your project. If you install `node`, `npm` will also be installed in your machine.
+
+ - download the installer of the LTS version here: https://nodejs.org/en/
+ - run the installer (no settings need to be changed)
+ - To test if the installation was successful open the command line and execute `node -v` and `npm -v`. You should get the respective version numbers.
+ 
+#### 2. install `git`
+
+ - download the installer here: https://git-scm.com/downloads
+ 
 ## Examples
 
 ...under construction...
