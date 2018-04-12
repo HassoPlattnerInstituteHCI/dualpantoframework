@@ -213,11 +213,11 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
  
 #### 4. Install `make`
 
- - download the installer here: `http://gnuwin32.sourceforge.net/downlinks/make.php`
+ - download the installer here: http://gnuwin32.sourceforge.net/downlinks/make.php
  
 #### 4. Install `dualpantoframework`
 
- - clone the repository `https://github.com/JotaroS/dualpantoframework.git`
+ - clone the repository https://github.com/JotaroS/dualpantoframework.git
  
 ## Examples
 
