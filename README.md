@@ -214,6 +214,12 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
 #### 4. Install `make`
 
  - download the installer here: http://gnuwin32.sourceforge.net/downlinks/make.php
+ - run the installer  (no settings need to be changed)
+ - add the `bin` (should be `C:\Program Files (x86)\GnuWin32\bin`) folder to the `Path` variable
+   - search for **path** in the windows search
+   - select "Umgebungsvariablen für dieses Konto bearbeiten"
+   - select 'Path' and click edit
+   - select add and insert the path
  
 #### 4. Install `dualpantoframework`
 
@@ -222,3 +228,4 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
 ## Examples
 
 ...under construction...
+ 
