@@ -21,7 +21,7 @@ In this section, we introduce you how to install the library in your system. Fol
 For macOS, search spotlight for `terminal` or goto Utility folder in your Application folder.
 For Linux, it depends on your distribution, but usually you can find `terminal` app from the menu bar of your OS.
 
-#### 2. install `node`
+#### 2. Install `node`
 `node` is a Javascript framework. You can do many interesting thing with `node` from web-app to robotics.
 `npm` is `node`'s package manager. Using `npm` you can manage many libraries in your project. If you install `node`, `npm` will also be installed in your machine.
 
@@ -187,7 +187,7 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
 ---
 ### For Windows users:
 
-#### 1. install `node` & `npm`
+#### 1. Install `node` & `npm`
 `node` is a Javascript framework. You can do many interesting thing with `node` from web-app to robotics.
 `npm` is `node`'s package manager. Using `npm` you can manage many libraries in your project. If you install `node`, `npm` will also be installed in your machine.
 
@@ -195,9 +195,29 @@ In the most examples below, we call this exec file as an ___subprocess___ to kee
  - run the installer (no settings need to be changed)
  - To test if the installation was successful open the command line and execute `node -v` and `npm -v`. You should get the respective version numbers.
  
-#### 2. install `git`
+#### 2. Install `git`
 
  - download the installer here: https://git-scm.com/downloads
+ - run the installer; we suggest change the following options:
+   - uncheck the "Windows Explorer Integration"
+   - choose Notepad++ as the default editor
+ - you probaply want to install a GUI like GitKraken (https://www.gitkraken.com/) or TortoiseGit (https://tortoisegit.org/) too
+ 
+#### 3. Install `python`
+
+ - download the python 2 installer here: https://www.python.org/downloads/release/python-2714/
+ - run the installer (no settings need to be changed)
+ - download the python 3 installer here: https://www.python.org/downloads/release/python-365/
+ - run the installer (no settings need to be changed)
+ - now you can use python 2 with the command `py -2` and python 3 with `py -3` in the command line
+ 
+#### 4. Install `make`
+
+ - download the installer here: `http://gnuwin32.sourceforge.net/downlinks/make.php`
+ 
+#### 4. Install `dualpantoframework`
+
+ - clone the repository `https://github.com/JotaroS/dualpantoframework.git`
  
 ## Examples
 
