@@ -135,6 +135,7 @@ void terminate(int signal) {
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <stdlib.h>
 
 int fd;
 FILE* stream;
@@ -267,7 +268,6 @@ NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 #else
 #include <signal.h>
-#include <stdlib.h>
 
 int main(int argc, char** argv) {
     if(argc != 2) {
