@@ -235,7 +235,7 @@ comment out 'MAC USERS' line below, and remove comment on 'OTHER USERS'. Then re
  - download the installer here: http://gnuwin32.sourceforge.net/downlinks/make.php
  - run the installer  (no settings need to be changed)
  - add the `bin` (should be `C:\Program Files (x86)\GnuWin32\bin`) folder to the `Path` variable
-   - search for **path** in the windows search
+   - search for *path* in the windows search
    - select "Umgebungsvariablen für dieses Konto bearbeiten"
    - select 'Path' and click edit
    - select add and insert the path
@@ -255,6 +255,8 @@ comment out 'MAC USERS' line below, and remove comment on 'OTHER USERS'. Then re
 
  - clone the repository https://github.com/JotaroS/dualpantoframework.git
  - open `x64 Native Tools-Eingabeaufforderung für VS 2017`
+ - if this is the forst time you set this up, run `npm install -g node-gyp`
+ - change to the directory of the repository using `cd PATH` with *PATH* being the path of the repository (ending with *\dualpantoframework*) 
  - run `set INCLUDE=%INCLUDE%C:\Program Files\nodejs\node-v8.11.1\src\;`
  - run `make`
  
