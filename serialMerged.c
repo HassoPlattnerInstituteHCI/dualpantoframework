@@ -1,135 +1,45 @@
 #include <stdio.h>
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-
-#include <Windows.h>
 #include <stdbool.h>
 
-BOOL Status;
-HANDLE hComm; // Handle to the Serial port
 const char* packetStart = "SYNC";
 unsigned char packetBuffer[255+6];
+char lineBuffer[255*3];
 
-bool setup(const char* ComPortName) {
-	hComm = CreateFile( ComPortName,                  // Name of the Port to be Opened
-						GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-						0,                            // No Sharing, ports cant be shared
-						NULL,                         // No Security
-						OPEN_EXISTING,                // Open existing port only
-						0,                            // Non Overlapped I/O
-						NULL);                        // Null for Comm Devices
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#define WINDOWS
+#define STDIN STD_INPUT_HANDLE
+#include <Windows.h>
 
-	if (hComm == INVALID_HANDLE_VALUE){
-		printf("\n    Error! - Port %s can't be opened\n", ComPortName);
+HANDLE serialStream;
+
+bool setup(const char* path) {
+	serialStream = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if(serialStream == INVALID_HANDLE_VALUE)
 		return false;
-	}
-	
-	DCB dcbSerialParams = { 0 };                         // Initializing DCB structure
+
+	DCB dcbSerialParams = { 0 };
 	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-	Status = GetCommState(hComm, &dcbSerialParams);      //retreives  the current settings
-
-	if (Status == false){
-		printf("\n    Error! in GetCommState()");
+	if(!GetCommState(serialStream, &dcbSerialParams))
 		return false;
-	}
-
-	dcbSerialParams.BaudRate = CBR_115200;    // Setting BaudRate = 9600
-	dcbSerialParams.ByteSize = 8;             // Setting ByteSize = 8
-	dcbSerialParams.StopBits = ONESTOPBIT;    // Setting StopBits = 1
-	dcbSerialParams.Parity   = NOPARITY;      // Setting Parity = None 
-
-	Status = SetCommState(hComm, &dcbSerialParams);  //Configuring the port according to settings in DCB 
-
-	if (Status == false)
-	{
-		printf("\n    Error! in Setting DCB Structure");
+	dcbSerialParams.BaudRate = CBR_115200;
+	dcbSerialParams.ByteSize = 8;
+	dcbSerialParams.StopBits = ONESTOPBIT;
+	dcbSerialParams.Parity = NOPARITY;
+	if(!SetCommState(serialStream, &dcbSerialParams))
 		return false;
-	}
-	
+
 	COMMTIMEOUTS timeouts = { 0 };
 	timeouts.ReadIntervalTimeout         = 50;
 	timeouts.ReadTotalTimeoutConstant    = 50;
 	timeouts.ReadTotalTimeoutMultiplier  = 10;
 	timeouts.WriteTotalTimeoutConstant   = 50;
 	timeouts.WriteTotalTimeoutMultiplier = 10;
-	
-	if (SetCommTimeouts(hComm, &timeouts) == false){
-		printf("\n\n    Error! in Setting Time Outs");
-		return false;
-	}
-	
-	Status = SetCommMask(hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
-
-	if (Status == false){
-		printf("\n\n    Error! in Setting CommMask");
-		return false;
-	}
-    return true;
+    return SetCommTimeouts(serialStream, &timeouts) && SetCommMask(serialStream, EV_RXCHAR);
 }
 
-unsigned char receive() {
-	char TempChar;
-	DWORD NoBytesRead;
-	unsigned int index = 0;
-			
-	/*Status = WaitCommEvent(hComm, &dwEventMask, NULL); //Wait for the character to be received
-	if (Status == false) printf("\n    Error! in Setting WaitCommEvent()");*/
-	
-	while(index < strlen(packetStart)) {
-		Status = ReadFile(hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
-		if(TempChar == packetStart[index])
-			++index;
-		else
-			index = 0;
-	}
-	if(index == 0){
-		printf("no sync\n");
-	}
-	
-	unsigned char packetLength;
-	Status = ReadFile(hComm, &packetLength, sizeof(packetLength), &NoBytesRead, NULL);
-	
-	Status = ReadFile(hComm, packetBuffer, packetLength, &NoBytesRead, NULL);
-	
-	unsigned char packetChecksum;
-	Status = ReadFile(hComm, &packetChecksum, sizeof(packetChecksum), &NoBytesRead, NULL);
-	
-	unsigned char calculatedChecksum = 0;
-	for(unsigned int i = 0; i < packetLength; ++i)
-		calculatedChecksum ^= packetBuffer[i];
-	
-	return (calculatedChecksum == packetChecksum) ? packetLength : 0;
-}
-
-void sendPacket(unsigned char packetLength) {
-	memcpy(packetBuffer, packetStart, 4);
-	packetBuffer[4] = packetLength;
-	unsigned char packetChecksum = 0;
-    for(unsigned int i = 0; i < packetLength; ++i)
-        packetChecksum ^= packetBuffer[5+i];
-    packetBuffer[5+packetLength] = packetChecksum;
-	
-	DWORD dNoOfBytesWritten = 0;          // No of bytes written to the port
-	
-	Status = WriteFile(hComm,               // Handle to the Serialport
-					   packetBuffer,            // Data to be written to the port 
-					   6+packetLength,   // No of bytes to write into the port
-					   &dNoOfBytesWritten,  // No of bytes written to the port
-					   NULL);
-	
-	if (Status == false)
-		printf("\n\n   Error %d in Writing to Serial Port",GetLastError());
-}
-
-void terminate(int signal) {
-	CloseHandle(hComm);
-    exit(0);
-}
-
-#else
-	
+#else // POSIX : Linux, macOS
+#define STDIN 0
 #include <string.h>
-#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -137,47 +47,82 @@ void terminate(int signal) {
 #include <errno.h>
 #include <stdlib.h>
 
-int fd;
-FILE* stream;
-const char* packetStart = "SYNC";
-unsigned char packetBuffer[255+6];
+int serialFd;
+FILE* serialStream;
 
 bool setup(const char* path) {
-    fd = open(path, O_RDWR | O_NOCTTY);
-    if(fd < 0)
+    serialFd = open(path, O_RDWR | O_NOCTTY);
+    if(serialFd < 0)
         return false;
     struct termios tty;
     memset(&tty, 0, sizeof(tty));
-    if(tcgetattr(fd, &tty) < 0)
+    if(tcgetattr(serialFd, &tty) < 0)
         return false;
     const speed_t speed = B115200;
     cfsetospeed(&tty, speed);
     cfsetispeed(&tty, speed);
     cfmakeraw(&tty);
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 0;
-    if(tcsetattr(fd, TCSANOW, &tty) < 0)
+    tty.c_cc[VTIME] = 1;
+    if(tcsetattr(serialFd, TCSANOW, &tty) < 0)
         return false;
-    stream = fdopen(fd, "rw");
+    serialStream = fdopen(serialFd, "rw");
     return true;
 }
+#endif
 
-unsigned char receive() {
-    unsigned int available = 0;
+unsigned int getAvailableByteCount(int fd) {
+    #ifdef WINDOWS
+    /*
+    INPUT_RECORD inputRecords[50];
+    DWORD available = 0;
+    if(!PeekConsoleInput(GetStdHandle(fd), inputRecords, sizeof(inputRecords)/sizeof(INPUT_RECORD), &available))
+        return 0;
+    return available;
+    */
+    DWORD commerr;
+    COMSTAT comstat;
+    if(!ClearCommError(GetStdHandle(fd), &commerr, &comstat))
+        return 0;
+    return comstat.cbInQue;
+    #else
+    size_t available = 0;
     if(ioctl(fd, FIONREAD, &available) < 0)
         return 0;
-    if(available < sizeof(packetBuffer))
+    return available;
+    #endif
+}
+
+#ifdef WINDOWS
+#define readBytesFromSerial(target, len) \
+    ReadFile(serialStream, target, len, &bytesRead, NULL); \
+    if(bytesRead != len) \
         return 0;
+#else
+#define readBytesFromSerial(target, len) \
+    if(fread(target, 1, len, serialStream) != len) \
+        return 0;
+#endif
+
+unsigned char receivePacket() {
+    unsigned char received, packetLength, packetChecksum;
     unsigned int index = 0;
+    #ifdef WINDOWS
+    DWORD bytesRead;
+    #endif
+
     while(index < strlen(packetStart)) {
-        if(fgetc(stream) == packetStart[index])
+        readBytesFromSerial(&received, 1);
+        if(received == packetStart[index])
             ++index;
         else
             index = 0;
     }
-    unsigned char packetLength = fgetc(stream);
-    fread(packetBuffer, 1, packetLength, stream);
-    unsigned char packetChecksum = fgetc(stream), calculatedChecksum = 0;
+    readBytesFromSerial(&packetLength, 1);
+    readBytesFromSerial(packetBuffer, packetLength);
+    readBytesFromSerial(&packetChecksum, 1);
+
+    unsigned char calculatedChecksum = 0;
     for(unsigned int i = 0; i < packetLength; ++i)
         calculatedChecksum ^= packetBuffer[i];
     return (calculatedChecksum == packetChecksum) ? packetLength : 0;
@@ -190,14 +135,14 @@ void sendPacket(unsigned char packetLength) {
     for(unsigned int i = 0; i < packetLength; ++i)
         packetChecksum ^= packetBuffer[5+i];
     packetBuffer[5+packetLength] = packetChecksum;
-    write(fd, packetBuffer, 6+packetLength);
-}
 
-void terminate(int signal) {
-    fclose(stream);
-    exit(0);
+    #ifdef WINDOWS
+	DWORD bytesWritten = 0;
+	WriteFile(serialStream, packetBuffer, 6+packetLength, &bytesWritten, NULL);
+    #else
+    write(serialFd, packetBuffer, 6+packetLength);
+    #endif
 }
-#endif
 
 #ifdef NODE_GYP
 #include <node/node_api.h>
@@ -220,7 +165,7 @@ napi_value nodePoll(napi_env env, napi_callback_info info) {
     napi_create_array(env, &result);
     size_t packet = 0;
     while(true) {
-        unsigned char length = receive(), *underlyingBuffer;
+        unsigned char length = receivePacket(), *underlyingBuffer;
         if(length == 0)
             break;
         napi_create_buffer_copy(env, length, packetBuffer, (void**)&underlyingBuffer, &value);
@@ -242,7 +187,7 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
     return NULL;
 }
 
-napi_value nodeTest(napi_env env, napi_callback_info info){
+napi_value nodeTest(napi_env env, napi_callback_info info) {
     printf("node test executing...\n");
     // TODO do something meaningful here...
     printf("test succeeded! :P \n");
@@ -269,6 +214,15 @@ NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 #else
 #include <signal.h>
 
+void terminate(int signal) {
+    #ifdef WINDOWS
+    CloseHandle(serialStream);
+    #else
+    fclose(serialStream);
+    #endif
+    exit(0);
+}
+
 int main(int argc, char** argv) {
     if(argc != 2) {
         fprintf(stderr, "Expected /dev/serialport\n");
@@ -279,21 +233,14 @@ int main(int argc, char** argv) {
         return -2;
     }
     signal(SIGINT, &terminate);
-	#if !(defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+	/*#ifndef WINDOWS
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
-	#endif
+	#endif*/
 
-    char lineBuffer[255*3];
     unsigned char packetLength;
     while(true) {
-		bool shouldRead = true;
-		#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-		HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-		INPUT_RECORD input_records[50];
-		DWORD nb_read, nb_chars = 0, i;
-		PeekConsoleInput(hStdin, input_records, 50, &nb_read);
-		shouldRead = nb_read > 0;
-		#endif
+		bool shouldRead = (getAvailableByteCount(STDIN) > 0);
+
         if(shouldRead && fgets(lineBuffer, sizeof(lineBuffer), stdin)) {
             packetLength = strlen(lineBuffer)/3;
             for(unsigned int byte, i = 0; i < packetLength; ++i) {
@@ -303,7 +250,7 @@ int main(int argc, char** argv) {
             sendPacket(packetLength);
         }
 
-        packetLength = receive();
+        packetLength = receivePacket();
         if(packetLength > 0) {
             for(unsigned int i = 0; i < packetLength; ++i)
                 printf("%02X ", packetBuffer[i]);
