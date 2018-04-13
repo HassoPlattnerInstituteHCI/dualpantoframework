@@ -228,7 +228,7 @@ comment out 'MAC USERS' line below, and remove comment on 'OTHER USERS'. Then re
 
  - download the python 2 installer here: https://www.python.org/downloads/release/python-2714/
  - run the installer (no settings need to be changed)
- - note: Python 3 will not work. If you already have python 3 thats fine, but you need to install pyton 2 too.
+ - note: Python 3 will not work. If you already have python 3 thats fine, but you need to install python 2 too.
  
 #### 4. Install `make`
 
