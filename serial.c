@@ -1,71 +1,155 @@
-#include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+
+const char* packetStart = "SYNC";
+unsigned char packetBuffer[255+6];
+char lineBuffer[255*3];
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#define WINDOWS
+#define STDIN STD_INPUT_HANDLE
+#include <Windows.h>
+
+HANDLE serialStream;
+
+bool setup(const char* path) {
+	serialStream = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if(serialStream == INVALID_HANDLE_VALUE)
+		return false;
+
+	DCB dcbSerialParams = { 0 };
+	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+	if(!GetCommState(serialStream, &dcbSerialParams))
+		return false;
+	dcbSerialParams.BaudRate = CBR_115200;
+	dcbSerialParams.ByteSize = 8;
+	dcbSerialParams.StopBits = ONESTOPBIT;
+	dcbSerialParams.Parity = NOPARITY;
+	if(!SetCommState(serialStream, &dcbSerialParams))
+		return false;
+
+	COMMTIMEOUTS timeouts = { 0 };
+	timeouts.ReadIntervalTimeout         = 50;
+	timeouts.ReadTotalTimeoutConstant    = 50;
+	timeouts.ReadTotalTimeoutMultiplier  = 10;
+	timeouts.WriteTotalTimeoutConstant   = 50;
+	timeouts.WriteTotalTimeoutMultiplier = 10;
+    return SetCommTimeouts(serialStream, &timeouts) && SetCommMask(serialStream, EV_RXCHAR);
+}
+
+#else // POSIX : Linux, macOS
+#define STDIN 0
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <stdlib.h>
 
-int fd;
-FILE* stream;
-const char* packetStart = "SYNC";
-unsigned char packetBuffer[255+6];
+int serialFd;
+FILE* serialStream;
 
 bool setup(const char* path) {
-    fd = open(path, O_RDWR | O_NOCTTY);
-    if(fd < 0)
+    serialFd = open(path, O_RDWR | O_NOCTTY);
+    if(serialFd < 0)
         return false;
     struct termios tty;
     memset(&tty, 0, sizeof(tty));
-    if(tcgetattr(fd, &tty) < 0)
+    if(tcgetattr(serialFd, &tty) < 0)
         return false;
     const speed_t speed = B115200;
     cfsetospeed(&tty, speed);
     cfsetispeed(&tty, speed);
     cfmakeraw(&tty);
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 0;
-    if(tcsetattr(fd, TCSANOW, &tty) < 0)
+    tty.c_cc[VTIME] = 1;
+    if(tcsetattr(serialFd, TCSANOW, &tty) < 0)
         return false;
-    stream = fdopen(fd, "rw");
+    serialStream = fdopen(serialFd, "rw");
     return true;
 }
+#endif
 
-unsigned char receive() {
-    unsigned int available = 0;
+unsigned int getAvailableByteCount(int fd) {
+    #ifdef WINDOWS
+    /*
+    INPUT_RECORD inputRecords[50];
+    DWORD available = 0;
+    if(!PeekConsoleInput(GetStdHandle(fd), inputRecords, sizeof(inputRecords)/sizeof(INPUT_RECORD), &available))
+        return 0;
+    return available;
+    */
+    DWORD commerr;
+    COMSTAT comstat;
+    if(!ClearCommError(GetStdHandle(fd), &commerr, &comstat))
+        return 0;
+    return comstat.cbInQue;
+    #else
+    size_t available = 0;
     if(ioctl(fd, FIONREAD, &available) < 0)
         return 0;
-    if(available < sizeof(packetBuffer))
+    return available;
+    #endif
+}
+
+#ifdef WINDOWS
+#define readBytesFromSerial(target, len) \
+    ReadFile(serialStream, target, len, &bytesRead, NULL); \
+    if(bytesRead != len) \
         return 0;
+#else
+#define readBytesFromSerial(target, len) \
+    if(fread(target, 1, len, serialStream) != len) \
+        return 0;
+#endif
+
+unsigned char receivePacket() {
+    unsigned char received, packetLength, packetChecksum;
     unsigned int index = 0;
+    #ifdef WINDOWS
+    DWORD bytesRead;
+    #endif
+
     while(index < strlen(packetStart)) {
-        if(fgetc(stream) == packetStart[index])
+        readBytesFromSerial(&received, 1);
+        if(received == packetStart[index])
             ++index;
         else
             index = 0;
     }
-    unsigned char packetLength = fgetc(stream);
-    fread(packetBuffer, 1, packetLength, stream);
-    unsigned char packetChecksum = fgetc(stream), calculatedChecksum = 0;
+    readBytesFromSerial(&packetLength, 1);
+    readBytesFromSerial(packetBuffer, packetLength);
+    readBytesFromSerial(&packetChecksum, 1);
+
+    unsigned char calculatedChecksum = 0;
     for(unsigned int i = 0; i < packetLength; ++i)
         calculatedChecksum ^= packetBuffer[i];
     return (calculatedChecksum == packetChecksum) ? packetLength : 0;
 }
 
-void send(unsigned char packetLength) {
+void sendPacket(unsigned char packetLength) {
     memcpy(packetBuffer, packetStart, 4);
     packetBuffer[4] = packetLength;
     unsigned char packetChecksum = 0;
     for(unsigned int i = 0; i < packetLength; ++i)
         packetChecksum ^= packetBuffer[5+i];
     packetBuffer[5+packetLength] = packetChecksum;
-    write(fd, packetBuffer, 6+packetLength);
+
+    #ifdef WINDOWS
+	DWORD bytesWritten = 0;
+	WriteFile(serialStream, packetBuffer, 6+packetLength, &bytesWritten, NULL);
+    #else
+    write(serialFd, packetBuffer, 6+packetLength);
+    #endif
 }
 
-
 #ifdef NODE_GYP
+#ifdef WINDOWS
+#include <node_api.h>
+#else
 #include <node/node_api.h>
+#endif
 
 napi_value nodeOpen(napi_env env, napi_callback_info info) {
     size_t argc = 1;
@@ -85,7 +169,7 @@ napi_value nodePoll(napi_env env, napi_callback_info info) {
     napi_create_array(env, &result);
     size_t packet = 0;
     while(true) {
-        unsigned char length = receive(), *underlyingBuffer;
+        unsigned char length = receivePacket(), *underlyingBuffer;
         if(length == 0)
             break;
         napi_create_buffer_copy(env, length, packetBuffer, (void**)&underlyingBuffer, &value);
@@ -103,11 +187,11 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
     size_t length;
     napi_get_buffer_info(env, argv[0], (void**)&payload, &length);
     memcpy(&packetBuffer[5], payload, length);
-    send(length);
+    sendPacket(length);
     return NULL;
 }
 
-napi_value nodeTest(napi_env env, napi_callback_info info){
+napi_value nodeTest(napi_env env, napi_callback_info info) {
     printf("node test executing...\n");
     // TODO do something meaningful here...
     printf("test succeeded! :P \n");
@@ -133,10 +217,13 @@ NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 #else
 #include <signal.h>
-#include <stdlib.h>
 
 void terminate(int signal) {
-    fclose(stream);
+    #ifdef WINDOWS
+    CloseHandle(serialStream);
+    #else
+    fclose(serialStream);
+    #endif
     exit(0);
 }
 
@@ -150,21 +237,24 @@ int main(int argc, char** argv) {
         return -2;
     }
     signal(SIGINT, &terminate);
+	/*#ifndef WINDOWS
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+	#endif*/
 
-    char lineBuffer[255*3];
     unsigned char packetLength;
     while(true) {
-        if(fgets(lineBuffer, sizeof(lineBuffer), stdin)) {
+		bool shouldRead = (getAvailableByteCount(STDIN) > 0);
+
+        if(shouldRead && fgets(lineBuffer, sizeof(lineBuffer), stdin)) {
             packetLength = strlen(lineBuffer)/3;
             for(unsigned int byte, i = 0; i < packetLength; ++i) {
                 sscanf(&lineBuffer[i*3], "%02X", &byte);
                 packetBuffer[5+i] = byte;
             }
-            send(packetLength);
+            sendPacket(packetLength);
         }
 
-        packetLength = receive();
+        packetLength = receivePacket();
         if(packetLength > 0) {
             for(unsigned int i = 0; i < packetLength; ++i)
                 printf("%02X ", packetBuffer[i]);

@@ -21,7 +21,7 @@ In this section, we introduce you how to install the library in your system. Fol
 For macOS, search spotlight for `terminal` or goto Utility folder in your Application folder.
 For Linux, it depends on your distribution, but usually you can find `terminal` app from the menu bar of your OS.
 
-#### 2. install `node`
+#### 2. Install `node`
 `node` is a Javascript framework. You can do many interesting thing with `node` from web-app to robotics.
 `npm` is `node`'s package manager. Using `npm` you can manage many libraries in your project. If you install `node`, `npm` will also be installed in your machine.
 
@@ -205,7 +205,62 @@ serial.open(port.replace("tty.", "cu."));
 
 comment out 'MAC USERS' line below, and remove comment on 'OTHER USERS'. Then replace `YOUR_PORT_NAME` to your Arduino port name. It typically looks like : `/dev/tty???`.
 
+---
+### For Windows users:
 
+#### 1. Install `node` & `npm`
+`node` is a Javascript framework. You can do many interesting thing with `node` from web-app to robotics.
+`npm` is `node`'s package manager. Using `npm` you can manage many libraries in your project. If you install `node`, `npm` will also be installed in your machine.
+
+ - download the installer of the LTS version here: https://nodejs.org/en/
+ - run the installer (no settings need to be changed)
+ - To test if the installation was successful open the command line and execute `node -v` and `npm -v`. You should get the respective version numbers.
+ 
+#### 2. Install `git`
+
+ - download the installer here: https://git-scm.com/downloads
+ - run the installer; we suggest change the following options:
+   - uncheck the "Windows Explorer Integration"
+   - choose Notepad++ as the default editor
+ - you probaply want to install a GUI like GitKraken (https://www.gitkraken.com/) or TortoiseGit (https://tortoisegit.org/) too
+ 
+#### 3. Install `python 2`
+
+ - download the python 2 installer here: https://www.python.org/downloads/release/python-2714/
+ - run the installer (no settings need to be changed)
+ - note: Python 3 will not work. If you already have python 3 thats fine, but you need to install python 2 too.
+ 
+#### 4. Install `make`
+
+ - download the installer here: http://gnuwin32.sourceforge.net/downlinks/make.php
+ - run the installer  (no settings need to be changed)
+ - add the `bin` (should be `C:\Program Files (x86)\GnuWin32\bin`) folder to the `Path` variable
+   - search for *path* in the windows search
+   - select "Umgebungsvariablen für dieses Konto bearbeiten"
+   - select 'Path' and click edit
+   - select add and insert the path
+ 
+#### 5. Install `Visual Studio 2017`
+
+ - download **Visual Studio 2017 Enterprise** here: https://hpi.de/intern/studium/elms/authentication/
+ - run the installer
+ 
+#### 6. Get the nodejs source code
+
+ - download it here: https://nodejs.org/dist/v8.11.1/node-v8.11.1.tar.gz
+ - unpack the `node-v8.11.1.tar.gz`
+ - unpack the `node-v8.11.1.tar` to `C:\Program Files\nodejs`
+ 
+#### 7. Install `dualpantoframework`
+
+ - clone the repository https://github.com/JotaroS/dualpantoframework.git
+ - open `x64 Native Tools-Eingabeaufforderung für VS 2017`
+ - if this is the forst time you set this up, run `npm install -g node-gyp`
+ - change to the directory of the repository using `cd PATH` with *PATH* being the path of the repository (ending with *\dualpantoframework*) 
+ - run `set INCLUDE=%INCLUDE%C:\Program Files\nodejs\node-v8.11.1\src\;`
+ - run `make`
+ 
 ## Examples
 
 ...under construction...
+ 
