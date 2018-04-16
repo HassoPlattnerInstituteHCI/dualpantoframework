@@ -72,11 +72,19 @@ serialRecv();
 
 function autoDetectDevices() {
     SerialPort.list(function(err, devices) {
-        for(const device of devices) {
-            if(device.manufacturer != 'Arduino LLC')
-                continue;
-            new Device(device.comName);
-        }
+        if(err)
+            console.error(err);
+        else
+            for(const device of devices) {
+                if(device.manufacturer != 'Arduino LLC')
+                    continue;
+                new Device(device.comName);
+            }
     });
 }
 autoDetectDevices();
+
+// TODO: Test case termination
+setTimeout(function() {
+    process.exit(0);
+}, 1000);
