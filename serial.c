@@ -71,29 +71,30 @@ bool setup(const char* path) {
 }
 #endif
 
+void tearDown() {
     #ifdef WINDOWS
+    CloseHandle(serialFd);
+    #else
+    fclose(serialStream);
+    #endif
+}
+
+#ifdef WINDOWS
 unsigned int getAvailableByteCount(HANDLE fd) {
-    /*
-    INPUT_RECORD inputRecords[50];
-    DWORD available = 0;
-    if(!PeekConsoleInput(GetStdHandle(fd), inputRecords, sizeof(inputRecords)/sizeof(INPUT_RECORD), &available))
-        return 0;
-    return available;
-    */
     DWORD commerr;
     COMSTAT comstat;
     if(!ClearCommError(fd, &commerr, &comstat))
         return 0;
     return comstat.cbInQue;
 }
-    #else
+#else
 unsigned int getAvailableByteCount(int fd) {
     size_t available = 0;
     if(ioctl(fd, FIONREAD, &available) < 0)
         return 0;
     return available;
-    #endif
 }
+#endif
 
 #ifdef WINDOWS
 #define readBytesFromSerial(target, len) \
@@ -163,10 +164,33 @@ napi_value nodeOpen(napi_env env, napi_callback_info info) {
     napi_get_value_string_utf8(env, argv[0], buffer, sizeof(buffer), &length);
     if(!setup(buffer))
         napi_throw_error(env, NULL, "open failed");
+    napi_value result;
+    napi_create_int32(env, serialFd, &result);
+    return result;
+}
+
+napi_value nodeClose(napi_env env, napi_callback_info info) {
+    size_t argc = 1;
+    napi_value argv[1];
+    if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+        napi_throw_error(env, NULL, "Failed to parse arguments");
+    int32_t interface;
+    napi_get_value_int32(env, argv[0], &interface);
+    if(interface != serialFd)
+        napi_throw_error(env, NULL, "Wrong handle / interface");
+    tearDown();
     return NULL;
 }
 
 napi_value nodePoll(napi_env env, napi_callback_info info) {
+    size_t argc = 1;
+    napi_value argv[1];
+    if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+        napi_throw_error(env, NULL, "Failed to parse arguments");
+    int32_t interface;
+    napi_get_value_int32(env, argv[0], &interface);
+    if(interface != serialFd)
+        napi_throw_error(env, NULL, "Wrong handle / interface");
     napi_value result, value;
     napi_create_array(env, &result);
     size_t packet = 0;
@@ -181,23 +205,20 @@ napi_value nodePoll(napi_env env, napi_callback_info info) {
 }
 
 napi_value nodeSend(napi_env env, napi_callback_info info) {
-    size_t argc = 1;
-    napi_value argv[1];
+    size_t argc = 2;
+    napi_value argv[2];
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
+    int32_t interface;
+    napi_get_value_int32(env, argv[0], &interface);
+    if(interface != serialFd)
+        napi_throw_error(env, NULL, "Wrong handle / interface");
     unsigned char *payload;
     size_t length;
     napi_get_buffer_info(env, argv[0], (void**)&payload, &length);
     memcpy(&packetBuffer[5], payload, length);
     sendPacket(length);
     return NULL;
-}
-
-napi_value nodeTest(napi_env env, napi_callback_info info) {
-    printf("node test executing...\n");
-    // TODO do something meaningful here...
-    printf("test succeeded! :P \n");
-    return 0;
 }
 
 #define defFunc(name, ptr) \
@@ -209,9 +230,9 @@ if(napi_set_named_property(env, exports, name, fn) != napi_ok) \
 napi_value Init(napi_env env, napi_value exports) {
     napi_value fn;
     defFunc("open", nodeOpen);
+    defFunc("close", nodeClose);
     defFunc("poll", nodePoll);
     defFunc("send", nodeSend);
-    defFunc("test", nodeTest);
     return exports;
 }
 
@@ -221,11 +242,7 @@ NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 #include <signal.h>
 
 void terminate(int signal) {
-    #ifdef WINDOWS
-    CloseHandle(serialFd);
-    #else
-    fclose(serialStream);
-    #endif
+    tearDown();
     exit(0);
 }
 
