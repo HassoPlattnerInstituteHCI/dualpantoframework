@@ -1,6 +1,6 @@
-all: serial
+all: serial LP_PCB
 	node-gyp configure
 	node-gyp build
 
-%:	Hardware/%.json Utils/GenerateHardwareConfig.js
-	node Utils/GenerateHardwareConfig.js $@
+%: Hardware/%.json Firmware/GenerateHardwareConfig.js
+	node Firmware/GenerateHardwareConfig.js $@
