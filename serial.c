@@ -7,25 +7,25 @@ char lineBuffer[255*3];
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define WINDOWS
-#define STDIN STD_INPUT_HANDLE
+#define STDIN GetStdHandle(STD_INPUT_HANDLE)
 #include <Windows.h>
 
-HANDLE serialStream;
+HANDLE serialFd;
 
 bool setup(const char* path) {
-	serialStream = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-	if(serialStream == INVALID_HANDLE_VALUE)
+	serialFd = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if(serialFd == INVALID_HANDLE_VALUE)
 		return false;
 
 	DCB dcbSerialParams = { 0 };
 	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-	if(!GetCommState(serialStream, &dcbSerialParams))
+	if(!GetCommState(serialFd, &dcbSerialParams))
 		return false;
 	dcbSerialParams.BaudRate = CBR_115200;
 	dcbSerialParams.ByteSize = 8;
 	dcbSerialParams.StopBits = ONESTOPBIT;
 	dcbSerialParams.Parity = NOPARITY;
-	if(!SetCommState(serialStream, &dcbSerialParams))
+	if(!SetCommState(serialFd, &dcbSerialParams))
 		return false;
 
 	COMMTIMEOUTS timeouts = { 0 };
@@ -34,7 +34,7 @@ bool setup(const char* path) {
 	timeouts.ReadTotalTimeoutMultiplier  = 10;
 	timeouts.WriteTotalTimeoutConstant   = 50;
 	timeouts.WriteTotalTimeoutMultiplier = 10;
-    return SetCommTimeouts(serialStream, &timeouts) && SetCommMask(serialStream, EV_RXCHAR);
+    return SetCommTimeouts(serialFd, &timeouts) && SetCommMask(serialFd, EV_RXCHAR);
 }
 
 #else // POSIX : Linux, macOS
@@ -71,8 +71,8 @@ bool setup(const char* path) {
 }
 #endif
 
-unsigned int getAvailableByteCount(int fd) {
     #ifdef WINDOWS
+unsigned int getAvailableByteCount(HANDLE fd) {
     /*
     INPUT_RECORD inputRecords[50];
     DWORD available = 0;
@@ -82,10 +82,12 @@ unsigned int getAvailableByteCount(int fd) {
     */
     DWORD commerr;
     COMSTAT comstat;
-    if(!ClearCommError(GetStdHandle(fd), &commerr, &comstat))
+    if(!ClearCommError(fd, &commerr, &comstat))
         return 0;
     return comstat.cbInQue;
+}
     #else
+unsigned int getAvailableByteCount(int fd) {
     size_t available = 0;
     if(ioctl(fd, FIONREAD, &available) < 0)
         return 0;
@@ -95,7 +97,7 @@ unsigned int getAvailableByteCount(int fd) {
 
 #ifdef WINDOWS
 #define readBytesFromSerial(target, len) \
-    ReadFile(serialStream, target, len, &bytesRead, NULL); \
+    ReadFile(serialFd, target, len, &bytesRead, NULL); \
     if(bytesRead != len) \
         return 0;
 #else
@@ -138,7 +140,7 @@ void sendPacket(unsigned char packetLength) {
 
     #ifdef WINDOWS
 	DWORD bytesWritten = 0;
-	WriteFile(serialStream, packetBuffer, 6+packetLength, &bytesWritten, NULL);
+	WriteFile(serialFd, packetBuffer, 6+packetLength, &bytesWritten, NULL);
     #else
     write(serialFd, packetBuffer, 6+packetLength);
     #endif
@@ -168,12 +170,12 @@ napi_value nodePoll(napi_env env, napi_callback_info info) {
     napi_value result, value;
     napi_create_array(env, &result);
     size_t packet = 0;
-    while(true) {
+    while(getAvailableByteCount(serialFd)) {
         unsigned char length = receivePacket(), *underlyingBuffer;
-        if(length == 0)
-            break;
-        napi_create_buffer_copy(env, length, packetBuffer, (void**)&underlyingBuffer, &value);
-        napi_set_element(env, result, packet++, value);
+        if(length) {
+            napi_create_buffer_copy(env, length, packetBuffer, (void**)&underlyingBuffer, &value);
+            napi_set_element(env, result, packet++, value);
+        }
     }
     return result;
 }
@@ -220,7 +222,7 @@ NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
 
 void terminate(int signal) {
     #ifdef WINDOWS
-    CloseHandle(serialStream);
+    CloseHandle(serialFd);
     #else
     fclose(serialStream);
     #endif
