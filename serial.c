@@ -13,7 +13,7 @@ char lineBuffer[255*3];
 HANDLE handle;
 
 bool setup(const char* path) {
-	HANDLE handle = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	handle = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 	if(handle == INVALID_HANDLE_VALUE)
 		return false;
 

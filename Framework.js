@@ -11,6 +11,8 @@ class Device {
     constructor(port) {
         if(process.platform == 'darwin') // macOS
             port = port.replace('/tty.', '/cu.');
+        else if(process.platform == 'win32') // windows
+            port = '//.//'+port;
         if(devices.has(port))
             return devices.get(port);
         devices.set(port, this);
@@ -75,11 +77,9 @@ function autoDetectDevices() {
         if(err)
             console.error(err);
         else
-            for(const device of devices) {
-                if(device.manufacturer != 'Arduino LLC')
-                    continue;
-                new Device(device.comName);
-            }
+            for(const device of devices)
+                if(device.manufacturer.includes('Arduino LLC'))
+                    new Device(device.comName);
     });
 }
 autoDetectDevices();
