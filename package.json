@@ -24,6 +24,7 @@
     "serialport": "^6.1.1",
     "snapsvg": "^0.5.1",
     "socket.io": "^2.1.0"
+    "websocket": "^1.0.25"
   },
   "devDependencies": {
     "nodemon": "^1.17.3",
