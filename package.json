@@ -2,7 +2,7 @@
   "name": "dualpantoframework",
   "version": "0.1.0",
   "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff",
-  "main": "index.js",
+  "main": "Utils/ViDeb/index.js",
   "scripts": {
     "test": "node test.js",
     "install": "make"
@@ -19,7 +19,14 @@
   },
   "homepage": "https://github.com/JotaroS/dualpantoframework#readme",
   "dependencies": {
+    "express": "^4.16.3",
     "node-gyp": "^3.6.2",
-    "serialport": "^6.1.1"
+    "serialport": "^6.1.1",
+    "snapsvg": "^0.5.1",
+    "socket.io": "^2.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.3",
+    "reload": "^2.2.2"
   }
 }

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>dualpanto Visual-Debugger</title>
+    
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Custom styles for this template -->
+    <style>
+      body {
+        padding-top: 54px;
+      }
+      @media (min-width: 992px) {
+        body {
+          padding-top: 56px;
+        }
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">dualpantoVis<sup> beta</sup></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+    </nav>
+    <script src="js/snap.svg-min.js" type="text/javascript"></script>
+    <script src="js/graphics.js" type="text/javascript"></script>
+    <!-- Page Content -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <center>
+            <script>
+                var s = Snap(600,400);
+                var bigCircle = s.circle(150, 150, 100);
+                var rectangle = s.rect(0,0,700,400);
+            </script>
+            </center>
+            
+        </div>
+      </div>
+      <svg></svg>
+      
+    </div>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="js/jquery.min.js"  ></script>
+    <script src="js/bootstrap.min.js"  ></script>
+  </body>
+
+</html>
