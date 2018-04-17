@@ -6,6 +6,9 @@ const serial = require('./build/Release/serial'),
       SerialPort = require('serialport');
 
 const devices = new Map();
+module.exports.getDevices = function() {
+    return devices.values();
+};
 
 class Device {
     constructor(port) {
@@ -18,15 +21,13 @@ class Device {
         devices.set(port, this);
         this.port = port;
         this.serial = serial.open(port);
-        console.log('Connected', this.port, this.serial);
-    }
-
-    onDisconnect() {
-        console.log('Disconnected', this.port, this.serial);
+        this.lastKnownPositions = [];
+        this.lastTargetPositions = [];
     }
 
     disconnect() {
-        this.onDisconnect();
+        if(this.onDisconnect)
+            this.onDisconnect();
         serial.close(this.serial);
     }
 
@@ -41,11 +42,12 @@ class Device {
             const values = [];
             for(let i = 0; i < 6; ++i)
                 values[i] = packet.readFloatLE(i*4);
-            this.lastKnownPositions = [
-                new Vector(values[0], values[1], values[2]),
-                new Vector(values[3], values[4], values[5])
-            ];
-            console.log(this.hardwareConfigHash, this.lastKnownPositions);
+            this.lastKnownPositions[0] = new Vector(values[0], values[1], values[2]);
+            this.lastKnownPositions[1] = new Vector(values[3], values[4], values[5]);
+            if(this.onHandleMoved) {
+                this.onHandleMoved(0, this.lastKnownPositions[0]);
+                this.onHandleMoved(1, this.lastKnownPositions[1]);
+            }
         }
     }
 
@@ -67,24 +69,21 @@ class Device {
 
 function serialRecv() {
     setImmediate(serialRecv);
-    for(const [port, device] of devices)
+    for(const device of devices.values())
         device.poll();
 }
 serialRecv();
 
 function autoDetectDevices() {
-    SerialPort.list(function(err, devices) {
+    SerialPort.list(function(err, ports) {
         if(err)
             console.error(err);
         else
-            for(const device of devices)
-                if(device.manufacturer.includes('Arduino LLC'))
-                    new Device(device.comName);
+            for(const port of ports)
+                if(port.manufacturer && port.manufacturer.includes('Arduino LLC'))
+                    new Device(port.comName);
+        if(module.exports.onDevicesChanged)
+            module.exports.onDevicesChanged(devices.values());
     });
 }
 autoDetectDevices();
-
-// TODO: Test case termination
-setTimeout(function() {
-    process.exit(0);
-}, 1000);

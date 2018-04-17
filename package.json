@@ -4,7 +4,7 @@
   "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff",
   "main": "index.js",
   "scripts": {
-    "test": "node ./Framework.js",
+    "test": "node test.js",
     "install": "make"
   },
   "repository": {
