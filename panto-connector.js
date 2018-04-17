@@ -29,7 +29,7 @@ class PantoConnector {
         .catch(console.log)
     }
 
-  movePantoTo(index, target) {
+  movePantoToPos(index, target) {
     const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
           data = new Buffer(1+3*4);
     data[0] = index;
@@ -43,9 +43,17 @@ class PantoConnector {
   {
       return new Promise (resolve => 
       {
-          this.movePantoFunction(index, target, duration, interpolation_method);
+          this.movePantoToPos(index, target, duration, interpolation_method);
           resolve(resolve);
       });
+  }
+
+  movePantoInLine(index, start, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out) {
+      this.run_script([
+          () => this.movePantoTo(index, start, 100),
+          () => this.waitMS(100);
+          () => this.movePantoTo(index, target, duration)
+      ]);
   }
 
   speakText(txt) {
@@ -59,6 +67,12 @@ class PantoConnector {
               return;
           }
       });
+  }
+
+  sayText(txt) {
+    this.run_script([
+      () => this.speakText(txt)
+    ]);
   }
 
   playSound(filename) {
