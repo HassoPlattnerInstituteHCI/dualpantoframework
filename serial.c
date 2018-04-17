@@ -10,22 +10,22 @@ char lineBuffer[255*3];
 #define STDIN GetStdHandle(STD_INPUT_HANDLE)
 #include <Windows.h>
 
-HANDLE serialFd;
+HANDLE handle;
 
 bool setup(const char* path) {
-	serialFd = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-	if(serialFd == INVALID_HANDLE_VALUE)
+	HANDLE handle = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if(handle == INVALID_HANDLE_VALUE)
 		return false;
 
 	DCB dcbSerialParams = { 0 };
 	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-	if(!GetCommState(serialFd, &dcbSerialParams))
+	if(!GetCommState(handle, &dcbSerialParams))
 		return false;
 	dcbSerialParams.BaudRate = CBR_115200;
 	dcbSerialParams.ByteSize = 8;
 	dcbSerialParams.StopBits = ONESTOPBIT;
 	dcbSerialParams.Parity = NOPARITY;
-	if(!SetCommState(serialFd, &dcbSerialParams))
+	if(!SetCommState(handle, &dcbSerialParams))
 		return false;
 
 	COMMTIMEOUTS timeouts = { 0 };
@@ -34,11 +34,11 @@ bool setup(const char* path) {
 	timeouts.ReadTotalTimeoutMultiplier  = 10;
 	timeouts.WriteTotalTimeoutConstant   = 50;
 	timeouts.WriteTotalTimeoutMultiplier = 10;
-    return SetCommTimeouts(serialFd, &timeouts) && SetCommMask(serialFd, EV_RXCHAR);
+    return SetCommTimeouts(handle, &timeouts) && SetCommMask(handle, EV_RXCHAR);
 }
 
 #else // POSIX : Linux, macOS
-#define STDIN 0
+#define STDIN stdin
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -47,16 +47,15 @@ bool setup(const char* path) {
 #include <errno.h>
 #include <stdlib.h>
 
-int serialFd;
-FILE* serialStream;
+FILE* handle;
 
 bool setup(const char* path) {
-    serialFd = open(path, O_RDWR | O_NOCTTY);
-    if(serialFd < 0)
+    int fd = open(path, O_RDWR | O_NOCTTY);
+    if(fd < 0)
         return false;
     struct termios tty;
     memset(&tty, 0, sizeof(tty));
-    if(tcgetattr(serialFd, &tty) < 0)
+    if(tcgetattr(fd, &tty) < 0)
         return false;
     const speed_t speed = B115200;
     cfsetospeed(&tty, speed);
@@ -64,46 +63,40 @@ bool setup(const char* path) {
     cfmakeraw(&tty);
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 1;
-    if(tcsetattr(serialFd, TCSANOW, &tty) < 0)
+    if(tcsetattr(fd, TCSANOW, &tty) < 0)
         return false;
-    serialStream = fdopen(serialFd, "rw");
+    handle = fdopen(fd, "rw");
     return true;
 }
 #endif
 
-void tearDown() {
-    #ifdef WINDOWS
-    CloseHandle(serialFd);
-    #else
-    fclose(serialStream);
-    #endif
-}
-
 #ifdef WINDOWS
-unsigned int getAvailableByteCount(HANDLE fd) {
+unsigned int getAvailableByteCount(HANDLE handle) {
     DWORD commerr;
     COMSTAT comstat;
-    if(!ClearCommError(fd, &commerr, &comstat))
+    if(!ClearCommError(handle, &commerr, &comstat))
         return 0;
     return comstat.cbInQue;
 }
 #else
-unsigned int getAvailableByteCount(int fd) {
+unsigned int getAvailableByteCount(FILE* handle) {
     size_t available = 0;
-    if(ioctl(fd, FIONREAD, &available) < 0)
+    if(ioctl(fileno(handle), FIONREAD, &available) < 0)
         return 0;
     return available;
 }
 #endif
 
 #ifdef WINDOWS
+#define tearDown() CloseHandle(handle)
 #define readBytesFromSerial(target, len) \
-    ReadFile(serialFd, target, len, &bytesRead, NULL); \
+    ReadFile(handle, target, len, &bytesRead, NULL); \
     if(bytesRead != len) \
         return 0;
 #else
+#define tearDown() fclose(handle)
 #define readBytesFromSerial(target, len) \
-    if(fread(target, 1, len, serialStream) != len) \
+    if(fread(target, 1, len, handle) != len) \
         return 0;
 #endif
 
@@ -141,9 +134,9 @@ void sendPacket(unsigned char packetLength) {
 
     #ifdef WINDOWS
 	DWORD bytesWritten = 0;
-	WriteFile(serialFd, packetBuffer, 6+packetLength, &bytesWritten, NULL);
+	WriteFile(handle, packetBuffer, 6+packetLength, &bytesWritten, NULL);
     #else
-    write(serialFd, packetBuffer, 6+packetLength);
+    write(fileno(handle), packetBuffer, 6+packetLength);
     #endif
 }
 
@@ -165,7 +158,7 @@ napi_value nodeOpen(napi_env env, napi_callback_info info) {
     if(!setup(buffer))
         napi_throw_error(env, NULL, "open failed");
     napi_value result;
-    napi_create_int32(env, serialFd, &result);
+    napi_create_int64(env, handle, &result);
     return result;
 }
 
@@ -174,10 +167,7 @@ napi_value nodeClose(napi_env env, napi_callback_info info) {
     napi_value argv[1];
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-    int32_t interface;
-    napi_get_value_int32(env, argv[0], &interface);
-    if(interface != serialFd)
-        napi_throw_error(env, NULL, "Wrong handle / interface");
+    napi_get_value_int64(env, argv[0], &handle);
     tearDown();
     return NULL;
 }
@@ -187,14 +177,11 @@ napi_value nodePoll(napi_env env, napi_callback_info info) {
     napi_value argv[1];
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-    int32_t interface;
-    napi_get_value_int32(env, argv[0], &interface);
-    if(interface != serialFd)
-        napi_throw_error(env, NULL, "Wrong handle / interface");
+    napi_get_value_int64(env, argv[0], &handle);
     napi_value result, value;
     napi_create_array(env, &result);
     size_t packet = 0;
-    while(getAvailableByteCount(serialFd)) {
+    while(getAvailableByteCount(handle)) {
         unsigned char length = receivePacket(), *underlyingBuffer;
         if(length) {
             napi_create_buffer_copy(env, length, packetBuffer, (void**)&underlyingBuffer, &value);
@@ -209,13 +196,10 @@ napi_value nodeSend(napi_env env, napi_callback_info info) {
     napi_value argv[2];
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-    int32_t interface;
-    napi_get_value_int32(env, argv[0], &interface);
-    if(interface != serialFd)
-        napi_throw_error(env, NULL, "Wrong handle / interface");
+    napi_get_value_int64(env, argv[0], &handle);
     unsigned char *payload;
     size_t length;
-    napi_get_buffer_info(env, argv[0], (void**)&payload, &length);
+    napi_get_buffer_info(env, argv[1], (void**)&payload, &length);
     memcpy(&packetBuffer[5], payload, length);
     sendPacket(length);
     return NULL;
@@ -262,9 +246,8 @@ int main(int argc, char** argv) {
 
     unsigned char packetLength;
     while(true) {
-		bool shouldRead = (getAvailableByteCount(STDIN) > 0);
-
-        if(shouldRead && fgets(lineBuffer, sizeof(lineBuffer), stdin)) {
+        if(getAvailableByteCount(STDIN) > 0 &&
+           fgets(lineBuffer, sizeof(lineBuffer), stdin)) {
             packetLength = strlen(lineBuffer)/3;
             for(unsigned int byte, i = 0; i < packetLength; ++i) {
                 sscanf(&lineBuffer[i*3], "%02X", &byte);
