@@ -3,6 +3,7 @@ var   express     = require('express'),
       fs          = require('fs'),
       path        = require('path'),
       WebSocketServer = require('websocket').server,
+      Framework   = require('../../Framework.js');
       connections = new Set();
 
 const server = http.createServer((request, response) => {
@@ -65,4 +66,20 @@ wsServer.on('request', function(request) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         connections.delete(connection);
     });
+    for(const device of Framework.getDevices()) {
+        device.on('handleMoved', (i, p) => {
+            const payload = {
+                type: "handleMoved",
+                id: i,
+                pos:{
+                    x: p.x,
+                    y: p.y,
+                    z: p.r
+                }
+            };
+            for(connetion of connections) {
+                connection.sendUTF(JSON.stringify(payload));
+            }
+        });
+    }
 });
