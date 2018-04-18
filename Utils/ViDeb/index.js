@@ -55,14 +55,14 @@ wsServer = new WebSocketServer({
     httpServer: server,
     autoAcceptConnections: false
 });
-wsServer.on('request', function(request) {
+wsServer.on('request', (request) => {
     var connection = request.accept();
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
-    connection.on('message', function(message) {
+    connection.on('message', (message) => {
         console.log(message);
     });
-    connection.on('close', function(reasonCode, description) {
+    connection.on('close', (reasonCode, description) => {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         connections.delete(connection);
     });
