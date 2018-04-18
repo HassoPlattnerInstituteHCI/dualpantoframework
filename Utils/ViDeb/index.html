@@ -29,7 +29,12 @@
       .history-item{
         list-style-type: none;
         font-size: 5pt;
-        color: darkgrey;
+        color: lightskyblue;
+      }
+      .history-item-move{
+        list-style-type: none;
+        font-size: 5pt;
+        color: lightcoral;
       }
       @media (min-width: 992px) {
         body {
@@ -79,10 +84,10 @@
         </div>
         <div class="col-lg-3 text-left">
           <h3 class="mt-5">status</h3>
-          websocket : <span class="badge badge-secondary">Unknown</span><br>
-          serial : <span class="badge badge-secondary">Unknown</span><br>
-          mirror : <span class="badge badge-secondary">Unknown</span><br>
-          <h3 class="mt-5">history</h3>
+          websocket : <span id = "status-websocket" class="badge badge-warning">Not Connected</span><br>
+          serial : <span id = "status-serial" class="badge badge-warning">Data not comming</span><br>
+          mirror : <span id = "status-mirror" class="badge badge-secondary">under construction</span><br>
+          <h3 class="mt-5">log history</h3>
           <ul id="history"></ul>
         </div>
       </div>
@@ -93,14 +98,23 @@
       const ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
         ws.onopen = function(event) {
             console.log('Connection open');
+            document.getElementById('status-websocket').innerText = 'Connected';
+            document.getElementById('status-websocket').className = 'badge badge-success';
+
         }
         ws.onclose = function(event) {
             console.log('Connection closed');
+            document.getElementById('status-websocket').innerText = 'Disconnected';
+            document.getElementById('status-websocket').className = 'badge badge-danger';
         }
         ws.onmessage = function(event) {
+            document.getElementById('status-serial').innerText = 'Receiving';
+            document.getElementById('status-serial').className = 'badge badge-success';
             let node = document.createElement('li');
             const data = JSON.parse(event.data);
             node.className = 'history-item'
+            if(data.type=="moveHandleTo")
+              node.className = 'history-item-move'
             let textnode = document.createTextNode(event.data);
             node.appendChild(textnode);
             let history = document.getElementById('history');

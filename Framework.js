@@ -75,6 +75,7 @@ class Device extends EventEmitter {
         packet.writeFloatLE(values[1], 5);
         packet.writeFloatLE(values[2], 9);
         this.send(packet);
+        this.emit('moveHandleTo', index, target);
     }
 }
 

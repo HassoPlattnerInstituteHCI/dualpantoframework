@@ -70,16 +70,31 @@ wsServer.on('request', (request) => {
         device.on('handleMoved', (i, p) => {
             const payload = {
                 type: "handleMoved",
+                board: "your_serial_board",
                 id: i,
                 pos:{
                     x: p.x,
                     y: p.y,
-                    z: p.r
+                    r: p.r
                 }
             };
             for(connetion of connections) {
                 connection.sendUTF(JSON.stringify(payload));
             }
         });
+        device.on('moveHandleTo', (i, p) => {
+            const payload = {
+                type: "moveHandleTo",
+                id: i,
+                pos:{
+                    x: p.x,
+                    y: p.y,
+                    r: p.r
+                }
+            };
+            for(connetion of connections) {
+                connection.sendUTF(JSON.stringify(payload));
+            }
+        })
     }
 });

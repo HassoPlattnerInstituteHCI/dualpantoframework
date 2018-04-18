@@ -50,7 +50,7 @@ class PantographGlyph{
         var t2 = _t2;
         this.lastLeftAngle = t1;
         this.lastRightAngle = t2;
-        var ml = s.circle(panto.left.linkage.baseX, panto.left.linkage.baseY, 5).attr({fill:"red"});
+        var ml = s.circle(panto.left.linkage.baseX, panto.left.linkage.baseY, 5).attr({fill:"black"});
         var mr = s.circle(panto.right.linkage.baseX, panto.right.linkage.baseY, 5).attr({fill:"black"});
         var il = s.line(panto.left.linkage.baseX, panto.left.linkage.baseY,
                         panto.left.linkage.baseX+panto.left.linkage.innerLength * Math.cos(t1),
@@ -79,7 +79,7 @@ class PantographGlyph{
                         P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
         var or = s.line(P4.x + panto.left.linkage.baseX, P4.y,
             P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
-        var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:"green"});
+        var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:this.id==0?"green":"blue"});
         var g = s.group(il, ir, ol, or, ml, mr, ee);
         g.transform('T 150 50');
     }
@@ -110,19 +110,6 @@ class PantographGlyph{
             this.fowardKinematics(this.lastLeftAngle, this.lastRightAngle);
         }
     }
-}
-
-var slider = document.getElementById("myRange");
-var slider2 = document.getElementById("myRange2");
-slider.oninput = function(){
-    // s.clear();
-    // UpperPanto.inverseKinematics(slider.value/10, slider2.value/10);
-    // LowerPanto.inverseKinematics(slider.value/10, slider2.value/10);
-}
-slider2.oninput= function(){
-    // s.clear();
-    // UpperPanto.inverseKinematics(slider.value/10, slider2.value/10);
-    // LowerPanto.inverseKinematics(slider.value/10, slider2.value/10);
 }
 
 function flushGlyph(){
