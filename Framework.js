@@ -5,6 +5,7 @@ const serial = require('./build/Release/serial'),
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
       EventEmitter = require('events').EventEmitter;
+      WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
     constructor() {
@@ -56,6 +57,10 @@ class Device extends EventEmitter {
                 this.lastKnownPositions[i] = newPosition;
                 this.emit('handleMoved', i, this.lastKnownPositions[i]);
             }
+            if(this.onDataReceived){
+                this.onDataReceived(0, this.lastKnownPositions[0]);
+                this.onDataReceived(1, this.lastKnownPositions[1]);
+            }
         }
     }
 
@@ -94,3 +99,38 @@ function autoDetectDevices() {
     });
 }
 autoDetectDevices();
+
+var WebSocketClient = require('websocket').client;
+ 
+var client = new WebSocketClient();
+ 
+client.on('connectFailed', function(error) {
+    console.log('Connect Error: ' + error.toString());
+});
+ 
+client.on('connect', function(connection) {
+    console.log('WebSocket Client Connected');
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        console.log('echo-protocol Connection Closed');
+    });
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log("Received: '" + message.utf8Data + "'");
+        }
+    });
+    for(const device of devices.values()){
+        device.onDataReceived = function(_id, position){
+            if(connection.connected){
+                connection.sendUTF(JSON.stringify({
+                    id:id,
+                    position:"pos"
+                }));
+            }
+        }
+    }
+});
+ 
+client.connect('ws://localhost:8080/');

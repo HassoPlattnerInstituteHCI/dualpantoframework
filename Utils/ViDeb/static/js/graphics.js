@@ -24,7 +24,6 @@ function draw(_t1, _t2){
     s.clear();
     var t1 = _t1;
     var t2 = _t2;
-
     var panto = config.pantos.upper;
     var ml = s.circle(panto.left.linkage.baseX, panto.left.linkage.baseY, 5).attr({fill:"red"});
     var mr = s.circle(panto.right.linkage.baseX, panto.right.linkage.baseY, 5).attr({fill:"black"});
@@ -51,16 +50,25 @@ function draw(_t1, _t2){
     var P3h = Math.sqrt(a2*a2 - P2h*P2h);
 
     var P3 = new Vector(Ph.x - P3h/P42 * (P4.y - P2.y),Ph.y + P3h/P42 * (P4.x-P2.x));
-
+    var ol = s.line(P2.x + panto.left.linkage.baseX, P2.y,
+                    P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
+    var or = s.line(P4.x + panto.left.linkage.baseX, P4.y,
+        P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
     var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:"green"});
     var e2 = s.circle(P2.x + panto.left.linkage.baseX, P2.y, 5).attr({fill:"blue"});
     var e4 = s.circle(P4.x + panto.left.linkage.baseX, P4.y, 5).attr({fill:"orange"});
     
-    var g = s.group(ml, mr, il, ir, ee, e2, e4)
-    g.transform('t 400, 100')
+    var g = s.group(ml, mr, il, ir, ol, or, ee, e2, e4)
+    
+    g.transform('T 150 50');
+    
 }
 
 var slider = document.getElementById("myRange");
+var slider2 = document.getElementById("myRange2");
 slider.oninput = function(){
-    draw(slider.value/1000, 0);
+    draw(slider.value/1000, slider2.value/1000);
+}
+slider2.oninput= function(){
+    draw(slider.value/1000, slider2.value/1000);
 }

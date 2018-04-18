@@ -1,24 +1,12 @@
 var   express     = require('express'),
-      http    = require('http'),
-      fs = require('fs'),
+      http        = require('http'),
+      fs          = require('fs'),
+      path        = require('path'),
       WebSocketServer = require('websocket').server,
       connections = new Set();
-      path = require('path');
 
-// var app = express();
-// app.use(express.static(path.join(__dirname+'/static')));
-
-// app.get('/', function(req,res){
-//     res.sendFile(__dirname + '/index.html');
-// });
-
-// app.listen(8080, function(){
-//     console.log('listening on *:8080');
-// });
 const server = http.createServer((request, response) => {
     let filePath = __dirname+((request.url == '/') ? '/index.html' :('/static'+request.url));
-    // let filepath = __dirname+'/index.html';
-    // let filePath = __dirname + '/static'
     const extname = path.extname(filePath);
     let contentType = 'text/plain';
     switch(extname) {
@@ -71,16 +59,7 @@ wsServer.on('request', function(request) {
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function(message) {
-        // console.log('< '+message.utf8Data);
-        // proc.stdin.write(message.utf8Data);
-        message = JSON.parse(message.utf8Data);
-        const data = new Buffer(9);
-        for(let i = 0; i < 2; ++i) {
-            data[0] = i;
-            data.writeInt32LE(message.angles[i], 1);
-            data.writeInt32LE(message.forces[i], 5);
-            serialSend(data);
-        }
+        console.log(message);
     });
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
