@@ -23,7 +23,11 @@
       .btn{
         margin-bottom: 20px;
       }
-      .history{
+      #history{
+        padding-left: 0px;
+      }
+      .history-item{
+        list-style-type: none;
         font-size: 5pt;
         color: darkgrey;
       }
@@ -79,11 +83,7 @@
           serial : <span class="badge badge-success">/dev/cu....</span><br>
           mirror : <span class="badge badge-danger">/dev/cu....</span><br>
           <h3 class="mt-5">history</h3>
-          <ul>
-            <li class="history">loghistory 1</li>
-            <li class="history">loghistory 2</li>
-            <li class="history">loghistory 3</li>
-          </ul>
+          <ul id="history"></ul>
         </div>
       </div>
     </div>
@@ -96,8 +96,15 @@
             console.log('Connection closed');
         }
         ws.onmessage = function(event) {
-            console.log(event.data);
-            document.getElementById("status").innerHTML = event.data;
+            var node = document.createElement('li');
+            node.className = 'history-item'
+            var textnode = document.createTextNode(event.data);
+            node.appendChild(textnode);
+            var history = document.getElementById('history');
+            history.appendChild(node);
+            if(history.childNodes.length>10){
+              history.removeChild(history.childNodes[0]);
+            }
         }
         ws.onerror = function(event) {
         }
