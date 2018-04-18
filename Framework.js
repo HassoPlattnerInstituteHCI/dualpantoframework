@@ -4,7 +4,8 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
-      EventEmitter = require('events').EventEmitter;
+      EventEmitter = require('events').EventEmitter,
+      WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
     constructor() {
@@ -18,6 +19,8 @@ class Broker extends EventEmitter {
 }
 const broker = new Broker();
 module.exports = broker;
+const ViDeb = require('./Utils/ViDeb/index');
+
 
 class Device extends EventEmitter {
     constructor(port) {
@@ -72,6 +75,7 @@ class Device extends EventEmitter {
         packet.writeFloatLE(values[1], 5);
         packet.writeFloatLE(values[2], 9);
         this.send(packet);
+        this.emit('moveHandleTo', index, target);
     }
 }
 
@@ -94,3 +98,28 @@ function autoDetectDevices() {
     });
 }
 autoDetectDevices();
+
+var WebSocketClient = require('websocket').client;
+ 
+var client = new WebSocketClient();
+ 
+client.on('connectFailed', function(error) {
+    console.log('Connect Error: ' + error.toString());
+});
+ 
+client.on('connect', function(connection) {
+    console.log('WebSocket Client Connected');
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        console.log('echo-protocol Connection Closed');
+    });
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log("Received: '" + message.utf8Data + "'");
+        }
+    });
+});
+ 
+client.connect('ws://localhost:8080/');
