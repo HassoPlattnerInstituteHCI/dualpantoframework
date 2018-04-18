@@ -60,17 +60,17 @@
       <div class="row">
         <div class="col-lg-3 text-right">
             <h3 class="mt-5">controller</h3>
-            <button type="button" class="btn btn-success">Reconnect</button><br>
-            <button type="button" class="btn btn-success">Power:Off</button><br>
-            <button type="button" class="btn btn-success">Trail:off</button><br>
-            <button type="button" class="btn btn-danger">Disconnect</button><br>
+            <button type="button" id = "grab-upper" class="btn btn-success" data-toggle="button">Grab Upper</button><br>
+            <button type="button" id = "grab-lower" class="btn btn-primary" data-toggle="button">Grab Lower</button><br>
+            <button type="button" id = "reconnect" class="btn btn-secondary">Reconnect</button><br>
+            <button type="button" id = "disconnect" class="btn btn-secondary">Disconnect</button><br>
         </div>
         <div class="col-lg-5 text-center">
           <h3 class = 'mt-5'>glyph</h3>
           <p id = "status"></p>
           <div class="slidecontainer">
-            <input type="range" min="-1000" max="1000" value="50" class="slider" id="myRange">
-            <input type="range" min="-1000" max="1000" value="50" class="slider" id="myRange2">
+            <!-- <input type="range" min="-1000" max="1000" value="50" class="slider" id="myRange">
+            <input type="range" min="-1000" max="1000" value="50" class="slider" id="myRange2"> -->
           </div>
           <center>
            <svg width="300" height="1300" id="svg">
@@ -111,13 +111,26 @@
         }
         ws.onerror = function(event) {
         }
-
-        var canvas = document.getElementById('svg');
+        let canvas = document.getElementById('svg');
+        let isMouseDown = false;
+        canvas.onmousedown = () => {isMouseDown = true;}
+        canvas.onmouseup = () => {isMouseDown = false;}
         canvas.onmousemove = function(e){
-          var rect = e.target.getBoundingClientRect();
-          var x = e.clientX - rect.left; //x position within the element.
-          var y = e.clientY - rect.top;  //y position within the element.
-          inverseKinematics(-x+150,y-50,-x+150,y-50);
+          if(isMouseDown){
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left; //x position within the element.
+            const y = e.clientY - rect.top;  //y position within the element.
+            if($("#grab-upper").hasClass('active')){
+              UpperPanto.targetX = -x+150;
+              UpperPanto.targetY = y - 50;
+              flushGlyph();
+            }
+            if($("#grab-lower").hasClass('active')){
+              LowerPanto.targetX = -x+150;
+              LowerPanto.targetY = y - 50;
+              flushGlyph();
+            }
+          }
         }
 
     </script>

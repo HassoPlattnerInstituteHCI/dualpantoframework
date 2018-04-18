@@ -3,32 +3,53 @@ var s = Snap('#svg');
 
 const height = s.node.clientHeight,
        width = s.node.clientWidth;
-var config
+var config;
+var UpperPanto;
+var LowerPanto;
 var style=
 {
     "lineattr":{
         "fill": "#fc0",
-        "stroke": "#000", 
-        "strokeWidth":1
+        "stroke": "#777", 
+        "strokeWidth":2
+    },
+    "lowerlineattr":{
+        "fill": "#fc0",
+        "stroke": "#555", 
+        "strokeWidth":5
     }
 };
 $.getJSON("js/LP_PCB.json", function(json){
     $.ajaxSetup({async:false});
     config = json;
     $.ajaxSetup({async:true});
-    draw(0,0,0,0);
+    UpperPanto = new PantographGlyph(0, config.pantos.upper);
+    LowerPanto = new PantographGlyph(1, config.pantos.lower);
 });
 
-
-
-function draw(_t1, _t2, _t3, _t4){ //TODO: ForwardKinematics
-    s.clear();
-    // var panto = config.pantos.upper;
-    let pantos = [config.pantos.upper, config.pantos.lower];
-    for(panto of pantos){
-        var t1 = panto == config.pantos.upper ? _t1 : _t3;
-        var t2 = panto == config.pantos.upper ? _t2 : _t4;
+class PantographGlyph{
+    constructor(_id, config){
+        this.id = _id;
+        this.pantograph = config;
+        this.isEndEffectorActive = false;
+        this.targetX = -20;
+        this.targetY = 70;
+        this.inverseKinematics(this.targetX, this.targetY);
+    }
+    handleJSON(json){
+        this.config = json;
+        this.pantograph = this.id == 0 ? config.pantos.upper : config.pantos.lower;
+        console.log('json');
+        console.log(this.pantograph);
         
+    }
+    fowardKinematics(_t1, _t2){
+        console.log('drawing');
+        let panto = this.pantograph;
+        var t1 = _t1;
+        var t2 = _t2;
+        this.lastLeftAngle = t1;
+        this.lastRightAngle = t2;
         var ml = s.circle(panto.left.linkage.baseX, panto.left.linkage.baseY, 5).attr({fill:"red"});
         var mr = s.circle(panto.right.linkage.baseX, panto.right.linkage.baseY, 5).attr({fill:"black"});
         var il = s.line(panto.left.linkage.baseX, panto.left.linkage.baseY,
@@ -59,18 +80,12 @@ function draw(_t1, _t2, _t3, _t4){ //TODO: ForwardKinematics
         var or = s.line(P4.x + panto.left.linkage.baseX, P4.y,
             P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
         var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:"green"});
-        // var e2 = s.circle(P2.x + panto.left.linkage.baseX, P2.y, 5).attr({fill:"blue"});
-        // var e4 = s.circle(P4.x + panto.left.linkage.baseX, P4.y, 5).attr({fill:"orange"});
-        
-        var g = s.group(ml, mr, il, ir, ol, or, ee);
+        var g = s.group(il, ir, ol, or, ml, mr, ee);
         g.transform('T 150 50');
-    }   
-}
-
-function inverseKinematics(ee_x, ee_y, _ee_x, _ee_y) {
-    let pantos = [config.pantos.upper, config.pantos.lower];
-    let t1, t2, t3, t4;
-    for(panto of pantos){
+    }
+    inverseKinematics(ee_x, ee_y){
+        let t1, t2;
+        let panto = this.pantograph;
         var a1 = panto.left.linkage.innerLength;
         var a2 = panto.left.linkage.outerLength;
         var a3 = panto.right.linkage.outerLength;
@@ -87,24 +102,31 @@ function inverseKinematics(ee_x, ee_y, _ee_x, _ee_y) {
         const beta_1  = Math.atan2(P3.y, -P3.x-P1.x);
         const beta_5  = Math.acos((a4*a4 - a3*a3 + P53*P53)/(2*a4*P53));
         const alpha_5 = Math.atan2(P3.y, P3.x + a5);
-        if(panto == config.pantos.upper){
-            t1 = alpha_1 + beta_1;
-            t2 = Math.PI - alpha_5 - beta_5;
-        }
+        t1 = alpha_1 + beta_1;
+        t2 = Math.PI - alpha_5 - beta_5;
+        if(!isNaN(t1) && !isNaN(t2))
+            this.fowardKinematics(t1, t2);
         else{
-            t3 = alpha_1 + beta_1;
-            t4 = Math.PI - alpha_5 - beta_5;
+            this.fowardKinematics(this.lastLeftAngle, this.lastRightAngle);
         }
     }
-    if(!isNaN(t1) && !isNaN(t2) && !isNaN(t3) && !isNaN(t4))
-        draw(t1, t2, t3, t4);
 }
 
 var slider = document.getElementById("myRange");
 var slider2 = document.getElementById("myRange2");
 slider.oninput = function(){
-    inverseKinematics(slider.value/10, slider2.value/10, slider.value/10, slider2.value/10);
+    // s.clear();
+    // UpperPanto.inverseKinematics(slider.value/10, slider2.value/10);
+    // LowerPanto.inverseKinematics(slider.value/10, slider2.value/10);
 }
 slider2.oninput= function(){
-    inverseKinematics(slider.value/10, slider2.value/10, slider.value/10, slider2.value/10);
+    // s.clear();
+    // UpperPanto.inverseKinematics(slider.value/10, slider2.value/10);
+    // LowerPanto.inverseKinematics(slider.value/10, slider2.value/10);
+}
+
+function flushGlyph(){
+    s.clear();
+    UpperPanto.inverseKinematics(UpperPanto.targetX,UpperPanto.targetY)
+    LowerPanto.inverseKinematics(LowerPanto.targetX,LowerPanto.targetY)
 }
