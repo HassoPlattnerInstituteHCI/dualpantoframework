@@ -4,7 +4,7 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
-      EventEmitter = require('events').EventEmitter;
+      EventEmitter = require('events').EventEmitter,
       WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
@@ -19,6 +19,8 @@ class Broker extends EventEmitter {
 }
 const broker = new Broker();
 module.exports = broker;
+const ViDeb = require('./Utils/ViDeb/index');
+
 
 class Device extends EventEmitter {
     constructor(port) {
@@ -56,10 +58,6 @@ class Device extends EventEmitter {
                     continue;
                 this.lastKnownPositions[i] = newPosition;
                 this.emit('handleMoved', i, this.lastKnownPositions[i]);
-            }
-            if(this.onDataReceived){
-                this.onDataReceived(0, this.lastKnownPositions[0]);
-                this.onDataReceived(1, this.lastKnownPositions[1]);
             }
         }
     }
@@ -121,16 +119,6 @@ client.on('connect', function(connection) {
             console.log("Received: '" + message.utf8Data + "'");
         }
     });
-    for(const device of devices.values()){
-        device.onDataReceived = function(_id, position){
-            if(connection.connected){
-                connection.sendUTF(JSON.stringify({
-                    id:id,
-                    position:"pos"
-                }));
-            }
-        }
-    }
 });
  
 client.connect('ws://localhost:8080/');
