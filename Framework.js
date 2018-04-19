@@ -92,8 +92,10 @@ function autoDetectDevices() {
             console.error(err);
         else
             for(const port of ports)
-                if(port.manufacturer && port.manufacturer.includes('Arduino LLC'))
+                if(port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader'))){
+                    console.log('connected to : '+port.comName);
                     new Device(port.comName);
+                }
         broker.emit('devicesChanged', broker.devices.values());
     });
 }
