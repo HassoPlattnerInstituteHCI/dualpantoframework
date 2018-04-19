@@ -5,7 +5,7 @@
 
 version 0.1
 
-dev : Oliver Schneider, Jotaro Shigeyama, Alexander MeiÃŸner, Nico BÃ¶ckhoff
+dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
 firstname.lastname@hpi.de
 
@@ -13,7 +13,7 @@ firstname.lastname@hpi.de
 Welcome to the `dualpantoframework` repository!
 This repository contains source codes for __reading and writing__ signals to the dualpanto-board, as well as some useful tools to debug and test the pantograph.
 
-In [this wiki page](https://bitbucket.org/hpihci/dualpantoframework/wiki/Home), we introduce you how to install the library in your system. Follow these steps to install required dependencies for `dualpantoframework`.
+In [this wiki page](https://bitbucket.org/hpihci/dualpantoframework/wiki/Installation%20&%20Setup), we introduce you how to install the library in your system. Follow these steps to install required dependencies for `dualpantoframework`.
 
 ## Examples
 
