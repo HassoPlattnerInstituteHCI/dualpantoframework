@@ -17,6 +17,14 @@ var style=
         "fill": "#fc0",
         "stroke": "#555", 
         "strokeWidth":5
+    },
+    "upperPantoAttr":{
+        "stroke":"#8A8",
+        "strokeWidth":2
+    },
+    "lowerPantoAttr":{
+        "stroke":"#88F",
+        "strokeWidth":2
     }
 };
 $.getJSON("js/LP_PCB.json", function(json){
@@ -34,6 +42,7 @@ class PantographGlyph{
         this.isEndEffectorActive = false;
         this.targetX = -20;
         this.targetY = 70;
+        this.angle = 0;
         this.inverseKinematics(this.targetX, this.targetY);
     }
     handleJSON(json){
@@ -54,10 +63,10 @@ class PantographGlyph{
         var mr = s.circle(panto.right.linkage.baseX, panto.right.linkage.baseY, 5).attr({fill:"black"});
         var il = s.line(panto.left.linkage.baseX, panto.left.linkage.baseY,
                         panto.left.linkage.baseX+panto.left.linkage.innerLength * Math.cos(t1),
-                        panto.left.linkage.baseY+panto.left.linkage.innerLength * Math.sin(t1)).attr(style.lineattr);
+                        panto.left.linkage.baseY+panto.left.linkage.innerLength * Math.sin(t1)).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         var ir = s.line(panto.right.linkage.baseX, panto.right.linkage.baseY,
                         panto.right.linkage.baseX+panto.right.linkage.innerLength * Math.cos(t2),
-                        panto.right.linkage.baseY+panto.right.linkage.innerLength * Math.sin(t2)).attr(style.lineattr);
+                        panto.right.linkage.baseY+panto.right.linkage.innerLength * Math.sin(t2)).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         
         var a1 = panto.left.linkage.innerLength;
         var a2 = panto.left.linkage.outerLength;
@@ -76,11 +85,12 @@ class PantographGlyph{
 
         var P3 = new Vector(Ph.x - P3h/P42 * (P4.y - P2.y),Ph.y + P3h/P42 * (P4.x-P2.x));
         var ol = s.line(P2.x + panto.left.linkage.baseX, P2.y,
-                        P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
+                        P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         var or = s.line(P4.x + panto.left.linkage.baseX, P4.y,
-            P3.x + panto.left.linkage.baseX, P3.y,).attr(style.lineattr);
+            P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:this.id==0?"green":"blue"});
-        var g = s.group(il, ir, ol, or, ml, mr, ee);
+        var h  = s.line(P3.x+ panto.left.linkage.baseX, P3.y, P3.x + 10*Math.cos(this.angle)+ panto.left.linkage.baseX, P3.y + 10*Math.sin(this.angle)).attr({stroke:this.id==0?"green":"blue"});
+        var g = s.group(il, ir, ol, or, ml, mr, ee, h);
         g.transform('T 150 50');
     }
     inverseKinematics(ee_x, ee_y){
