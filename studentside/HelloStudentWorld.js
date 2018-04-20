@@ -1,39 +1,47 @@
-const usbport = '/dev/cu.usbmodem1421',
-      PantoConnector = require('./dualpantoframework/Framework.js'),
+const PantoConnector = require('./dualpantoframework/Framework.js'),
       Vector = require('./dualpantoframework/Vector.js');
 
-connector = new PantoConnector(usbport);
-connector.run_script([
-  () => connector.speakText('Hello'),
-  () => connector.waitMS(500),
-  () => connector.speakText('You are here'),
-  () => connector.movePantoTo(0,new Vector(-100, -200, 0), 500),
-  () => connector.waitMS(500),
-  () => connector.speakText('Let me show you points'),
-  () => connector.movePantoTo(1,new Vector(-100, -200, 0), 500),
-  () => connector.waitMS(500),
+PantoConnector.on('devicesChanged', function(devices){
+  for(const device of devices){
+    start(device);
+  }
+});
 
-  () => connector.speakText('this'),
-  () => connector.movePantoTo(1, new Vector(-100, -100, 0), 500),
-  () => connector.waitMS(500),
-  () => connector.speakText('is the first point'),
-  () => connector.waitMS(500),
-  () => connector.speakText('I could tell you interesting facts about this point'),
-  () => connector.waitMS(500),
+function start(connector){
+  console.log('hello world')
+  connector.run_script([
+    () => connector.speakText('Hallo!'),
+    () => connector.waitMS(500),
+    () => connector.speakText('Sie sind hier.'),
+    () => connector.movePantoTo(0,new Vector(-100, -150, 0), 500),
+    () => connector.waitMS(500),
+    () => connector.speakText('Ich zeige dir ein paar Punkte.'),
+    () => connector.movePantoTo(1,new Vector(-100, -150, 0), 500),
+    () => connector.waitMS(500),
 
-  () => connector.speakText('this'),
-  () => connector.movePantoTo(1, new Vector(-200, -100, 0), 500),
-  () => connector.waitMS(500),
-  () => connector.speakText('is the second point'),
-  () => connector.waitMS(500),
-  () => connector.speakText('I could tell you interesting facts about this point'),
-  () => connector.waitMS(500),
+    () => connector.speakText('Das'),
+    () => connector.movePantoTo(1, new Vector(-100, -100, 0), 500),
+    () => connector.waitMS(500),
+    () => connector.speakText('ist der erste Punkt.'),
+    () => connector.waitMS(500),
+    () => connector.speakText('Interessanter Fakt über diesen Punkt.'),
+    () => connector.waitMS(500),
 
-  () => connector.speakText('this'),
-  () => connector.movePantoTo(1, new Vector(0, -100, 0), 500),
-  () => connector.waitMS(500),
-  () => connector.speakText('is the third point'),
-  () => connector.waitMS(500),
-  () => connector.speakText('I could tell you interesting facts about this point'),
-  () => connector.waitMS(500),
-]);
+    () => connector.speakText('Das'),
+    () => connector.movePantoTo(1, new Vector(-150, -100, 0), 500),
+    () => connector.waitMS(500),
+    () => connector.speakText('ist der zweite Punkt.'),
+    () => connector.waitMS(500),
+    () => connector.speakText('Interessanter Fakt über diesen Punkt.'),
+    () => connector.waitMS(500),
+
+    () => connector.speakText('Das'),
+    () => connector.movePantoTo(1, new Vector(0, -100, 0), 500),
+    () => connector.waitMS(500),
+    () => connector.speakText('ist der dritte Punkt.'),
+    () => connector.waitMS(500),
+    () => connector.speakText('Interessanter Fakt über diesen Punkt.'),
+    () => connector.waitMS(500),
+    () => connector.unblockHandle(0)
+  ]);
+}
