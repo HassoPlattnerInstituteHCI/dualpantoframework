@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/JotaroS/dualpantoframework#readme",
   "dependencies": {
-    "express": "^4.16.3",
     "node-gyp": "^3.6.2",
     "serialport": "^6.1.1",
     "snapsvg": "^0.5.1",

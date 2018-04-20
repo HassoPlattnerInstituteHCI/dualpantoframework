@@ -1,5 +1,4 @@
-var   express     = require('express'),
-      http        = require('http'),
+var   http        = require('http'),
       fs          = require('fs'),
       path        = require('path'),
       WebSocketServer = require('websocket').server,
