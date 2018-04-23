@@ -5,6 +5,7 @@ const serial = require('./build/Release/serial'),
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
       EventEmitter = require('events').EventEmitter,
+      Obstacle = require('obstacle'),
       WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
@@ -37,6 +38,7 @@ class Device extends EventEmitter {
         this.serial = serial.open(port);
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
+        this.obstacles = [];
     }
 
     disconnect() {
@@ -57,8 +59,10 @@ class Device extends EventEmitter {
                 const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
                 if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0)
                     continue;
-                this.lastKnownPositions[i] = newPosition;
-                this.emit('handleMoved', i, this.lastKnownPositions[i]);
+                if(!checkCollision(i, newPosition)){
+                  this.lastKnownPositions[i] = newPosition;
+                  this.emit('handleMoved', i, this.lastKnownPositions[i]);
+                }
             }
         }
     }
@@ -77,6 +81,25 @@ class Device extends EventEmitter {
         packet.writeFloatLE(values[2], 9);
         this.send(packet);
         this.emit('moveHandleTo', index, target);
+    }
+
+    createObstacle(pointArray){
+      this.obstacles.push(new Obstacle(pointArray));
+    }
+
+    colliding(point, obstacle){
+      return obstacle.inside(point);
+    }
+
+    checkCollision(index, point){
+      for(obstacle in obstacles){
+        if(colliding(point,obstacle)){
+          moveHandleTo(index,lastKnownPositions[index]);
+          unblock(index);
+          return true;
+        }
+      }
+      return false;
     }
 
     movePantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
@@ -179,7 +202,6 @@ function animateTween() {
   if(tween_stack_counter > 0) {
       setTimeout(animateTween, TWEEN_INTERVAL);
   }
-}
 }
 
 function serialRecv() {
