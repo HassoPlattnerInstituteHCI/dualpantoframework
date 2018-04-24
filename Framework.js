@@ -5,7 +5,11 @@ const serial = require('./build/Release/serial'),
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
       EventEmitter = require('events').EventEmitter,
-      Obstacle = require('obstacle'),
+      Obstacle = require('./obstacle'),
+      co = require('co'),
+      say = require('say-promise'),
+      PlaySound = require('play-sound')(),
+      TWEEN = require('@tweenjs/tween.js'),
       WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
@@ -22,6 +26,8 @@ class Broker extends EventEmitter {
 const broker = new Broker();
 module.exports = broker;
 const ViDeb = require('./Utils/ViDeb/index');
+const TWEEN_INTERVAL = 30; 
+var tween_stack_counter = 0;
 
 
 class Device extends EventEmitter {
@@ -39,6 +45,8 @@ class Device extends EventEmitter {
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
         this.obstacles = [];
+        this.language = 'DE';
+        this.collision = false;
     }
 
     disconnect() {
@@ -59,7 +67,10 @@ class Device extends EventEmitter {
                 const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
                 if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0)
                     continue;
-                if(!checkCollision(i, newPosition)){
+                if(this.colliding(newPosition)){
+                  this.handleCollision(i, this.lastKnownPositions[i]);
+                } else{
+                  console.log('free movement');
                   this.lastKnownPositions[i] = newPosition;
                   this.emit('handleMoved', i, this.lastKnownPositions[i]);
                 }
@@ -84,23 +95,42 @@ class Device extends EventEmitter {
     }
 
     createObstacle(pointArray){
-      this.obstacles.push(new Obstacle(pointArray));
+      return new Promise (resolve =>
+        {
+          this.obstacles.push(new Obstacle(pointArray));
+          resolve();
+        });
     }
 
-    colliding(point, obstacle){
-      return obstacle.inside(point);
-    }
-
-    checkCollision(index, point){
-      for(obstacle in obstacles){
-        if(colliding(point,obstacle)){
-          moveHandleTo(index,lastKnownPositions[index]);
-          unblock(index);
+    colliding(point){
+      for(let i = 0; i < this.obstacles.length; i++){
+        if(this.obstacles[i].inside(point)){
+          this.collision = true;
           return true;
         }
       }
       return false;
     }
+
+    handleCollision(index, point){
+      console.log('moving player to: ');
+      console.log(point);
+      this.run_script([
+        () => this.movePantoTo(index, point, 50),
+        () => this.waitMS(100),
+        () => this.setFalse(),
+        () => this.unblockHandle(index)
+      ]);
+    }
+
+    setFalse(){
+      return new Promise (resolve =>
+      {
+        this.collision = false;
+        resolve(resolve);
+      })
+    }
+
 
     movePantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
     {
@@ -154,7 +184,7 @@ class Device extends EventEmitter {
 
     speakText(txt) {
       var speak_voice = "Anna";
-      if (TUTORIAL_LANGUAGE == "EN") {
+      if (this.language == "EN") {
           speak_voice = "Alex";
       }
       return say.speak(txt, speak_voice, 1.4, (err) => {
@@ -188,6 +218,7 @@ class Device extends EventEmitter {
 
     unblock(index) {
       this.moveHandleTo(index);
+      console.log('unblocking handle: ' + index);
     }
 }
 
@@ -207,7 +238,9 @@ function animateTween() {
 function serialRecv() {
     setImmediate(serialRecv);
     for(const device of broker.devices.values())
+      if(!device.collision){
         device.poll();
+      }
 }
 serialRecv();
 
