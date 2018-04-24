@@ -46,7 +46,7 @@ class Device extends EventEmitter {
         this.lastTargetPositions = [];
         this.obstacles = [];
         this.language = 'DE';
-        this.collision = false;
+        this.collisionChecking = true;
     }
 
     disconnect() {
@@ -67,10 +67,9 @@ class Device extends EventEmitter {
                 const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
                 if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0)
                     continue;
-                if(this.colliding(newPosition)){
-                  this.handleCollision(i, this.lastKnownPositions[i]);
+                if(this.collisionChecking && i == 0 && this.colliding(newPosition)){
+                  this.handleCollision(i, this.lastKnownPositions[i], newPosition);
                 } else{
-                  console.log('free movement');
                   this.lastKnownPositions[i] = newPosition;
                   this.emit('handleMoved', i, this.lastKnownPositions[i]);
                 }
@@ -105,32 +104,63 @@ class Device extends EventEmitter {
     colliding(point){
       for(let i = 0; i < this.obstacles.length; i++){
         if(this.obstacles[i].inside(point)){
-          this.collision = true;
+          this.collisionChecking = false;
           return true;
         }
       }
       return false;
     }
 
-    handleCollision(index, point){
-      console.log('moving player to: ');
+    handleCollision(index, lastValidPosition ,newPosition){
+      const force = new Vector(0, 0);
+      let normal, penetration;
+      var tangent = lastValidPosition.difference(newPosition);
+      tangent.scale(1.5);
+      var counterpoint = newPosition.sum(tangent);
+      this.run_script([
+        () => this.forcePantoTo(index, counterpoint),
+        () => this.waitMS(100),
+        () => this.unblockHandle(index),
+        () => this.collisionCheckingOn(),
+        ]);
+
+
+
+
+      /*console.log('moving player to: ');
       console.log(point);
       this.run_script([
         () => this.movePantoTo(index, point, 50),
         () => this.waitMS(100),
         () => this.setFalse(),
         () => this.unblockHandle(index)
-      ]);
+      ]);*/
     }
 
-    setFalse(){
+    collisionCheckingOff(){
       return new Promise (resolve =>
-      {
-        this.collision = false;
-        resolve(resolve);
-      })
+        {
+          this.collisionChecking = false;
+          resolve();
+        });
     }
 
+    collisionCheckingOn(){
+      return new Promise (resolve =>
+        {
+          this.collisionChecking = true;
+          resolve();
+        });
+    }
+
+    forcePantoTo(index, target)
+    {
+      return new Promise (resolve => 
+      {
+          this.moveHandleTo(index, target);
+          resolve(resolve);
+      });
+    }
 
     movePantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
     {
@@ -218,7 +248,6 @@ class Device extends EventEmitter {
 
     unblock(index) {
       this.moveHandleTo(index);
-      console.log('unblocking handle: ' + index);
     }
 }
 
@@ -238,9 +267,7 @@ function animateTween() {
 function serialRecv() {
     setImmediate(serialRecv);
     for(const device of broker.devices.values())
-      if(!device.collision){
-        device.poll();
-      }
+      device.poll();
 }
 serialRecv();
 
