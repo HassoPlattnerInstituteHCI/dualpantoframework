@@ -9,7 +9,6 @@ PantoConnector.on('devicesChanged', function(devices){
 
 function start(connector){
   connector.run_script([
-    () => connector.createObstacle([[-100, -160], [100, -160], [100, -170], [-100, -170]]),
     () => connector.speakText('Hallo!'),
     () => connector.waitMS(500),
     () => connector.speakText('Sie sind hier.'),
