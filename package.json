@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/JotaroS/dualpantoframework#readme",
   "dependencies": {
+    "chipmunk": "^6.1.2",
     "node-gyp": "^3.6.2",
-    "serialport": "^6.1.1"
+    "serialport": "^6.1.1",
+    "websocket": "^1.0.26"
   }
 }

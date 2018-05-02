@@ -10,6 +10,7 @@ const serial = require('./build/Release/serial'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
       TWEEN = require('@tweenjs/tween.js'),
+      cp = require('chipmunk'),
       WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
@@ -22,7 +23,7 @@ class Broker extends EventEmitter {
         return this.devices.values();
     }
 }
-
+const timesteps = 1.0/1000.0; //steps for chipmunk2d
 const broker = new Broker();
 module.exports = broker;
 const ViDeb = require('./Utils/ViDeb/index');
@@ -47,6 +48,16 @@ class Device extends EventEmitter {
         this.obstacles = [];
         this.language = 'DE';
         this.collisionChecking = true;
+        this.v = cp.v;
+        this.space = new cp.Space();
+        this.space.gravity = this.v(0,0);
+        this.me = this.space.addBody(new cp.Body(1, cp.momentForCircle(1, 0, 2, this.v(0,0))));
+        this.it = this.space.addBody(new cp.Body(1, cp.momentForCircle(1, 0, 2, this.v(0,0))));
+        this.time = 0;
+        this.floor = this.space.addShape(new cp.SegmentShape(this.space.staticBody, this.v(-250, -100), this.v(250, -100), 0));
+        this.floor.setElasticity(1);
+        this.floor.setFriction(1);
+        this.floor.setLayers(NOT_GRABABLE_MASK);
     }
 
     disconnect() {
@@ -57,6 +68,10 @@ class Device extends EventEmitter {
 
     poll() {
         const packets = serial.poll(this.serial);
+        this.space.step(this.time);
+        this.time = this.time + timesteps;
+        //console.log(this.me.p.x);
+        let me_pos = new Vector(this.me.p.x, this.me.p.y, NaN);
         if(packets.length == 0)
             return;
         const packet = packets[packets.length-1];
@@ -67,14 +82,14 @@ class Device extends EventEmitter {
                 const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
                 if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0)
                     continue;
-                if(this.collisionChecking && i == 0 && this.colliding(newPosition)){
-                  this.handleCollision(i, this.lastKnownPositions[i], newPosition);
-                } else{
                   this.lastKnownPositions[i] = newPosition;
                   this.emit('handleMoved', i, this.lastKnownPositions[i]);
-                }
             }
         }
+        let distance_me_panto = this.lastKnownPositions[0].difference(me_pos);
+        let distance_me_chip = this.v(distance_me_panto.x, distance_me_panto.y)
+        console.log(distance_me_panto.length());
+        this.me.applyForce(distance_me_panto, me_pos);
     }
 
     send(packet) {
