@@ -4,6 +4,7 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
+      say = require('say-promise'),
       EventEmitter = require('events').EventEmitter;
 
 class Broker extends EventEmitter {
