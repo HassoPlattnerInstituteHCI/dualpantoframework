@@ -64,6 +64,10 @@ class Device extends EventEmitter {
     send(packet) {
         serial.send(this.serial, packet);
     }
+    
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
+    }
 
     moveHandleTo(index, target) {
         this.lastTargetPositions[index] = target;
