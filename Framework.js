@@ -11,7 +11,6 @@ class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
-        this.language = "EN";
     }
 
     getDevices() {
@@ -37,6 +36,7 @@ class Device extends EventEmitter {
         this.serial = serial.open(port);
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
+        this.language = "EN";
     }
 
     disconnect() {
