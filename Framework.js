@@ -10,6 +10,7 @@ class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
+        this.language = "EN";
     }
 
     getDevices() {
@@ -65,6 +66,19 @@ class Device extends EventEmitter {
         serial.send(this.serial, packet);
     }
     
+    speakText(txt) {
+        var speak_voice = "Anna";
+        if (this.language == "EN") {
+            speak_voice = "Alex";
+        }
+        return say.speak(txt, speak_voice, 1.4, (err) => {
+            if(err) {
+                console.error(err);
+                return;
+            }
+        });
+      }
+
     waitMS(ms) {
         return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
