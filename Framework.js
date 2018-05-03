@@ -4,6 +4,7 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
+      say = require('say-promise'),
       EventEmitter = require('events').EventEmitter;
 
 class Broker extends EventEmitter {
@@ -35,6 +36,7 @@ class Device extends EventEmitter {
         this.serial = serial.open(port);
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
+        this.language = "EN";
     }
 
     disconnect() {
@@ -63,6 +65,23 @@ class Device extends EventEmitter {
 
     send(packet) {
         serial.send(this.serial, packet);
+    }
+    
+    speakText(txt) {
+        var speak_voice = "Anna";
+        if (this.language == "EN") {
+            speak_voice = "Alex";
+        }
+        return say.speak(txt, speak_voice, 1.4, (err) => {
+            if(err) {
+                console.error(err);
+                return;
+            }
+        });
+      }
+
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     moveHandleTo(index, target) {
