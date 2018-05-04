@@ -59,7 +59,13 @@ wsServer.on('request', (request) => {
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', (message) => {
-        console.log(message);
+        if(message.utf8Data=='ViDebRecconect'){
+            for(const device of Framework.getDevices()) {
+                if(device.port=='ViDeb'){
+                    device.resetDevice();
+                }
+            }
+        }
     });
     connection.on('close', (reasonCode, description) => {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');

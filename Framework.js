@@ -83,6 +83,9 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
     }
 
+    resetDevice(){
+        broker.emit('devicesChanged', broker.devices.values());
+    }
 
     run_script(promise_list) {
         this._running_script = true;
