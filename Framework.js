@@ -103,7 +103,6 @@ class Device extends EventEmitter {
       return say.speak(txt, speak_voice, 1.4, (err) => {
           if(err) {
               console.error(err);
-              this.emit('saySpeakError', speak_voice, test, 1.4);
               return;
           }
       });
