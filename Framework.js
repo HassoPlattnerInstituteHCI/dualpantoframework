@@ -5,12 +5,9 @@ const serial = require('./build/Release/serial'),
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
       EventEmitter = require('events').EventEmitter,
-      Obstacle = require('./obstacle'),
       co = require('co'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
-      TWEEN = require('@tweenjs/tween.js'),
-      cp = require('chipmunk'),
       WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
@@ -23,12 +20,9 @@ class Broker extends EventEmitter {
         return this.devices.values();
     }
 }
-const timesteps = 1.0/1000.0; //steps for chipmunk2d
 const broker = new Broker();
 module.exports = broker;
 const ViDeb = require('./Utils/ViDeb/index');
-const TWEEN_INTERVAL = 30; 
-var tween_stack_counter = 0;
 
 
 class Device extends EventEmitter {
@@ -47,17 +41,6 @@ class Device extends EventEmitter {
         this.lastTargetPositions = [];
         this.obstacles = [];
         this.language = 'DE';
-        this.collisionChecking = true;
-        this.v = cp.v;
-        this.space = new cp.Space();
-        this.space.gravity = this.v(0,0);
-        this.me = this.space.addBody(new cp.Body(1, cp.momentForCircle(1, 0, 2, this.v(0,0))));
-        this.it = this.space.addBody(new cp.Body(1, cp.momentForCircle(1, 0, 2, this.v(0,0))));
-        this.time = 0;
-        this.floor = this.space.addShape(new cp.SegmentShape(this.space.staticBody, this.v(-250, -100), this.v(250, -100), 0));
-        this.floor.setElasticity(1);
-        this.floor.setFriction(1);
-        this.floor.setLayers(NOT_GRABABLE_MASK);
     }
 
     disconnect() {
@@ -68,10 +51,6 @@ class Device extends EventEmitter {
 
     poll() {
         const packets = serial.poll(this.serial);
-        this.space.step(this.time);
-        this.time = this.time + timesteps;
-        //console.log(this.me.p.x);
-        let me_pos = new Vector(this.me.p.x, this.me.p.y, NaN);
         if(packets.length == 0)
             return;
         const packet = packets[packets.length-1];
@@ -82,14 +61,10 @@ class Device extends EventEmitter {
                 const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
                 if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0)
                     continue;
-                  this.lastKnownPositions[i] = newPosition;
-                  this.emit('handleMoved', i, this.lastKnownPositions[i]);
+                this.lastKnownPositions[i] = newPosition;
+                this.emit('handleMoved', i, this.lastKnownPositions[i]);
             }
         }
-        let distance_me_panto = this.lastKnownPositions[0].difference(me_pos);
-        let distance_me_chip = this.v(distance_me_panto.x, distance_me_panto.y)
-        console.log(distance_me_panto.length());
-        this.me.applyForce(distance_me_panto, me_pos);
     }
 
     send(packet) {
@@ -108,117 +83,6 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
     }
 
-    createObstacle(pointArray){
-      return new Promise (resolve =>
-        {
-          this.obstacles.push(new Obstacle(pointArray));
-          resolve();
-        });
-    }
-
-    colliding(point){
-      for(let i = 0; i < this.obstacles.length; i++){
-        if(this.obstacles[i].inside(point)){
-          this.collisionChecking = false;
-          return true;
-        }
-      }
-      return false;
-    }
-
-    handleCollision(index, lastValidPosition ,newPosition){
-      const force = new Vector(0, 0);
-      let normal, penetration;
-      var tangent = lastValidPosition.difference(newPosition);
-      tangent.scale(1.5);
-      var counterpoint = newPosition.sum(tangent);
-      this.run_script([
-        () => this.forcePantoTo(index, counterpoint),
-        () => this.waitMS(100),
-        () => this.unblockHandle(index),
-        () => this.collisionCheckingOn(),
-        ]);
-
-
-
-
-      /*console.log('moving player to: ');
-      console.log(point);
-      this.run_script([
-        () => this.movePantoTo(index, point, 50),
-        () => this.waitMS(100),
-        () => this.setFalse(),
-        () => this.unblockHandle(index)
-      ]);*/
-    }
-
-    collisionCheckingOff(){
-      return new Promise (resolve =>
-        {
-          this.collisionChecking = false;
-          resolve();
-        });
-    }
-
-    collisionCheckingOn(){
-      return new Promise (resolve =>
-        {
-          this.collisionChecking = true;
-          resolve();
-        });
-    }
-
-    forcePantoTo(index, target)
-    {
-      return new Promise (resolve => 
-      {
-          this.moveHandleTo(index, target);
-          resolve(resolve);
-      });
-    }
-
-    movePantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
-    {
-      return new Promise (resolve => 
-      {
-          this.tweenPantoTo(index, target, duration, interpolation_method);
-          resolve(resolve);
-      });
-    }
-
-    tweenPantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
-    {
-      
-      if (duration == undefined) {
-          duration = 500;
-      }
-      var tweenPosition = undefined;
-      if (index == 0 && this.lastKnownPositions[0]) {
-          tweenPosition = this.lastKnownPositions[0];
-      } else if (index == 1 && this.lastKnownPositions[1]) {
-          tweenPosition = this.lastKnownPositions[1];
-      }
-      if(tweenPosition)
-      {
-          tween_stack_counter++;
-
-          if(tween_stack_counter == 1)
-          {
-              setTimeout(animateTween, TWEEN_INTERVAL);
-          }
-
-          var tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
-              .to(target, duration)
-              .easing(interpolation_method) // Use an easing function to make the animation smooth.
-              .onUpdate(() => { // Called after tween.js updates 'tweenPosition'.
-                  this.moveHandleTo(index, tweenPosition);
-              })
-              .onComplete(function() {
-                  tween_stack_counter--;
-              })
-              .start(); // Start the tween immediately.
-          }
-    }
 
     run_script(promise_list) {
         this._running_script = true;
@@ -247,6 +111,11 @@ class Device extends EventEmitter {
     }
 
     playSound(filename) {
+      console.log('play sound is not implemented yet');
+    }
+
+    addKeyPhrase(keyPhrase, function){
+      console.log('voiceInput is not supported yet');
     }
 
     waitMS(ms) {
@@ -272,12 +141,6 @@ function *conditional_promise_generator(promise_list, condition_fn){
   }
 }
 
-function animateTween() {
-  TWEEN.update();
-  if(tween_stack_counter > 0) {
-      setTimeout(animateTween, TWEEN_INTERVAL);
-  }
-}
 
 function serialRecv() {
     setImmediate(serialRecv);
