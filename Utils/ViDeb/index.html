@@ -36,6 +36,11 @@
         font-size: 5pt;
         color: lightcoral;
       }
+      .history-item-say{
+        list-style-type: none;
+        font-size: 5pt;
+        color: green;
+      }
       @media (min-width: 992px) {
         body {
           padding-top: 56px;
@@ -125,6 +130,8 @@
               }
               flushGlyph();
             }
+            if(data.type=="saySpeak")
+              node.className = 'history-item-say'
             let textnode = document.createTextNode(event.data);
             node.appendChild(textnode);
             let history = document.getElementById('history');
@@ -135,6 +142,9 @@
         }
         ws.onerror = function(event) {
         }
+        $("#reconnect").on('click', ()=>{
+          ws.send('ViDebRecconect');
+        });
         let canvas = document.getElementById('svg');
         let isMouseDown = false;
         canvas.onmousedown = () => {isMouseDown = true;}

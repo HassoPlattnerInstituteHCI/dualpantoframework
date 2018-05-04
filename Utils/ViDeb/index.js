@@ -94,6 +94,15 @@ wsServer.on('request', (request) => {
             for(connetion of connections) {
                 connection.sendUTF(JSON.stringify(payload));
             }
-        })
+        });
+        device.on('saySpeak', (text) => {
+            const payload = {
+                type: "saySpeak",
+                text: text
+            };
+            for(connetion of connections) {
+                connection.sendUTF(JSON.stringify(payload));
+            }
+        });
     }
 });
