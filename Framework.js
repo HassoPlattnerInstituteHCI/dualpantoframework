@@ -83,6 +83,9 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
     }
 
+    resetDevice(){
+        broker.emit('devicesChanged', broker.devices.values());
+    }
 
     run_script(promise_list) {
         this._running_script = true;
@@ -96,6 +99,7 @@ class Device extends EventEmitter {
       if (this.language == "EN") {
           speak_voice = "Alex";
       }
+      this.emit('saySpeak', txt);
       return say.speak(txt, speak_voice, 1.4, (err) => {
           if(err) {
               console.error(err);
