@@ -32,8 +32,8 @@ class Device extends EventEmitter {
         super();
         broker.devices.set(port, this);
         this.port = port;
-        this.serial = serial.open(port);
-        this.lastKnownPositions = [];
+        if(port!='ViDeb')this.serial = serial.open(port);
+        this.lastKnownPositions  = [];
         this.lastTargetPositions = [];
     }
 
@@ -73,7 +73,7 @@ class Device extends EventEmitter {
         packet.writeFloatLE(values[0], 1);
         packet.writeFloatLE(values[1], 5);
         packet.writeFloatLE(values[2], 9);
-        this.send(packet);
+        if(this.port!='ViDeb')this.send(packet);
         this.emit('moveHandleTo', index, target);
     }
 }
@@ -81,7 +81,7 @@ class Device extends EventEmitter {
 function serialRecv() {
     setImmediate(serialRecv);
     for(const device of broker.devices.values())
-        device.poll();
+        if(device.port!='ViDeb')device.poll();
 }
 serialRecv();
 
@@ -97,5 +97,13 @@ function autoDetectDevices() {
                 }
         broker.emit('devicesChanged', broker.devices.values());
     });
+    new Device('ViDeb');
+    broker.emit('devicesChanged', broker.devices.values());
 }
+
+setTimeout(() => {
+    new Device('ViDeb');
+    broker.emit('devicesChanged', broker.devices.values());
+}, 100);
+
 autoDetectDevices();

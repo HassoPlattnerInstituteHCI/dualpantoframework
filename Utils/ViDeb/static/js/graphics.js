@@ -42,6 +42,8 @@ class PantographGlyph{
         this.isEndEffectorActive = false;
         this.targetX = -20;
         this.targetY = 70;
+        this.goalX = 0;
+        this.goalY - 0;
         this.angle = 0;
         this.inverseKinematics(this.targetX, this.targetY);
     }
@@ -90,7 +92,9 @@ class PantographGlyph{
             P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:this.id==0?"green":"blue"});
         var h  = s.line(P3.x+ panto.left.linkage.baseX, P3.y, P3.x + 10*Math.cos(this.angle)+ panto.left.linkage.baseX, P3.y + 10*Math.sin(this.angle)).attr({stroke:this.id==0?"green":"blue"});
-        var g = s.group(il, ir, ol, or, ml, mr, ee, h);
+
+        var tgt = s.circle(this.goalX + panto.left.linkage.baseX, this.goalY, 3).attr({fill:this.id==0?"green":"blue"});
+        var g = s.group(il, ir, ol, or, ml, mr, ee, h, tgt);
         g.transform('T 150 50');
     }
     inverseKinematics(ee_x, ee_y){

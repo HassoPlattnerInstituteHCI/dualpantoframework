@@ -8,12 +8,19 @@ Framework.on('devicesChanged', function(devices) {
         device.on('handleMoved', function(index, position) {
             console.log('handleMoved', index, position);
         });
-        // device.moveHandleTo(0, new Vector(0, -80, 0));
-        // device.moveHandleTo(1, new Vector(0, -80, 0));
+        function sendSignal(){
+            device.moveHandleTo(0, new Vector(100*Math.random(),100*Math.random(), 0));
+            device.moveHandleTo(1, new Vector(100*Math.random(),100*Math.random(), 0));
+            setTimeout(() => {sendSignal();}, 1000);
+        }
+        sendSignal();
     }
 });
 
 // TODO: Test case termination
-setTimeout(function() {
-    process.exit(0);
-}, 1000);
+// setTimeout(function() {
+//     process.exit(0);
+// }, 1000);
+ 
+
+//{"type":"moveHandleTo","id":0,"pos":{"x":0,"y":-80,"r":0}}
