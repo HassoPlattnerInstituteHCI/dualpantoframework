@@ -4,7 +4,11 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
-      EventEmitter = require('events').EventEmitter;
+      EventEmitter = require('events').EventEmitter,
+      co = require('co'),
+      say = require('say-promise'),
+      PlaySound = require('play-sound')(),
+      WebsocketClient = require('websocket').client;
 
 class Broker extends EventEmitter {
     constructor() {
@@ -35,6 +39,8 @@ class Device extends EventEmitter {
         this.serial = serial.open(port);
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
+        this.obstacles = [];
+        this.language = 'DE';
     }
 
     disconnect() {
@@ -76,12 +82,70 @@ class Device extends EventEmitter {
         this.send(packet);
         this.emit('moveHandleTo', index, target);
     }
+
+
+    run_script(promise_list) {
+        this._running_script = true;
+        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+        co(script_generator)
+        .catch(console.log)
+    }
+
+    speakText(txt) {
+      var speak_voice = "Anna";
+      if (this.language == "EN") {
+          speak_voice = "Alex";
+      }
+      return say.speak(txt, speak_voice, 1.4, (err) => {
+          if(err) {
+              console.error(err);
+              return;
+          }
+      });
+    }
+
+    sayText(txt) {
+      this.run_script([
+        () => this.speakText(txt)
+      ]);
+    }
+
+    playSound(filename) {
+      console.log('play sound is not implemented yet');
+    }
+
+    addKeyPhrase(keyPhrase, func){
+      console.log('voiceInput is not supported yet');
+    }
+
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
+    }
+
+    unblockHandle(index){
+      return new Promise (resolve => 
+      {
+          this.unblock(index);
+          resolve(resolve);
+      });
+    }
+
+    unblock(index) {
+      this.moveHandleTo(index);
+    }
 }
+
+function *conditional_promise_generator(promise_list, condition_fn){
+  for(var i = 0; condition_fn() && i < promise_list.length; i++) {
+      yield promise_list[i]();
+  }
+}
+
 
 function serialRecv() {
     setImmediate(serialRecv);
     for(const device of broker.devices.values())
-        device.poll();
+      device.poll();
 }
 serialRecv();
 
@@ -99,3 +163,28 @@ function autoDetectDevices() {
     });
 }
 autoDetectDevices();
+
+var WebSocketClient = require('websocket').client;
+ 
+var client = new WebSocketClient();
+ 
+client.on('connectFailed', function(error) {
+    console.log('Connect Error: ' + error.toString());
+});
+ 
+client.on('connect', function(connection) {
+    console.log('WebSocket Client Connected');
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        console.log('echo-protocol Connection Closed');
+    });
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log("Received: '" + message.utf8Data + "'");
+        }
+    });
+});
+ 
+client.connect('ws://localhost:8080/');
