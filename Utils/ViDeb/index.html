@@ -86,7 +86,7 @@
           <h3 class="mt-5">status</h3>
           websocket : <span id = "status-websocket" class="badge badge-warning">Not Connected</span><br>
           serial : <span id = "status-serial" class="badge badge-warning">Data not comming</span><br>
-          mirror : <span id = "status-mirror" class="badge badge-secondary">under construction</span><br>
+          virtualpanto : <span id = "status-mirror" class="badge badge-secondary">No Kinematics</span><br>
           <h3 class="mt-5">log history</h3>
           <ul id="history"></ul>
         </div>
@@ -113,8 +113,18 @@
             let node = document.createElement('li');
             const data = JSON.parse(event.data);
             node.className = 'history-item'
-            if(data.type=="moveHandleTo")
+            if(data.type=="moveHandleTo"){
               node.className = 'history-item-move'
+              if(data.id){
+                UpperPanto.goalX = data.pos.x;
+                UpperPanto.goalY = data.pos.y;
+              }
+              else{
+                LowerPanto.goalX = data.pos.x;
+                LowerPanto.goalY = data.pos.y;
+              }
+              flushGlyph();
+            }
             let textnode = document.createTextNode(event.data);
             node.appendChild(textnode);
             let history = document.getElementById('history');
