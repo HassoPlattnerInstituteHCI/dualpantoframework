@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/JotaroS/dualpantoframework#readme",
   "dependencies": {
-    "node-gyp": "^3.6.2"
+    "node-gyp": "^3.6.2",
     "play-sound": "^1.1.2",
     "say-promise": "0.0.2",
     "serialport": "^6.1.1",
