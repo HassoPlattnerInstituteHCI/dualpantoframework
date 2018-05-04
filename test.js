@@ -18,9 +18,9 @@ Framework.on('devicesChanged', function(devices) {
 });
 
 // TODO: Test case termination
-// setTimeout(function() {
-//     process.exit(0);
-// }, 1000);
+setTimeout(function() {
+    process.exit(0);
+}, 1000);
  
 
 //{"type":"moveHandleTo","id":0,"pos":{"x":0,"y":-80,"r":0}}
