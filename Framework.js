@@ -114,7 +114,7 @@ class Device extends EventEmitter {
       console.log('play sound is not implemented yet');
     }
 
-    addKeyPhrase(keyPhrase, function){
+    addKeyPhrase(keyPhrase, func){
       console.log('voiceInput is not supported yet');
     }
 
