@@ -161,8 +161,6 @@ function autoDetectDevices() {
                 }
         broker.emit('devicesChanged', broker.devices.values());
     });
-    new Device('ViDeb');
-    broker.emit('devicesChanged', broker.devices.values());
 }
 
 setTimeout(() => {
