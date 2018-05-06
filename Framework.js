@@ -19,6 +19,13 @@ class Broker extends EventEmitter {
     getDevices() {
         return this.devices.values();
     }
+    getViDeb() {
+        for(const device in this.devices.values()) {
+            console.log(device);
+            if(device.port == 'ViDeb')
+                return device;
+        }
+    }
 }
 const broker = new Broker();
 module.exports = broker;
@@ -81,6 +88,12 @@ class Device extends EventEmitter {
         packet.writeFloatLE(values[2], 9);
         if(this.port!='ViDeb')this.send(packet);
         this.emit('moveHandleTo', index, target);
+    }
+
+    //ViDeb functionality
+    sendHandlePosition(data) {
+        const pos = new Vector(data.pos.x, data.pos.y, 0);
+        this.emit('handleMoved', data.id, pos);
     }
 
     resetDevice(){

@@ -143,7 +143,10 @@
         ws.onerror = function(event) {
         }
         $("#reconnect").on('click', ()=>{
-          ws.send('ViDebRecconect');
+          let payload ={
+            type: 'ViDebRecconect'
+          }
+          ws.send(JSON.stringify(payload));
         });
         let canvas = document.getElementById('svg');
         let isMouseDown = false;
@@ -158,11 +161,29 @@
               UpperPanto.targetX = -x+150;
               UpperPanto.targetY = y - 50;
               flushGlyph();
+              let payload = {
+                type:'ViDebHandleMoved',
+                id: 0,
+                pos:{
+                  x: UpperPanto.targetX,
+                  y: UpperPanto.targetY
+                }
+              };
+              ws.send(JSON.stringify(payload));
             }
             if($("#grab-lower").hasClass('active')){
               LowerPanto.targetX = -x+150;
               LowerPanto.targetY = y - 50;
               flushGlyph();
+              let payload = {
+                type:'ViDebHandleMoved',
+                id: 1,
+                pos:{
+                  x: LowerPanto.targetX,
+                  y: LowerPanto.targetY
+                }
+              };
+              ws.send(JSON.stringify(payload));
             }
           }
         }

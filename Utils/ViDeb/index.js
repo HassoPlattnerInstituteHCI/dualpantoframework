@@ -59,10 +59,18 @@ wsServer.on('request', (request) => {
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', (message) => {
-        if(message.utf8Data=='ViDebRecconect'){
+        const data = JSON.parse(message.utf8Data);
+        if(data.type == 'ViDebRecconect'){
             for(const device of Framework.getDevices()) {
                 if(device.port=='ViDeb'){
                     device.resetDevice();
+                }
+            }
+        }
+        if(data.type == 'ViDebHandleMoved'){
+            for(const device of Framework.getDevices()) {
+                if(device.port=='ViDeb'){
+                    device.sendHandlePosition(data);
                 }
             }
         }
@@ -70,6 +78,11 @@ wsServer.on('request', (request) => {
     connection.on('close', (reasonCode, description) => {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         connections.delete(connection);
+        for(const device of Framework.getDevices()) {
+            if(device.port=='ViDeb'){
+                ViDeb = device;
+            }
+        }
     });
     for(const device of Framework.getDevices()) {
         device.on('handleMoved', (i, p) => {
