@@ -45,87 +45,78 @@ class PantographGlyph{
         this.isEndEffectorActive = false;
         this.targetX = -20;
         this.targetY = 70;
+        this.handle = new Vector(0, 70);
+        this.pointingAngle = 0.0;
+        this.handleAngle = 0.0;
         this.goalX = 0;
         this.goalY - 0;
         this.angle = 0;
         this.lastX = this.targetX;
         this.lastY = this.targetY;
-
-        this.inverseKinematics(this.targetX, this.targetY);
+        this.inner = [,];
+        this.innerAngle = [,];
+        this.currentAngle = [Math.PI, 0.0];
+        this.base  = [new Vector(this.pantograph.left.linkage.baseX, this.pantograph.left.linkage.baseY),
+                      new Vector(this.pantograph.right.linkage.baseX, this.pantograph.right.linkage.baseY)];
+        this._forwardKinematics();
+        this.drawGlyph();
     }
     handleJSON(json){
         this.config = json;
         this.pantograph = this.id == 0 ? config.pantos.upper : config.pantos.lower;
-        console.log('json');
-        console.log(this.pantograph);
-        
     }
-    fowardKinematics(_t1, _t2){
+
+    _forwardKinematics(){
         let panto = this.pantograph;
-        var t1 = _t1;
-        var t2 = _t2;
-        this.lastLeftAngle = t1;
-        this.lastRightAngle = t2;
-        var ml = s.circle(panto.left.linkage.baseX, panto.left.linkage.baseY, 5).attr({fill:"black"});
-        var mr = s.circle(panto.right.linkage.baseX, panto.right.linkage.baseY, 5).attr({fill:"black"});
-        var il = s.line(panto.left.linkage.baseX, panto.left.linkage.baseY,
-                        panto.left.linkage.baseX+panto.left.linkage.innerLength * Math.cos(t1),
-                        panto.left.linkage.baseY+panto.left.linkage.innerLength * Math.sin(t1)).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var ir = s.line(panto.right.linkage.baseX, panto.right.linkage.baseY,
-                        panto.right.linkage.baseX+panto.right.linkage.innerLength * Math.cos(t2),
-                        panto.right.linkage.baseY+panto.right.linkage.innerLength * Math.sin(t2)).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        
-        var a1 = panto.left.linkage.innerLength;
-        var a2 = panto.left.linkage.outerLength;
-        var a3 = panto.right.linkage.outerLength;
-        var a4 = panto.right.linkage.innerLength;
-
-        var P2 = new Vector(a1 * Math.cos(t1), a1 * Math.sin(t1));
-        var P4 = new Vector(a4 * Math.cos(t2) + Math.abs(panto.left.linkage.baseX)+panto.right.linkage.baseX, a4 * Math.sin(t2));
-
-
-        var P4_2 = P4.subtract(P2);
-        var P42  = P4_2.length();
-        var P2h = (a2*a2 - a3*a3 + P42*P42) / (2 * P42);
-        var Ph =  P2.add(P4_2.scaled(P2h / P42));
-        var P3h = Math.sqrt(a2*a2 - P2h*P2h);
-
-        var P3 = new Vector(Ph.x - P3h/P42 * (P4.y - P2.y),Ph.y + P3h/P42 * (P4.x-P2.x));
-        this.lastX = P3.x;
-        this.lastY = P3.y;
-        var ol = s.line(P2.x + panto.left.linkage.baseX, P2.y,
-                        P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var or = s.line(P4.x + panto.left.linkage.baseX, P4.y,
-            P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:this.id==0?"green":"blue"});
-        var h  = s.line(P3.x+ panto.left.linkage.baseX, P3.y, P3.x + 10*Math.cos(this.angle)+ panto.left.linkage.baseX, P3.y + 10*Math.sin(this.angle)).attr({stroke:this.id==0?"green":"blue"});
-        var tgt = s.circle(this.goalX + panto.left.linkage.baseX, this.goalY, 3).attr({fill:this.id==0?"green":"blue"});
-        var g = s.group(il, ir, ol, or, ml, mr, ee, h, tgt);
-        g.transform('T 150 50');
-        var rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
+        this.inner[0] = this.base[0].add(new Vector().fromPolar(this.currentAngle[0], panto.left.linkage.innerLength ));
+        this.inner[1] = this.base[1].add(new Vector().fromPolar(this.currentAngle[1], panto.right.linkage.innerLength));
+        let diagonal = this.inner[1].subtract(this.inner[0]);
+        this.innerAngle[0] = diagonal.polarAngle() + Math.acos(
+                             (diagonal.dot(diagonal) + panto.left.linkage.outerLength*panto.left.linkage.outerLength - panto.right.linkage.outerLength*panto.right.linkage.outerLength) 
+                             / (2 * diagonal.length() * panto.left.linkage.outerLength));
+        this.handle = new Vector().fromPolar(this.innerAngle[0], panto.left.linkage.outerLength).add(this.inner[0]);
+        this.innerAngle[1] = this.handle.subtract(this.inner[1]).polarAngle();
+        this.pointingAngle = this.handleAngle + this.innerAngle[1];
     }
-    inverseKinematicsHelper(inverted, diff, factor, threshold=0.001) {
+    _inverseKinematicsHelper(inverted, diff, factor, threshold=0.001) {
         diff *= factor;
         if(Math.abs(diff) < threshold)
-        return;
-        this.lastLeftAngle += diff*inverted;
-        this.lastRightAngle += diff;
+            return;
+        this.currentAngle[0] += diff*inverted;
+        this.currentAngle[1] += diff;;
     }
-    inverseKinematicsNumeric(ee_x, ee_y){
+    _inverseKinematicsNumeric(ee_x, ee_y){
         // console.log(ee_x, ee_y);
         const iterations = 10;
         let target = new Vector(-ee_x, ee_y);
-        let targetAngle = Math.clamp(target.polarAngle(), (Math.PI-opAngle)*0.5, (Math.PI+opAngle)*0.5),
+        let targetAngle = Math.clamp(target.polarAngle(), 0, 3.14),
             targetRadius = Math.clamp(target.length(), opMinDist, opMaxDist);
         for(let i=0; i < iterations; ++i){
-            let actuationAngle = [this.lastLeftAngle, this.lastRightAngle];
-            this.fowardKinematics(actuationAngle[0], actuationAngle[1]);
-            let currentPos = new Vector(this.lastX, this.lastY),
+            this._forwardKinematics();
+            let currentPos = this.handle,
                 currentAngle = currentPos.polarAngle(),
                 currentRadius = currentPos.length();
-            this.inverseKinematicsHelper(+1, targetAngle-currentAngle, 0.5);
-            this.inverseKinematicsHelper(-1, targetRadius-currentRadius, 0.002);
+            this._inverseKinematicsHelper(+1, targetAngle-currentAngle, 0.5);
+            this._inverseKinematicsHelper(-1, targetRadius-currentRadius, 0.001);
         }
+    }
+
+    drawGlyph(){
+        //lines
+        var il = s.line(this.base[0].x, this.base[0].y, this.inner[0].x, this.inner[0].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        var ir = s.line(this.base[1].x, this.base[1].y, this.inner[1].x, this.inner[1].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        var ol = s.line(this.inner[0].x, this.inner[0].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        var or = s.line(this.inner[1].x, this.inner[1].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        var ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
+        var ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
+        var mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
+
+        //group
+        var g = s.group(il, ir, ol, or, ml, mr, ee);
+        g.transform('T 150 50');
+
+        //rectangle for clicking area
+        var rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
     }
 
     inverseKinematics(ee_x, ee_y){
@@ -159,6 +150,6 @@ class PantographGlyph{
 
 function flushGlyph(){
     s.clear();
-    UpperPanto.inverseKinematicsNumeric(UpperPanto.targetX,UpperPanto.targetY)
-    LowerPanto.inverseKinematics(LowerPanto.targetX,LowerPanto.targetY)
+    UpperPanto.drawGlyph();
+    LowerPanto.drawGlyph();
 }
