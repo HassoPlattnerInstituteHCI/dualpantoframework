@@ -58,7 +58,7 @@ class PantographGlyph{
         this.currentAngle = [Math.PI, 0.0];
         this.base  = [new Vector(this.pantograph.left.linkage.baseX, this.pantograph.left.linkage.baseY),
                       new Vector(this.pantograph.right.linkage.baseX, this.pantograph.right.linkage.baseY)];
-        this._forwardKinematics();
+        this.forwardKinematics();
         this.drawGlyph();
     }
     handleJSON(json){
@@ -66,7 +66,7 @@ class PantographGlyph{
         this.pantograph = this.id == 0 ? config.pantos.upper : config.pantos.lower;
     }
 
-    _forwardKinematics(){
+    forwardKinematics(){
         let panto = this.pantograph;
         this.inner[0] = this.base[0].add(new Vector().fromPolar(this.currentAngle[0], panto.left.linkage.innerLength ));
         this.inner[1] = this.base[1].add(new Vector().fromPolar(this.currentAngle[1], panto.right.linkage.innerLength));
@@ -78,26 +78,26 @@ class PantographGlyph{
         this.innerAngle[1] = this.handle.subtract(this.inner[1]).polarAngle();
         this.pointingAngle = this.handleAngle + this.innerAngle[1];
     }
-    _inverseKinematicsHelper(inverted, diff, factor, threshold=0.001) {
+    inverseKinematicsHelper(inverted, diff, factor, threshold=0.001) {
         diff *= factor;
         if(Math.abs(diff) < threshold)
             return;
         this.currentAngle[0] += diff*inverted;
         this.currentAngle[1] += diff;;
     }
-    _inverseKinematicsNumeric(ee_x, ee_y){
+    inverseKinematicsNumeric(ee_x, ee_y){
         // console.log(ee_x, ee_y);
         const iterations = 10;
         let target = new Vector(-ee_x, ee_y);
         let targetAngle = Math.clamp(target.polarAngle(), 0, 3.14),
             targetRadius = Math.clamp(target.length(), opMinDist, opMaxDist);
         for(let i=0; i < iterations; ++i){
-            this._forwardKinematics();
+            this.forwardKinematics();
             let currentPos = this.handle,
                 currentAngle = currentPos.polarAngle(),
                 currentRadius = currentPos.length();
-            this._inverseKinematicsHelper(+1, targetAngle-currentAngle, 0.5);
-            this._inverseKinematicsHelper(-1, targetRadius-currentRadius, 0.001);
+            this.inverseKinematicsHelper(+1, targetAngle-currentAngle, 0.5);
+            this.inverseKinematicsHelper(-1, targetRadius-currentRadius, 0.001);
         }
     }
 
