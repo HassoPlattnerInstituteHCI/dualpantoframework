@@ -4,6 +4,7 @@ var s = Snap('#svg');
 const height = s.node.clientHeight,
        width = s.node.clientWidth;
 var config;
+var opAngle, opMaxDist, opMinDist;
 var UpperPanto;
 var LowerPanto;
 var style=
@@ -33,7 +34,9 @@ $.getJSON("js/LP_PCB.json", function(json){
     $.ajaxSetup({async:true});
     UpperPanto = new PantographGlyph(0, config.pantos.upper);
     LowerPanto = new PantographGlyph(1, config.pantos.lower);
+    opAngle = config.opAngle; opMaxDist = config.opMaxDist; opMinDist = config.opMinDist;
 });
+(function(){Math.clamp=function(a,b,c){return Math.max(b,Math.min(c,a));}})();
 
 class PantographGlyph{
     constructor(_id, config){
@@ -45,6 +48,9 @@ class PantographGlyph{
         this.goalX = 0;
         this.goalY - 0;
         this.angle = 0;
+        this.lastX = this.targetX;
+        this.lastY = this.targetY;
+
         this.inverseKinematics(this.targetX, this.targetY);
     }
     handleJSON(json){
@@ -55,7 +61,6 @@ class PantographGlyph{
         
     }
     fowardKinematics(_t1, _t2){
-        console.log('drawing');
         let panto = this.pantograph;
         var t1 = _t1;
         var t2 = _t2;
@@ -86,17 +91,43 @@ class PantographGlyph{
         var P3h = Math.sqrt(a2*a2 - P2h*P2h);
 
         var P3 = new Vector(Ph.x - P3h/P42 * (P4.y - P2.y),Ph.y + P3h/P42 * (P4.x-P2.x));
+        this.lastX = P3.x;
+        this.lastY = P3.y;
         var ol = s.line(P2.x + panto.left.linkage.baseX, P2.y,
                         P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         var or = s.line(P4.x + panto.left.linkage.baseX, P4.y,
             P3.x + panto.left.linkage.baseX, P3.y,).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
         var ee = s.circle(P3.x + panto.left.linkage.baseX, P3.y, 5).attr({fill:this.id==0?"green":"blue"});
         var h  = s.line(P3.x+ panto.left.linkage.baseX, P3.y, P3.x + 10*Math.cos(this.angle)+ panto.left.linkage.baseX, P3.y + 10*Math.sin(this.angle)).attr({stroke:this.id==0?"green":"blue"});
-
         var tgt = s.circle(this.goalX + panto.left.linkage.baseX, this.goalY, 3).attr({fill:this.id==0?"green":"blue"});
         var g = s.group(il, ir, ol, or, ml, mr, ee, h, tgt);
         g.transform('T 150 50');
+        var rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
     }
+    inverseKinematicsHelper(inverted, diff, factor, threshold=0.001) {
+        diff *= factor;
+        if(Math.abs(diff) < threshold)
+        return;
+        this.lastLeftAngle += diff*inverted;
+        this.lastRightAngle += diff;
+    }
+    inverseKinematicsNumeric(ee_x, ee_y){
+        // console.log(ee_x, ee_y);
+        const iterations = 10;
+        let target = new Vector(-ee_x, ee_y);
+        let targetAngle = Math.clamp(target.polarAngle(), (Math.PI-opAngle)*0.5, (Math.PI+opAngle)*0.5),
+            targetRadius = Math.clamp(target.length(), opMinDist, opMaxDist);
+        for(let i=0; i < iterations; ++i){
+            let actuationAngle = [this.lastLeftAngle, this.lastRightAngle];
+            this.fowardKinematics(actuationAngle[0], actuationAngle[1]);
+            let currentPos = new Vector(this.lastX, this.lastY),
+                currentAngle = currentPos.polarAngle(),
+                currentRadius = currentPos.length();
+            this.inverseKinematicsHelper(+1, targetAngle-currentAngle, 0.5);
+            this.inverseKinematicsHelper(-1, targetRadius-currentRadius, 0.002);
+        }
+    }
+
     inverseKinematics(ee_x, ee_y){
         let t1, t2;
         let panto = this.pantograph;
@@ -128,6 +159,6 @@ class PantographGlyph{
 
 function flushGlyph(){
     s.clear();
-    UpperPanto.inverseKinematics(UpperPanto.targetX,UpperPanto.targetY)
+    UpperPanto.inverseKinematicsNumeric(UpperPanto.targetX,UpperPanto.targetY)
     LowerPanto.inverseKinematics(LowerPanto.targetX,LowerPanto.targetY)
 }
