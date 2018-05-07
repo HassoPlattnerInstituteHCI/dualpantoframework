@@ -82,7 +82,7 @@
             <input type="range" min="-1000" max="1000" value="50" class="slider" id="myRange2"> -->
           </div>
           <center>
-           <svg width="300" height="1300" id="svg">
+           <svg width="300" height="600" id="svg">
            </svg>
           </center>
         </div>
@@ -112,7 +112,7 @@
             document.getElementById('status-websocket').className = 'badge badge-danger';
         }
         ws.onmessage = function(event) {
-            document.getElementById('status-serial').innerText = 'Receiving';
+            // document.getElementById('status-serial').innerText = 'Receiving';
             document.getElementById('status-serial').className = 'badge badge-success';
             let node = document.createElement('li');
             const data = JSON.parse(event.data);
@@ -159,6 +159,7 @@
             const rect = e.target.getBoundingClientRect();
             const x = e.clientX - rect.left; //x position within the element.
             const y = e.clientY - rect.top;  //y position within the element.
+            console.log(x, y);
             if($("#grab-upper").hasClass('active')){
               UpperPanto.targetX = -x+150;
               UpperPanto.targetY = y - 50;
