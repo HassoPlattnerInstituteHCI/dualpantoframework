@@ -35,6 +35,7 @@ const ViDeb = require('./Utils/ViDeb/index');
 
 class Device extends EventEmitter {
     constructor(port) {
+        super();
         if(port == 'virtual') {
             let index = 0;
             port = 'virtual0';
@@ -49,13 +50,14 @@ class Device extends EventEmitter {
                 return broker.devices.get(port);
             this.serial = true;
         }
-        super();
         this.port = port;
         if(this.serial)
             this.serial = serial.open(this.port);
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
         broker.devices.set(this.port, this);
+        if(!this.serial)broker.emit('devicesChanged', broker.devices.values());
+        console.log(this.port, 'created.');
     }
 
     disconnect() {
@@ -96,7 +98,7 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
         if(!this.serial) {
             this.lastKnownPositions[index] = target;
-            this.emit('handleMoved', index, this.lastKnownPositions[i]);
+            this.emit('handleMoved', index, this.lastKnownPositions[index]);
             return;
         }
         const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
