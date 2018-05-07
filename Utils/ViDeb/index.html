@@ -104,7 +104,10 @@
             console.log('Connection open');
             document.getElementById('status-websocket').innerText = 'Connected';
             document.getElementById('status-websocket').className = 'badge badge-success';
-
+            const packet = {
+              type: 'createVirtualDevice'
+            };
+            ws.send(JSON.stringify(packet));
         }
         ws.onclose = function(event) {
             console.log('Connection closed');
@@ -159,7 +162,6 @@
             const rect = e.target.getBoundingClientRect();
             const x = e.clientX - rect.left; //x position within the element.
             const y = e.clientY - rect.top;  //y position within the element.
-            console.log(x, y);
             if($("#grab-upper").hasClass('active')){
               UpperPanto.targetX = -x+150;
               UpperPanto.targetY = y - 50;
