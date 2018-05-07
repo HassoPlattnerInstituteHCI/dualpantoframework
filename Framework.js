@@ -8,12 +8,64 @@ const serial = require('./build/Release/serial'),
       co = require('co'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
-      WebsocketClient = require('websocket').client;
+      WebsocketClient = require('websocket').client,
+      VoiceCommand = require('./voice-command');
 
 class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
+    }
+
+    run_script(promise_list) {
+      this._running_script = true;
+      var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+      co(script_generator)
+      .catch(console.log)
+    }
+
+    speakText(txt, language) {
+      var speak_voice = "Anna";
+      if (language == "EN") {
+          speak_voice = "Alex";
+      }
+      this.emit('saySpeak', txt);
+      return say.speak(txt, speak_voice, 1.4, (err) => {
+          if(err) {
+              console.error(err);
+              return;
+          }
+      });
+    }
+
+    sayText(txt) {
+      this.run_script([
+        () => this.speakText(txt)
+      ]);
+    }
+
+    playSound(filename) {
+      console.log('play sound is not implemented yet');
+    }
+
+    setCommands(commands){
+      var voiceCommand = new VoiceCommand(commands);
+      voiceCommand.on('command', function(command) {
+        this.emit('keyWordsRecognized', command);
+      });
+      voiceCommand.startListening();
+    }
+
+    beginListening(){
+      voiceCommand.startListening();
+    }
+
+    haltListening(){
+      voiceCommand.stopListening();
+    }
+
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     getDevices() {
@@ -40,7 +92,6 @@ class Device extends EventEmitter {
         this.lastKnownPositions  = [];
         this.lastTargetPositions = [];
         this.obstacles = [];
-        this.language = 'DE';
     }
 
     disconnect() {
@@ -85,45 +136,6 @@ class Device extends EventEmitter {
 
     resetDevice(){
         broker.emit('devicesChanged', broker.devices.values());
-    }
-
-    run_script(promise_list) {
-        this._running_script = true;
-        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
-        co(script_generator)
-        .catch(console.log)
-    }
-
-    speakText(txt) {
-      var speak_voice = "Anna";
-      if (this.language == "EN") {
-          speak_voice = "Alex";
-      }
-      this.emit('saySpeak', txt);
-      return say.speak(txt, speak_voice, 1.4, (err) => {
-          if(err) {
-              console.error(err);
-              return;
-          }
-      });
-    }
-
-    sayText(txt) {
-      this.run_script([
-        () => this.speakText(txt)
-      ]);
-    }
-
-    playSound(filename) {
-      console.log('play sound is not implemented yet');
-    }
-
-    addKeyPhrase(keyPhrase, func){
-      console.log('voiceInput is not supported yet');
-    }
-
-    waitMS(ms) {
-        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     unblockHandle(index){
