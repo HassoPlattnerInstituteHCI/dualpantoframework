@@ -104,6 +104,7 @@
             console.log('Connection open');
             document.getElementById('status-websocket').innerText = 'Connected';
             document.getElementById('status-websocket').className = 'badge badge-success';
+            //TODO: Scan device to load multiple instance of pantos.
             const packet = {
               type: 'createVirtualDevice'
             };
