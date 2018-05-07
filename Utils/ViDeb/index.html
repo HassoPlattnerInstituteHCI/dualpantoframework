@@ -9,7 +9,7 @@
     <meta name="author" content="">
 
     <title>dualpanto Visual-Debugger</title>
-    
+
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -64,16 +64,15 @@
     </nav>
     <script src="js/jquery.min.js"></script>
     <script src="js/snap.svg-min.js" type="text/javascript"></script>
-    
+
     <!-- Page Content -->
     <div class="container">
       <div class="row">
         <div class="col-lg-3 text-right">
             <h3 class="mt-5">controller</h3>
-            <button type="button" id = "grab-upper" class="btn btn-success" data-toggle="button">Grab Upper</button><br>
-            <button type="button" id = "grab-lower" class="btn btn-primary" data-toggle="button">Grab Lower</button><br>
-            <button type="button" id = "reconnect" class="btn btn-info">Reconnect</button><br>
-            <button type="button" id = "disconnect" class="btn btn-secondary">Disconnect</button><br>
+            <button type="button" id="grab-upper" class="btn btn-success" data-toggle="button">Grab Upper</button><br>
+            <button type="button" id="grab-lower" class="btn btn-primary" data-toggle="button">Grab Lower</button><br>
+            <button type="button" id="createVirtualDevice" class="btn btn-info">Create Virtual Device</button><br>
         </div>
         <div class="col-lg-5 text-center">
           <h3 class = 'mt-5'>glyph</h3>
@@ -118,20 +117,23 @@
             let node = document.createElement('li');
             const data = JSON.parse(event.data);
             node.className = 'history-item'
-            if(data.type=="moveHandleTo"){
-              node.className = 'history-item-move'
-              if(data.id){
-                UpperPanto.goalX = data.pos.x;
-                UpperPanto.goalY = data.pos.y;
-              }
-              else{
-                LowerPanto.goalX = data.pos.x;
-                LowerPanto.goalY = data.pos.y;
-              }
-              flushGlyph();
+            switch(data.type) {
+                case 'handleMoved':
+                    node.className = 'history-item-move'
+                    // TODO use data.port
+                    const panto = (data.index == 0) ? UpperPanto : LowerPanto;
+                    panto.goalX = data.position.x;
+                    panto.goalY = data.position.y;
+                    // TODO use data.position.r
+                    flushGlyph();
+                    break;
+                case 'moveHandleTo':
+                    // TODO
+                    break;
+                case 'saySpeak':
+                    node.className = 'history-item-say'
+                    break;
             }
-            if(data.type=="saySpeak")
-              node.className = 'history-item-say'
             let textnode = document.createTextNode(event.data);
             node.appendChild(textnode);
             let history = document.getElementById('history');
@@ -142,11 +144,11 @@
         }
         ws.onerror = function(event) {
         }
-        $("#reconnect").on('click', ()=>{
-          let payload ={
-            type: 'ViDebRecconect'
-          }
-          ws.send(JSON.stringify(payload));
+        $("#createVirtualDevice").on('click', ()=>{
+          const packet = {
+            type: 'createVirtualDevice'
+          };
+          ws.send(JSON.stringify(packet));
         });
         let canvas = document.getElementById('svg');
         let isMouseDown = false;
@@ -161,34 +163,38 @@
               UpperPanto.targetX = -x+150;
               UpperPanto.targetY = y - 50;
               flushGlyph();
-              let payload = {
-                type:'ViDebHandleMoved',
-                id: 0,
-                pos:{
+              const packet = {
+                type: 'moveHandleTo',
+                port: 'virtual0', // TODO
+                index: 0,
+                position: {
                   x: UpperPanto.targetX,
-                  y: UpperPanto.targetY
+                  y: UpperPanto.targetY,
+                  r: 0 // TODO
                 }
               };
-              ws.send(JSON.stringify(payload));
+              ws.send(JSON.stringify(packet));
             }
             if($("#grab-lower").hasClass('active')){
               LowerPanto.targetX = -x+150;
               LowerPanto.targetY = y - 50;
               flushGlyph();
-              let payload = {
-                type:'ViDebHandleMoved',
-                id: 1,
-                pos:{
+              const packet = {
+                type: 'moveHandleTo',
+                port: 'virtual0', // TODO
+                index: 1,
+                position: {
                   x: LowerPanto.targetX,
-                  y: LowerPanto.targetY
+                  y: LowerPanto.targetY,
+                  r: 0 // TODO
                 }
               };
-              ws.send(JSON.stringify(payload));
+              ws.send(JSON.stringify(packet));
             }
           }
         }
 
     </script>
-    <script src="js/bootstrap.min.js"  ></script>
+    <script src="js/bootstrap.min.js"></script>
   </body>
 </html>
