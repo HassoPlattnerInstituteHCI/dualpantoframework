@@ -154,6 +154,14 @@
           };
           ws.send(JSON.stringify(packet));
         });
+        $("#grab-upper").on('click', ()=>{
+          if($("#grab-lower").hasClass('active'))
+            $("#grab-lower").toggleClass('active');
+        });
+        $("#grab-lower").on('click', ()=>{
+          if($("#grab-upper").hasClass('active'))
+            $("#grab-upper").toggleClass('active');
+        });
         let canvas = document.getElementById('svg');
         let isMouseDown = false;
         canvas.onmousedown = () => {isMouseDown = true;}
@@ -166,6 +174,7 @@
             if($("#grab-upper").hasClass('active')){
               UpperPanto.targetX = -x+150;
               UpperPanto.targetY = y - 50;
+              UpperPanto._inverseKinematicsNumeric(UpperPanto.targetX,UpperPanto.targetY);
               flushGlyph();
               const packet = {
                 type: 'moveHandleTo',
@@ -182,6 +191,7 @@
             if($("#grab-lower").hasClass('active')){
               LowerPanto.targetX = -x+150;
               LowerPanto.targetY = y - 50;
+              LowerPanto._inverseKinematicsNumeric(LowerPanto.targetX,LowerPanto.targetY);
               flushGlyph();
               const packet = {
                 type: 'moveHandleTo',
