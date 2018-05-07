@@ -174,7 +174,7 @@
             if($("#grab-upper").hasClass('active')){
               UpperPanto.targetX = -x+150;
               UpperPanto.targetY = y - 50;
-              UpperPanto._inverseKinematicsNumeric(UpperPanto.targetX,UpperPanto.targetY);
+              UpperPanto.inverseKinematicsNumeric(UpperPanto.targetX,UpperPanto.targetY);
               flushGlyph();
               const packet = {
                 type: 'moveHandleTo',
@@ -191,7 +191,7 @@
             if($("#grab-lower").hasClass('active')){
               LowerPanto.targetX = -x+150;
               LowerPanto.targetY = y - 50;
-              LowerPanto._inverseKinematicsNumeric(LowerPanto.targetX,LowerPanto.targetY);
+              LowerPanto.inverseKinematicsNumeric(LowerPanto.targetX,LowerPanto.targetY);
               flushGlyph();
               const packet = {
                 type: 'moveHandleTo',
