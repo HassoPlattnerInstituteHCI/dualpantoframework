@@ -3,12 +3,13 @@
 const Framework = require('./Framework.js'),
       Vector = require('./Vector.js');
 
-Framework.on('devicesChanged', function(devices) {
+Framework.on('devicesChanged', function(devices, attached, detached) {
+    console.log(devices, added, removed);
     for(const device of devices) {
         device.on('handleMoved', function(index, position) {
             console.log(device.port, 'handleMoved', index, position);
         });
-        device.moveHandleTo(0, new Vector(0,-80,0));
+        device.moveHandleTo(0, new Vector(0, -80, 0));
     }
 });
 

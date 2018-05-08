@@ -4,6 +4,7 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
+      usb = require('usb'),
       EventEmitter = require('events').EventEmitter,
       co = require('co'),
       say = require('say-promise'),
@@ -14,10 +15,12 @@ class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
+        this.prevDevices = new Set();
+        this.disconnectTimeout = 5; // Seconds
     }
 
     getDevices() {
-        return this.devices.values();
+        return new Set(this.devices.values());
     }
 
     getDeviceByPort(port) {
@@ -31,6 +34,7 @@ class Broker extends EventEmitter {
 const broker = new Broker();
 module.exports = broker;
 const ViDeb = require('./Utils/ViDeb/index');
+
 
 
 class Device extends EventEmitter {
@@ -51,18 +55,15 @@ class Device extends EventEmitter {
             this.serial = true;
         }
         this.port = port;
-        if(this.serial)
-            this.serial = serial.open(this.port);
         this.lastKnownPositions = [];
         this.lastTargetPositions = [];
+        this.lastReceiveTime = process.hrtime();
         broker.devices.set(this.port, this);
-        if(!this.serial)broker.emit('devicesChanged', broker.devices.values());
-        console.log(this.port, 'created.');
+        if(this.serial)
+            this.serial = serial.open(this.port);
     }
 
     disconnect() {
-        if(this.onDisconnect)
-            this.onDisconnect();
         if(this.serial)
             serial.close(this.serial);
         broker.devices.delete(this.port);
@@ -71,9 +72,15 @@ class Device extends EventEmitter {
     poll() {
         if(!this.serial)
             return;
+        const time = process.hrtime();
+        if(time[0] > this.lastReceiveTime[0]+broker.disconnectTimeout) {
+            this.disconnect();
+            return;
+        }
         const packets = serial.poll(this.serial);
         if(packets.length == 0)
             return;
+        this.lastReceiveTime = time;
         const packet = packets[packets.length-1];
         if(packet.length == 16)
             this.hardwareConfigHash = packet;
@@ -115,8 +122,22 @@ function serialRecv() {
     setImmediate(serialRecv);
     for(const device of broker.devices.values())
         device.poll();
+    const currentDevices = broker.getDevices(),
+          attached = new Set(),
+          detached = new Set();
+    for(const device of currentDevices)
+        if(!broker.prevDevices.has(device))
+            attached.add(device);
+    for(const device of broker.prevDevices)
+        if(!currentDevices.has(device))
+            detached.add(device);
+    broker.prevDevices = currentDevices;
+    if(attached.size > 0 || detached.size > 0)
+        broker.emit('devicesChanged', currentDevices, attached, detached);
 }
 serialRecv();
+
+
 
 function autoDetectDevices() {
     SerialPort.list(function(err, ports) {
@@ -127,7 +148,8 @@ function autoDetectDevices() {
         for(const port of ports)
             if(port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader')))
                 new Device(port.comName);
-        broker.emit('devicesChanged', broker.devices.values());
     });
 }
 autoDetectDevices();
+usb.on('attach', autoDetectDevices);
+usb.on('detach', autoDetectDevices);
