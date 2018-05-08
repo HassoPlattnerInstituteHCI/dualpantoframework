@@ -5,8 +5,7 @@
   "main": "Utils/ViDeb/index.js",
   "scripts": {
     "test": "node test.js",
-    "install": "make",
-    "install": "node ./voice-command/build/build-release.js"
+    "install": "make; node ./voice-command/build/build-release.js"
   },
   "repository": {
     "type": "git",
