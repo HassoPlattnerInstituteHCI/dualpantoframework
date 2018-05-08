@@ -19,7 +19,7 @@ else if (platform == "win32") {
     child.stderr.on('data', function (data) { console.log('' + data); });
 }
 else {
-    throw('Platform ' + platform + ' is not supported yet.');
+    console.log('Platform ' + platform + ' is not supported yet.');
 }
 child.on('close', function(code) {
   if (code !== 0) {
