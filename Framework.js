@@ -4,7 +4,7 @@ const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
       SerialPort = require('serialport'),
-      usb = process.env.CI?require('usb'):null,
+      usb = !process.env.CI?require('usb'):null,
       EventEmitter = require('events').EventEmitter,
       co = require('co'),
       say = require('say-promise'),
@@ -151,7 +151,7 @@ function autoDetectDevices() {
     });
 }
 autoDetectDevices();
-if(process.env.CI){
+if(!process.env.CI){
     usb.on('attach', autoDetectDevices);
     usb.on('detach', autoDetectDevices);
 }
