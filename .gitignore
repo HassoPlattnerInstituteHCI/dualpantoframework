@@ -23,8 +23,8 @@ src/osx/voice-command/build
 *.sln.docstates
 *.plist
 *.xccheckout
-!src/osx/voice-command/voice-command.xcodeproj/project.xcworkspace/xcuserdata/baluubas.xcuserdatad
-!src/osx/voice-command/voice-command.xcodeproj/xcuserdata/baluubas.xcuserdatad
+!voice-command/src/osx/voice-command/voice-command.xcodeproj/project.xcworkspace/xcuserdata/baluubas.xcuserdatad
+!voice-command/src/osx/voice-command/voice-command.xcodeproj/xcuserdata/baluubas.xcuserdatad
 *.xcuserdatad
 
 # User-specific files (MonoDevelop/Xamarin Studio)

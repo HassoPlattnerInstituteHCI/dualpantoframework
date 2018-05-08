@@ -8,7 +8,6 @@ const serial = require('./build/Release/serial'),
       co = require('co'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
-      WebsocketClient = require('websocket').client,
       VoiceCommand = require('./voice-command');
 
 class Broker extends EventEmitter {
