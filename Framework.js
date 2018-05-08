@@ -161,6 +161,14 @@ class Device extends EventEmitter {
         this.send(packet);
     }
 
+    movePantoTo(index, target){
+      return new Promise (resolve => 
+        {
+            this.moveHandleTo(index, target);
+            resolve(resolve);
+        });
+    }
+
     unblockHandle(index){
       return new Promise (resolve => 
       {
