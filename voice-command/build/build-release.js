@@ -21,9 +21,11 @@ else if (platform == "win32") {
 else {
     console.log('Platform ' + platform + ' is not supported yet.');
 }
-child.on('close', function(code) {
-  if (code !== 0) {
-    console.log('Build process exited with code ' + code);
-    process.exit(1);
-  }
-});
+if(child){
+    child.on('close', function(code) {
+      if (code !== 0) {
+        console.log('Build process exited with code ' + code);
+        process.exit(1);
+      }
+    });
+}
