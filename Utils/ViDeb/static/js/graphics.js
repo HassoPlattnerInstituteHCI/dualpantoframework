@@ -110,9 +110,10 @@ class PantographGlyph{
         var ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
         var ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
         var mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
+        var el = s.line(this.handle.x, this.handle.y, this.handle.x+10*Math.cos(this.pointingAngle), this.handle.y+10*Math.sin(this.pointingAngle)).attr({stroke:'black'});
 
         //group
-        var g = s.group(il, ir, ol, or, ml, mr, ee);
+        var g = s.group(il, ir, ol, or, ml, mr, ee, el);
         g.transform('T 150 50');
 
         //rectangle for clicking area
@@ -150,6 +151,6 @@ class PantographGlyph{
 
 function flushGlyph(){
     s.clear();
-    UpperPanto.drawGlyph();
     LowerPanto.drawGlyph();
+    UpperPanto.drawGlyph();
 }
