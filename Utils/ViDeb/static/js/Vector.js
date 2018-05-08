@@ -7,6 +7,10 @@ class Vector {
         this.r = r;
     }
 
+    fromPolar(angle = 0, length = 0){
+        return new Vector(Math.cos(angle)*length, Math.sin(angle)*length);
+    }
+
     dot(vector) {
         return this.x*vector.x + this.y*vector.y;
     }
