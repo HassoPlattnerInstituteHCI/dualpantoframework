@@ -11,6 +11,9 @@ jobs:
           command: |
             echo "Node $(node -v)"
             echo "Yarn v$(yarn --version)"
+      - run:;
+          name: "Installing libudev-dev"
+          command: sudo apt-get install build-essential libudev-dev
       - run:
           name: Install dependencies / build serial
           command: npm i
