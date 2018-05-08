@@ -181,6 +181,12 @@ function serialRecv() {
 }
 serialRecv();
 
+function *conditional_promise_generator(promise_list, condition_fn){
+  for(var i = 0; condition_fn() && i < promise_list.length; i++) {
+      yield promise_list[i]();
+  }
+}
+
 function autoDetectDevices() {
     SerialPort.list(function(err, ports) {
         if(err) {
