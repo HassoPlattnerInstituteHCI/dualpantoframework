@@ -15,17 +15,18 @@ DualPantoFramework.on('devicesChanged', function(devices){
 
 
 function start(){  
+
   DualPantoFramework.run_script([
-    () => DualPantoFramework.speakText('Willkommen zu Homfinder', language),
+    () => DualPantoFramework.speakText('Willkommen zu Homefinder', language),
     () => DualPantoFramework.waitMS(500),
     () => DualPantoFramework.speakText('Sie sind aktuell hier.', language),
     () => device.movePantoTo(0,new Vector(-100, -150, 0)),
     () => DualPantoFramework.waitMS(500),
-    () => DualPantoFramework.speakText('Berlin ist so große.', language),
+    () => DualPantoFramework.speakText('Berlin ist so groß.', language),
     () => device.movePantoTo(1,new Vector(-100, -150, 0)),
     //TODO: here display a square around the field
   
-    () => DualPantoFramework.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandtorte.', language),
+    () => DualPantoFramework.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandorte.', language),
     () => DualPantoFramework.waitMS(500),
     () => device.unblockHandle(0),
     () => refollow(),
@@ -40,7 +41,6 @@ function start(){
   });
 
   DualPantoFramework.on('keywordRecognized', function(word){
-    console.log(word);
     if(word === 'Hotels'){
       showHotels();
     }
@@ -64,8 +64,8 @@ function showHotels(){
 }
 
 function nearbyLocation(position){
-  let dif1 = position.difference(new Vector(100, -100, 0)).length();
-  let dif2 = position.difference(new Vector(100, -150, 0)).length();
+  let dif1 = position.difference(new Vector(50, -50, 0)).length();
+  let dif2 = position.difference(new Vector(50, -75, 0)).length();
   if(dif1 <= 10){
     follow = false;
     DualPantoFramework.run_script([
