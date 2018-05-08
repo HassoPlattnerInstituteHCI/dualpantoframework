@@ -15,6 +15,7 @@ class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
+        this.voiceCommand;
     }
 
     run_script(promise_list) {
@@ -49,19 +50,27 @@ class Broker extends EventEmitter {
     }
 
     setCommands(commands){
-      var voiceCommand = new VoiceCommand(commands);
-      voiceCommand.on('command', function(command) {
-        this.emit('keyWordsRecognized', command);
-      });
-      voiceCommand.startListening();
+      this.voiceCommand = new VoiceCommand(commands);
+      this.voiceCommand.on('command', function(command) {
+        console.log(command);
+        this.emit('keywordRecognized', command);
+      }.bind(this));
     }
 
     beginListening(){
-      voiceCommand.startListening();
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.startListening();
+        resolve(resolve);
+      });
     }
 
     haltListening(){
-      voiceCommand.stopListening();
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.stopListening();
+        resolve(resolve);
+      });
     }
 
     waitMS(ms) {
@@ -134,6 +143,14 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
     }
 
+    movePantoTo(index, target){
+      return new Promise (resolve => 
+        {
+            this.moveHandleTo(index, target);
+            resolve(resolve);
+        });
+    }
+
     resetDevice(){
         broker.emit('devicesChanged', broker.devices.values());
     }
@@ -169,13 +186,15 @@ function autoDetectDevices() {
     SerialPort.list(function(err, ports) {
         if(err)
             console.error(err);
-        else
-            for(const port of ports)
-                if(port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader'))){
-                    console.log('connected to : '+port.comName);
-                    new Device(port.comName);
-                }
-        broker.emit('devicesChanged', broker.devices.values());
+        else{
+            for(const port of ports){
+              if(port && port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader'))){
+                  console.log('connected to : '+port.comName);
+                  new Device(port.comName);
+              }
+            }
+            broker.emit('devicesChanged', broker.devices.values());
+        }
     });
 }
 
