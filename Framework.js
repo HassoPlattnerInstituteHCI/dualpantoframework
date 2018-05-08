@@ -19,6 +19,14 @@ class Broker extends EventEmitter {
     getDevices() {
         return this.devices.values();
     }
+
+    getDeviceByPort(port) {
+        return this.devices.get(port);
+    }
+
+    createVirtualDevice() {
+        return new Device('virtual');
+    }
 }
 const broker = new Broker();
 module.exports = broker;
@@ -27,29 +35,42 @@ const ViDeb = require('./Utils/ViDeb/index');
 
 class Device extends EventEmitter {
     constructor(port) {
-        if(process.platform == 'darwin') // macOS
-            port = port.replace('/tty.', '/cu.');
-        else if(process.platform == 'win32') // windows
-            port = '//.//'+port;
-        if(broker.devices.has(port))
-            return broker.devices.get(port);
         super();
-        broker.devices.set(port, this);
+        if(port == 'virtual') {
+            let index = 0;
+            port = 'virtual0';
+            while(broker.devices.has(port))
+                port = 'virtual'+(index++);
+        } else {
+            if(process.platform == 'darwin') // macOS
+                port = port.replace('/tty.', '/cu.');
+            else if(process.platform == 'win32') // windows
+                port = '//.//'+port;
+            if(broker.devices.has(port))
+                return broker.devices.get(port);
+            this.serial = true;
+        }
         this.port = port;
-        if(port!='ViDeb')this.serial = serial.open(port);
-        this.lastKnownPositions  = [];
+        if(this.serial)
+            this.serial = serial.open(this.port);
+        this.lastKnownPositions = [];
         this.lastTargetPositions = [];
-        this.obstacles = [];
-        this.language = 'DE';
+        broker.devices.set(this.port, this);
+        if(!this.serial)broker.emit('devicesChanged', broker.devices.values());
+        console.log(this.port, 'created.');
     }
 
     disconnect() {
         if(this.onDisconnect)
             this.onDisconnect();
-        serial.close(this.serial);
+        if(this.serial)
+            serial.close(this.serial);
+        broker.devices.delete(this.port);
     }
 
     poll() {
+        if(!this.serial)
+            return;
         const packets = serial.poll(this.serial);
         if(packets.length == 0)
             return;
@@ -68,108 +89,45 @@ class Device extends EventEmitter {
     }
 
     send(packet) {
-        serial.send(this.serial, packet);
+        if(this.serial)
+            serial.send(this.serial, packet);
     }
 
     moveHandleTo(index, target) {
         this.lastTargetPositions[index] = target;
+        this.emit('moveHandleTo', index, target);
+        if(!this.serial) {
+            this.lastKnownPositions[index] = target;
+            this.emit('handleMoved', index, this.lastKnownPositions[index]);
+            return;
+        }
         const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
               packet = new Buffer(1+3*4);
         packet[0] = index;
         packet.writeFloatLE(values[0], 1);
         packet.writeFloatLE(values[1], 5);
         packet.writeFloatLE(values[2], 9);
-        if(this.port!='ViDeb')this.send(packet);
-        this.emit('moveHandleTo', index, target);
-    }
-
-    resetDevice(){
-        broker.emit('devicesChanged', broker.devices.values());
-    }
-
-    run_script(promise_list) {
-        this._running_script = true;
-        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
-        co(script_generator)
-        .catch(console.log)
-    }
-
-    speakText(txt) {
-      var speak_voice = "Anna";
-      if (this.language == "EN") {
-          speak_voice = "Alex";
-      }
-      this.emit('saySpeak', txt);
-      return say.speak(txt, speak_voice, 1.4, (err) => {
-          if(err) {
-              console.error(err);
-              return;
-          }
-      });
-    }
-
-    sayText(txt) {
-      this.run_script([
-        () => this.speakText(txt)
-      ]);
-    }
-
-    playSound(filename) {
-      console.log('play sound is not implemented yet');
-    }
-
-    addKeyPhrase(keyPhrase, func){
-      console.log('voiceInput is not supported yet');
-    }
-
-    waitMS(ms) {
-        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
-    }
-
-    unblockHandle(index){
-      return new Promise (resolve => 
-      {
-          this.unblock(index);
-          resolve(resolve);
-      });
-    }
-
-    unblock(index) {
-      this.moveHandleTo(index);
+        this.send(packet);
     }
 }
-
-function *conditional_promise_generator(promise_list, condition_fn){
-  for(var i = 0; condition_fn() && i < promise_list.length; i++) {
-      yield promise_list[i]();
-  }
-}
-
 
 function serialRecv() {
     setImmediate(serialRecv);
     for(const device of broker.devices.values())
-        if(device.port!='ViDeb')device.poll();
+        device.poll();
 }
 serialRecv();
 
 function autoDetectDevices() {
     SerialPort.list(function(err, ports) {
-        if(err)
+        if(err) {
             console.error(err);
-        else
-            for(const port of ports)
-                if(port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader'))){
-                    console.log('connected to : '+port.comName);
-                    new Device(port.comName);
-                }
+            return;
+        }
+        for(const port of ports)
+            if(port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader')))
+                new Device(port.comName);
         broker.emit('devicesChanged', broker.devices.values());
     });
 }
-
-setTimeout(() => {
-    new Device('ViDeb');
-    broker.emit('devicesChanged', broker.devices.values());
-}, 100);
-
 autoDetectDevices();

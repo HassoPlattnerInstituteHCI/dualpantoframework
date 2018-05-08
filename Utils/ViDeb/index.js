@@ -59,12 +59,18 @@ wsServer.on('request', (request) => {
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', (message) => {
-        if(message.utf8Data=='ViDebRecconect'){
-            for(const device of Framework.getDevices()) {
-                if(device.port=='ViDeb'){
-                    device.resetDevice();
-                }
-            }
+        const data = JSON.parse(message.utf8Data),
+              device = Framework.getDeviceByPort(data.port);
+        switch(data.type) {
+            case 'createVirtualDevice':
+                Framework.createVirtualDevice();
+                break;
+            case 'moveHandleTo':
+                device.moveHandleTo(data.index, data.position);
+                break;
+            case 'disconnectDevice':
+                device.disconnect();
+                break;
         }
     });
     connection.on('close', (reasonCode, description) => {
@@ -73,42 +79,32 @@ wsServer.on('request', (request) => {
     });
     for(const device of Framework.getDevices()) {
         device.on('handleMoved', (i, p) => {
-            const payload = {
-                type: "handleMoved",
-                board: "your_serial_board",
-                id: i,
-                pos:{
-                    x: p.x,
-                    y: p.y,
-                    r: p.r
-                }
+            const packet = {
+                type: 'handleMoved',
+                port: device.port,
+                index: i,
+                position: p
             };
-            for(connetion of connections) {
-                connection.sendUTF(JSON.stringify(payload));
-            }
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
         });
         device.on('moveHandleTo', (i, p) => {
-            const payload = {
-                type: "moveHandleTo",
-                id: i,
-                pos:{
-                    x: p.x,
-                    y: p.y,
-                    r: p.r
-                }
+            const packet = {
+                type: 'moveHandleTo',
+                port: device.port,
+                index: i,
+                position: p
             };
-            for(connetion of connections) {
-                connection.sendUTF(JSON.stringify(payload));
-            }
-        });
-        device.on('saySpeak', (text) => {
-            const payload = {
-                type: "saySpeak",
-                text: text
-            };
-            for(connetion of connections) {
-                connection.sendUTF(JSON.stringify(payload));
-            }
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
         });
     }
+    Framework.on('saySpeak', (text) => {
+        const packet = {
+            type: 'saySpeak',
+            text: text
+        };
+        for(connetion of connections)
+            connection.sendUTF(JSON.stringify(packet));
+    });
 });
