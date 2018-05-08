@@ -19,19 +19,18 @@ class Broker extends EventEmitter {
     }
 
     run_script(promise_list) {
-      this._running_script = true;
-      var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+      var script_generator = conditional_promise_generator(promise_list, () => true);
       co(script_generator)
       .catch(console.log)
     }
 
-    speakText(txt, language) {
+    speakText(txt, language='DE', speed=1.4) {
       var speak_voice = "Anna";
       if (language == "EN") {
           speak_voice = "Alex";
       }
       this.emit('saySpeak', txt);
-      return say.speak(txt, speak_voice, 1.4, (err) => {
+      return say.speak(txt, speak_voice, speed, (err) => {
           if(err) {
               console.error(err);
               return;
@@ -52,7 +51,7 @@ class Broker extends EventEmitter {
     setCommands(commands){
       this.voiceCommand = new VoiceCommand(commands);
       this.voiceCommand.on('command', function(command) {
-        console.log(command);
+        console.log('Keyword Recognized: ',command);
         this.emit('keywordRecognized', command);
       }.bind(this));
     }
@@ -90,7 +89,7 @@ class Device extends EventEmitter {
     constructor(port) {
         if(process.platform == 'darwin') // macOS
             port = port.replace('/tty.', '/cu.');
-        else if(process.platform == 'win32') // windows
+        else if(port!='ViDeb' && process.platform == 'win32') // windows
             port = '//.//'+port;
         if(broker.devices.has(port))
             return broker.devices.get(port);

@@ -43,7 +43,6 @@ function start(){
   });
 
   PantoConnector.on('keywordRecognized', function(word){
-    console.log(word);
     if(word === 'Hotels'){
       showHotels();
     }
