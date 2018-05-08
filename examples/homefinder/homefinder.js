@@ -19,13 +19,13 @@ function start(){
     () => PantoConnector.speakText('Willkommen zu Homfinder', language),
     () => PantoConnector.waitMS(500),
     () => PantoConnector.speakText('Sie sind hier.', language),
-    () => connector.movePantoTo(0,new Vector(-100, -150, 0)),
+    () => connector.movePantoTo(0,new Vector(-50, -75, 0)),
     () => PantoConnector.waitMS(500),
-    () => connector.movePantoTo(1,new Vector(-100, -150, 0)),
+    () => connector.movePantoTo(1,new Vector(-50, -75, 0)),
     () => PantoConnector.waitMS(500),
 
     () => PantoConnector.speakText('Das', language),
-    () => connector.movePantoTo(1, new Vector(-100, -100, 0)),
+    () => connector.movePantoTo(1, new Vector(-50, -50, 0)),
     () => PantoConnector.waitMS(500),
     () => PantoConnector.speakText('ist Berlin Hauptbahnhof', language),
     () => PantoConnector.waitMS(500),
@@ -54,12 +54,12 @@ function start(){
 function showHotels(){
     PantoConnector.run_script([
     () => PantoConnector.speakText('Das', language),
-    () => connector.movePantoTo(1, new Vector(100, -100, 0)),
+    () => connector.movePantoTo(1, new Vector(50, -50, 0)),
     () => PantoConnector.waitMS(500),
     () => PantoConnector.speakText('ist Hotel Adlon', language),
     () => PantoConnector.waitMS(500),
     () => PantoConnector.speakText('Das', language),
-    () => connector.movePantoTo(1, new Vector(100, -150, 0)),
+    () => connector.movePantoTo(1, new Vector(50, -75, 0)),
     () => PantoConnector.waitMS(500),
     () => PantoConnector.speakText('ist Hotel Air B&B', language),
     () => PantoConnector.waitMS(500)
@@ -67,13 +67,13 @@ function showHotels(){
 }
 
 function nearbyLocation(position){
-  let dif1 = position.difference(new Vector(100, -100, 0)).length();
-  let dif2 = position.difference(new Vector(100, -150, 0)).length();
+  let dif1 = position.difference(new Vector(50, -50, 0)).length();
+  let dif2 = position.difference(new Vector(50, -75, 0)).length();
   if(dif1 <= 10){
     follow = false;
     PantoConnector.run_script([
       () => PantoConnector.speakText('Das', language),
-      () => connector.movePantoTo(1, new Vector(100, -100, 0)),
+      () => connector.movePantoTo(1, new Vector(50, -50, 0)),
       () => PantoConnector.waitMS(500),
       () => PantoConnector.speakText('ist Hotel Adlon', language),
       () => PantoConnector.waitMS(500),
@@ -83,7 +83,7 @@ function nearbyLocation(position){
     follow = false;
     PantoConnector.run_script([
       () => PantoConnector.speakText('Das', language),
-      () => connector.movePantoTo(1, new Vector(100, -150, 0)),
+      () => connector.movePantoTo(1, new Vector(50, -75, 0)),
       () => PantoConnector.waitMS(500),
       () => PantoConnector.speakText('ist Hotel Air B&B', language),
       () => PantoConnector.waitMS(500)
