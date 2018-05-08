@@ -8,12 +8,73 @@ const serial = require('./build/Release/serial'),
       co = require('co'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
-      WebsocketClient = require('websocket').client;
+      WebsocketClient = require('websocket').client,
+      VoiceCommand = require('./voice-command');
 
 class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
+        this.voiceCommand;
+    }
+
+    run_script(promise_list) {
+      this._running_script = true;
+      var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+      co(script_generator)
+      .catch(console.log)
+    }
+
+    speakText(txt, language) {
+      var speak_voice = "Anna";
+      if (language == "EN") {
+          speak_voice = "Alex";
+      }
+      this.emit('saySpeak', txt);
+      return say.speak(txt, speak_voice, 1.4, (err) => {
+          if(err) {
+              console.error(err);
+              return;
+          }
+      });
+    }
+
+    sayText(txt) {
+      this.run_script([
+        () => this.speakText(txt)
+      ]);
+    }
+
+    playSound(filename) {
+      console.log('play sound is not implemented yet');
+    }
+
+    setCommands(commands){
+      this.voiceCommand = new VoiceCommand(commands);
+      this.voiceCommand.on('command', function(command) {
+        console.log(command);
+        this.emit('keywordRecognized', command);
+      }.bind(this));
+    }
+
+    beginListening(){
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.startListening();
+        resolve(resolve);
+      });
+    }
+
+    haltListening(){
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.stopListening();
+        resolve(resolve);
+      });
+    }
+
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     getDevices() {
@@ -40,7 +101,6 @@ class Device extends EventEmitter {
         this.lastKnownPositions  = [];
         this.lastTargetPositions = [];
         this.obstacles = [];
-        this.language = 'DE';
     }
 
     disconnect() {
@@ -83,47 +143,16 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
     }
 
+    movePantoTo(index, target){
+      return new Promise (resolve => 
+        {
+            this.moveHandleTo(index, target);
+            resolve(resolve);
+        });
+    }
+
     resetDevice(){
         broker.emit('devicesChanged', broker.devices.values());
-    }
-
-    run_script(promise_list) {
-        this._running_script = true;
-        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
-        co(script_generator)
-        .catch(console.log)
-    }
-
-    speakText(txt) {
-      var speak_voice = "Anna";
-      if (this.language == "EN") {
-          speak_voice = "Alex";
-      }
-      this.emit('saySpeak', txt);
-      return say.speak(txt, speak_voice, 1.4, (err) => {
-          if(err) {
-              console.error(err);
-              return;
-          }
-      });
-    }
-
-    sayText(txt) {
-      this.run_script([
-        () => this.speakText(txt)
-      ]);
-    }
-
-    playSound(filename) {
-      console.log('play sound is not implemented yet');
-    }
-
-    addKeyPhrase(keyPhrase, func){
-      console.log('voiceInput is not supported yet');
-    }
-
-    waitMS(ms) {
-        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     unblockHandle(index){
@@ -157,13 +186,15 @@ function autoDetectDevices() {
     SerialPort.list(function(err, ports) {
         if(err)
             console.error(err);
-        else
-            for(const port of ports)
-                if(port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader'))){
-                    console.log('connected to : '+port.comName);
-                    new Device(port.comName);
-                }
-        broker.emit('devicesChanged', broker.devices.values());
+        else{
+            for(const port of ports){
+              if(port && port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader'))){
+                  console.log('connected to : '+port.comName);
+                  new Device(port.comName);
+              }
+            }
+            broker.emit('devicesChanged', broker.devices.values());
+        }
     });
 }
 
