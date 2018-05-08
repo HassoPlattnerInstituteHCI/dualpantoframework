@@ -14,6 +14,7 @@ class Broker extends EventEmitter {
     constructor() {
         super();
         this.devices = new Map();
+        this.voiceCommand;
     }
 
     run_script(promise_list) {
@@ -48,19 +49,27 @@ class Broker extends EventEmitter {
     }
 
     setCommands(commands){
-      var voiceCommand = new VoiceCommand(commands);
-      voiceCommand.on('command', function(command) {
-        this.emit('keyWordsRecognized', command);
-      });
-      voiceCommand.startListening();
+      this.voiceCommand = new VoiceCommand(commands);
+      this.voiceCommand.on('command', function(command) {
+        console.log('Keyword Recognized: ',command);
+        this.emit('keywordRecognized', command);
+      }.bind(this));
     }
 
     beginListening(){
-      voiceCommand.startListening();
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.startListening();
+        resolve(resolve);
+      });
     }
 
     haltListening(){
-      voiceCommand.stopListening();
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.stopListening();
+        resolve(resolve);
+      });
     }
 
     waitMS(ms) {

@@ -14,7 +14,13 @@ DualPantoFramework.on('devicesChanged', function(devices){
 });
 
 
-function start(){  
+function start(){
+  DualPantoFramework.setCommands(['Hotels']);
+  device.on('handleMoved', function(index, position){
+    if(follow && index == 0){
+      nearbyLocation(position);
+    }
+  });
 
   DualPantoFramework.run_script([
     () => DualPantoFramework.speakText('Willkommen zu Homefinder', language),
@@ -32,13 +38,6 @@ function start(){
     () => refollow(),
     () => DualPantoFramework.beginListening()
   ]);
-  
-  DualPantoFramework.setCommands(['Hotels']);
-  device.on('handleMoved', function(index, position){
-    if(follow && index == 0){
-      nearbyLocation(position);
-    }
-  });
 
   DualPantoFramework.on('keywordRecognized', function(word){
     if(word === 'Hotels'){
