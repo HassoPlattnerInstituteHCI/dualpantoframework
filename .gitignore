@@ -9,3 +9,43 @@ persistent.json
 *.obj
 
 *.exe
+
+src/osx/voice-command/build
+.bin/
+
+
+# User-specific files
+*.DS_Store
+*.suo
+*.sln.ide/
+*.user
+*.userosscache
+*.sln.docstates
+*.plist
+*.xccheckout
+!src/osx/voice-command/voice-command.xcodeproj/project.xcworkspace/xcuserdata/baluubas.xcuserdatad
+!src/osx/voice-command/voice-command.xcodeproj/xcuserdata/baluubas.xcuserdatad
+*.xcuserdatad
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+*.lock
+
+*.ide
+
+*.ide-shm
+
+*.ide-wal

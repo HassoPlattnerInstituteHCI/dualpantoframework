@@ -1,3 +1,0 @@
-[submodule "voice-command"]
-	path = voice-command
-	url = git@github.com:HassoPlattnerInstituteHCI/voice-command.git
