@@ -9,7 +9,7 @@ const serial = require('./build/Release/serial'),
       co = require('co'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
-      WebsocketClient = require('websocket').client;
+      VoiceCommand = require('./voice-command');
 
 class Broker extends EventEmitter {
     constructor() {
@@ -17,6 +17,66 @@ class Broker extends EventEmitter {
         this.devices = new Map();
         this.prevDevices = new Set();
         this.disconnectTimeout = 5; // Seconds
+        this.voiceCommand;
+    }
+
+    run_script(promise_list) {
+      this._running_script = true;
+      var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+      co(script_generator)
+      .catch(console.log)
+    }
+
+    speakText(txt, language) {
+      var speak_voice = "Anna";
+      if (language == "EN") {
+          speak_voice = "Alex";
+      }
+      this.emit('saySpeak', txt);
+      return say.speak(txt, speak_voice, 1.4, (err) => {
+          if(err) {
+              console.error(err);
+              return;
+          }
+      });
+    }
+
+    sayText(txt) {
+      this.run_script([
+        () => this.speakText(txt)
+      ]);
+    }
+
+    playSound(filename) {
+      console.log('play sound is not implemented yet');
+    }
+
+    setCommands(commands){
+      this.voiceCommand = new VoiceCommand(commands);
+      this.voiceCommand.on('command', function(command) {
+        console.log('Keyword Recognized: ',command);
+        this.emit('keywordRecognized', command);
+      }.bind(this));
+    }
+
+    beginListening(){
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.startListening();
+        resolve(resolve);
+      });
+    }
+
+    haltListening(){
+      return new Promise (resolve => 
+      {
+        this.voiceCommand.stopListening();
+        resolve(resolve);
+      });
+    }
+
+    waitMS(ms) {
+        return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
 
     getDevices() {
@@ -116,6 +176,26 @@ class Device extends EventEmitter {
         packet.writeFloatLE(values[2], 9);
         this.send(packet);
     }
+
+    movePantoTo(index, target){
+      return new Promise (resolve => 
+        {
+            this.moveHandleTo(index, target);
+            resolve(resolve);
+        });
+    }
+
+    unblockHandle(index){
+      return new Promise (resolve => 
+      {
+          this.unblock(index);
+          resolve(resolve);
+      });
+    }
+
+    unblock(index) {
+      this.moveHandleTo(index);
+    }
 }
 
 function serialRecv() {
@@ -138,6 +218,11 @@ function serialRecv() {
 serialRecv();
 
 
+function *conditional_promise_generator(promise_list, condition_fn){
+  for(var i = 0; condition_fn() && i < promise_list.length; i++) {
+      yield promise_list[i]();
+  }
+}
 
 function autoDetectDevices() {
     SerialPort.list(function(err, ports) {

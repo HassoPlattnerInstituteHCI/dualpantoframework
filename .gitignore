@@ -1,4 +1,5 @@
 serial
+!voice-command/build/build-release.js
 build/
 node_modules/
 package-lock.json
@@ -9,3 +10,42 @@ persistent.json
 *.obj
 
 *.exe
+
+src/osx/voice-command/build
+.bin/
+
+
+# User-specific files
+*.DS_Store
+*.suo
+*.sln.ide/
+*.user
+*.userosscache
+*.sln.docstates
+*.plist
+*.xccheckout
+!voice-command/src/osx/voice-command/voice-command.xcodeproj/project.xcworkspace/xcuserdata/baluubas.xcuserdatad
+!voice-command/src/osx/voice-command/voice-command.xcodeproj/xcuserdata/baluubas.xcuserdatad
+*.xcuserdatad
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+
+*.lock
+
+*.ide
+
+*.ide-shm
+
+*.ide-wal
