@@ -1,13 +1,13 @@
-const PantoConnector = require('./dualpantoframework/Framework.js'),
+const DualPantoFramework = require('./dualpantoframework/Framework.js'),
       Vector = require('./dualpantoframework/Vector.js'),
       language = 'DE';
-let connector;
+let device;
 let follow = false;
 
-PantoConnector.on('devicesChanged', function(devices){
-  for(const device of devices){
-    if(!connector){
-      connector = device
+DualPantoFramework.on('devicesChanged', function(devices){
+  for(const newdevice of devices){
+    if(!device){
+      device = newdevice
       start();
     }
   }
@@ -15,34 +15,31 @@ PantoConnector.on('devicesChanged', function(devices){
 
 
 function start(){  
-  PantoConnector.run_script([
-    () => PantoConnector.speakText('Willkommen zu Homfinder', language),
-    () => PantoConnector.waitMS(500),
-    () => PantoConnector.speakText('Sie sind hier.', language),
-    () => connector.movePantoTo(0,new Vector(-100, -150, 0)),
-    () => PantoConnector.waitMS(500),
-    () => connector.movePantoTo(1,new Vector(-100, -150, 0)),
-    () => PantoConnector.waitMS(500),
-
-    () => PantoConnector.speakText('Das', language),
-    () => connector.movePantoTo(1, new Vector(-100, -100, 0)),
-    () => PantoConnector.waitMS(500),
-    () => PantoConnector.speakText('ist Berlin Hauptbahnhof', language),
-    () => PantoConnector.waitMS(500),
-    () => PantoConnector.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandtorte.', language),
-    () => PantoConnector.waitMS(500),
-    () => connector.unblockHandle(0),
+  DualPantoFramework.run_script([
+    () => DualPantoFramework.speakText('Willkommen zu Homfinder', language),
+    () => DualPantoFramework.waitMS(500),
+    () => DualPantoFramework.speakText('Sie sind aktuell hier.', language),
+    () => device.movePantoTo(0,new Vector(-100, -150, 0)),
+    () => DualPantoFramework.waitMS(500),
+    () => DualPantoFramework.speakText('Berlin ist so große.', language),
+    () => device.movePantoTo(1,new Vector(-100, -150, 0)),
+    //TODO: here display a square around the field
+  
+    () => DualPantoFramework.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandtorte.', language),
+    () => DualPantoFramework.waitMS(500),
+    () => device.unblockHandle(0),
     () => refollow(),
-    () => PantoConnector.beginListening()
+    () => DualPantoFramework.beginListening()
   ]);
-  PantoConnector.setCommands(['Hotels']);
-  connector.on('handleMoved', function(index, position){
+  
+  DualPantoFramework.setCommands(['Hotels']);
+  device.on('handleMoved', function(index, position){
     if(follow && index == 0){
       nearbyLocation(position);
     }
   });
 
-  PantoConnector.on('keywordRecognized', function(word){
+  DualPantoFramework.on('keywordRecognized', function(word){
     console.log(word);
     if(word === 'Hotels'){
       showHotels();
@@ -52,17 +49,17 @@ function start(){
 
 
 function showHotels(){
-    PantoConnector.run_script([
-    () => PantoConnector.speakText('Das', language),
-    () => connector.movePantoTo(1, new Vector(100, -100, 0)),
-    () => PantoConnector.waitMS(500),
-    () => PantoConnector.speakText('ist Hotel Adlon', language),
-    () => PantoConnector.waitMS(500),
-    () => PantoConnector.speakText('Das', language),
-    () => connector.movePantoTo(1, new Vector(100, -150, 0)),
-    () => PantoConnector.waitMS(500),
-    () => PantoConnector.speakText('ist Hotel Air B&B', language),
-    () => PantoConnector.waitMS(500)
+    DualPantoFramework.run_script([
+    () => DualPantoFramework.speakText('Das', language),
+    () => device.movePantoTo(1, new Vector(100, -100, 0)),
+    () => DualPantoFramework.waitMS(500),
+    () => DualPantoFramework.speakText('ist Hotel Adlon', language),
+    () => DualPantoFramework.waitMS(500),
+    () => DualPantoFramework.speakText('Das', language),
+    () => device.movePantoTo(1, new Vector(100, -150, 0)),
+    () => DualPantoFramework.waitMS(500),
+    () => DualPantoFramework.speakText('ist Hotel Air B&B', language),
+    () => DualPantoFramework.waitMS(500)
   ]);
 }
 
@@ -71,22 +68,22 @@ function nearbyLocation(position){
   let dif2 = position.difference(new Vector(100, -150, 0)).length();
   if(dif1 <= 10){
     follow = false;
-    PantoConnector.run_script([
-      () => PantoConnector.speakText('Das', language),
-      () => connector.movePantoTo(1, new Vector(100, -100, 0)),
-      () => PantoConnector.waitMS(500),
-      () => PantoConnector.speakText('ist Hotel Adlon', language),
-      () => PantoConnector.waitMS(500),
+    DualPantoFramework.run_script([
+      () => DualPantoFramework.speakText('Das', language),
+      () => device.movePantoTo(1, new Vector(100, -100, 0)),
+      () => DualPantoFramework.waitMS(500),
+      () => DualPantoFramework.speakText('ist Hotel Adlon', language),
+      () => DualPantoFramework.waitMS(500),
     ]);
   }
   if(dif2 <= 10){
     follow = false;
-    PantoConnector.run_script([
-      () => PantoConnector.speakText('Das', language),
-      () => connector.movePantoTo(1, new Vector(100, -150, 0)),
-      () => PantoConnector.waitMS(500),
-      () => PantoConnector.speakText('ist Hotel Air B&B', language),
-      () => PantoConnector.waitMS(500)
+    DualPantoFramework.run_script([
+      () => DualPantoFramework.speakText('Das', language),
+      () => device.movePantoTo(1, new Vector(100, -150, 0)),
+      () => DualPantoFramework.waitMS(500),
+      () => DualPantoFramework.speakText('ist Hotel Air B&B', language),
+      () => DualPantoFramework.waitMS(500)
     ]);
   }
 }
