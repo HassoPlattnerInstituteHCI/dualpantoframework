@@ -128,12 +128,12 @@
             document.getElementById('status-serial').className = 'badge badge-success';
             let node = document.createElement('li');
             const data = JSON.parse(event.data);
-            node.className = 'history-item'
+            node.className = 'history-item';
+            const panto = (data.index == 0) ? UpperPanto : LowerPanto;
             switch(data.type) {
                 case 'handleMoved':
                     node.className = 'history-item-move'
                     // TODO use data.port
-                    const panto = (data.index == 0) ? UpperPanto : LowerPanto;
                     panto.goalX = data.position.x;
                     panto.goalY = data.position.y;
                     // TODO use data.position.r
@@ -141,6 +141,13 @@
                     break;
                 case 'moveHandleTo':
                     // TODO
+                    if(data.position){
+                      panto.targetX = data.position.x;
+                      panto.targetY = -data.position.y;
+                      panto.pointingAngle = data.position.r;
+                      panto.inverseKinematicsNumeric(panto.targetX,panto.targetY);
+                      flushGlyph();
+                    }
                     break;
                 case 'saySpeak':
                     node.className = 'history-item-say'
@@ -195,12 +202,12 @@
               UpperPanto.inverseKinematicsNumeric(UpperPanto.targetX,UpperPanto.targetY);
               flushGlyph();
               const packet = {
-                type: 'moveHandleTo',
+                type: 'handleMoved',
                 port: 'virtual0', // TODO
                 index: 0,
                 position: {
                   x: UpperPanto.targetX,
-                  y: UpperPanto.targetY,
+                  y: -UpperPanto.targetY,
                   r: 0 // TODO
                 }
               };
@@ -212,12 +219,12 @@
               LowerPanto.inverseKinematicsNumeric(LowerPanto.targetX,LowerPanto.targetY);
               flushGlyph();
               const packet = {
-                type: 'moveHandleTo',
+                type: 'handleMoved',
                 port: 'virtual0', // TODO
                 index: 1,
                 position: {
                   x: LowerPanto.targetX,
-                  y: LowerPanto.targetY,
+                  y: -LowerPanto.targetY,
                   r: 0 // TODO
                 }
               };

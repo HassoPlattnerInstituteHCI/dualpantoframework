@@ -171,12 +171,17 @@ class Device extends EventEmitter {
             serial.send(this.serial, packet);
     }
 
+    handleMoved(index, position) {
+        position = new Vector(position.x, position.y, position.r);
+        this.emit('handleMoved', index, position);
+    }
+
     moveHandleTo(index, target) {
         this.lastTargetPositions[index] = target;
         this.emit('moveHandleTo', index, target);
         if(!this.serial) {
             this.lastKnownPositions[index] = target;
-            this.emit('handleMoved', index, this.lastKnownPositions[index]);
+            this.emit('moveHandleTo', index, this.lastKnownPositions[index]);
             return;
         }
         const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
