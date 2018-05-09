@@ -71,6 +71,11 @@ wsServer.on('request', (request) => {
             case 'disconnectDevice':
                 device.disconnect();
                 break;
+            case 'inputText':
+                Framework.emit('keywordRecognized', data.text);
+                break;
+            default :
+                break;
         }
     });
     connection.on('close', (reasonCode, description) => {
