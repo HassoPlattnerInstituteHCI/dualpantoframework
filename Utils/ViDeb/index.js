@@ -82,16 +82,6 @@ wsServer.on('request', (request) => {
                 for(connetion of connections)
                     connection.sendUTF(JSON.stringify(packet));
             });
-            device.on('movePantoTo', (i, p) => {
-                const packet = {
-                    type: 'movePantoTo',
-                    port: device.port,
-                    index: i,
-                    position: p
-                };
-                for(connetion of connections)
-                    connection.sendUTF(JSON.stringify(packet));
-            });
         // }
     }
     connection.on('message', (message) => {
