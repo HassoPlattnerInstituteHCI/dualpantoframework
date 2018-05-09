@@ -4,6 +4,8 @@ const DualPantoFramework = require('./dualpantoframework/Framework.js'),
       language = 'DE';
 let device;
 let follow = false;
+let hotels = [new Vector(50, -50, 0), new Vector(75, -75, 0)];
+let area = "start";
 
 DualPantoFramework.on('devicesChanged', function(devices){
   for(const newdevice of devices){
@@ -14,12 +16,30 @@ DualPantoFramework.on('devicesChanged', function(devices){
   }
 });
 
+function inArea(position_me, position_hotel) {
+    return  position_me.difference(position_hotel).length() <= 10;
+}
+
+function getArea(position) {
+    let area = "";
+    if (inArea(position, hotels[0])) {
+        area = "first_Hotel"
+    } else if (inArea(position, hotels[1])) {
+        area = "second_Hotel"     
+    } else {
+        area = "start";
+    }
+    return area;
+}
 
 function start(){
   VoiceInteraction.setCommands(['Hotels']);
   device.on('handleMoved', function(index, position){
     if(follow && index == 0){
-      nearbyLocation(position);
+      if(!(getArea(position) === area)){
+        area = getArea(position);
+        nearbyLocation(area);
+      }
     }
   });
 
@@ -63,28 +83,26 @@ function showHotels(){
   ]);
 }
 
-function nearbyLocation(position){
-  let dif1 = position.difference(new Vector(50, -50, 0)).length();
-  let dif2 = position.difference(new Vector(50, -75, 0)).length();
-  if(dif1 <= 10){
+function nearbyLocation(area){
+  if(area === "first_Hotel"){
     follow = false;
     DualPantoFramework.run_script([
       () => VoiceInteraction.speakText('Das', language),
-      () => device.movePantoTo(1, new Vector(50, -50, 0)),
+      () => device.movePantoTo(1, hotels[0]),
       () => DualPantoFramework.waitMS(500),
       () => VoiceInteraction.speakText('ist Hotel Adlon', language),
-      () => DualPantoFramework.waitMS(2000),
+      () => DualPantoFramework.waitMS(500),
       () => refollow()
     ]);
   }
-  if(dif2 <= 10){
+  if(area === "second_Hotel"){
     follow = false;
     DualPantoFramework.run_script([
       () => VoiceInteraction.speakText('Das', language),
-      () => device.movePantoTo(1, new Vector(50, -75, 0)),
+      () => device.movePantoTo(1, hotels[1]),
       () => DualPantoFramework.waitMS(500),
       () => VoiceInteraction.speakText('ist Hotel Air B&B', language),
-      () => DualPantoFramework.waitMS(2000),
+      () => DualPantoFramework.waitMS(500),
       () => refollow()
     ]);
   }
