@@ -61,7 +61,8 @@ wsServer.on('request', (request) => {
     for(let device of Framework.getDevices())
             bindEventHandler(device);
     function bindEventHandler(device){
-        // for(device of devices){
+            device.lastKnownPositions[0] = new Vector(0,0,0);
+            device.lastKnownPositions[1] = new Vector(0,0,0);
             device.on('handleMoved', (i, p) => {
                 const packet = {
                     type: 'handleMoved',
