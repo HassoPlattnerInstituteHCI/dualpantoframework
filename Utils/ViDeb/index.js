@@ -2,7 +2,7 @@ var   http        = require('http'),
       fs          = require('fs'),
       path        = require('path'),
       WebSocketServer = require('websocket').server,
-      Framework   = require('../../Framework.js');
+      Framework   = require('../../Framework.js'),
       connections = new Set();
 
 const server = http.createServer((request, response) => {
@@ -61,8 +61,6 @@ wsServer.on('request', (request) => {
     for(let device of Framework.getDevices())
             bindEventHandler(device);
     function bindEventHandler(device){
-            device.lastKnownPositions[0] = new Vector(0,0,0);
-            device.lastKnownPositions[1] = new Vector(0,0,0);
             device.on('handleMoved', (i, p) => {
                 const packet = {
                     type: 'handleMoved',
