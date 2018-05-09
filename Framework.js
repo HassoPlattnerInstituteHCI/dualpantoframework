@@ -21,13 +21,13 @@ class VoiceInteraction extends EventEmitter{
     this.voiceCommand;
   }
 
-  speakText(txt, language) {
+  speakText(txt, language = 'DE', speed = 1.4) {
       var speak_voice = "Anna";
       if (language == "EN") {
           speak_voice = "Alex";
       }
       this.emit('saySpeak', txt);
-      return say.speak(txt, speak_voice, 1.4, (err) => {
+      return say.speak(txt, speak_voice, speed, (err) => {
           if(err) {
               console.error(err);
               return;
@@ -127,6 +127,8 @@ class Device extends EventEmitter {
         }
         this.port = port;
         this.lastKnownPositions = [];
+        this.lastKnownPositions[0] = new Vector(0,0,0);
+        this.lastKnownPositions[1] = new Vector(0,0,0);
         this.lastTargetPositions = [];
         this.lastReceiveTime = process.hrtime();
         broker.devices.set(this.port, this);
