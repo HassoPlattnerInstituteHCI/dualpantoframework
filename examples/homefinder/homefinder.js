@@ -17,8 +17,9 @@ DualPantoFramework.on('devicesChanged', function(devices){
 function start(){
   DualPantoFramework.setCommands(['Hotels']);
   device.on('handleMoved', function(index, position){
+    console.log(index, position);
     if(follow && index == 0){
-      nearbyLocation(position);
+      nearbyLocation(new Vector(position.x, position.y));
     }
   });
 
