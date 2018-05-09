@@ -160,6 +160,11 @@ class Device extends EventEmitter {
             serial.send(this.serial, packet);
     }
 
+    handleMoved(index, position) {
+        position = new Vector(position.x, position.y, position.r);
+        this.emit('handleMoved', index, position);
+    }
+
     moveHandleTo(index, target) {
         this.lastTargetPositions[index] = target;
         this.emit('moveHandleTo', index, target);
