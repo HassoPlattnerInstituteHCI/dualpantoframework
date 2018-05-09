@@ -80,10 +80,10 @@ class Broker extends EventEmitter {
     }
 
     run_script(promise_list) {
-      this._running_script = true;
-      var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
-      co(script_generator)
-      .catch(console.log)
+        this._running_script = true;
+        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+        co(script_generator)
+        .catch(console.log)
     }
 
     waitMS(ms) {
@@ -188,8 +188,8 @@ class Device extends EventEmitter {
         this.send(packet);
     }
 
-    movePantoTo(index, target, duration=500, interpolation_method=TWEEN.Easing.Quadratic.Out){
-      return new Promise (resolve => 
+    movePantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
+        return new Promise (resolve => 
         {
             this.tweenPantoTo(index, target, duration, interpolation_method);
             resolve(resolve);
@@ -197,49 +197,44 @@ class Device extends EventEmitter {
     }
 
     unblockHandle(index){
-      return new Promise (resolve => 
-      {
-          this.unblock(index);
-          resolve(resolve);
-      });
+        return new Promise (resolve => 
+        {
+            this.unblock(index);
+            resolve(resolve);
+        });
     }
 
     unblock(index) {
       this.moveHandleTo(index);
     }
 
-    tweenPantoTo(index, target, duration, interpolation_method=TWEEN.Easing.Quadratic.Out)
-    {
-      
-      if (duration == undefined) {
-          duration = 500;
-      }
-      let tweenPosition = undefined;
-      if (index == 0 && this.lastKnownPositions[0]) {
-          tweenPosition = this.lastKnownPositions[0];
-      } else if (index == 1 && this.lastKnownPositions[1]) {
-          tweenPosition = this.lastKnownPositions[1];
-      }
-      if(tweenPosition)
-      {
+    tweenPantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
+        let tweenPosition = undefined;
+        if (index == 0 && this.lastKnownPositions[0]) {
+            tweenPosition = this.lastKnownPositions[0];
+        } else if (index == 1 && this.lastKnownPositions[1]) {
+            tweenPosition = this.lastKnownPositions[1];
+        }
+        if(tweenPosition)
+        {
           tween_stack_counter++;
 
-          if(tween_stack_counter == 1)
-          {
-              setTimeout(animateTween, TWEEN_INTERVAL);
-          }
+        if(tween_stack_counter == 1)
+        {
+            setTimeout(animateTween, TWEEN_INTERVAL);
+        }
 
-          let tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
-              .to(target, duration)
-              .easing(interpolation_method) // Use an easing function to make the animation smooth.
-              .onUpdate(() => { // Called after tween.js updates 'tweenPosition'.
-                  this.moveHandleTo(index, tweenPosition);
-              })
-              .onComplete(function() {
-                  tween_stack_counter--;
-              })
-              .start(); // Start the tween immediately.
-          }
+        let tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
+            .to(target, duration)
+            .easing(interpolation_method) // Use an easing function to make the animation smooth.
+            .onUpdate(() => { // Called after tween.js updates 'tweenPosition'.
+                this.moveHandleTo(index, tweenPosition);
+            })
+            .onComplete(() => {
+                tween_stack_counter--;
+            })
+            .start(); // Start the tween immediately.
+        }
     }
 }
 
@@ -270,10 +265,10 @@ function *conditional_promise_generator(promise_list, condition_fn){
 }
 
 function animateTween() {
-  TWEEN.update();
-  if(tween_stack_counter > 0) {
-      setTimeout(animateTween, TWEEN_INTERVAL);
-  }
+    TWEEN.update();
+    if(tween_stack_counter > 0) {
+        setTimeout(animateTween, TWEEN_INTERVAL);
+    }
 }
 
 function autoDetectDevices() {
