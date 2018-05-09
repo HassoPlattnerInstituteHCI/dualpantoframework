@@ -94,6 +94,9 @@ wsServer.on('request', (request) => {
             case 'moveHandleTo':
                 device.moveHandleTo(data.index, data.position);
                 break;
+            case 'handleMoved':
+                device.emit('handleMoved', data.index, data.position);
+                break;
             case 'disconnectDevice':
                 device.disconnect();
                 break;
