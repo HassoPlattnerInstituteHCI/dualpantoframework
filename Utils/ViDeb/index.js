@@ -72,7 +72,7 @@ wsServer.on('request', (request) => {
                 device.disconnect();
                 break;
             case 'inputText':
-                Framework.emit('keywordRecognized', data.text);
+                Framework.voiceInteraction.emit('keywordRecognized', data.text);
                 break;
             default :
                 break;

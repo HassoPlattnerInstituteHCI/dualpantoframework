@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/JotaroS/dualpantoframework#readme",
   "dependencies": {
+    "@tweenjs/tween.js": "^17.2.0",
     "node-gyp": "^3.6.2",
     "play-sound": "^1.1.2",
     "say-promise": "0.0.2",

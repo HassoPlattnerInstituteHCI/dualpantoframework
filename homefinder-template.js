@@ -1,6 +1,7 @@
 'use strict'
 
 const   DualPantoFramework = require('./Framework.js'),
+		VoiceInteraction = DualPantoFramework.voiceInteraction
         Vector = require('./Vector.js');
 
 DualPantoFramework.on('devicesChanged', function(devices) {
@@ -10,5 +11,5 @@ DualPantoFramework.on('devicesChanged', function(devices) {
 });
 
 function start(device) {
-    device.speakText("Welcome to Homefinder"); // "Willkommen zu Homfinder"
+    VoiceInteraction.speakText("Welcome to Homefinder"); // "Willkommen zu Homfinder"
 }
