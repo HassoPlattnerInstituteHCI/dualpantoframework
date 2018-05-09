@@ -76,7 +76,7 @@ class PantographGlyph{
                              / (2 * diagonal.length() * panto.left.linkage.outerLength));
         this.handle = new Vector().fromPolar(this.innerAngle[0], panto.left.linkage.outerLength).add(this.inner[0]);
         this.innerAngle[1] = this.handle.subtract(this.inner[1]).polarAngle();
-        this.pointingAngle = this.handleAngle + this.innerAngle[1];
+        // this.pointingAngle = this.handleAngle + this.innerAngle[1];
     }
     inverseKinematicsHelper(inverted, diff, factor, threshold=0.001) {
         diff *= factor;

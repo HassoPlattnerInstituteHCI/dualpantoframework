@@ -165,7 +165,7 @@ class Device extends EventEmitter {
         this.emit('moveHandleTo', index, target);
         if(!this.serial) {
             this.lastKnownPositions[index] = target;
-            this.emit('handleMoved', index, this.lastKnownPositions[index]);
+            this.emit('moveHandleTo', index, this.lastKnownPositions[index]);
             return;
         }
         const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],

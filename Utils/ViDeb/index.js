@@ -58,12 +58,48 @@ wsServer.on('request', (request) => {
     var connection = request.accept();
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
+    for(let device of Framework.getDevices())
+            bindEventHandler(device);
+    function bindEventHandler(device){
+        // for(device of devices){
+            device.on('handleMoved', (i, p) => {
+                const packet = {
+                    type: 'handleMoved',
+                    port: device.port,
+                    index: i,
+                    position: p
+                };
+                for(connetion of connections)
+                    connection.sendUTF(JSON.stringify(packet));
+            });
+            device.on('moveHandleTo', (i, p) => {
+                const packet = {
+                    type: 'moveHandleTo',
+                    port: device.port,
+                    index: i,
+                    position: p
+                };
+                for(connetion of connections)
+                    connection.sendUTF(JSON.stringify(packet));
+            });
+            device.on('movePantoTo', (i, p) => {
+                const packet = {
+                    type: 'movePantoTo',
+                    port: device.port,
+                    index: i,
+                    position: p
+                };
+                for(connetion of connections)
+                    connection.sendUTF(JSON.stringify(packet));
+            });
+        // }
+    }
     connection.on('message', (message) => {
         const data = JSON.parse(message.utf8Data),
               device = Framework.getDeviceByPort(data.port);
         switch(data.type) {
             case 'createVirtualDevice':
-                Framework.createVirtualDevice();
+            bindEventHandler(Framework.createVirtualDevice());
                 break;
             case 'moveHandleTo':
                 device.moveHandleTo(data.index, data.position);
@@ -77,28 +113,6 @@ wsServer.on('request', (request) => {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         connections.delete(connection);
     });
-    for(const device of Framework.getDevices()) {
-        device.on('handleMoved', (i, p) => {
-            const packet = {
-                type: 'handleMoved',
-                port: device.port,
-                index: i,
-                position: p
-            };
-            for(connetion of connections)
-                connection.sendUTF(JSON.stringify(packet));
-        });
-        device.on('moveHandleTo', (i, p) => {
-            const packet = {
-                type: 'moveHandleTo',
-                port: device.port,
-                index: i,
-                position: p
-            };
-            for(connetion of connections)
-                connection.sendUTF(JSON.stringify(packet));
-        });
-    }
     Framework.on('saySpeak', (text) => {
         const packet = {
             type: 'saySpeak',
