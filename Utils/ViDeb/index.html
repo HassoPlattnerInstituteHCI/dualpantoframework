@@ -72,6 +72,14 @@
             <h3 class="mt-5">controller</h3>
             <button type="button" id="grab-upper" class="btn btn-success" data-toggle="button">Grab Upper</button><br>
             <button type="button" id="grab-lower" class="btn btn-primary" data-toggle="button">Grab Lower</button><br>
+              <div class="form-row">
+                <div class="col-sm-8">
+                  <input type="text" class="form-control" id="text-input" placeholder="Say text input">
+                </div>
+                <div class="col-sm-4">
+                  <button type="button" id="text-input-submit" class="btn btn-info">Send</button>
+                </div>
+              </div>
             <button type="button" id="createVirtualDevice" class="btn btn-info">Create Virtual Device</button><br>
         </div>
         <div class="col-lg-5 text-center">
@@ -161,6 +169,16 @@
         $("#grab-lower").on('click', ()=>{
           if($("#grab-upper").hasClass('active'))
             $("#grab-upper").toggleClass('active');
+        });
+        $("#text-input-submit").on('click', ()=>{
+          if($("#text-input").val()){
+            const packet = {
+              type: 'inputText',
+              text: $("#text-input").val()
+            };
+            ws.send(JSON.stringify(packet));
+            $("#text-input").val('');
+          }
         });
         let canvas = document.getElementById('svg');
         let isMouseDown = false;
