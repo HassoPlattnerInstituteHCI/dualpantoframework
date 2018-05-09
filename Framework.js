@@ -83,9 +83,9 @@ class Broker extends EventEmitter {
         this._running_script = true;
         var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
         co(script_generator)
-        .catch(console.log)
+        .catch(console.log);
     }
-
+    
     waitMS(ms) {
         return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
@@ -207,7 +207,7 @@ class Device extends EventEmitter {
     unblock(index) {
       this.moveHandleTo(index);
     }
-
+    
     tweenPantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
         let tweenPosition = undefined;
         if (index == 0 && this.lastKnownPositions[0]) {

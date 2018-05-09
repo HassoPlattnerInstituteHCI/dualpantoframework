@@ -4,7 +4,7 @@ const Framework = require('./Framework.js'),
       Vector = require('./Vector.js');
 
 Framework.on('devicesChanged', function(devices, attached, detached) {
-    console.log(devices, added, removed);
+    console.log(devices, attached, detached);
     for(const device of devices) {
         device.on('handleMoved', function(index, position) {
             console.log(device.port, 'handleMoved', index, position);
