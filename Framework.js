@@ -9,25 +9,19 @@ const serial = require('./build/Release/serial'),
       co = require('co'),
       say = require('say-promise'),
       PlaySound = require('play-sound')(),
+      TWEEN = require('@tweenjs/tween.js'),
+      TWEEN_INTERVAL = 30,
       VoiceCommand = require('./voice-command');
 
-class Broker extends EventEmitter {
-    constructor() {
-        super();
-        this.devices = new Map();
-        this.prevDevices = new Set();
-        this.disconnectTimeout = 5; // Seconds
-        this.voiceCommand;
-    }
+let tween_stack_counter = 0;
 
-    run_script(promise_list) {
-      this._running_script = true;
-      var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
-      co(script_generator)
-      .catch(console.log)
-    }
+class VoiceInteraction extends EventEmitter{
+  constructor(){
+    super();
+    this.voiceCommand;
+  }
 
-    speakText(txt, language) {
+  speakText(txt, language) {
       var speak_voice = "Anna";
       if (language == "EN") {
           speak_voice = "Alex";
@@ -74,7 +68,24 @@ class Broker extends EventEmitter {
         resolve(resolve);
       });
     }
+}
 
+class Broker extends EventEmitter {
+    constructor() {
+        super();
+        this.devices = new Map();
+        this.prevDevices = new Set();
+        this.disconnectTimeout = 5; // Seconds
+        this.voiceInteraction = new VoiceInteraction();
+    }
+
+    run_script(promise_list) {
+        this._running_script = true;
+        var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
+        co(script_generator)
+        .catch(console.log);
+    }
+    
     waitMS(ms) {
         return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
@@ -177,24 +188,53 @@ class Device extends EventEmitter {
         this.send(packet);
     }
 
-    movePantoTo(index, target){
-      return new Promise (resolve => 
+    movePantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
+        return new Promise (resolve => 
         {
-            this.moveHandleTo(index, target);
+            this.tweenPantoTo(index, target, duration, interpolation_method);
             resolve(resolve);
         });
     }
 
     unblockHandle(index){
-      return new Promise (resolve => 
-      {
-          this.unblock(index);
-          resolve(resolve);
-      });
+        return new Promise (resolve => 
+        {
+            this.unblock(index);
+            resolve(resolve);
+        });
     }
 
     unblock(index) {
       this.moveHandleTo(index);
+    }
+    
+    tweenPantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
+        let tweenPosition = undefined;
+        if (index == 0 && this.lastKnownPositions[0]) {
+            tweenPosition = this.lastKnownPositions[0];
+        } else if (index == 1 && this.lastKnownPositions[1]) {
+            tweenPosition = this.lastKnownPositions[1];
+        }
+        if(tweenPosition)
+        {
+          tween_stack_counter++;
+
+        if(tween_stack_counter == 1)
+        {
+            setTimeout(animateTween, TWEEN_INTERVAL);
+        }
+
+        let tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
+            .to(target, duration)
+            .easing(interpolation_method) // Use an easing function to make the animation smooth.
+            .onUpdate(() => { // Called after tween.js updates 'tweenPosition'.
+                this.moveHandleTo(index, tweenPosition);
+            })
+            .onComplete(() => {
+                tween_stack_counter--;
+            })
+            .start(); // Start the tween immediately.
+        }
     }
 }
 
@@ -222,6 +262,13 @@ function *conditional_promise_generator(promise_list, condition_fn){
   for(var i = 0; condition_fn() && i < promise_list.length; i++) {
       yield promise_list[i]();
   }
+}
+
+function animateTween() {
+    TWEEN.update();
+    if(tween_stack_counter > 0) {
+        setTimeout(animateTween, TWEEN_INTERVAL);
+    }
 }
 
 function autoDetectDevices() {

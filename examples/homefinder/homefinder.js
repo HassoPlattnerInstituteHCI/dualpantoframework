@@ -1,4 +1,5 @@
 const DualPantoFramework = require('./dualpantoframework/Framework.js'),
+      VoiceInteraction = DualPantoFramework.voiceInteraction;
       Vector = require('./dualpantoframework/Vector.js'),
       language = 'DE';
 let device;
@@ -15,7 +16,7 @@ DualPantoFramework.on('devicesChanged', function(devices){
 
 
 function start(){
-  DualPantoFramework.setCommands(['Hotels']);
+  VoiceInteraction.setCommands(['Hotels']);
   device.on('handleMoved', function(index, position){
     if(follow && index == 0){
       nearbyLocation(position);
@@ -23,23 +24,23 @@ function start(){
   });
 
   DualPantoFramework.run_script([
-    () => DualPantoFramework.speakText('Willkommen zu Homefinder', language),
+    () => VoiceInteraction.speakText('Willkommen zu Homefinder', language),
     () => DualPantoFramework.waitMS(500),
-    () => DualPantoFramework.speakText('Sie sind aktuell hier.', language),
+    () => VoiceInteraction.speakText('Sie sind aktuell hier.', language),
     () => device.movePantoTo(0,new Vector(-50, -75, 0)),
     () => DualPantoFramework.waitMS(500),
-    () => DualPantoFramework.speakText('Berlin ist so groß.', language),
+    () => VoiceInteraction.speakText('Berlin ist so groß.', language),
     () => device.movePantoTo(1,new Vector(-50, -75, 0)),
     //TODO: here display a square around the field
   
-    () => DualPantoFramework.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandorte.', language),
+    () => VoiceInteraction.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandorte.', language),
     () => DualPantoFramework.waitMS(500),
     () => device.unblockHandle(0),
     () => refollow(),
-    () => DualPantoFramework.beginListening()
+    () => VoiceInteraction.beginListening()
   ]);
 
-  DualPantoFramework.on('keywordRecognized', function(word){
+  VoiceInteraction.on('keywordRecognized', function(word){
     if(word === 'Hotels'){
       showHotels();
     }
@@ -49,15 +50,15 @@ function start(){
 
 function showHotels(){
     DualPantoFramework.run_script([
-    () => DualPantoFramework.speakText('Das', language),
+    () => VoiceInteraction.speakText('Das', language),
     () => device.movePantoTo(1, new Vector(50, -50, 0)),
     () => DualPantoFramework.waitMS(500),
-    () => DualPantoFramework.speakText('ist Hotel Adlon', language),
+    () => VoiceInteraction.speakText('ist Hotel Adlon', language),
     () => DualPantoFramework.waitMS(500),
-    () => DualPantoFramework.speakText('Das', language),
+    () => VoiceInteraction.speakText('Das', language),
     () => device.movePantoTo(1, new Vector(50, -75, 0)),
     () => DualPantoFramework.waitMS(500),
-    () => DualPantoFramework.speakText('ist Hotel Air B&B', language),
+    () => VoiceInteraction.speakText('ist Hotel Air B&B', language),
     () => DualPantoFramework.waitMS(500)
   ]);
 }
@@ -68,20 +69,20 @@ function nearbyLocation(position){
   if(dif1 <= 10){
     follow = false;
     DualPantoFramework.run_script([
-      () => DualPantoFramework.speakText('Das', language),
+      () => VoiceInteraction.speakText('Das', language),
       () => device.movePantoTo(1, new Vector(50, -50, 0)),
       () => DualPantoFramework.waitMS(500),
-      () => DualPantoFramework.speakText('ist Hotel Adlon', language),
+      () => VoiceInteraction.speakText('ist Hotel Adlon', language),
       () => DualPantoFramework.waitMS(500),
     ]);
   }
   if(dif2 <= 10){
     follow = false;
     DualPantoFramework.run_script([
-      () => DualPantoFramework.speakText('Das', language),
+      () => VoiceInteraction.speakText('Das', language),
       () => device.movePantoTo(1, new Vector(50, -75, 0)),
       () => DualPantoFramework.waitMS(500),
-      () => DualPantoFramework.speakText('ist Hotel Air B&B', language),
+      () => VoiceInteraction.speakText('ist Hotel Air B&B', language),
       () => DualPantoFramework.waitMS(500)
     ]);
   }
