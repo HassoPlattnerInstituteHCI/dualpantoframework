@@ -177,6 +177,11 @@
           if($("#grab-upper").hasClass('active'))
             $("#grab-upper").toggleClass('active');
         });
+        $('#text-input').keypress(function(event){
+          if(event.keyCode == 13){
+            $('#text-input-submit').click();
+          }
+        });
         $("#text-input-submit").on('click', ()=>{
           if($("#text-input").val()){
             const packet = {
