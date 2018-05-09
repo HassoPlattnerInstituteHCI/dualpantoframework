@@ -73,7 +73,8 @@ function nearbyLocation(position){
       () => device.movePantoTo(1, new Vector(50, -50, 0)),
       () => DualPantoFramework.waitMS(500),
       () => VoiceInteraction.speakText('ist Hotel Adlon', language),
-      () => DualPantoFramework.waitMS(500),
+      () => DualPantoFramework.waitMS(2000),
+      () => refollow()
     ]);
   }
   if(dif2 <= 10){
@@ -83,7 +84,8 @@ function nearbyLocation(position){
       () => device.movePantoTo(1, new Vector(50, -75, 0)),
       () => DualPantoFramework.waitMS(500),
       () => VoiceInteraction.speakText('ist Hotel Air B&B', language),
-      () => DualPantoFramework.waitMS(500)
+      () => DualPantoFramework.waitMS(2000),
+      () => refollow()
     ]);
   }
 }

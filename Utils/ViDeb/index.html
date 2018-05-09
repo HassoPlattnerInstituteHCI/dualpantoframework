@@ -70,8 +70,8 @@
       <div class="row">
         <div class="col-lg-3 text-right">
             <h3 class="mt-5">controller</h3>
-            <button type="button" id="grab-upper" class="btn btn-success" data-toggle="button">Grab Upper</button><br>
-            <button type="button" id="grab-lower" class="btn btn-primary" data-toggle="button">Grab Lower</button><br>
+            <button type="button" id="grab-upper" class="btn btn-outline-success" data-toggle="button">Grab Upper</button><br>
+            <button type="button" id="grab-lower" class="btn btn-outline-primary" data-toggle="button">Grab Lower</button><br>
               <div class="form-row">
                 <div class="col-sm-8">
                   <input type="text" class="form-control" id="text-input" placeholder="Say text input">
@@ -80,7 +80,7 @@
                   <button type="button" id="text-input-submit" class="btn btn-info">Send</button>
                 </div>
               </div>
-            <button type="button" id="createVirtualDevice" class="btn btn-info">Create Virtual Device</button><br>
+            <!-- <button type="submit" id="createVirtualDevice" class="btn btn-info">Create Virtual Device</button><br> -->
         </div>
         <div class="col-lg-5 text-center">
           <h3 class = 'mt-5'>glyph</h3>
@@ -142,7 +142,7 @@
                 case 'moveHandleTo':
                     // TODO
                     if(data.position){
-                      panto.targetX = data.position.x;
+                      panto.targetX = -data.position.x;
                       panto.targetY = -data.position.y;
                       panto.pointingAngle = data.position.r;
                       panto.inverseKinematicsNumeric(panto.targetX,panto.targetY);
@@ -177,6 +177,11 @@
           if($("#grab-upper").hasClass('active'))
             $("#grab-upper").toggleClass('active');
         });
+        $('#text-input').keypress(function(event){
+          if(event.keyCode == 13){
+            $('#text-input-submit').click();
+          }
+        });
         $("#text-input-submit").on('click', ()=>{
           if($("#text-input").val()){
             const packet = {
@@ -206,7 +211,7 @@
                 port: 'virtual0', // TODO
                 index: 0,
                 position: {
-                  x: UpperPanto.targetX,
+                  x: -UpperPanto.targetX,
                   y: -UpperPanto.targetY,
                   r: 0 // TODO
                 }
@@ -223,7 +228,7 @@
                 port: 'virtual0', // TODO
                 index: 1,
                 position: {
-                  x: LowerPanto.targetX,
+                  x: -LowerPanto.targetX,
                   y: -LowerPanto.targetY,
                   r: 0 // TODO
                 }
