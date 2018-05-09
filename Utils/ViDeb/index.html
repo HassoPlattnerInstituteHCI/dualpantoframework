@@ -142,7 +142,7 @@
                 case 'moveHandleTo':
                     // TODO
                     if(data.position){
-                      panto.targetX = data.position.x;
+                      panto.targetX = -data.position.x;
                       panto.targetY = -data.position.y;
                       panto.pointingAngle = data.position.r;
                       panto.inverseKinematicsNumeric(panto.targetX,panto.targetY);
@@ -211,7 +211,7 @@
                 port: 'virtual0', // TODO
                 index: 0,
                 position: {
-                  x: UpperPanto.targetX,
+                  x: -UpperPanto.targetX,
                   y: -UpperPanto.targetY,
                   r: 0 // TODO
                 }
@@ -228,7 +228,7 @@
                 port: 'virtual0', // TODO
                 index: 1,
                 position: {
-                  x: LowerPanto.targetX,
+                  x: -LowerPanto.targetX,
                   y: -LowerPanto.targetY,
                   r: 0 // TODO
                 }
