@@ -8,6 +8,8 @@ const unsigned char dofCount = pantoCount*3;
 Encoder* encoder[dofCount];
 float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount];
 
+unsigned long engagedTime[dofCount] = {};
+
 struct Panto {
   unsigned char dofIndex;
   float innerAngle[2], pointingAngle;
@@ -63,8 +65,14 @@ struct Panto {
       digitalWrite(motorDirAPin[i], dir);
     if(motorDirBPin[i])
       digitalWrite(motorDirBPin[i], !dir);
-    if(motorPwmPin[i])
-      analogWrite(motorPwmPin[i], min(power, motorPowerLimit[i]) * PWM_MAX);
+    if(motorPwmPin[i]) {
+      power = min(power, motorPowerLimit[i]);
+      if(power < motorPowerLimit[i])
+        engagedTime[i] = 0;
+      else if(++engagedTime[i] >= 36000)
+        while(1);
+      analogWrite(motorPwmPin[i], power*PWM_MAX);
+    }
   }
 
   void setup(unsigned char _dofIndex) {
