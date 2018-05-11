@@ -69,8 +69,10 @@ struct Panto {
       power = min(power, motorPowerLimit[i]);
       if(power < motorPowerLimit[i])
         engagedTime[i] = 0;
-      else if(++engagedTime[i] >= 36000)
+      else if(++engagedTime[i] >= 36000) {
+        disengageMotors();
         while(1);
+      }
       analogWrite(motorPwmPin[i], power*PWM_MAX);
     }
   }
@@ -135,4 +137,11 @@ struct Panto {
       setMotor(i, dir, pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative);
     }
   }
+
+  void disengageMotors() {
+    for(unsigned char i = 0; i < dofCount; ++i) {
+      setMotor(i, false, 0);
+    }
+  }
+  
 } pantos[pantoCount];
