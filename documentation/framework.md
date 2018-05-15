@@ -38,10 +38,8 @@ Speaks a text.
 **Parameters**
 
 -   `txt` **[String][23]** The text to speak.
--   `language`   (optional, default `'DE'`)
--   `speed`   (optional, default `1.4`)
--   `input` **[String][23]** language - The language to speak. (optional, default `DE`)
--   `input` **[number][24]** speed - The speed that is spoken with. (optional, default `1.4`)
+-   `language` **[String][23]** The language to speak. (optional, default `DE`)
+-   `speed` **[number][24]** The speed that is spoken with. (optional, default `1.4`)
 
 ### sayText
 
@@ -166,9 +164,8 @@ Returns a promise that invokes handle movement with tween behaviour
 -   `index` **[number][24]** index of handle to move
 -   `target` **Vector** position the handle should be moved to
 -   `duration`   (optional, default `500`)
--   `interpolation_method`   (optional, default `TWEEN.Easing.Quadratic.Out`)
--   `input` **[number][24]** duration - time in ms that the movement shall take. (optional, default `500`)
--   `input` **[Object][30]** interpolation_method - tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.Out`)
+-   `interpolation_method` **[Object][30]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.Out`)
+-   `number`  duration=500] - time in ms that the movement shall take.
 
 Returns **[promise][26]** the promise executing the movement
 
@@ -198,10 +195,8 @@ Moves a handle with tween movement behaviour
 
 -   `index` **[number][24]** index of handle to move
 -   `target` **Vector** position the handle should be moved to
--   `duration`   (optional, default `500`)
--   `interpolation_method`   (optional, default `TWEEN.Easing.Quadratic.Out`)
--   `input` **[number][24]** duration - time in ms that the movement shall take. (optional, default `500`)
--   `input` **[Object][30]** interpolation_method - tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.Out`)
+-   `duration` **[number][24]** time in ms that the movement shall take. (optional, default `500`)
+-   `interpolation_method` **[Object][30]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.Out`)
 
 [1]: #voiceinteraction
 

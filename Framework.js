@@ -29,8 +29,8 @@ class VoiceInteraction extends EventEmitter{
   /**
    * Speaks a text.
    * @param {String} txt - The text to speak.
-   * @param {String} [input=DE] language - The language to speak.
-   * @param {number} [input=1.4] speed - The speed that is spoken with.
+   * @param {String} [language=DE] - The language to speak.
+   * @param {number} [speed=1.4] - The speed that is spoken with.
    */
   speakText(txt, language = 'DE', speed = 1.4) {
       var speak_voice = "Anna";
@@ -267,8 +267,8 @@ class Device extends EventEmitter {
      * Returns a promise that invokes handle movement with tween behaviour
      * @param {number} index - index of handle to move
      * @param {Vector} target - position the handle should be moved to
-     * @param {number} [input=500] duration - time in ms that the movement shall take.
-     * @param {Object} [input=TWEEN.Easing.Quadratic.Out]interpolation_method - tween function that is used to generate the movement.
+     * @param {number} [ duration=500] - time in ms that the movement shall take.
+     * @param {Object} [interpolation_method=TWEEN.Easing.Quadratic.Out] - tween function that is used to generate the movement.
      * @return {promise} the promise executing the movement
      */
     movePantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
@@ -304,8 +304,8 @@ class Device extends EventEmitter {
      * Moves a handle with tween movement behaviour
      * @param {number} index - index of handle to move
      * @param {Vector} target - position the handle should be moved to
-     * @param {number} [input=500] duration - time in ms that the movement shall take.
-     * @param {Object} [input=TWEEN.Easing.Quadratic.Out]interpolation_method - tween function that is used to generate the movement.
+     * @param {number} [duration=500] - time in ms that the movement shall take.
+     * @param {Object} [interpolation_method=TWEEN.Easing.Quadratic.Out] - tween function that is used to generate the movement.
      */
     tweenPantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
         let tweenPosition = undefined;
