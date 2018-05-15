@@ -267,7 +267,7 @@ class Device extends EventEmitter {
      * Returns a promise that invokes handle movement with tween behaviour
      * @param {number} index - index of handle to move
      * @param {Vector} target - position the handle should be moved to
-     * @param {number} [ duration=500] - time in ms that the movement shall take.
+     * @param {number} [duration=500] - time in ms that the movement shall take.
      * @param {Object} [interpolation_method=TWEEN.Easing.Quadratic.Out] - tween function that is used to generate the movement.
      * @return {promise} the promise executing the movement
      */

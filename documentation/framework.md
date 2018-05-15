@@ -163,9 +163,8 @@ Returns a promise that invokes handle movement with tween behaviour
 
 -   `index` **[number][24]** index of handle to move
 -   `target` **Vector** position the handle should be moved to
--   `duration`   (optional, default `500`)
+-   `duration` **[number][24]** time in ms that the movement shall take. (optional, default `500`)
 -   `interpolation_method` **[Object][30]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.Out`)
--   `number`  duration=500] - time in ms that the movement shall take.
 
 Returns **[promise][26]** the promise executing the movement
 
