@@ -15,12 +15,23 @@ const serial = require('./build/Release/serial'),
 
 let tween_stack_counter = 0;
 
+/** Class for voice input and output 
+* @extends EventEmitter
+*/
 class VoiceInteraction extends EventEmitter{
+  /**
+  * Create a Voiceinteraction object.
+  */
   constructor(){
     super();
     this.voiceCommand;
   }
-
+  /**
+   * Speaks a text.
+   * @param {String} txt - The text to speak.
+   * @param {String} [input=DE] language - The language to speak.
+   * @param {number} [input=1.4] speed - The speed that is spoken with.
+   */
   speakText(txt, language = 'DE', speed = 1.4) {
       var speak_voice = "Anna";
       if (language == "EN") {
@@ -34,7 +45,10 @@ class VoiceInteraction extends EventEmitter{
           }
       });
     }
-
+    /**
+     * Creates a script which speaks a german text with 1.4 speed.
+     * @param {String} txt - The text to speak.
+     */
     sayText(txt) {
       this.run_script([
         () => this.speakText(txt)
@@ -45,6 +59,10 @@ class VoiceInteraction extends EventEmitter{
       console.log('play sound is not implemented yet');
     }
 
+    /**
+     * Sets up the voice input listener.
+     * @param {array} commands - List of Strings to listen for.
+     */
     setCommands(commands){
       this.voiceCommand = new VoiceCommand(commands);
       this.voiceCommand.on('command', function(command) {
@@ -52,7 +70,9 @@ class VoiceInteraction extends EventEmitter{
         this.emit('keywordRecognized', command);
       }.bind(this));
     }
-
+    /**
+     * starts the listener.
+     */
     beginListening(){
       return new Promise (resolve => 
       {
@@ -60,7 +80,9 @@ class VoiceInteraction extends EventEmitter{
         resolve(resolve);
       });
     }
-
+    /**
+     * stops the listener.
+     */
     haltListening(){
       return new Promise (resolve => 
       {
@@ -70,7 +92,13 @@ class VoiceInteraction extends EventEmitter{
     }
 }
 
+/** Class for device handling and basic functions
+* @extends EventEmitter
+*/
 class Broker extends EventEmitter {
+    /**
+    * Create a Brocker object.
+    */
     constructor() {
         super();
         this.devices = new Map();
@@ -78,26 +106,43 @@ class Broker extends EventEmitter {
         this.disconnectTimeout = 5; // Seconds
         this.voiceInteraction = new VoiceInteraction();
     }
-
+    /**
+     * Creates a script that executes a list of promises.
+     * @param {array} promise_list - the list of promises to execute.
+     */
     run_script(promise_list) {
         this._running_script = true;
         var script_generator = conditional_promise_generator(promise_list, () => this._running_script);
         co(script_generator)
         .catch(console.log);
     }
-    
+    /**
+     * Generates a promise that creates a timeout.
+     * @param {number} ms - number ob ms to wait.
+     * @return {Promise} The promise executing the timeout.
+     */    
     waitMS(ms) {
         return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
-
+    /**
+     * Returns all connected devices.
+     * @return {Set} The connected devices.
+     */ 
     getDevices() {
         return new Set(this.devices.values());
     }
-
+    /**
+     * Returns the device connected to a specific port
+     * @param {String} port - the port of the device
+     * @return {Device} The connected device.
+     */
     getDeviceByPort(port) {
         return this.devices.get(port);
     }
-
+    /**
+     * Creates a new virtual device
+     * @return {Device} The new virtual device.
+     */
     createVirtualDevice() {
         return new Device('virtual');
     }
@@ -107,8 +152,14 @@ module.exports = broker;
 const ViDeb = require('./Utils/ViDeb/index');
 
 
-
+/** Class for panto interaction.
+* @extends EventEmitter
+*/
 class Device extends EventEmitter {
+    /**
+     * Creates a new device.
+     * @param {String} port - port on that the device is connected.
+     */
     constructor(port) {
         super();
         if(port == 'virtual') {
@@ -135,13 +186,17 @@ class Device extends EventEmitter {
         if(this.serial)
             this.serial = serial.open(this.port);
     }
-
+    /**
+     * Disconnect the device.
+     */
     disconnect() {
         if(this.serial)
             serial.close(this.serial);
         broker.devices.delete(this.port);
     }
-
+    /**
+     * Pulls new data from serial connection and handles them.
+     */
     poll() {
         if(!this.serial)
             return;
@@ -167,17 +222,30 @@ class Device extends EventEmitter {
             }
         }
     }
-
+    /**
+     * Sends a packet via the serial connection to the panto.
+     * @param {Buffer} packet - the packet to send
+     */
     send(packet) {
         if(this.serial)
             serial.send(this.serial, packet);
     }
 
+    /**
+     * sets new positions if handles are moved by ViDeb
+     * @param {number} index - index of moved handle
+     * @param {Vector} position - position the handle was moved to
+     */
     handleMoved(index, position) {
         position = new Vector(position.x, position.y, position.r);
         this.emit('handleMoved', index, position);
     }
 
+    /**
+     * moves a Handle to a position
+     * @param {number} index - index of handle to move
+     * @param {Vector} target - position the handle should be moved to
+     */
     moveHandleTo(index, target) {
         this.lastTargetPositions[index] = target;
         this.emit('moveHandleTo', index, target);
@@ -195,6 +263,14 @@ class Device extends EventEmitter {
         this.send(packet);
     }
 
+    /**
+     * Returns a promise that invokes handle movement with tween behaviour
+     * @param {number} index - index of handle to move
+     * @param {Vector} target - position the handle should be moved to
+     * @param {number} [input=500] duration - time in ms that the movement shall take.
+     * @param {Object} [input=TWEEN.Easing.Quadratic.Out]interpolation_method - tween function that is used to generate the movement.
+     * @return {promise} the promise executing the movement
+     */
     movePantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
         return new Promise (resolve => 
         {
@@ -203,6 +279,11 @@ class Device extends EventEmitter {
         });
     }
 
+    /**
+     * Returns a promise that unblocks a handle
+     * @param {number} index - index of handle to unblock
+     * @return {promise} the promise executing the unblock
+     */
     unblockHandle(index){
         return new Promise (resolve => 
         {
@@ -211,10 +292,21 @@ class Device extends EventEmitter {
         });
     }
 
+    /**
+     * Unblocks a handle
+     * @param {number} index - index of handle to unblock
+     */
     unblock(index) {
       this.moveHandleTo(index);
     }
     
+    /**
+     * Moves a handle with tween movement behaviour
+     * @param {number} index - index of handle to move
+     * @param {Vector} target - position the handle should be moved to
+     * @param {number} [input=500] duration - time in ms that the movement shall take.
+     * @param {Object} [input=TWEEN.Easing.Quadratic.Out]interpolation_method - tween function that is used to generate the movement.
+     */
     tweenPantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
         let tweenPosition = undefined;
         if (index == 0 && this.lastKnownPositions[0]) {
