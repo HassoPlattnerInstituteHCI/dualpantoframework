@@ -3,6 +3,8 @@
 const serial = require('./build/Release/serial'),
       Buffer = require('buffer').Buffer,
       Vector = require('./Vector.js'),
+      Obstacle = require('./obstacle.js'),
+      MoveObject = require('./MoveObject.js'),
       SerialPort = require('serialport'),
       usb = !process.env.CI?require('usb'):null,
       EventEmitter = require('events').EventEmitter,
@@ -90,7 +92,7 @@ class VoiceInteraction extends EventEmitter{
     }
 }
 
-/** Class for device handling and basic functions
+/** Class for device handling and basic functions that is exportet as Dualpantoframework
 * @extends EventEmitter
 */
 class Broker extends EventEmitter {
@@ -106,7 +108,7 @@ class Broker extends EventEmitter {
     }
     /**
      * Creates a script that executes a list of promises.
-     * @param {array} promise_list - the list of promises to execute.
+     * @param {array} promise_list - the list of functions that invoke promises to execute.
      */
     run_script(promise_list) {
         this._running_script = true;
@@ -184,6 +186,9 @@ class Device extends EventEmitter {
         broker.devices.set(this.port, this);
         if(this.serial)
             this.serial = serial.open(this.port);
+        this.obstacles = [];
+        this.me = new MoveObject();
+        this.it = new MoveObject();
     }
 
     /**
@@ -199,32 +204,101 @@ class Device extends EventEmitter {
      * Pulls new data from serial connection and handles them.
      */
     poll() {
-        if(!this.serial)
-            return;
-        const time = process.hrtime();
-        if(time[0] > this.lastReceiveTime[0]+broker.disconnectTimeout) {
-            this.disconnect();
-            return;
+      if(!this.serial)
+          return;
+      const time = process.hrtime();
+      if(time[0] > this.lastReceiveTime[0]+broker.disconnectTimeout) {
+          this.disconnect();
+          return;
+      }
+      const packets = serial.poll(this.serial);
+      if(packets.length == 0)
+          return;
+      this.lastReceiveTime = time;
+      const packet = packets[packets.length-1];
+      if(packet.length == 16)
+          this.hardwareConfigHash = packet;
+      else if(packet.length == 4*6) {
+          for(let i = 0; i < 2; ++i) {
+              const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
+              let handleObject = this.getHandleObjects(i);
+              let difference = newPosition.difference(handleObject.position);
+              handleObject.setMovementForce(difference);
+              if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0){
+                handleObject.move();
+                continue;
+              }
+              let collisionInformation = this.colliding(handleObject.position.sum(difference));
+              if(collisionInformation[0]){
+                if(!handleObject.handlesCollision){
+                  handleObject.handlesCollision = true;
+                  this.handleCollision(i, newPosition, handleObject, collisionInformation[1]);
+                }
+              } else{
+                if(handleObject.handlesCollision){
+                  handleObject.handlesCollision = false;
+                  this.unblock(i)
+                }
+                handleObject.move();
+              }
+              this.lastKnownPositions[i] = newPosition;
+              this.emit('handleMoved', i, this.lastKnownPositions[i]);
+          }
+      }
+      if(this.serial && this.sendQueue.length > 0)
+      	serial.send(this.serial, this.sendQueue[this.sendQueue.length-1]);
+      this.sendQueue = [];
+    }
+
+    getHandleObjects(index){
+      if(index == 0){
+        return this.me;
+      } else{
+        return this.it;
+      }
+    }
+
+    /**
+     * returns a promise that creates a new obstacle
+     * @param {array} pointArray - list of cornerpoints (as Vectors) of the obstacle to create.
+     * @return {Promise} Promise that creates a new obstacle
+     */
+    createObstacle(pointArray){
+      return new Promise (resolve =>
+        {
+          this.obstacles.push(new Obstacle(pointArray));
+          resolve();
+        });
+    }
+
+    /**
+     * checks if a point is colling with any obstacle
+     * @param {Vector} point - Point to check for collision.
+     * @return {array} with boolen if collision was deteded and if so the edge.
+     */
+    colliding(point){
+      for(let i = 0; i < this.obstacles.length; i++){
+        if(this.obstacles[i].inside(point)[0]){
+          return this.obstacles[i].inside(point);
         }
-        const packets = serial.poll(this.serial);
-        if(packets.length == 0)
-            return;
-        this.lastReceiveTime = time;
-        const packet = packets[packets.length-1];
-        if(packet.length == 16)
-            this.hardwareConfigHash = packet;
-        else if(packet.length == 4*6) {
-            for(let i = 0; i < 2; ++i) {
-                const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
-                if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0)
-                    continue;
-                this.lastKnownPositions[i] = newPosition;
-                this.emit('handleMoved', i, this.lastKnownPositions[i]);
-            }
-        }
-        if(this.serial && this.sendQueue.length > 0)
-            serial.send(this.serial, this.sendQueue[this.sendQueue.length-1]);
-        this.sendQueue = [];
+      }
+      return [false];
+    }
+
+    /**
+     * handles collison
+     * @param {number} index - index of handle that has collided
+     * @param {Vector} newPosition - position of colliding handle
+     * @param {MoveObject} object - handle-object of the collinding handle
+     * @param {Obstacle} obstacle - obstacle that was collided with
+     */
+    handleCollision(index, newPosition, object, obstacle){
+      let movement_handle = newPosition.difference(object.position);
+      let collisionPoint = obstacle.findCollisionPoint(object.position, movement_handle);
+      object.setMovementForce(collisionPoint.difference(object.position).scale(0.9));
+      object.move();
+      let collisionDifference = object.position.difference(newPosition);
+      this.moveHandleTo(index, newPosition.sum(collisionDifference.scale(10)));
     }
 
     /**
