@@ -377,7 +377,8 @@ function autoDetectDevices() {
             return;
         }
         for(const port of ports)
-            if(port.vendorId == '2341' || port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader')))
+            if(port.vendorId && port.vendorId == '2341'
+            || port.manufacturer && (port.manufacturer.includes('Arduino LLC') || port.manufacturer.includes('Atmel Corp. at91sam SAMBA bootloader')))
                 new Device(port.comName);
     });
 }
