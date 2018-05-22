@@ -7,7 +7,6 @@
 const unsigned char dofCount = pantoCount*3;
 Encoder* encoder[dofCount];
 float dt, destinationAngle[dofCount], previousDiff[dofCount], integral[dofCount];
-
 unsigned long engagedTime[dofCount] = {};
 
 struct Panto {
@@ -15,6 +14,8 @@ struct Panto {
   float innerAngle[2], pointingAngle;
   Vector2D base[2], inner[2], handle, target;
   float torque[2]={0.0,0.0};
+  float force[2] ={0.0,0.0};
+  bool isforceRendering = false;
   /* Transpose of Jacobian Matrix
                 | J00 J01 |
     Jt(x, t)  = |         |
@@ -74,8 +75,11 @@ struct Panto {
 
   void applyForce(float *f){
     //caluculate torque.
+    actuationAngle[dofIndex+0] = actuationAngle[dofIndex+1] = NAN;
+
     torque[0] = J[0][0] * f[0] + J[0][1] * f[1];
     torque[1] = J[1][0] * f[0] + J[1][1] * f[1];
+    
     for(unsigned char i = dofIndex; i < dofIndex+2; ++i) {
       if(isnan(torque[i])){
         setMotor(i, false, 0);
@@ -83,7 +87,7 @@ struct Panto {
       else{
         unsigned char dir = torque[i] < 0;
         float t = fabs(torque[i]);
-        setMotor(i, dir, t*powerGain);
+        setMotor(i, dir, t*forceFactor);
       }
     }
   }
@@ -150,6 +154,10 @@ struct Panto {
   }
 
   void actuateMotors() {
+    if(isforceRendering){
+      applyForce(force);
+      return;
+    }
     for(unsigned char i = dofIndex; i < dofIndex+3; ++i) {
       if(isnan(destinationAngle[i])) {
         setMotor(i, false, 0);
@@ -173,6 +181,7 @@ struct Panto {
       setMotor(i, false, 0);
     }
     torque[0] = torque[1] = 0.0f;
+    force[0] = force[1] = 0.0f;
   }
   
 } pantos[pantoCount];
