@@ -14,6 +14,13 @@ struct Panto {
   unsigned char dofIndex;
   float innerAngle[2], pointingAngle;
   Vector2D base[2], inner[2], handle, target;
+  float torque[2]={0.0,0.0};
+  /* Transpose of Jacobian Matrix
+                | J00 J01 |
+    Jt(x, t)  = |         |
+                | J10 J11 |
+  */
+  float J[2][2] = {{0.0,0.0},{0.0,0.0}};
 
   void forwardKinematics() {
     inner[0] = base[0]+Vector2D::fromPolar(actuationAngle[dofIndex+0], linkageInnerLength[dofIndex+0]);
@@ -25,6 +32,13 @@ struct Panto {
     handle = Vector2D::fromPolar(innerAngle[0], linkageOuterLength[dofIndex+0])+inner[0];
     innerAngle[1] = (handle-inner[1]).angle();
     pointingAngle = actuationAngle[dofIndex+2]+innerAngle[1];
+
+    J[0][0] = -linkageInnerLength[dofIndex+0] * sin(actuationAngle[dofIndex+0]) - 
+              (linkageInnerLength[dofIndex+0] * sin(innerAngle[0])*sin(innerAngle[1]-actuationAngle[dofIndex+0]))/(sin(innerAngle[0] - innerAngle[1]));
+    J[0][1] =  linkageInnerLength[dofIndex+0] * cos(actuationAngle[dofIndex+0]) + 
+              (linkageInnerLength[dofIndex+0] * cos(innerAngle[0])*sin(innerAngle[1]-actuationAngle[dofIndex+0]))/(sin(innerAngle[0] - innerAngle[1]));
+    J[1][0] = (linkageInnerLength[dofIndex+1] * sin(innerAngle[0])*sin(innerAngle[1]-actuationAngle[dofIndex+1]))/(sin(innerAngle[0] - innerAngle[1]));
+    J[1][1] = -(linkageInnerLength[dofIndex+1] * cos(innerAngle[0])*sin(innerAngle[1]-actuationAngle[dofIndex+1]))/(sin(innerAngle[0] - innerAngle[1]));
   }
 
   void inverseKinematicsHelper(float inverted, float diff, float factor, float threshold=0.001) {
@@ -56,6 +70,22 @@ struct Panto {
     destinationAngle[dofIndex+1] = actuationAngle[dofIndex+1];
     actuationAngle[dofIndex+0] = savedActuationAngle[dofIndex+0];
     actuationAngle[dofIndex+1] = savedActuationAngle[dofIndex+1];
+  }
+
+  void applyForce(float *f){
+    //caluculate torque.
+    torque[0] = J[0][0] * f[0] + J[0][1] * f[1];
+    torque[1] = J[1][0] * f[0] + J[1][1] * f[1];
+    for(unsigned char i = dofIndex; i < dofIndex+2; ++i) {
+      if(isnan(torque[i])){
+        setMotor(i, false, 0);
+      }
+      else{
+        unsigned char dir = torque[i] < 0;
+        float t = fabs(torque[i]);
+        setMotor(i, dir, t*powerGain);
+      }
+    }
   }
 
   void setMotor(unsigned char i, bool dir, float power) {
@@ -142,6 +172,7 @@ struct Panto {
     for(unsigned char i = 0; i < dofCount; ++i) {
       setMotor(i, false, 0);
     }
+    torque[0] = torque[1] = 0.0f;
   }
   
 } pantos[pantoCount];
