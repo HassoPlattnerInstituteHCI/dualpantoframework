@@ -85,8 +85,8 @@ struct Panto {
         setMotor(i, false, 0);
       }
       else{
-        unsigned char dir = torque[i] < 0;
-        float t = fabs(torque[i]);
+        unsigned char dir = (torque[i-dofIndex] < 0);
+        float t = fabs(torque[i-dofIndex]);
         setMotor(i, dir, t*forceFactor);
       }
     }
