@@ -44,6 +44,7 @@ const float opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle};
 float pidFactor[] = {${input.pidFactor.join(', ')}};
+float forceFactor = ${input.forceFactor};
 const unsigned char pantoCount = ${pantoCount};
 const float linkageBaseX[] = {
     ${aggregate('linkage_baseX')}

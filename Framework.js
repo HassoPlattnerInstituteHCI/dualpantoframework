@@ -255,11 +255,32 @@ class Device extends EventEmitter {
             return;
         }
         const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
-              packet = new Buffer(1+3*4);
-        packet[0] = index;
-        packet.writeFloatLE(values[0], 1);
-        packet.writeFloatLE(values[1], 5);
-        packet.writeFloatLE(values[2], 9);
+              packet = new Buffer(1+1+3*4);
+        packet[0] = 0; //control method : position = 0;
+        packet[1] = index;
+        packet.writeFloatLE(values[0], 2);
+        packet.writeFloatLE(values[1], 6);
+        packet.writeFloatLE(values[2], 10);
+        this.send(packet);
+    }
+
+    /**
+     * applies force vector to the pantograph
+     * @param {number} index - index of handle to apply force
+     * @param {Vector} target - vector of force to render. 3rd element will be ignored.
+     */
+    applyForceTo(index, force) {
+        this.emit('applyForceTo', index, force);
+        if(!this.serial){
+            return;
+        }
+        const values = (force) ? [force.x, force.y, 0] : [NaN, NaN, NaN],
+              packet = new Buffer(1+1+3*4);
+        packet[0] = 255; //control method : position = 1;
+        packet[1] = index;
+        packet.writeFloatLE(values[0], 2);
+        packet.writeFloatLE(values[1], 6);
+        packet.writeFloatLE(values[2], 10);
         this.send(packet);
     }
 
