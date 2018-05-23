@@ -49,3 +49,6 @@ bld/
 *.ide-shm
 
 *.ide-wal
+
+# vscode
+.vscode/
