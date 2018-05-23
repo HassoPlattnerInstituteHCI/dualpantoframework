@@ -233,6 +233,9 @@ class Device extends EventEmitter {
                   handleObject.handlesCollision = true;
                   this.handleCollision(i, newPosition, handleObject, collisionInformation[1]);
                 }
+                else{
+                  this.handleCollisionMovement(i, newPosition, handleObject, collisionInformation[1]);
+                }
               } else{
                 if(handleObject.handlesCollision){
                   handleObject.handlesCollision = false;
@@ -290,11 +293,27 @@ class Device extends EventEmitter {
      */
     handleCollision(index, newPosition, object, obstacle){
       let movement_handle = newPosition.difference(object.position);
-      let collisionPoint = obstacle.findCollisionPoint(object.position, movement_handle);
+      let collisionInformation = obstacle.findCollisionPoint(object.position, movement_handle)
+      let collisionPoint = collisionInformation[0];
+      object.currentCollisionEdge = collisionInformation[1];
       object.setMovementForce(collisionPoint.difference(object.position).scale(0.9));
       object.move();
       let collisionDifference = object.position.difference(newPosition);
       this.moveHandleTo(index, newPosition.sum(collisionDifference.scale(10)));
+    }
+
+    handleCollisionMovement(index, newPosition, object, obstacle){
+      console.log("newPosition: ", newPosition);
+      let outsidepoint = obstacle.getNextOutsidePoint(object.currentCollisionEdge, newPosition);
+      console.log("outsidepoint: ", outsidepoint);
+      let me_difference = outsidepoint.difference(object.position);
+      object.setMovementForce(me_difference);
+      object.move();
+      console.log("object position", object.position);
+      let collisionDifference = object.position.difference(newPosition);
+      console.log("target force: ", newPosition.sum(collisionDifference.scale(10)));
+      console.log();
+      this.moveHandleTo(index, newPosition);
     }
 
     /**
