@@ -3,6 +3,7 @@
     "opMaxDist": 210,
     "opAngle": 2.2,
     "pidFactor": [5.0, 0.0, 0.0],
+    "forceFactor": 0.01,
     "pantos": {
         "upper": {
             "left": {

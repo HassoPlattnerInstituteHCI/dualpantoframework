@@ -212,6 +212,7 @@ class Device extends EventEmitter {
           return;
       }
       const packets = serial.poll(this.serial);
+      this.step();
       if(packets.length == 0)
           return;
       this.lastReceiveTime = time;
@@ -221,26 +222,29 @@ class Device extends EventEmitter {
       else if(packet.length == 4*6) {
           for(let i = 0; i < 2; ++i) {
               const newPosition = new Vector(packet.readFloatLE(i*12), packet.readFloatLE(i*12+4), packet.readFloatLE(i*12+8));
-              let handleObject = this.getHandleObjects(i);
-              let difference = newPosition.difference(handleObject.position);
-              handleObject.setMovementForce(difference);
+              //let handleObject = this.getHandleObjects(i);
+              //let difference = newPosition.difference(handleObject.position);
+              //handleObject.setMovementForce(difference);
               if(this.lastKnownPositions[i] && newPosition.difference(this.lastKnownPositions[i]).length() <= 0.0){
-                handleObject.move();
+                //handleObject.move();
                 continue;
               }
-              let collisionInformation = this.colliding(handleObject.position.sum(difference));
-              if(collisionInformation[0]){
-                if(!handleObject.handlesCollision){
-                  handleObject.handlesCollision = true;
-                  this.handleCollision(i, newPosition, handleObject, collisionInformation[1]);
-                }
-              } else{
-                if(handleObject.handlesCollision){
-                  handleObject.handlesCollision = false;
-                  this.unblock(i)
-                }
-                handleObject.move();
-              }
+              //let collisionInformation = this.colliding(handleObject.position.sum(difference));
+              //if(collisionInformation[0]){
+              //  if(!handleObject.handlesCollision){
+              //    handleObject.handlesCollision = true;
+              //    this.handleFirstCollision(i, newPosition, handleObject, collisionInformation[1]);
+              //  }
+              //  else{
+              //    this.resolveCollisionFurther(i, newPosition, handleObject, collisionInformation[1]);
+              //  }
+              //} else{
+              //  if(handleObject.handlesCollision){
+              //    handleObject.handlesCollision = false;
+              //    this.unblock(i)
+              //  }
+              //  handleObject.move();
+              //}
               this.lastKnownPositions[i] = newPosition;
               this.emit('handleMoved', i, this.lastKnownPositions[i]);
           }
@@ -292,13 +296,20 @@ class Device extends EventEmitter {
      * @param {MoveObject} object - handle-object of the collinding handle
      * @param {Obstacle} obstacle - obstacle that was collided with
      */
-    handleCollision(index, newPosition, object, obstacle){
+    handleFirstCollision(index, newPosition, object, obstacle){
       let movement_handle = newPosition.difference(object.position);
-      let collisionPoint = obstacle.findCollisionPoint(object.position, movement_handle);
-      object.setMovementForce(collisionPoint.difference(object.position).scale(0.9));
+      object.currentCollisionEdge = obstacle.findCollisionEdge(object.position, movement_handle);
+      this.resolveCollisionFurther(index, newPosition, object, obstacle);
+    }
+
+    resolveCollisionFurther(index, newPosition, object, obstacle){
+      let outsidepoint = obstacle.getNextOutsidePoint(object.currentCollisionEdge, newPosition);
+      let me_difference = outsidepoint.difference(object.position);
+      object.setMovementForce(me_difference);
       object.move();
       let collisionDifference = object.position.difference(newPosition);
-      this.moveHandleTo(index, newPosition.sum(collisionDifference.scale(10)));
+      let force = collisionDifference.scale(0.1125);
+      this.applyForceTo(index, force);
     }
 
     /**
@@ -424,12 +435,40 @@ class Device extends EventEmitter {
             .start(); // Start the tween immediately.
         }
     }
+
+    step(){
+      for(let i = 0; i < 2; i++){
+        let handleObject = this.getHandleObjects(i);
+        let difference = this.lastKnownPositions[i].difference(handleObject.position);
+        handleObject.setMovementForce(difference);
+        let collisionInformation = this.colliding(handleObject.position.sum(difference));
+        if(collisionInformation[0]){
+          if(!handleObject.handlesCollision){
+            handleObject.handlesCollision = true;
+            this.handleFirstCollision(i, this.lastKnownPositions[i], handleObject, collisionInformation[1]);
+          }
+          else{
+            this.resolveCollisionFurther(i, this.lastKnownPositions[i], handleObject, collisionInformation[1]);
+          }
+        } else{
+          if(handleObject.handlesCollision){
+            handleObject.handlesCollision = false;
+            this.unblock(i)
+          }
+          handleObject.move();
+        }
+      }
+    }
 }
 
-function serialRecv() {
-    setImmediate(serialRecv);
-    for(const device of broker.devices.values())
+function program_loop() {
+  //console.log('program_loop');
+    setImmediate(program_loop);
+    //console.log(broker.devices.values())
+    for(const device of broker.devices.values()){
         device.poll();
+        //device.step();
+    }
     const currentDevices = broker.getDevices(),
           attached = new Set(),
           detached = new Set();
@@ -442,8 +481,10 @@ function serialRecv() {
     broker.prevDevices = currentDevices;
     if(attached.size > 0 || detached.size > 0)
         broker.emit('devicesChanged', currentDevices, attached, detached);
+
+
 }
-serialRecv();
+program_loop();
 
 
 function *conditional_promise_generator(promise_list, condition_fn) {
