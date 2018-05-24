@@ -6,7 +6,7 @@ var   http        = require('http'),
       connections = new Set();
 
 const server = http.createServer((request, response) => {
-    let filePath = __dirname+((request.url == '/') ? '/index.html' :('/static'+request.url));
+	let filePath = __dirname + ((request.url === '/') ? '/index.html' : path.normalize('/static/' + decodeURI(request.url)));
     const extname = path.extname(filePath);
     let contentType = 'text/plain';
     switch(extname) {
