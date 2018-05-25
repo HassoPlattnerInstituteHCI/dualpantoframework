@@ -15,14 +15,14 @@ const serial = require('./build/Release/serial'),
 
 let tween_stack_counter = 0;
 
-/** Class for voice input and output 
+/** Class for voice input and output
 * @extends EventEmitter
 */
 class VoiceInteraction extends EventEmitter{
   /**
   * Create a Voiceinteraction object.
   */
-  constructor(){
+  constructor() {
     super();
     this.voiceCommand;
   }
@@ -63,7 +63,7 @@ class VoiceInteraction extends EventEmitter{
      * Sets up the voice input listener.
      * @param {array} commands - List of Strings to listen for.
      */
-    setCommands(commands){
+    setCommands(commands) {
       this.voiceCommand = new VoiceCommand(commands);
       this.voiceCommand.on('command', function(command) {
         console.log('Keyword Recognized: ',command);
@@ -73,9 +73,8 @@ class VoiceInteraction extends EventEmitter{
     /**
      * starts the listener.
      */
-    beginListening(){
-      return new Promise (resolve => 
-      {
+    beginListening() {
+      return new Promise (resolve => {
         this.voiceCommand.startListening();
         resolve(resolve);
       });
@@ -83,9 +82,8 @@ class VoiceInteraction extends EventEmitter{
     /**
      * stops the listener.
      */
-    haltListening(){
-      return new Promise (resolve => 
-      {
+    haltListening() {
+      return new Promise (resolve => {
         this.voiceCommand.stopListening();
         resolve(resolve);
       });
@@ -120,14 +118,14 @@ class Broker extends EventEmitter {
      * Generates a promise that creates a timeout.
      * @param {number} ms - number ob ms to wait.
      * @return {Promise} The promise executing the timeout.
-     */    
+     */
     waitMS(ms) {
         return new Promise(resolve => setTimeout(() => resolve(resolve), ms));
     }
     /**
      * Returns all connected devices.
      * @return {Set} The connected devices.
-     */ 
+     */
     getDevices() {
         return new Set(this.devices.values());
     }
@@ -177,15 +175,17 @@ class Device extends EventEmitter {
             this.serial = true;
         }
         this.port = port;
+        this.sendQueue = [];
         this.lastKnownPositions = [];
-        this.lastKnownPositions[0] = new Vector(0,0,0);
-        this.lastKnownPositions[1] = new Vector(0,0,0);
+        this.lastKnownPositions[0] = new Vector(0, 0, 0);
+        this.lastKnownPositions[1] = new Vector(0, 0, 0);
         this.lastTargetPositions = [];
         this.lastReceiveTime = process.hrtime();
         broker.devices.set(this.port, this);
         if(this.serial)
             this.serial = serial.open(this.port);
     }
+
     /**
      * Disconnect the device.
      */
@@ -194,6 +194,7 @@ class Device extends EventEmitter {
             serial.close(this.serial);
         broker.devices.delete(this.port);
     }
+
     /**
      * Pulls new data from serial connection and handles them.
      */
@@ -221,14 +222,17 @@ class Device extends EventEmitter {
                 this.emit('handleMoved', i, this.lastKnownPositions[i]);
             }
         }
+        if(this.serial && this.sendQueue.length > 0)
+            serial.send(this.serial, this.sendQueue[this.sendQueue.length-1]);
+        this.sendQueue = [];
     }
+
     /**
-     * Sends a packet via the serial connection to the panto.
-     * @param {Buffer} packet - the packet to send
+     * Enqueues a packet to be send via the serial connection to the panto.
+     * @param {Buffer} packet - containing the payload data
      */
     send(packet) {
-        if(this.serial)
-            serial.send(this.serial, packet);
+        this.sendQueue.push(packet);
     }
 
     /**
@@ -249,14 +253,11 @@ class Device extends EventEmitter {
     moveHandleTo(index, target) {
         this.lastTargetPositions[index] = target;
         this.emit('moveHandleTo', index, target);
-        if(!this.serial) {
-            this.lastKnownPositions[index] = target;
-            this.emit('moveHandleTo', index, this.lastKnownPositions[index]);
+        if(!this.serial)
             return;
-        }
         const values = (target) ? [target.x, target.y, target.r] : [NaN, NaN, NaN],
               packet = new Buffer(1+1+3*4);
-        packet[0] = 0; //control method : position = 0;
+        packet[0] = 0; // control method : POSITION
         packet[1] = index;
         packet.writeFloatLE(values[0], 2);
         packet.writeFloatLE(values[1], 6);
@@ -271,12 +272,11 @@ class Device extends EventEmitter {
      */
     applyForceTo(index, force) {
         this.emit('applyForceTo', index, force);
-        if(!this.serial){
+        if(!this.serial)
             return;
-        }
         const values = (force) ? [force.x, force.y, 0] : [NaN, NaN, NaN],
               packet = new Buffer(1+1+3*4);
-        packet[0] = 1; //control method : position = 1;
+        packet[0] = 1; // control method : FORCE
         packet[1] = index;
         packet.writeFloatLE(values[0], 2);
         packet.writeFloatLE(values[1], 6);
@@ -293,8 +293,7 @@ class Device extends EventEmitter {
      * @return {promise} the promise executing the movement
      */
     movePantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
-        return new Promise (resolve => 
-        {
+        return new Promise (resolve => {
             this.tweenPantoTo(index, target, duration, interpolation_method);
             resolve(resolve);
         });
@@ -305,9 +304,8 @@ class Device extends EventEmitter {
      * @param {number} index - index of handle to unblock
      * @return {promise} the promise executing the unblock
      */
-    unblockHandle(index){
-        return new Promise (resolve => 
-        {
+    unblockHandle(index) {
+        return new Promise (resolve => {
             this.unblock(index);
             resolve(resolve);
         });
@@ -320,7 +318,7 @@ class Device extends EventEmitter {
     unblock(index) {
       this.moveHandleTo(index);
     }
-    
+
     /**
      * Moves a handle with tween movement behaviour
      * @param {number} index - index of handle to move
@@ -330,21 +328,17 @@ class Device extends EventEmitter {
      */
     tweenPantoTo(index, target, duration = 500, interpolation_method = TWEEN.Easing.Quadratic.Out) {
         let tweenPosition = undefined;
-        if (index == 0 && this.lastKnownPositions[0]) {
+        if(index == 0 && this.lastKnownPositions[0]) {
             tweenPosition = this.lastKnownPositions[0];
-        } else if (index == 1 && this.lastKnownPositions[1]) {
+        } else if(index == 1 && this.lastKnownPositions[1]) {
             tweenPosition = this.lastKnownPositions[1];
         }
-        if(tweenPosition)
-        {
-          tween_stack_counter++;
+        if(tweenPosition) {
+            tween_stack_counter++;
+            if(tween_stack_counter == 1)
+                setTimeout(animateTween, TWEEN_INTERVAL);
 
-        if(tween_stack_counter == 1)
-        {
-            setTimeout(animateTween, TWEEN_INTERVAL);
-        }
-
-        let tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
+            const tween = new TWEEN.Tween(tweenPosition) // Create a new tween that modifies 'tweenPosition'.
             .to(target, duration)
             .easing(interpolation_method) // Use an easing function to make the animation smooth.
             .onUpdate(() => { // Called after tween.js updates 'tweenPosition'.
@@ -378,17 +372,15 @@ function serialRecv() {
 serialRecv();
 
 
-function *conditional_promise_generator(promise_list, condition_fn){
-  for(var i = 0; condition_fn() && i < promise_list.length; i++) {
+function *conditional_promise_generator(promise_list, condition_fn) {
+  for(var i = 0; condition_fn() && i < promise_list.length; i++)
       yield promise_list[i]();
-  }
 }
 
 function animateTween() {
     TWEEN.update();
-    if(tween_stack_counter > 0) {
+    if(tween_stack_counter > 0)
         setTimeout(animateTween, TWEEN_INTERVAL);
-    }
 }
 
 function autoDetectDevices() {
@@ -404,7 +396,7 @@ function autoDetectDevices() {
     });
 }
 autoDetectDevices();
-if(!process.env.CI){
+if(!process.env.CI) {
     usb.on('attach', autoDetectDevices);
     usb.on('detach', autoDetectDevices);
 }
