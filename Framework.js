@@ -276,7 +276,7 @@ class Device extends EventEmitter {
         }
         const values = (force) ? [force.x, force.y, 0] : [NaN, NaN, NaN],
               packet = new Buffer(1+1+3*4);
-        packet[0] = 255; //control method : position = 1;
+        packet[0] = 1; //control method : position = 1;
         packet[1] = index;
         packet.writeFloatLE(values[0], 2);
         packet.writeFloatLE(values[1], 6);

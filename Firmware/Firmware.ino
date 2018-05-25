@@ -33,23 +33,29 @@ void loop() {
     unsigned char pantoIndex = receiveInt8();
     float values[] = {receiveNumber32().f, receiveNumber32().f, receiveNumber32().f};
     unsigned char checksum = SerialUSB.read();
-    if(checksum == inChecksum) {
-      if(pantoIndex < pantoCount && controlMethod == 0) {
-        pantos[pantoIndex].isforceRendering = false;
-        pantos[pantoIndex].target = Vector2D(values[0], values[1]);
-        destinationAngle[pantoIndex*3+2] = values[2];
-        pantos[pantoIndex].inverseKinematics();
-      } 
-      else if(pantoIndex < pantoCount && controlMethod == 255) {
-        pantos[pantoIndex].force[0] = values[0];
-        pantos[pantoIndex].force[1] = values[1];
-        pantos[pantoIndex].isforceRendering = true;
+    if(checksum != inChecksum)
+      continue;
+    if(pantoIndex < pantoCount) {
+      switch(controlMethod){
+        case 0:
+          pantos[pantoIndex].isforceRendering = false;
+          pantos[pantoIndex].target = Vector2D(values[0], values[1]);
+          destinationAngle[pantoIndex*3+2] = values[2];
+          pantos[pantoIndex].inverseKinematics();
+          break;
+        case 1:
+          pantos[pantoIndex].force[0] = values[0];
+          pantos[pantoIndex].force[1] = values[1];
+          pantos[pantoIndex].isforceRendering = true;
+          break;
+        default:
+          break;
       }
-      else {
-        pidFactor[0] = values[0];
-        pidFactor[1] = values[1];
-        pidFactor[2] = values[2];
-      }
+    }
+    else {
+      pidFactor[0] = values[0];
+      pidFactor[1] = values[1];
+      pidFactor[2] = values[2];
     }
   }
   

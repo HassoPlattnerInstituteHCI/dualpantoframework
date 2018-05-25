@@ -134,9 +134,9 @@ void sendPacket(unsigned char packetLength) {
 
     #ifdef WINDOWS
 	DWORD bytesWritten = 0;
-	WriteFile(handle, packetBuffer, 7+packetLength, &bytesWritten, NULL);
+	WriteFile(handle, packetBuffer, 6+packetLength, &bytesWritten, NULL);
     #else
-    write(fileno(handle), packetBuffer, 7+packetLength);
+    write(fileno(handle), packetBuffer, 6+packetLength);
     #endif
 }
 
