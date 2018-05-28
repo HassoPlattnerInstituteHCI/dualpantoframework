@@ -31,7 +31,7 @@ class Obstacle {
     let point1 = this.vectorToMathPoint(point);
     let vecP2 = point.sum(vector);
     let point2 = this.vectorToMathPoint(vecP2);
-    let x = 0;
+    let x = -1;
     let edge = [[0,0],[0,0]];
     for (let i = 0, j = this.pointArray.length - 1; i < this.pointArray.length; j = i++) {
       let xi = this.pointArray[i].x, yi = this.pointArray[i].y;
@@ -39,9 +39,9 @@ class Obstacle {
       let pointi = [xi, yi];
       let pointj = [xj, yj];
       let temp = math.intersect(pointi, pointj, point1, point2);
-      if(!(temp[0] == 0 && temp[1] == 0)){
+      if(!(temp == null)){
         let z = (temp[0] - point.x)/vector.x;
-        if(x == 0 || Math.abs(z) < Math.abs(x)){
+        if(x == -1 || Math.abs(z) < Math.abs(x)){
           x = z;
           edge[0] = pointi;
           edge[1] = pointj;
@@ -68,6 +68,18 @@ class Obstacle {
                                      this.vectorToMathPoint(perpendicular_point_vector));
     }
     return this.mathPointToVector(outside_point);
+  }
+
+  getIntersectionPoint(edge1, edge2){
+    let edge1_point1 = edge1[0];
+    let edge1_point2 = edge1[1];
+    let edge2_point1 = edge2[0];
+    let edge2_point2 = edge2[1];
+    let intersectPoint = math.intersect(edge1_point1, edge1_point2, edge2_point1, edge2_point2);
+    if(intersectPoint == null){
+      console.log(edge1, edge2);
+    }
+    return this.mathPointToVector(intersectPoint);
   }
 
   vectorToMathPoint(vector){

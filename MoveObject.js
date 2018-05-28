@@ -4,8 +4,7 @@ class MoveObject {
   constructor(position=new Vector(0,0,0)){
     this.position = position;
     this.movementByForce = new Vector(0,0,0);
-    this.handelsCollision = false;
-    this.currentCollisionEdge;
+    this.currentCollisionEdges = [];
   }
 
   setMovementForce(force){
