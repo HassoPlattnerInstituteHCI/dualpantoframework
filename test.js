@@ -1,9 +1,9 @@
 'use strict';
 
-const Framework = require('./Framework.js'),
-      Vector = require('./Vector.js');
+const DualPantoFramework = require('lib/dualpantoframework'),
+      Vector = DualPantoFramework.Vector;
 
-Framework.on('devicesChanged', function(devices, attached, detached) {
+DualPantoFramework.on('devicesChanged', function(devices, attached, detached) {
     console.log(devices, attached, detached);
     for(const device of devices) {
         device.on('handleMoved', function(index, position) {
