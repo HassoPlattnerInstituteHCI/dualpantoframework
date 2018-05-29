@@ -7,29 +7,8 @@ var config;
 var opAngle, opMaxDist, opMinDist;
 var UpperPanto;
 var LowerPanto;
-var style=
-{
-    "lineattr":{
-        "fill": "#fc0",
-        "stroke": "#777", 
-        "strokeWidth":2
-    },
-    "lowerlineattr":{
-        "fill": "#fc0",
-        "stroke": "#555", 
-        "strokeWidth":5
-    },
-    "upperPantoAttr":{
-        "stroke":"#8A8",
-        "strokeWidth":2
-    },
-    "lowerPantoAttr":{
-        "stroke":"#88F",
-        "strokeWidth":2
-    }
-};
 
-var _style=
+var style=
 {
     "lower-line-attr":{
         "stroke":"#66F",
@@ -122,22 +101,6 @@ class PantographGlyph{
     }
 
     drawGlyph(){
-        //lines
-        // const il = s.line(this.base[0].x, this.base[0].y, this.inner[0].x, this.inner[0].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        // const ir = s.line(this.base[1].x, this.base[1].y, this.inner[1].x, this.inner[1].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        // const ol = s.line(this.inner[0].x, this.inner[0].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        // const or = s.line(this.inner[1].x, this.inner[1].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        // const ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
-        // const ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
-        // const mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
-        // const el = s.line(this.handle.x, this.handle.y, this.handle.x+10*Math.cos(this.pointingAngle), this.handle.y+10*Math.sin(this.pointingAngle)).attr({stroke:'black'});
-
-        // //group
-        // const g = s.group(il, ir, ol, or, ml, mr, ee, el);
-        // g.transform('T 150 50 S 1');
-
-        //rectangle for clicking area
-        // const rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
         const baseLeft = {
             "cx":this.base[0].x.toString(),
             "cy":this.base[0].y.toString(),
@@ -191,12 +154,12 @@ class PantographGlyph{
 
         const prefix = this.id==0?'upper-':'lower-';
 
-        Object.assign(innerPantoLeft, _style[prefix+'line-attr']);
-        Object.assign(innerPantoRight, _style[prefix+'line-attr']);
-        Object.assign(outerPantoLeft, _style[prefix+'line-attr']);
-        Object.assign(outerPantoRight, _style[prefix+'line-attr']);
-        Object.assign(endEffector, _style[prefix+'circle-attr']);
-        Object.assign(endEffetorAngle, _style['endeffector-angle-attr']);
+        Object.assign(innerPantoLeft, style[prefix+'line-attr']);
+        Object.assign(innerPantoRight, style[prefix+'line-attr']);
+        Object.assign(outerPantoLeft, style[prefix+'line-attr']);
+        Object.assign(outerPantoRight, style[prefix+'line-attr']);
+        Object.assign(endEffector, style[prefix+'circle-attr']);
+        Object.assign(endEffetorAngle, style['endeffector-angle-attr']);
 
 
         this.assignAttr(document.getElementById(prefix+'base-left'), baseLeft);
