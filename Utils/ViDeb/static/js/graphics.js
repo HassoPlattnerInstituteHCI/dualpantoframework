@@ -1,8 +1,8 @@
+// Pantograph glyph script.
 
-var s = Snap('#svg');
-
-const height = s.node.clientHeight,
-       width = s.node.clientWidth;
+// TODO: pass value from html
+const height = 300,
+       width = 300
 var config;
 var opAngle, opMaxDist, opMinDist;
 var UpperPanto;
@@ -123,21 +123,21 @@ class PantographGlyph{
 
     drawGlyph(){
         //lines
-        const il = s.line(this.base[0].x, this.base[0].y, this.inner[0].x, this.inner[0].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        const ir = s.line(this.base[1].x, this.base[1].y, this.inner[1].x, this.inner[1].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        const ol = s.line(this.inner[0].x, this.inner[0].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        const or = s.line(this.inner[1].x, this.inner[1].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        const ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
-        const ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
-        const mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
-        const el = s.line(this.handle.x, this.handle.y, this.handle.x+10*Math.cos(this.pointingAngle), this.handle.y+10*Math.sin(this.pointingAngle)).attr({stroke:'black'});
+        // const il = s.line(this.base[0].x, this.base[0].y, this.inner[0].x, this.inner[0].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        // const ir = s.line(this.base[1].x, this.base[1].y, this.inner[1].x, this.inner[1].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        // const ol = s.line(this.inner[0].x, this.inner[0].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        // const or = s.line(this.inner[1].x, this.inner[1].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        // const ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
+        // const ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
+        // const mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
+        // const el = s.line(this.handle.x, this.handle.y, this.handle.x+10*Math.cos(this.pointingAngle), this.handle.y+10*Math.sin(this.pointingAngle)).attr({stroke:'black'});
 
-        //group
-        const g = s.group(il, ir, ol, or, ml, mr, ee, el);
-        g.transform('T 150 50 S 1');
+        // //group
+        // const g = s.group(il, ir, ol, or, ml, mr, ee, el);
+        // g.transform('T 150 50 S 1');
 
         //rectangle for clicking area
-        const rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
+        // const rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
         const baseLeft = {
             "cx":this.base[0].x.toString(),
             "cy":this.base[0].y.toString(),
@@ -246,7 +246,6 @@ class PantographGlyph{
 }
 
 function flushGlyph(){
-    s.clear();
     LowerPanto.drawGlyph();
     UpperPanto.drawGlyph();
 }
