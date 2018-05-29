@@ -28,6 +28,26 @@ var style=
         "strokeWidth":2
     }
 };
+
+var _style=
+{
+    "lower-line-attr":{
+        "stroke":"#44A",
+        "stroke-linecap":"round",
+        "stroke-width": "5"
+    },
+    "lower-circle-attr":{
+        "fill":"#44A"
+    },
+    "upper-line-attr":{
+        "stroke":"#4A4",
+        "stroke-linecap":"round",
+        "stroke-width": "5"
+    },
+    "upper-circle-attr":{
+        "fill":"#4A4"
+    },
+};
 $.getJSON("js/LP_PCB.json", function(json){
     $.ajaxSetup({async:false});
     config = json;
@@ -102,21 +122,88 @@ class PantographGlyph{
 
     drawGlyph(){
         //lines
-        var il = s.line(this.base[0].x, this.base[0].y, this.inner[0].x, this.inner[0].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var ir = s.line(this.base[1].x, this.base[1].y, this.inner[1].x, this.inner[1].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var ol = s.line(this.inner[0].x, this.inner[0].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var or = s.line(this.inner[1].x, this.inner[1].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
-        var ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
-        var ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
-        var mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
-        var el = s.line(this.handle.x, this.handle.y, this.handle.x+10*Math.cos(this.pointingAngle), this.handle.y+10*Math.sin(this.pointingAngle)).attr({stroke:'black'});
+        const il = s.line(this.base[0].x, this.base[0].y, this.inner[0].x, this.inner[0].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        const ir = s.line(this.base[1].x, this.base[1].y, this.inner[1].x, this.inner[1].y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        const ol = s.line(this.inner[0].x, this.inner[0].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        const or = s.line(this.inner[1].x, this.inner[1].y, this.handle.x, this.handle.y).attr(this.id==0?style.upperPantoAttr : style.lowerPantoAttr);
+        const ee = s.circle(this.handle.x, this.handle.y, 5).attr({fill:this.id==0?"green":"blue"});
+        const ml = s.circle(this.base[0].x, this.base[0].y, 5).attr({fill:"black"});
+        const mr = s.circle(this.base[1].x, this.base[1].y, 5).attr({fill:"black"});
+        const el = s.line(this.handle.x, this.handle.y, this.handle.x+10*Math.cos(this.pointingAngle), this.handle.y+10*Math.sin(this.pointingAngle)).attr({stroke:'black'});
 
         //group
-        var g = s.group(il, ir, ol, or, ml, mr, ee, el);
-        g.transform('T 150 50');
+        const g = s.group(il, ir, ol, or, ml, mr, ee, el);
+        g.transform('T 150 50 S 1');
 
         //rectangle for clicking area
-        var rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
+        const rect = s.rect(0,0,width,height).attr({fill:'rgba(0,0,0,0)'});
+        const baseLeft = {
+            "cx":this.base[0].x.toString(),
+            "cy":this.base[0].y.toString(),
+            "r":5,
+        };
+        const baseRight = {
+            "cx":this.base[1].x.toString(),
+            "cy":this.base[1].y.toString(),
+            "r":5,
+        };
+        const innerPantoLeft = {
+            "x1":this.base[0].x.toString(),
+            "y1":this.base[0].y.toString(),
+            "x2":this.inner[0].x.toString(),
+            "y2":this.inner[0].y.toString()
+        };
+
+        const innerPantoRight = {
+            "x1":this.base[1].x.toString(),
+            "y1":this.base[1].y.toString(),
+            "x2":this.inner[1].x.toString(),
+            "y2":this.inner[1].y.toString()
+        };
+        
+        const outerPantoLeft = {
+            "x1":this.inner[0].x.toString(),
+            "y1":this.inner[0].y.toString(),
+            "x2":this.handle.x.toString(),
+            "y2":this.handle.y.toString()
+        };
+
+        const outerPantoRight = {
+            "x1":this.inner[1].x.toString(),
+            "y1":this.inner[1].y.toString(),
+            "x2":this.handle.x.toString(),
+            "y2":this.handle.y.toString()
+        };
+
+        const endEffector = {
+            "cx":this.handle.x.toString(),
+            "cy":this.handle.y.toString(),
+            "r":8
+        }
+
+        const prefix = this.id==0?'upper-':'lower-';
+
+        Object.assign(innerPantoLeft, _style[prefix+'line-attr']);
+        Object.assign(innerPantoRight, _style[prefix+'line-attr']);
+        Object.assign(outerPantoLeft, _style[prefix+'line-attr']);
+        Object.assign(outerPantoRight, _style[prefix+'line-attr']);
+        Object.assign(endEffector, _style[prefix+'circle-attr']);
+
+
+        this.assignAttr(document.getElementById(prefix+'base-left'), baseLeft);
+        this.assignAttr(document.getElementById(prefix+'base-right'), baseRight);
+        this.assignAttr(document.getElementById(prefix+'inner-left'), innerPantoLeft);
+        this.assignAttr(document.getElementById(prefix+'inner-right'), innerPantoRight);
+        this.assignAttr(document.getElementById(prefix+'outer-left'), outerPantoLeft);
+        this.assignAttr(document.getElementById(prefix+'outer-right'), outerPantoRight);
+        this.assignAttr(document.getElementById(prefix+'endeffector'), endEffector);
+        
+    }
+
+    assignAttr(svg, attr){
+        for(const a in attr){
+            svg.setAttribute(a, attr[a]);
+        }
     }
 
     inverseKinematics(ee_x, ee_y){

@@ -90,7 +90,28 @@
             <input type="range" min="-1000" max="1000" value="50" class="slider" id="myRange2"> -->
           </div>
           <center>
-           <svg width="300" height="600" id="svg">
+           <svg width="300" height="300" id="svg"></svg>
+           <svg width="300" height="300" id="newSvg">
+             <g id="canvas" transform="translate(150 50) scale(1)">
+              <g id="lower-panto">
+                  <line id="lower-inner-left" />
+                  <line id="lower-inner-right" />
+                  <line id="lower-outer-right" />
+                  <line id="lower-outer-left" />
+                  <circle id="lower-base-left" />
+                  <circle id="lower-base-right" />
+                  <circle id="lower-endeffector" />
+                </g>
+              <g id="upper-panto">
+                <line id="upper-inner-left" />
+                <line id="upper-inner-right" />
+                <line id="upper-outer-right" />
+                <line id="upper-outer-left" />
+                <circle id="upper-base-left" />
+                <circle id="upper-base-right" />
+                <circle id="upper-endeffector" />
+              </g>
+             </g>
            </svg>
           </center>
         </div>
