@@ -1,0 +1,14 @@
+toc:
+- name: DualPanto Framework
+  description: |-
+    This contains the API documentation of the main framework.
+  children:
+    - DualPantoFramework
+    - Broker
+    - Device
+    - VoiceInteraction
+- name: Geometry
+  description:
+    This contains the API documentation af the geometry helper classes.
+  children:
+    - Vector
