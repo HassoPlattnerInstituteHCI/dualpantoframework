@@ -5,7 +5,11 @@
   "main": "Utils/ViDeb/index.js",
   "scripts": {
     "ava": "ava test/",
+    "lint": "eslint lib",
+    "lint-fix": "eslint --fix lib",
+    "docs": "documentation readme lib/dualpantoframework.js -s API",
     "test": "node test.js",
+	"check": "npm run docs && npm run lint && npm run ava && npm run test",
     "install": "make && node ./voice-command/build/build-release.js"
   },
   "repository": {
@@ -29,6 +33,8 @@
     "websocket": "^1.0.26"
   },
   "devDependencies": {
-    "ava": "^1.0.0-beta.4"
+    "ava": "^1.0.0-beta.4",
+    "documentation": "^7.1.0",
+    "eslint": "^4.19.1"
   }
 }
