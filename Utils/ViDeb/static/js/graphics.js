@@ -32,12 +32,12 @@ var style=
 var _style=
 {
     "lower-line-attr":{
-        "stroke":"#44A",
+        "stroke":"#66F",
         "stroke-linecap":"round",
         "stroke-width": "5"
     },
     "lower-circle-attr":{
-        "fill":"#44A"
+        "fill":"#66F"
     },
     "upper-line-attr":{
         "stroke":"#4A4",
@@ -47,6 +47,10 @@ var _style=
     "upper-circle-attr":{
         "fill":"#4A4"
     },
+    "endeffector-angle-attr":{
+        "stroke-width": "2",
+        "stroke": "black"
+    }
 };
 $.getJSON("js/LP_PCB.json", function(json){
     $.ajaxSetup({async:false});
@@ -68,9 +72,6 @@ class PantographGlyph{
         this.handle = new Vector(0, 70);
         this.pointingAngle = 0.0;
         this.handleAngle = 0.0;
-        this.goalX = 0;
-        this.goalY - 0;
-        this.angle = 0;
         this.lastX = this.targetX;
         this.lastY = this.targetY;
         this.inner = [,];
@@ -181,6 +182,13 @@ class PantographGlyph{
             "r":8
         }
 
+        const endEffetorAngle = {
+            "x1":this.handle.x.toString(),
+            "y1":this.handle.y.toString(),
+            "x2":this.handle.x+15*Math.cos(this.pointingAngle),
+            "y2":this.handle.y+15*Math.sin(this.pointingAngle)    
+        }
+
         const prefix = this.id==0?'upper-':'lower-';
 
         Object.assign(innerPantoLeft, _style[prefix+'line-attr']);
@@ -188,6 +196,7 @@ class PantographGlyph{
         Object.assign(outerPantoLeft, _style[prefix+'line-attr']);
         Object.assign(outerPantoRight, _style[prefix+'line-attr']);
         Object.assign(endEffector, _style[prefix+'circle-attr']);
+        Object.assign(endEffetorAngle, _style['endeffector-angle-attr']);
 
 
         this.assignAttr(document.getElementById(prefix+'base-left'), baseLeft);
@@ -197,6 +206,7 @@ class PantographGlyph{
         this.assignAttr(document.getElementById(prefix+'outer-left'), outerPantoLeft);
         this.assignAttr(document.getElementById(prefix+'outer-right'), outerPantoRight);
         this.assignAttr(document.getElementById(prefix+'endeffector'), endEffector);
+        this.assignAttr(document.getElementById(prefix+'handle-angle'), endEffetorAngle);
         
     }
 
