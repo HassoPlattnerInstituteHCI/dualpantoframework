@@ -1,6 +1,6 @@
-const DualPantoFramework = require('../../lib/dualpantoframework'),
-      VoiceInteraction = DualPantoFramework.voiceInteraction;
-      Vector = DualPantoFramework.Vector;
+const DualPantoFramework = require('../..'),
+      VoiceInteraction = DualPantoFramework.voiceInteraction,
+      {Vector} = DualPantoFramework;
 let device;
 let follow = false;
 let hotels = [new Vector(50, -50, 0), new Vector(75, -75, 0)];

@@ -2,7 +2,7 @@ var   http        = require('http'),
       fs          = require('fs'),
       path        = require('path'),
       WebSocketServer = require('websocket').server,
-      DualPantoFramework = require('../../lib/dualpantoframework'),
+      DualPantoFramework = require('../..'),
       connections = new Set();
 
 const server = http.createServer((request, response) => {

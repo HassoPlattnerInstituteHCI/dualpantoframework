@@ -1,7 +1,7 @@
 'use strict';
 
-const DualPantoFramework = require('lib/dualpantoframework'),
-      Vector = DualPantoFramework.Vector;
+const DualPantoFramework = require('.'),
+      {Vector} = DualPantoFramework;
 
 DualPantoFramework.on('devicesChanged', function(devices, attached, detached) {
     console.log(devices, attached, detached);

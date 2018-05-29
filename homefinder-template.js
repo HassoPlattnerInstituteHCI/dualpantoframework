@@ -1,8 +1,8 @@
 'use strict'
 
-const   DualPantoFramework = require('lib/dualpantoframework'),
+const   DualPantoFramework = require('.'),
 		VoiceInteraction = DualPantoFramework.voiceInteraction,
-        Vector = DualPantoFramework.Vector;
+        {Vector} = DualPantoFramework;
 
 DualPantoFramework.on('devicesChanged', function(devices) {
     for(const device of devices) {
