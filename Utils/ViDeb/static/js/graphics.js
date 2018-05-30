@@ -29,6 +29,11 @@ var style=
     "endeffector-angle-attr":{
         "stroke-width": "2",
         "stroke": "black"
+    },
+    "endeffector-force-attr":{
+        "stroke-width": "2",
+        "stroke-linecap":"round",
+        "stroke": "orange"
     }
 };
 $.getJSON("js/LP_PCB.json", function(json){
@@ -49,6 +54,7 @@ class PantographGlyph{
         this.targetX = -20;
         this.targetY = 70;
         this.handle = new Vector(0, 70);
+        this.force = new Vector(0, 0);
         this.pointingAngle = 0.0;
         this.handleAngle = 0.0;
         this.lastX = this.targetX;
@@ -145,12 +151,21 @@ class PantographGlyph{
             "r":8
         }
 
-        const endEffetorAngle = {
+        const endEffectorAngle = {
             "x1":this.handle.x.toString(),
             "y1":this.handle.y.toString(),
             "x2":this.handle.x+15*Math.cos(this.pointingAngle),
             "y2":this.handle.y+15*Math.sin(this.pointingAngle)    
         }
+
+        const endEffectorForce = {
+            "x1":this.handle.x.toString(),
+            "y1":this.handle.y.toString(),
+            "x2":this.handle.x.toString()+this.force.x,
+            "y2":this.handle.y.toString()+this.force.y
+        };
+
+        //TODO: Force array vector graphics
 
         const prefix = this.id==0?'upper-':'lower-';
 
@@ -159,7 +174,8 @@ class PantographGlyph{
         Object.assign(outerPantoLeft, style[prefix+'line-attr']);
         Object.assign(outerPantoRight, style[prefix+'line-attr']);
         Object.assign(endEffector, style[prefix+'circle-attr']);
-        Object.assign(endEffetorAngle, style['endeffector-angle-attr']);
+        Object.assign(endEffectorAngle, style['endeffector-angle-attr']);
+        Object.assign(endEffectorForce, style['endeffector-force-attr']);
 
 
         this.assignAttr(document.getElementById(prefix+'base-left'), baseLeft);
@@ -169,7 +185,8 @@ class PantographGlyph{
         this.assignAttr(document.getElementById(prefix+'outer-left'), outerPantoLeft);
         this.assignAttr(document.getElementById(prefix+'outer-right'), outerPantoRight);
         this.assignAttr(document.getElementById(prefix+'endeffector'), endEffector);
-        this.assignAttr(document.getElementById(prefix+'handle-angle'), endEffetorAngle);
+        this.assignAttr(document.getElementById(prefix+'handle-angle'), endEffectorAngle);
+        this.assignAttr(document.getElementById(prefix+'handle-force'), endEffectorForce);
         
     }
 

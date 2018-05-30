@@ -41,6 +41,11 @@
         font-size: 5pt;
         color: green;
       }
+      .history-item-force{
+        list-style-type: none;
+        font-size: 5pt;
+        color: orange;
+      }
       @media (min-width: 992px) {
         body {
           padding-top: 56px;
@@ -99,6 +104,7 @@
                   <circle id="lower-base-left" />
                   <circle id="lower-base-right" />
                   <circle id="lower-endeffector" />
+                  <line id="lower-handle-force" />
                   <line id="lower-handle-angle" />
                 </g>
               <g id="upper-panto">
@@ -109,6 +115,7 @@
                 <circle id="upper-base-left" />
                 <circle id="upper-base-right" />
                 <circle id="upper-endeffector" />
+                <line id="upper-handle-force" />
                 <line id="upper-handle-angle" />
               </g>
              </g>
@@ -173,6 +180,13 @@
                     break;
                 case 'saySpeak':
                     node.className = 'history-item-say'
+                    break;
+                case 'applyForceTo':
+                    //TODO: force vector rendering
+                    node.className = 'history-item-force'
+                    panto.force = data.force;
+                    flushGlyph();
+                default:
                     break;
             }
             let textnode = document.createTextNode(event.data);
