@@ -12,7 +12,6 @@ env:
 rules:
     for-direction: error
     getter-return: error
-    no-await-in-loop: error
     no-console: off
     no-extra-parens: [error, all, {conditionalAssign: false, enforceForArrowConditionals: false, nestedBinaryExpressions: false}]
     no-template-curly-in-string: error
