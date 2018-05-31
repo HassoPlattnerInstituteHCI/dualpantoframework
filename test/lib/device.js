@@ -8,7 +8,7 @@ require('../../Framework');
 const Broker = require('../../lib/broker');
 const Device = require('../../lib/device');
 
-const broker = new Broker();
+const broker = new Broker({visualDebugger: false});
 const device = broker.createVirtualDevice();
 
 test('constructor', t => {

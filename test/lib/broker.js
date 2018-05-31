@@ -5,16 +5,18 @@
 const test = require('ava');
 
 const DualPantoFramework = require('../../Framework');
-const Broker = require('../../lib/broker');
+
+// the tests fail if '../../lib/Broker' is written in lower case, WTF?
+const Broker = require('../../lib/Broker');
 const VoiceInteraction = require('../../lib/voice-interaction');
 
-const broker = new Broker();
+const broker = new Broker({visualDebugger: false});
 
 test('constructor', t => {
 	t.is(DualPantoFramework.constructor, Broker);
 	t.is(broker.constructor, Broker);
 
-	t.deepEqual(broker.devices, new Map());
+	t.deepEqual(broker.deviceMap, new Map());
 	t.is(broker.disconnectTimeout, 5);
 	t.is(broker.voiceInteraction.constructor, VoiceInteraction);
 });
