@@ -7,6 +7,7 @@ toc:
     - Broker
     - Device
     - VoiceInteraction
+    - util
 - name: Geometry
   description:
     This contains the API documentation af the geometry helper classes.

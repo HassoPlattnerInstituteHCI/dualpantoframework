@@ -52,6 +52,7 @@ const addNamespacesToPaths = docs => {
 		let md = `# ${doc.name}\n\n`;
 		try {
 			md += doc.description.children[0].children[0].value;
+			md += '\n\n';
 			// eslint-disable-next-line
 		} catch(err) {}
 		md += data;
