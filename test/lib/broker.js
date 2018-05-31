@@ -6,8 +6,7 @@ const test = require('ava');
 
 const DualPantoFramework = require('../../Framework');
 
-// the tests fail if '../../lib/Broker' is written in lower case, WTF?
-const Broker = require('../../lib/Broker');
+const Broker = require('../../lib/broker');
 const VoiceInteraction = require('../../lib/voice-interaction');
 
 const broker = new Broker({visualDebugger: false});

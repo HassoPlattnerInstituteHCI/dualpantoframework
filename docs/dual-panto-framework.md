@@ -9,41 +9,31 @@ This contains the API documentation of the main framework.
 -   [DualPantoFramework][1]
 -   [Broker][2]
     -   [run_script][3]
-    -   [run_script][4]
-    -   [waitMS][5]
-    -   [waitMS][6]
-    -   [devices][7]
-    -   [devices][8]
--   [Broker][9]
-    -   [run_script][10]
-    -   [run_script][11]
-    -   [waitMS][12]
-    -   [waitMS][13]
-    -   [devices][14]
-    -   [devices][15]
--   [Device][16]
-    -   [getPosition][17]
-    -   [moveHandleTo][18]
-    -   [applyForceTo][19]
-    -   [movePantoTo][20]
-    -   [unblockHandle][21]
-    -   [speakText][22]
-    -   [onKeyword][23]
-    -   [onceKeyword][24]
-    -   [offKeyword][25]
-    -   [emitKeyword][26]
--   [VoiceInteraction][27]
-    -   [speakText][28]
-    -   [setCommands][29]
-    -   [beginListening][30]
-    -   [haltListening][31]
--   [util][32]
-    -   [delay][33]
+    -   [waitMS][4]
+    -   [devices][5]
+-   [Device][6]
+    -   [getPosition][7]
+    -   [moveHandleTo][8]
+    -   [applyForceTo][9]
+    -   [movePantoTo][10]
+    -   [unblockHandle][11]
+    -   [speakText][12]
+    -   [onKeyword][13]
+    -   [onceKeyword][14]
+    -   [offKeyword][15]
+    -   [emitKeyword][16]
+-   [VoiceInteraction][17]
+    -   [speakText][18]
+    -   [setCommands][19]
+    -   [beginListening][20]
+    -   [haltListening][21]
+-   [util][22]
+    -   [delay][23]
 
 ## DualPantoFramework
 
-The dual panto framework. All classes and [utility][32] functions are exported.
-This also includes the [geometry][34] classes (e.g. [Vector][35]).
+The dual panto framework. All classes and [utility][22] functions are exported.
+This also includes the [geometry][24] classes (e.g. [Vector][25]).
 
 **Examples**
 
@@ -67,12 +57,12 @@ Class for device handling and basic functions
 
 **Parameters**
 
--   `options` **[Object][36]?** broker options (optional, default `{}`)
+-   `options` **[Object][26]?** broker options (optional, default `{}`)
 
 **Properties**
 
--   `devices` **[Map][37]&lt;[string][38], [Device][39]>** map of connected devices
--   `disconnectTimeout` **[number][40]** timeout after which a device gets disconnected
+-   `devices` **[Map][27]&lt;[string][28], [Device][29]>** map of connected devices
+-   `disconnectTimeout` **[number][30]** timeout after which a device gets disconnected
 
 ### run_script
 
@@ -80,39 +70,7 @@ Creates a script that executes a list of promises.
 
 **Parameters**
 
--   `promiseList` **[array][41]** the list of promises to execute
-
-**Examples**
-
-```javascript
-// OLD: run_script syntax:
-device.on('handleMoved', (index, position) => {
-    run_script([
-        () => device.movePantoTo(0, new Vector(1, 2, 0)),
-        () => DualPantoFramework.waitMS(500),
-        () => device.movePantoTo(1, new Vector(4, 5, 0)),
-    ]);
-});
-// NEW: async / await syntax:
-device.on('handleMoved', async (index, position) => {
-    await device.movePantoTo(0, new Vector(1, 2, 0));
-    await DualPantoFramework.waitMS(500);
-    await device.movePantoTo(1, new Vector(4, 5, 0));
-});
-```
-
-**Meta**
-
--   **deprecated**: **use async / await instead**
-
-
-### run_script
-
-Creates a script that executes a list of promises.
-
-**Parameters**
-
--   `promiseList` **[array][41]** the list of promises to execute
+-   `promiseList` **[array][31]** the list of promises to execute
 
 **Examples**
 
@@ -144,7 +102,7 @@ Generates a promise that creates a timeout.
 
 **Parameters**
 
--   `ms` **[number][40]** number ob ms to wait.
+-   `ms` **[number][30]** number ob ms to wait.
 
 **Examples**
 
@@ -152,28 +110,7 @@ Generates a promise that creates a timeout.
 await broker.waitMS(500);
 ```
 
-Returns **[Promise][42]** The promise executing the timeout.
-
-**Meta**
-
--   **deprecated**: **use delay instead**
-
-
-### waitMS
-
-Generates a promise that creates a timeout.
-
-**Parameters**
-
--   `ms` **[number][40]** number ob ms to wait.
-
-**Examples**
-
-```javascript
-await broker.waitMS(500);
-```
-
-Returns **[Promise][42]** The promise executing the timeout.
+Returns **[Promise][32]** The promise executing the timeout.
 
 **Meta**
 
@@ -184,170 +121,7 @@ Returns **[Promise][42]** The promise executing the timeout.
 
 Iterator over all connected devices.
 
-Type: Iterator&lt;[Device][39]>
-
-**Examples**
-
-```javascript
-for(const device of broker.devices) {
-    console.log(device);
-}
-```
-
-### devices
-
-Iterator over all connected devices.
-
-Type: Iterator&lt;[Device][39]>
-
-**Examples**
-
-```javascript
-for(const device of broker.devices) {
-    console.log(device);
-}
-```
-
-## Broker
-
-**Extends EventEmitter**
-
-Class for device handling and basic functions
-
-**Parameters**
-
--   `options` **[Object][36]?** broker options (optional, default `{}`)
-
-**Properties**
-
--   `devices` **[Map][37]&lt;[string][38], [Device][39]>** map of connected devices
--   `disconnectTimeout` **[number][40]** timeout after which a device gets disconnected
-
-### run_script
-
-Creates a script that executes a list of promises.
-
-**Parameters**
-
--   `promiseList` **[array][41]** the list of promises to execute
-
-**Examples**
-
-```javascript
-// OLD: run_script syntax:
-device.on('handleMoved', (index, position) => {
-    run_script([
-        () => device.movePantoTo(0, new Vector(1, 2, 0)),
-        () => DualPantoFramework.waitMS(500),
-        () => device.movePantoTo(1, new Vector(4, 5, 0)),
-    ]);
-});
-// NEW: async / await syntax:
-device.on('handleMoved', async (index, position) => {
-    await device.movePantoTo(0, new Vector(1, 2, 0));
-    await DualPantoFramework.waitMS(500);
-    await device.movePantoTo(1, new Vector(4, 5, 0));
-});
-```
-
-**Meta**
-
--   **deprecated**: **use async / await instead**
-
-
-### run_script
-
-Creates a script that executes a list of promises.
-
-**Parameters**
-
--   `promiseList` **[array][41]** the list of promises to execute
-
-**Examples**
-
-```javascript
-// OLD: run_script syntax:
-device.on('handleMoved', (index, position) => {
-    run_script([
-        () => device.movePantoTo(0, new Vector(1, 2, 0)),
-        () => DualPantoFramework.waitMS(500),
-        () => device.movePantoTo(1, new Vector(4, 5, 0)),
-    ]);
-});
-// NEW: async / await syntax:
-device.on('handleMoved', async (index, position) => {
-    await device.movePantoTo(0, new Vector(1, 2, 0));
-    await DualPantoFramework.waitMS(500);
-    await device.movePantoTo(1, new Vector(4, 5, 0));
-});
-```
-
-**Meta**
-
--   **deprecated**: **use async / await instead**
-
-
-### waitMS
-
-Generates a promise that creates a timeout.
-
-**Parameters**
-
--   `ms` **[number][40]** number ob ms to wait.
-
-**Examples**
-
-```javascript
-await broker.waitMS(500);
-```
-
-Returns **[Promise][42]** The promise executing the timeout.
-
-**Meta**
-
--   **deprecated**: **use delay instead**
-
-
-### waitMS
-
-Generates a promise that creates a timeout.
-
-**Parameters**
-
--   `ms` **[number][40]** number ob ms to wait.
-
-**Examples**
-
-```javascript
-await broker.waitMS(500);
-```
-
-Returns **[Promise][42]** The promise executing the timeout.
-
-**Meta**
-
--   **deprecated**: **use delay instead**
-
-
-### devices
-
-Iterator over all connected devices.
-
-Type: Iterator&lt;[Device][39]>
-
-**Examples**
-
-```javascript
-for(const device of broker.devices) {
-    console.log(device);
-}
-```
-
-### devices
-
-Iterator over all connected devices.
-
-Type: Iterator&lt;[Device][39]>
+Type: Iterator&lt;[Device][29]>
 
 **Examples**
 
@@ -367,9 +141,9 @@ or when the visual debugger needs a virtual device.
 
 **Parameters**
 
--   `broker` **[Broker][43]** the broker the device is created by
--   `port` **[string][38]** port on that the device is connected (or 'virtual<n>')
--   `isVirtual` **[boolean][44]** is this a virtual device
+-   `broker` **[Broker][33]** the broker the device is created by
+-   `port` **[string][28]** port on that the device is connected (or 'virtual<n>')
+-   `isVirtual` **[boolean][34]** is this a virtual device
 
 ### getPosition
 
@@ -377,9 +151,9 @@ Returns the current (or last known) position of the handle.
 
 **Parameters**
 
--   `index` **[number][40]** index of handle
+-   `index` **[number][30]** index of handle
 
-Returns **[Vector][45]** the position of the handle
+Returns **[Vector][35]** the position of the handle
 
 ### moveHandleTo
 
@@ -387,8 +161,8 @@ Moves a handle to a position.
 
 **Parameters**
 
--   `index` **[number][40]** index of handle to move
--   `target` **[Vector][45]** position the handle should move to (optional, default `null`)
+-   `index` **[number][30]** index of handle to move
+-   `target` **[Vector][35]** position the handle should move to (optional, default `null`)
 
 **Examples**
 
@@ -402,8 +176,8 @@ Applies force vector to the pantograph.
 
 **Parameters**
 
--   `index` **[number][40]** index of handle to apply force
--   `force` **[Vector][45]** vector of force to render (r component is ignored) (optional, default `null`)
+-   `index` **[number][30]** index of handle to apply force
+-   `force` **[Vector][35]** vector of force to render (r component is ignored) (optional, default `null`)
 
 **Examples**
 
@@ -417,13 +191,13 @@ Moves a handle with tween movement behaviour.
 
 **Parameters**
 
--   `index` **[number][40]** index of handle to move
--   `target` **[Vector][45]** position the handle should move to
--   `options` **[Object][36]?** movement options (optional, default `{}`)
-    -   `options.duration` **[Object][36]?** time in ms that the movement should take
-    -   `options.speed` **[Object][36]?** speed in units/second the movement should have
-    -   `options.interpolationMethod` **[Object][36]?** tween function that is used to generate the movement
-    -   `options.position` **[Object][36]?** the position that the movement should start from
+-   `index` **[number][30]** index of handle to move
+-   `target` **[Vector][35]** position the handle should move to
+-   `options` **[Object][26]?** movement options (optional, default `{}`)
+    -   `options.duration` **[Object][26]?** time in ms that the movement should take
+    -   `options.speed` **[Object][26]?** speed in units/second the movement should have
+    -   `options.interpolationMethod` **[Object][26]?** tween function that is used to generate the movement
+    -   `options.position` **[Object][26]?** the position that the movement should start from
 
 **Examples**
 
@@ -443,7 +217,7 @@ Unblocks a handle. This enables free movement.
 
 **Parameters**
 
--   `index` **[number][40]** index of handle to unblock
+-   `index` **[number][30]** index of handle to unblock
 
 **Examples**
 
@@ -457,9 +231,9 @@ Speaks a text.
 
 **Parameters**
 
--   `text` **[string][38]** the text to speak
--   `language` **[string][38]** the language to speak (optional, default `broker.defaultLanguage`)
--   `speed` **[number][40]** the speed that is spoken with (optional, default `broker.defaultSpeechSpeed`)
+-   `text` **[string][28]** the text to speak
+-   `language` **[string][28]** the language to speak (optional, default `broker.defaultLanguage`)
+-   `speed` **[number][30]** the speed that is spoken with (optional, default `broker.defaultSpeechSpeed`)
 
 **Examples**
 
@@ -474,8 +248,8 @@ Works like device.on(...) but for keywords.
 
 **Parameters**
 
--   `keyword` **[string][38]** the keyword to listen for
--   `handler` **[function][46]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][28]** the keyword to listen for
+-   `handler` **[function][36]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -483,7 +257,7 @@ Works like device.on(...) but for keywords.
 device.on('Hotels', showHotels);
 ```
 
-Returns **[Device][39]** the device the method was called on
+Returns **[Device][29]** the device the method was called on
 
 ### onceKeyword
 
@@ -492,8 +266,8 @@ It is like onKeyword, but the handler gets called only once.
 
 **Parameters**
 
--   `keyword` **[string][38]** the keyword to listen for
--   `handler` **[function][46]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][28]** the keyword to listen for
+-   `handler` **[function][36]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -501,7 +275,7 @@ It is like onKeyword, but the handler gets called only once.
 device.once('Shutdown', c);
 ```
 
-Returns **[Device][39]** the device the method was called on
+Returns **[Device][29]** the device the method was called on
 
 ### offKeyword
 
@@ -510,8 +284,8 @@ It is like onKeyword, but the handler gets removed.
 
 **Parameters**
 
--   `keyword` **[string][38]** the keyword to listen for
--   `handler` **[function][46]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][28]** the keyword to listen for
+-   `handler` **[function][36]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -519,7 +293,7 @@ It is like onKeyword, but the handler gets removed.
 device.off('Hotels', showHotels);
 ```
 
-Returns **[Device][39]** the device the method was called on
+Returns **[Device][29]** the device the method was called on
 
 ### emitKeyword
 
@@ -528,8 +302,8 @@ Emits a keyword event.
 
 **Parameters**
 
--   `keyword` **[string][38]** the keyword to listen for
--   `handler` **[function][46]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][28]** the keyword to listen for
+-   `handler` **[function][36]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -537,7 +311,7 @@ Emits a keyword event.
 device.emitKeyword('Hotel');
 ```
 
-Returns **[Device][39]** the device the method was called on
+Returns **[Device][29]** the device the method was called on
 
 ## VoiceInteraction
 
@@ -547,7 +321,7 @@ Class for voice input and output
 
 **Parameters**
 
--   `broker` **[Broker][43]?** the asociated broker (optional, default `null`)
+-   `broker` **[Broker][33]?** the asociated broker (optional, default `null`)
 
 ### speakText
 
@@ -555,9 +329,9 @@ Speaks a text.
 
 **Parameters**
 
--   `text` **[string][38]** the text to speak
--   `language` **[string][38]** the language to speak (optional, default `DE`)
--   `speed` **[number][40]** the speed that is spoken with (optional, default `1.4`)
+-   `text` **[string][28]** the text to speak
+-   `language` **[string][28]** the language to speak (optional, default `DE`)
+-   `speed` **[number][30]** the speed that is spoken with (optional, default `1.4`)
 
 **Examples**
 
@@ -572,7 +346,7 @@ Sets up the voice input listener.
 
 **Parameters**
 
--   `commands` **[array][41]** List of Strings to listen for.
+-   `commands` **[array][31]** List of Strings to listen for.
 
 **Examples**
 
@@ -618,7 +392,7 @@ Creates a promise that resolves after a specified time.
 
 **Parameters**
 
--   `time` **[number][40]** time to wait at least befor resolving
+-   `time` **[number][30]** time to wait at least befor resolving
 
 **Examples**
 
@@ -626,7 +400,7 @@ Creates a promise that resolves after a specified time.
 await delay(500);
 ```
 
-Returns **[Promise][42]** the promise
+Returns **[Promise][32]** the promise
 
 [1]: #dualpantoframework
 
@@ -634,88 +408,68 @@ Returns **[Promise][42]** the promise
 
 [3]: #run_script
 
-[4]: #run_script-1
+[4]: #waitms
 
-[5]: #waitms
+[5]: #devices
 
-[6]: #waitms-1
+[6]: #device
 
-[7]: #devices
+[7]: #getposition
 
-[8]: #devices-1
+[8]: #movehandleto
 
-[9]: #broker-1
+[9]: #applyforceto
 
-[10]: #run_script-2
+[10]: #movepantoto
 
-[11]: #run_script-3
+[11]: #unblockhandle
 
-[12]: #waitms-2
+[12]: #speaktext
 
-[13]: #waitms-3
+[13]: #onkeyword
 
-[14]: #devices-2
+[14]: #oncekeyword
 
-[15]: #devices-3
+[15]: #offkeyword
 
-[16]: #device
+[16]: #emitkeyword
 
-[17]: #getposition
+[17]: #voiceinteraction
 
-[18]: #movehandleto
+[18]: #speaktext-1
 
-[19]: #applyforceto
+[19]: #setcommands
 
-[20]: #movepantoto
+[20]: #beginlistening
 
-[21]: #unblockhandle
+[21]: #haltlistening
 
-[22]: #speaktext
+[22]: #util
 
-[23]: #onkeyword
+[23]: #delay
 
-[24]: #oncekeyword
+[24]: geometry.md#geometry
 
-[25]: #offkeyword
+[25]: geometry.md#vector
 
-[26]: #emitkeyword
+[26]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-[27]: #voiceinteraction
+[27]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map
 
-[28]: #speaktext-1
+[28]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
-[29]: #setcommands
+[29]: #device
 
-[30]: #beginlistening
+[30]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[31]: #haltlistening
+[31]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-[32]: #util
+[32]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
 
-[33]: #delay
+[33]: #broker
 
-[34]: geometry.md#geometry
+[34]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
 [35]: geometry.md#vector
 
-[36]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
-
-[37]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map
-
-[38]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
-
-[39]: #device
-
-[40]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
-
-[41]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
-
-[42]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
-
-[43]: #broker
-
-[44]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
-
-[45]: geometry.md#vector
-
-[46]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[36]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
