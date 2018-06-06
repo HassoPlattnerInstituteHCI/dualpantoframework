@@ -27,7 +27,7 @@ Class for Class for defining Panto Vecotrs with x, y cords and r as roation
 
 -   `x` **[number][13]** x coordinate (optional, default `0`)
 -   `y` **[number][13]** y coordinate (optional, default `0`)
--   `r` **[number][13]** rotation in radian
+-   `r` **[number][13]** rotation in radian (optional, default `0`)
 
 ### dot
 

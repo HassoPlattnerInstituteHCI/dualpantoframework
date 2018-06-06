@@ -153,7 +153,21 @@ Returns the current (or last known) position of the handle.
 
 -   `index` **[number][30]** index of handle
 
+**Examples**
+
+```javascript
+// deprecated:
+device.getPosition(0)
+// new style:
+device.meHandle.position
+```
+
 Returns **[Vector][35]** the position of the handle
+
+**Meta**
+
+-   **deprecated**: **Use [Handle#position][36] instead!**
+
 
 ### moveHandleTo
 
@@ -162,13 +176,22 @@ Moves a handle to a position.
 **Parameters**
 
 -   `index` **[number][30]** index of handle to move
--   `target` **[Vector][35]** position the handle should move to (optional, default `null`)
+-   `target` **[Vector][35]** position the handle should move to
 
 **Examples**
 
 ```javascript
+// deprecated:
 device.moveHandleTo(0, new Vector(35, -50, 0));
+// new style:
+// pass 0 as the second argument to disable the animation
+device.meHandle.moveTo(new Vector(35, -50, 0), 0);
 ```
+
+**Meta**
+
+-   **deprecated**: **Use [Handle#moveTo][37] instead!**
+
 
 ### applyForceTo
 
@@ -177,13 +200,21 @@ Applies force vector to the pantograph.
 **Parameters**
 
 -   `index` **[number][30]** index of handle to apply force
--   `force` **[Vector][35]** vector of force to render (r component is ignored) (optional, default `null`)
+-   `force` **[Vector][35]** vector of force to render (r component is ignored)
 
 **Examples**
 
 ```javascript
+// deprecated:
 device.applyForceTo(0, new Vector(5, 7));
+// new style:
+device.meHandle.applyForce(new Vector(5, 7));
 ```
+
+**Meta**
+
+-   **deprecated**: **Use [Handle#applyForce][38] instead!**
+
 
 ### movePantoTo
 
@@ -193,15 +224,12 @@ Moves a handle with tween movement behaviour.
 
 -   `index` **[number][30]** index of handle to move
 -   `target` **[Vector][35]** position the handle should move to
--   `options` **[Object][26]?** movement options (optional, default `{}`)
-    -   `options.duration` **[Object][26]?** time in ms that the movement should take
-    -   `options.speed` **[Object][26]?** speed in units/second the movement should have
-    -   `options.interpolationMethod` **[Object][26]?** tween function that is used to generate the movement
-    -   `options.position` **[Object][26]?** the position that the movement should start from
+-   `options` **[Object][26]?** movement options
 
 **Examples**
 
 ```javascript
+Deprecated
 await device.movePantoTo(1, new Vector(24, -38, Math.PI/2));
 
 // slow movement (1 second = 1000 milliseconds)
@@ -210,6 +238,22 @@ await device.movePantoTo(1, new Vector(24, -38, Math.PI/2), {duration: 1000});
 // fast movement, with speed (100 = a distance of 50 should take 0.5 sec)
 await device.movePantoTo(1, new Vector(-25, -38, Math.PI/2), {speed: 100});
 ```
+
+```javascript
+New Style
+await device.itHandle.moveTo(new Vector(24, -38, Math.PI/2));
+
+// slow movement (1 second = 1000 milliseconds)
+await device.itHandle.moveTo(new Vector(24, -38, Math.PI/2), {duration: 1000});
+
+// fast movement, with speed (100 = a distance of 50 should take 0.5 sec)
+await device.itHandle.moveTo(new Vector(-25, -38, Math.PI/2), {speed: 100});
+```
+
+**Meta**
+
+-   **deprecated**: **Use [Handle#moveTo][37] instead!**
+
 
 ### unblockHandle
 
@@ -222,8 +266,16 @@ Unblocks a handle. This enables free movement.
 **Examples**
 
 ```javascript
-await device.unblockHandle();
+// deprecated:
+device.unblockHandle(0);
+// new style:
+device.meHandle.unblock();
 ```
+
+**Meta**
+
+-   **deprecated**: **Use [Handle#unblock][39] instead!**
+
 
 ### speakText
 
@@ -249,7 +301,7 @@ Works like device.on(...) but for keywords.
 **Parameters**
 
 -   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][36]** the handler to execute when the keyword is recognized
+-   `handler` **[function][40]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -267,7 +319,7 @@ It is like onKeyword, but the handler gets called only once.
 **Parameters**
 
 -   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][36]** the handler to execute when the keyword is recognized
+-   `handler` **[function][40]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -285,7 +337,7 @@ It is like onKeyword, but the handler gets removed.
 **Parameters**
 
 -   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][36]** the handler to execute when the keyword is recognized
+-   `handler` **[function][40]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -303,7 +355,7 @@ Emits a keyword event.
 **Parameters**
 
 -   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][36]** the handler to execute when the keyword is recognized
+-   `handler` **[function][40]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -472,4 +524,12 @@ Returns **[Promise][32]** the promise
 
 [35]: geometry.md#vector
 
-[36]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[36]: Handle#position
+
+[37]: Handle#moveTo
+
+[38]: Handle#applyForce
+
+[39]: Handle#unblock
+
+[40]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
