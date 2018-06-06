@@ -73,7 +73,7 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-3 text-right">
-            <h3 class="mt-5">controller</h3>
+            <h3 class="mt-5">Controller</h3>
             <button type="button" id="grab-upper" class="btn btn-outline-success" data-toggle="button">Grab Upper</button><br>
             <button type="button" id="grab-lower" class="btn btn-outline-primary" data-toggle="button">Grab Lower</button><br>
               <div class="form-row">
@@ -124,11 +124,11 @@
           </center>
         </div>
         <div class="col-lg-3 text-left">
-          <h3 class="mt-5">status</h3>
+          <h3 class="mt-5">Status</h3>
           websocket : <span id = "status-websocket" class="badge badge-warning">Not Connected</span><br>
           serial : <span id = "status-serial" class="badge badge-warning">Data not comming</span><br>
           virtualpanto : <span id = "status-mirror" class="badge badge-secondary">No Kinematics</span><br>
-          <h3 class="mt-5">log history</h3>
+          <h3 class="mt-5">Log history</h3>
           <ul id="history"></ul>
         </div>
       </div>
@@ -237,6 +237,7 @@
             const rect = e.target.getBoundingClientRect();
             const x = e.clientX - rect.left; //x position within the element.
             const y = e.clientY - rect.top;  //y position within the element.
+            console.log(x, y);
             if($("#grab-upper").hasClass('active')){
               UpperPanto.targetX = (-x+150)/1.2;
               UpperPanto.targetY = (y - 50)/1.2;
@@ -255,8 +256,8 @@
               ws.send(JSON.stringify(packet));
             }
             if($("#grab-lower").hasClass('active')){
-              LowerPanto.targetX = -x+150;
-              LowerPanto.targetY = y - 50;
+              LowerPanto.targetX = -(x+150)/1.2;
+              LowerPanto.targetY = (y - 50)/1.2;
               LowerPanto.inverseKinematicsNumeric(LowerPanto.targetX,LowerPanto.targetY);
               flushGlyph();
               const packet = {
