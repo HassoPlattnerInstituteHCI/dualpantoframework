@@ -3,7 +3,7 @@ serial
 build/
 node_modules/
 package-lock.json
-Firmware/*config.h
+firmware/*config.h
 config.json
 persistent.json
 
