@@ -19,5 +19,8 @@ In [this wiki page](https://github.com/HassoPlattnerInstituteHCI/dualpantoframew
 
 ...under construction...
 
-## Documenatation
+## Documentation
 - [API Documentation](docs/dual-panto-framework.md)
+
+## Developer Documentation
+- [Protocol Documentation](docs/dev/protocol.md)
