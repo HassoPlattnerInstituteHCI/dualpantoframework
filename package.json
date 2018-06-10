@@ -10,7 +10,7 @@
     "docs": "node scripts/docs",
     "test": "node test.js",
     "check": "npm run docs && npm run lint && npm run ava && npm run test",
-    "install": "make && node ./voice-command/build/build-release.js"
+    "install": "node ./voice-command/build/build-release.js"
   },
   "repository": {
     "type": "git",
