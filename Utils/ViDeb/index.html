@@ -154,9 +154,9 @@
         }
         ws.onmessage = function(event) {
             // document.getElementById('status-serial').innerText = 'Receiving';
-            document.getElementById('status-serial').className = 'badge badge-success';
             let node = document.createElement('li');
             const data = JSON.parse(event.data);
+            if(!data.port.match('virtual'))document.getElementById('status-serial').className = 'badge badge-success';
             node.className = 'history-item';
             const panto = (data.index == 0) ? UpperPanto : LowerPanto;
             switch(data.type) {
