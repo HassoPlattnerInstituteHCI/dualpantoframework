@@ -29,7 +29,7 @@ class Vector {
     * @param {number} factor - factor to scale vector
     * @return {Vector} The scaled Vector
     */
-    scale(factor) {  
+    scale(factor) {
         this.x *= factor;
         this.y *= factor;
         return this;
@@ -104,13 +104,27 @@ class Vector {
     }
 
     /**
+    * Rotates the vector with the given angle
+    * Right-hand coordinate system:
+    * Positive rotation => Counter Clock Wise
+    * Positive X-Axis is 0
+    * @param {number} angle - angle in radians
+    * @return {Vector} The rotated vector
+    */
+    rotate(angle) {
+      let rotation_matrix = [Math.cos(angle), (-1.0) * Math.sin(angle),
+                Math.sin(angle), Math.cos(angle)]
+      return this.product(rotation_matrix);
+    }
+
+    /**
     * Normalizes the vector
     * @return {Vector} this normalized vector
     */
     normalized() {
         return this.scaled(1.0/this.length());
     }
-    
+
     /**
     * Creates a transformed vector by multiplication with a matrix
     * @param {Array} matrix - matrix to operate with
