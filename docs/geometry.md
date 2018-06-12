@@ -16,8 +16,9 @@ This contains the API documentation af the geometry helper classes.
     -   [difference][8]
     -   [length][9]
     -   [polarAngle][10]
-    -   [normalized][11]
-    -   [product][12]
+    -   [rotate][11]
+    -   [normalized][12]
+    -   [product][13]
 
 ## Vector
 
@@ -25,9 +26,9 @@ Class for Class for defining Panto Vecotrs with x, y cords and r as roation
 
 **Parameters**
 
--   `x` **[number][13]** x coordinate (optional, default `0`)
--   `y` **[number][13]** y coordinate (optional, default `0`)
--   `r` **[number][13]** rotation in radian
+-   `x` **[number][14]** x coordinate (optional, default `0`)
+-   `y` **[number][14]** y coordinate (optional, default `0`)
+-   `r` **[number][14]** rotation in radian
 
 ### dot
 
@@ -35,9 +36,9 @@ Calculates and returns the dot product with another vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `vector` **[Vector][15]** vector to operate with
 
-Returns **[number][13]** The calculated result
+Returns **[number][14]** The calculated result
 
 ### scale
 
@@ -45,9 +46,9 @@ Scales this Vector with a factor.
 
 **Parameters**
 
--   `factor` **[number][13]** factor to scale vector
+-   `factor` **[number][14]** factor to scale vector
 
-Returns **[Vector][14]** The scaled Vector
+Returns **[Vector][15]** The scaled Vector
 
 ### scaled
 
@@ -55,9 +56,9 @@ Creates a scaled vector.
 
 **Parameters**
 
--   `factor` **[number][13]** factor to scale vector
+-   `factor` **[number][14]** factor to scale vector
 
-Returns **[Vector][14]** The new scaled Vector
+Returns **[Vector][15]** The new scaled Vector
 
 ### add
 
@@ -65,9 +66,9 @@ Adds a vector to this vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `vector` **[Vector][15]** vector to operate with
 
-Returns **[Vector][14]** The summed up vector
+Returns **[Vector][15]** The summed up vector
 
 ### sum
 
@@ -75,9 +76,9 @@ Returns the sum of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `vector` **[Vector][15]** vector to operate with
 
-Returns **[Vector][14]** The new summed up vector
+Returns **[Vector][15]** The new summed up vector
 
 ### subtract
 
@@ -85,9 +86,9 @@ Subtracts a vector from this vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `vector` **[Vector][15]** vector to operate with
 
-Returns **[Vector][14]** The reduced vector
+Returns **[Vector][15]** The reduced vector
 
 ### difference
 
@@ -95,15 +96,15 @@ Returns the difference of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `vector` **[Vector][15]** vector to operate with
 
-Returns **[Vector][14]** The difference vector
+Returns **[Vector][15]** The difference vector
 
 ### length
 
 Calculates the length of the vector
 
-Returns **[number][13]** length of vector
+Returns **[number][14]** length of vector
 
 ### polarAngle
 
@@ -112,13 +113,26 @@ Right-hand coordinate system:
 Positive rotation => Counter Clock Wise
 Positive X-Axis is 0
 
-Returns **[number][13]** polar angle of vector
+Returns **[number][14]** polar angle of vector
+
+### rotate
+
+Rotates the vector with the given angle
+Right-hand coordinate system:
+Positive rotation => Counter Clock Wise
+Positive X-Axis is 0
+
+**Parameters**
+
+-   `angle` **[number][14]** angle in radians
+
+Returns **[Vector][15]** The rotated vector
 
 ### normalized
 
 Normalizes the vector
 
-Returns **[Vector][14]** this normalized vector
+Returns **[Vector][15]** this normalized vector
 
 ### product
 
@@ -126,9 +140,9 @@ Creates a transformed vector by multiplication with a matrix
 
 **Parameters**
 
--   `matrix` **[Array][15]** matrix to operate with
+-   `matrix` **[Array][16]** matrix to operate with
 
-Returns **[Vector][14]** The transfromed vector
+Returns **[Vector][15]** The transfromed vector
 
 [1]: #vector
 
@@ -150,12 +164,14 @@ Returns **[Vector][14]** The transfromed vector
 
 [10]: #polarangle
 
-[11]: #normalized
+[11]: #rotate
 
-[12]: #product
+[12]: #normalized
 
-[13]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[13]: #product
 
-[14]: #vector
+[14]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[15]: #vector
+
+[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array

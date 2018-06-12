@@ -6,6 +6,7 @@ toc:
     - DualPantoFramework
     - Broker
     - Device
+    - Player
     - VoiceInteraction
     - util
 - name: Geometry
