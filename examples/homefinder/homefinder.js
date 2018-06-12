@@ -1,6 +1,6 @@
-const DualPantoFramework = require('./dualpantoframework/Framework.js'),
-      VoiceInteraction = DualPantoFramework.voiceInteraction;
-      Vector = require('./dualpantoframework/Vector.js');
+const DualPantoFramework = require('../..'),
+      VoiceInteraction = DualPantoFramework.voiceInteraction,
+      {Vector} = DualPantoFramework;
 let device;
 let follow = false;
 let hotels = [new Vector(50, -50, 0), new Vector(75, -75, 0)];
@@ -24,7 +24,7 @@ function getArea(position) {
     if (inArea(position, hotels[0])) {
         area = "first_Hotel"
     } else if (inArea(position, hotels[1])) {
-        area = "second_Hotel"     
+        area = "second_Hotel"
     } else {
         area = "start";
     }
@@ -51,7 +51,7 @@ function start(){
     () => VoiceInteraction.speakText('Lass mich dir die Gegend zeigen.'),
     () => device.movePantoTo(1,new Vector(-50, -75, 0)),
     //TODO: here display a square around the field
-  
+
     () => VoiceInteraction.speakText('Du kannst Hotels sagen und ich zeige dir Hotelstandorte.'),
     () => DualPantoFramework.waitMS(500),
     () => device.unblockHandle(0),
@@ -108,7 +108,7 @@ function nearbyLocation(area){
 }
 
 function refollow(){
-  return new Promise (resolve => 
+  return new Promise (resolve =>
     {
         follow = true;
         resolve(resolve);
