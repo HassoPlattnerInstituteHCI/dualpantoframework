@@ -81,6 +81,14 @@ wsServer.on('request', (request) => {
                 for(connetion of connections)
                     connection.sendUTF(JSON.stringify(packet));
             });
+            device.on('applyForceTo', (i, f) => {
+                const packet = {
+                    type: 'applyForceTo',
+                    port: device.port,
+                    index: i,
+                    force: f
+                };
+            });
         // }
     }
     connection.on('message', (message) => {
