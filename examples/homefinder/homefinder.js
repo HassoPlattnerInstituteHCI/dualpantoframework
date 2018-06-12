@@ -16,7 +16,7 @@ DualPantoFramework.on('devicesChanged', function(devices){
 });
 
 function inArea(position_me, position_hotel) {
-    return  position_me.difference(position_hotel).length() <= 10;
+    return  position_me.difference(position_hotel).length <= 10;
 }
 
 function getArea(position) {
