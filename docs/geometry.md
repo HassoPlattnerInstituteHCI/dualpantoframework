@@ -8,27 +8,30 @@ This contains the API documentation af the geometry helper classes.
 
 -   [Vector][1]
     -   [dot][2]
-    -   [scale][3]
-    -   [scaled][4]
-    -   [add][5]
-    -   [sum][6]
-    -   [subtract][7]
-    -   [difference][8]
-    -   [length][9]
-    -   [polarAngle][10]
-    -   [rotate][11]
-    -   [normalized][12]
-    -   [product][13]
+    -   [scaled][3]
+    -   [sum][4]
+    -   [diff][5]
+    -   [length][6]
+    -   [angle][7]
+    -   [rotate][8]
+    -   [normalized][9]
+    -   [product][10]
 
 ## Vector
 
-Class for Class for defining Panto Vecotrs with x, y cords and r as roation
+Class for Class for defining Panto Vecotrs with x, y cords and r as roation.
 
 **Parameters**
 
--   `x` **[number][14]** x coordinate (optional, default `0`)
--   `y` **[number][14]** y coordinate (optional, default `0`)
--   `r` **[number][14]** rotation in radian
+-   `x` **([number][11] \| [Array][12]&lt;[number][11]> | [Vector][13])** x coordinate or an array with [x, y, r] or a vector (optional, default `0`)
+-   `y` **[number][11]** y coordinate (optional, default `0`)
+-   `r` **[number][11]** rotation in radian (optional, default `0`)
+
+**Properties**
+
+-   `x` **[number][11]** x coordinate
+-   `y` **[number][11]** y coordinate
+-   `r` **[number][11]** rotation in radian
 
 ### dot
 
@@ -36,19 +39,9 @@ Calculates and returns the dot product with another vector.
 
 **Parameters**
 
--   `vector` **[Vector][15]** vector to operate with
+-   `other` **[Vector][13]** the other vector
 
-Returns **[number][14]** The calculated result
-
-### scale
-
-Scales this Vector with a factor.
-
-**Parameters**
-
--   `factor` **[number][14]** factor to scale vector
-
-Returns **[Vector][15]** The scaled Vector
+Returns **[number][11]** The calculated result
 
 ### scaled
 
@@ -56,19 +49,9 @@ Creates a scaled vector.
 
 **Parameters**
 
--   `factor` **[number][14]** factor to scale vector
+-   `factor` **[number][11]** factor of scaling
 
-Returns **[Vector][15]** The new scaled Vector
-
-### add
-
-Adds a vector to this vector.
-
-**Parameters**
-
--   `vector` **[Vector][15]** vector to operate with
-
-Returns **[Vector][15]** The summed up vector
+Returns **[Vector][13]** The scaled Vector
 
 ### sum
 
@@ -76,44 +59,35 @@ Returns the sum of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][15]** vector to operate with
+-   `other` **[Vector][13]** the other vector
 
-Returns **[Vector][15]** The new summed up vector
+Returns **[Vector][13]** The summed up vector
 
-### subtract
-
-Subtracts a vector from this vector.
-
-**Parameters**
-
--   `vector` **[Vector][15]** vector to operate with
-
-Returns **[Vector][15]** The reduced vector
-
-### difference
+### diff
 
 Returns the difference of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][15]** vector to operate with
+-   `other` **[Vector][13]** the other vector
 
-Returns **[Vector][15]** The difference vector
+Returns **[Vector][13]** The difference vector
 
 ### length
 
-Calculates the length of the vector
+Calculates the length of the vector.
+This is a getter so just use `vector.length` instead of `vector.length()`.
 
-Returns **[number][14]** length of vector
+Type: [number][11]
 
-### polarAngle
+### angle
 
 Calculates the polar angle of the vector
 Right-hand coordinate system:
 Positive rotation => Counter Clock Wise
 Positive X-Axis is 0
 
-Returns **[number][14]** polar angle of vector
+Type: [number][11]
 
 ### rotate
 
@@ -124,54 +98,48 @@ Positive X-Axis is 0
 
 **Parameters**
 
--   `angle` **[number][14]** angle in radians
+-   `angle` **[number][11]** angle in radians
 
-Returns **[Vector][15]** The rotated vector
+Returns **[Vector][13]** The rotated vector
 
 ### normalized
 
-Normalizes the vector
+Returns the vector normalized (length = 1).
 
-Returns **[Vector][15]** this normalized vector
+Returns **[Vector][13]** The normalized vector
 
 ### product
 
-Creates a transformed vector by multiplication with a matrix
+Creates a transformed vector by multiplication with a matrix.
 
 **Parameters**
 
--   `matrix` **[Array][16]** matrix to operate with
+-   `matrix` **[Array][12]&lt;[number][11]>** matrix to operate with
 
-Returns **[Vector][15]** The transfromed vector
+Returns **[Vector][13]** The transfromed vector
 
 [1]: #vector
 
 [2]: #dot
 
-[3]: #scale
+[3]: #scaled
 
-[4]: #scaled
+[4]: #sum
 
-[5]: #add
+[5]: #diff
 
-[6]: #sum
+[6]: #length
 
-[7]: #subtract
+[7]: #angle
 
-[8]: #difference
+[8]: #rotate
 
-[9]: #length
+[9]: #normalized
 
-[10]: #polarangle
+[10]: #product
 
-[11]: #rotate
+[11]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[12]: #normalized
+[12]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-[13]: #product
-
-[14]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
-
-[15]: #vector
-
-[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[13]: #vector
