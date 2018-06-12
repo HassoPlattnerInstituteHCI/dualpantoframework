@@ -2,7 +2,7 @@ var   http        = require('http'),
       fs          = require('fs'),
       path        = require('path'),
       WebSocketServer = require('websocket').server,
-      Framework   = require('../../Framework.js'),
+      DualPantoFramework = require('../..'),
       connections = new Set();
 
 const server = http.createServer((request, response) => {
@@ -58,7 +58,7 @@ wsServer.on('request', (request) => {
     var connection = request.accept();
     connections.add(connection);
     console.log((new Date()) + ' Connection accepted.');
-    for(let device of Framework.getDevices())
+    for(let device of DualPantoFramework.getDevices())
             bindEventHandler(device);
     function bindEventHandler(device){
             device.on('handleMoved', (i, p) => {
@@ -93,10 +93,10 @@ wsServer.on('request', (request) => {
     }
     connection.on('message', (message) => {
         const data = JSON.parse(message.utf8Data),
-              device = Framework.getDeviceByPort(data.port);
+              device = DualPantoFramework.getDeviceByPort(data.port);
         switch(data.type) {
             case 'createVirtualDevice':
-            bindEventHandler(Framework.createVirtualDevice());
+            bindEventHandler(DualPantoFramework.createVirtualDevice());
                 break;
             case 'moveHandleTo':
                 device.moveHandleTo(data.index, data.position);
@@ -108,7 +108,7 @@ wsServer.on('request', (request) => {
                 device.disconnect();
                 break;
             case 'inputText':
-                Framework.voiceInteraction.emit('keywordRecognized', data.text);
+                DualPantoFramework.voiceInteraction.emit('keywordRecognized', data.text);
                 break;
             default :
                 break;
@@ -118,7 +118,7 @@ wsServer.on('request', (request) => {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         connections.delete(connection);
     });
-    Framework.on('saySpeak', (text) => {
+    DualPantoFramework.on('saySpeak', (text) => {
         const packet = {
             type: 'saySpeak',
             text: text
