@@ -6,7 +6,7 @@ const test = require('ava');
 
 require('../../Framework');
 const Broker = require('../../lib/broker');
-const Device = require('../../lib/device');
+const {Device} = require('../../lib/device');
 
 const broker = new Broker({visualDebugger: false});
 const device = broker.createVirtualDevice();
