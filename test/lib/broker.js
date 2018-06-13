@@ -9,7 +9,10 @@ const DualPantoFramework = require('../../Framework');
 const Broker = require('../../lib/broker');
 const VoiceInteraction = require('../../lib/voice-interaction');
 
-const broker = new Broker({visualDebugger: false});
+const broker = new Broker({
+	visualDebugger: false,
+	deviceAutodetection: false,
+});
 
 test('constructor', t => {
 	t.is(DualPantoFramework.constructor, Broker);
