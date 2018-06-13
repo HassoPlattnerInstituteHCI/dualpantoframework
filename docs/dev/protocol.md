@@ -57,25 +57,21 @@ int16_t motorPowers[numMotors];
 #### 0: Config
 The current configuration.
 ```c++
-uint16_t pwmBits;
+// number of bits used for pwm operations
+uint8_t pwmBits;
+
+// number of motors
 uint8_t numMotors;
-float minDist;
-float pidFactor[3];
-float forceFactor;
-struct {
-    uint8_t name;
-    struct Geometry {
-        float innerLength;
-        float outerLength;
-        float baseX;
-        float baseY;
-        float minAngle;
-        float maxAngle;
-    };
-    Geometry left;
-    Geometry right;
-} handles[numMotors / 3];
-uint16_t encoderSteps[numMotors];
+
+// identifier of the device configuration
+uint32_t configurationID;
+
+// unique id of the device
+uint8_t deviceIDLength;
+uint8_t deviceID[deviceIDLength];
+
+// max power setting of the motors
+uint16_t maxPower[numMotors];
 ```
 
 #### 1: EncoderValues

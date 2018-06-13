@@ -4,6 +4,8 @@ build/
 node_modules/
 package-lock.json
 firmware/*config.h
+firmware/hardware/test.h
+lib/device-config/0.js
 config.json
 persistent.json
 

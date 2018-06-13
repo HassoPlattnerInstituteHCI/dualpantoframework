@@ -6,6 +6,12 @@ void protocolWriteByte(byte b) {
 	protocolTxIndex %= protocolBufferLength;
 }
 
+// write a 16 bit integer to the tx buffer
+void protocolWriteInt16(uint32_t v) {
+	protocolWriteByte(v);
+	protocolWriteByte(v >> 8);
+}
+
 // write a 32 bit integer to the tx buffer
 void protocolWriteInt32(uint32_t v) {
 	protocolWriteByte(v);

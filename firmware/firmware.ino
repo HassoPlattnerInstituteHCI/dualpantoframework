@@ -1,12 +1,13 @@
 // DualPanto Firmware
 
-#include "config_helper.h"
 #include "motor.h"
 #include "config.h"
 #include "protocol.h"
 #include "commands.h"
+#include "device_id.h"
 
 void setup() {
+	uniqueIDSetup();
 	protocolSetup();
 
 	// https://forum.arduino.cc/index.php?topic=367154.0
@@ -84,9 +85,15 @@ void handleGetConfig() {
 	}
 
 	loopInterval = 0;
-
-	for(byte i = 0; i < sizeof(configuration); i++) {
-		protocolWriteByte(pgm_read_byte(configuration.bytes + i));
+	protocolWriteByte(DP_PWM_BITS);
+	protocolWriteByte(numMotors);
+	protocolWriteInt32(configurationID);
+	protocolWriteByte(deviceIDLength);
+	for(byte i = 0; i < deviceIDLength; i++) {
+		protocolWriteByte(deviceID[i]);
+	}
+	for(byte i = 0; i < numMotors; i++) {
+		protocolWriteInt16(motors[i].maxPower);
 	}
 	protocolSend(protocolCommandConfig);
 }

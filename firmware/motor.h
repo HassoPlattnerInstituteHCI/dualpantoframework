@@ -8,22 +8,23 @@
 class Motor {
 private:
 	Encoder encoder;
-	byte motorAPin;
-	byte motorBPin;
-	byte motorPWMPin;
-	uint16_t maxPower;
+	const byte motorAPin;
+	const byte motorBPin;
+	const byte motorPWMPin;
 
 public:
+	const uint16_t maxPower;
+
 	uint32_t steps;
 	int16_t power;
 
 	Motor(
-		byte encoderAPin,
-		byte encoderBPin,
-		byte motorAPin,
-		byte motorBPin,
-		byte motorPWMPin,
-		uint16_t maxPower
+		const byte encoderAPin,
+		const byte encoderBPin,
+		const byte motorAPin,
+		const byte motorBPin,
+		const byte motorPWMPin,
+		const uint16_t maxPower
 	):
 	 	encoder(encoderAPin, encoderBPin),
 		motorAPin(motorAPin),

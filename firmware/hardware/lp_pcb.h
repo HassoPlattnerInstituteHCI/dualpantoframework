@@ -9,6 +9,9 @@ const uint16_t pwmMax = (1 << DP_PWM_BITS) - 1;
 // number of motots
 const byte numMotors = 6;
 
+// device configuration identifier
+const uint32_t configurationID = 1;
+
 // Motor(encoderAPin, encoderBPin, motorAPin, motorBPin, motorPWMPin, motorMax)
 Motor motors[numMotors] = {
 	// upper panto - left motor
@@ -37,56 +40,3 @@ Motor motors[numMotors] = {
 
 // the serial port used by the protocol
 const uint32_t protocolSpeed = 115200;
-
-// device configuration
-constexpr const Configuration<numMotors> configuration PROGMEM = {{
-	pwmBits: DP_PWM_BITS,
-	numMotors: numMotors,
-	minDist: -15,
-	pidFactor: {1, 0, 0.01},
-	forceFactor: 0.01,
-	handles: {
-		{
-			name: meHandle,
-			left: {
-				innerLength: 66,
-				outerLength: 79,
-				baseX: -10,
-				baseY: 0,
-				minAngle: -1,
-				maxAngle: 1,
-			},
-			right: {
-				innerLength: 49,
-				outerLength: 79,
-				baseX: 30,
-				baseY: 0,
-				minAngle: -1,
-				maxAngle: 1,
-			},
-		},
-		{
-			name: itHandle,
-			left: {
-				innerLength: 49,
-				outerLength: 79,
-				baseX: -30,
-				baseY: 0,
-				minAngle: -1,
-				maxAngle: 1,
-			},
-			right: {
-				innerLength: 66,
-				outerLength: 79,
-				baseX: 10,
-				baseY: 0,
-				minAngle: -1,
-				maxAngle: 1,
-			},
-		},
-	},
-	encoderSteps: {
-		15360, 15360, 60,
-		15360, 15360, 60,
-	},
-}};
