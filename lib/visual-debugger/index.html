@@ -164,12 +164,15 @@
             switch(data.type) {
                 case 'handleMoved':
                     node.className = 'history-item-move'
-                    // TODO use data.port
-                    panto.goalX = data.position.x;
-                    panto.goalY = data.position.y;
-                    // TODO use data.position.r
-                    flushGlyph();
-                    break;
+                    if(data.port.substr(0, 7) === 'virtual') {
+                        // TODO use data.port
+                        panto.goalX = data.position.x;
+                        panto.goalY = data.position.y;
+                        // TODO use data.position.r
+                        flushGlyph();
+                        break;
+                    }
+                    // else: physical device moved, display the new position
                 case 'moveHandleTo':
                     // TODO
                     if(data.position){
