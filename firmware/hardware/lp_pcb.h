@@ -1,7 +1,7 @@
 // Little Panto - PCB Version
 
 // pwm resolution in bits
-#define DP_PWM_BITS 8
+#define DP_PWM_BITS 12
 
 // maximum pwm value
 const uint16_t pwmMax = (1 << DP_PWM_BITS) - 1;
