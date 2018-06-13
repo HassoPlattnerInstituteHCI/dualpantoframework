@@ -25,14 +25,14 @@
   "homepage": "https://github.com/HassoPlattnerInstituteHCI/dualpantoframework#readme",
   "dependencies": {
     "@tweenjs/tween.js": "^17.2.0",
-    "node-gyp": "^3.6.2",
+    "node-gyp": "^3.7.0",
     "say": "^0.14.0",
     "serialport": "^6.1.1",
     "ws": "^5.2.0"
   },
   "devDependencies": {
-    "ava": "^1.0.0-beta.4",
-    "documentation": "^7.1.0",
+    "ava": "^1.0.0-beta.5.1",
+    "documentation": "^8.0.0",
     "eslint": "^4.19.1"
   }
 }
