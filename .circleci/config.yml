@@ -13,7 +13,28 @@ jobs:
             echo "Yarn v$(yarn --version)"
       - run:
           name: Install dependencies
-          command: npm i
+          command: |
+            npm i
+            npm i -D tap-xunit
+      - run:
+          name: Run eslint
+          command: node_modules/.bin/eslint --format junit -o test-results/eslint/results.xml lib || echo 'eslint' >> .failed-tests
+      - run:
+          name: Run ava
+          command: |
+            mkdir -p test-results/ava/
+            node_modules/.bin/ava --tap test/ | node_modules/.bin/tap-xunit > test-results/ava/results.xml || echo 'ava' >> .failed-tests
       - run:
           name: Run test
           command: npm run test
+      - run:
+          name: Verify tests
+          command: |
+            if [ -f .failed-tests ]; then
+              while read test; do
+                echo "Test $test failed!"
+              done < .failed-tests
+              false
+            fi
+      - store_test_results:
+          path: test-results
