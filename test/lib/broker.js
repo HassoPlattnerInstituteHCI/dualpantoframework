@@ -19,7 +19,6 @@ test('constructor', t => {
 	t.is(broker.constructor, Broker);
 
 	t.deepEqual(broker.deviceMap, new Map());
-	t.is(broker.disconnectTimeout, 5);
 	t.is(broker.voiceInteraction.constructor, VoiceInteraction);
 });
 
