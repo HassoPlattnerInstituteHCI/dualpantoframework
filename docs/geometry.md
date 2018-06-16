@@ -8,26 +8,81 @@ This contains the API documentation af the geometry helper classes.
 
 -   [Vector][1]
     -   [dot][2]
-    -   [scale][3]
+    -   [determinant][3]
     -   [scaled][4]
-    -   [add][5]
-    -   [sum][6]
-    -   [subtract][7]
-    -   [difference][8]
-    -   [length][9]
-    -   [polarAngle][10]
-    -   [normalized][11]
-    -   [product][12]
+    -   [sum][5]
+    -   [diff][6]
+    -   [length][7]
+    -   [perpendicular][8]
+    -   [angle][9]
+    -   [rotate][10]
+    -   [isBetween][11]
+    -   [normalized][12]
+    -   [product][13]
+    -   [fromPolar][14]
+    -   [isVector][15]
+-   [Line][16]
+    -   [vector][17]
+    -   [determinant][18]
+    -   [lineIntersection][19]
+    -   [intersection][20]
+    -   [contains][21]
+    -   [fromDirection][22]
+-   [Polygon][23]
+    -   [edges][24]
+    -   [outsideVector][25]
+    -   [contains][26]
+    -   [nearestIntersection][27]
+    -   [map][28]
+    -   [translate][29]
 
 ## Vector
 
-Class for Class for defining Panto Vecotrs with x, y cords and r as roation
+Class for defining Panto Vecotrs with x, y cords and r as roation.
 
 **Parameters**
 
--   `x` **[number][13]** x coordinate (optional, default `0`)
--   `y` **[number][13]** y coordinate (optional, default `0`)
--   `r` **[number][13]** rotation in radian (optional, default `0`)
+-   `x` **([number][30] \| [Array][31]&lt;[number][30]> | [Vector][32])** x coordinate or an array with [x, y, r] or a vector (optional, default `0`)
+-   `y` **[number][30]** y coordinate (optional, default `0`)
+-   `r` **[number][30]** rotation in radian (optional, default `0`)
+
+**Properties**
+
+-   `x` **[number][30]** x coordinate
+-   `y` **[number][30]** y coordinate
+-   `r` **[number][30]** rotation in radian
+
+**Examples**
+
+_Constructors:_
+
+```javascript
+const zeroVector    = new Vector(); // = new Vector(0, 0, 0)
+const testVector    = new Vector(1, 2, 3);
+const arrayVector   = new Vector([1, 2, 3]);
+const copyVector    = new Vector(testVector);
+const objectVector  = new Vector({x: 1, y: 2, r: 3});
+```
+
+_Methods:_
+
+```javascript
+const a = new Vector(1, 2, 3);
+const b = new Vector(4, 5, 6);
+const c = a.dot(b);         // = 1*4 + 2*5 = 14
+const d = a.determinant(b); // = 1*5 - 2*4 = -3
+const e = a.scaled(2);      // = new Vector(2, 4, 6)
+const f = a.sum(b);         // = new Vector(5, 7, 9)
+const g = a.diff(b);        // = new Vector(-3, -3, -3)
+const h = a.length;         // = Math.sqrt(1*1 + 2*2) = Math.sqrt(5)
+const i = a.angle;          // = Math.atan2(2, 1)
+const j = a.rotate(Math.PI);// = new Vector(-1, -2, 3) = "rotate 180 deg"
+const k = a.normalized;     // = new Vector(0.45, 0,89, 3)
+const l = a.product([
+    0, -2,
+    2, 0,
+]); // = new Vector(-4, 2, 3) = "rotate 90 deg and scale by 2"
+```
 
 ### dot
 
@@ -35,19 +90,19 @@ Calculates and returns the dot product with another vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `other` **[Vector][32]** the other vector
 
-Returns **[number][13]** The calculated result
+Returns **[number][30]** The calculated result
 
-### scale
+### determinant
 
-Scales this Vector with a factor.
+Calculates and returns the determinant together with another vector.
 
 **Parameters**
 
--   `factor` **[number][13]** factor to scale vector
+-   `other` **[Vector][32]** the other vector
 
-Returns **[Vector][14]** The scaled Vector
+Returns **[number][30]** The calculated result
 
 ### scaled
 
@@ -55,19 +110,9 @@ Creates a scaled vector.
 
 **Parameters**
 
--   `factor` **[number][13]** factor to scale vector
+-   `factor` **[number][30]** factor of scaling
 
-Returns **[Vector][14]** The new scaled Vector
-
-### add
-
-Adds a vector to this vector.
-
-**Parameters**
-
--   `vector` **[Vector][14]** vector to operate with
-
-Returns **[Vector][14]** The summed up vector
+Returns **[Vector][32]** The scaled Vector
 
 ### sum
 
@@ -75,87 +120,324 @@ Returns the sum of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `other` **[Vector][32]** the other vector
 
-Returns **[Vector][14]** The new summed up vector
+Returns **[Vector][32]** The summed up vector
 
-### subtract
-
-Subtracts a vector from this vector.
-
-**Parameters**
-
--   `vector` **[Vector][14]** vector to operate with
-
-Returns **[Vector][14]** The reduced vector
-
-### difference
+### diff
 
 Returns the difference of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][14]** vector to operate with
+-   `other` **[Vector][32]** the other vector
 
-Returns **[Vector][14]** The difference vector
+Returns **[Vector][32]** The difference vector
 
 ### length
 
-Calculates the length of the vector
+Calculates the length of the vector.
+This is a getter so just use `vector.length` instead of `vector.length()`.
 
-Returns **[number][13]** length of vector
+Type: [number][30]
 
-### polarAngle
+### perpendicular
+
+Get a perpendicular vector.
+
+Type: [Vector][32]
+
+### angle
 
 Calculates the polar angle of the vector
 Right-hand coordinate system:
 Positive rotation => Counter Clock Wise
 Positive X-Axis is 0
 
-Returns **[number][13]** polar angle of vector
+Type: [number][30]
 
-### normalized
+### rotate
 
-Normalizes the vector
-
-Returns **[Vector][14]** this normalized vector
-
-### product
-
-Creates a transformed vector by multiplication with a matrix
+Rotates the vector with the given angle
+Right-hand coordinate system:
+Positive rotation => Counter Clock Wise
+Positive X-Axis is 0
 
 **Parameters**
 
--   `matrix` **[Array][15]** matrix to operate with
+-   `angle` **[number][30]** angle in radians
 
-Returns **[Vector][14]** The transfromed vector
+Returns **[Vector][32]** The rotated vector
+
+### isBetween
+
+Checks if the point is in the rectangle between two endpoints.
+
+**Parameters**
+
+-   `a` **[Vector][32]** one end point
+-   `b` **[Vector][32]** the other end point
+
+Returns **[boolean][33]** whether the point is between a and b
+
+### normalized
+
+Returns the vector normalized (length = 1).
+
+Returns **[Vector][32]** The normalized vector
+
+### product
+
+Creates a transformed vector by multiplication with a matrix.
+
+**Parameters**
+
+-   `matrix` **[Array][31]&lt;[number][30]>** matrix to operate with
+
+Returns **[Vector][32]** The transfromed vector
+
+### fromPolar
+
+Create a vector from a polar coordinate.
+(right-hand coordinate system and counter clockwise rotation)
+
+**Parameters**
+
+-   `length` **[number][30]** the vector length
+-   `angle` **[number][30]** the vector angle
+
+Returns **[Vector][32]** the new vector
+
+### isVector
+
+Checks if an object is a vector.
+
+**Parameters**
+
+-   `obj` **([Vector][32] | any)** the object to test
+
+Returns **bool** whether obj is a vector
+
+## Line
+
+Class for defining lines from a to b.
+Can be interpreted as a line or as a line segment.
+
+**Parameters**
+
+-   `a` **([Vector][32] \| [Array][31]&lt;[Vector][32]> | [Line][34])** point a or an array with [a, b] or a line (optional, default `newVector()`)
+-   `b` **[Vector][32]** point b (optional, default `newVector()`)
+
+**Properties**
+
+-   `a` **[Vector][32]** point a
+-   `b` **[Vector][32]** point b
+
+### vector
+
+Get a vector from a to b.
+
+Type: [Vector][32]
+
+### determinant
+
+Get the determinant of a and b.
+
+Type: [number][30]
+
+### lineIntersection
+
+Calcualte the intersection of this line and another line.
+
+**Parameters**
+
+-   `other` **[Line][34]** the other line
+
+Returns **[Vector][32]?** the intersection point or null
+
+### intersection
+
+Calcualte the intersection of this line segment and another line segment.
+This is like [Line#lineIntersection][35] but checks whether
+the intersection is between a and b of this and the other line.
+
+**Parameters**
+
+-   `other` **[Line][34]** the other line
+
+Returns **[Vector][32]?** the intersection point or null
+
+### contains
+
+Checks if a point is between a and b. The point does not have to be on
+the line, just in the rectangle between a and b.
+
+**Parameters**
+
+-   `point` **[Vector][32]** the point
+
+Returns **[boolean][33]** whether the point is between a and b
+
+### fromDirection
+
+Create a line from a position and direction vector.
+
+**Parameters**
+
+-   `position` **[Vector][32]** the position vector
+-   `direction` **[Vector][32]** the direction vector
+
+**Examples**
+
+```javascript
+Line.fromDirection(pos, dir) === new Line(pos, pos.sum(dir))
+```
+
+Returns **[Line][34]** the new line
+
+## Polygon
+
+Class for defining polygons by a list of vertices.
+
+**Parameters**
+
+-   `points` **([Array][31]&lt;[Vector][32]> | [Polygon][36])** the points of the polygon or a polygon (optional, default `[]`)
+
+**Properties**
+
+-   `points` **[Vector][32]** the points of the polygon
+
+### edges
+
+Get an iterator over the edges of the polygon.
+
+Type: Iterator&lt;[Line][34]>
+
+### outsideVector
+
+Get vector to a point that is guaranteed to be outside the polygon.
+
+Type: [Vector][32]
+
+### contains
+
+Check if a point is inside of the polygon.
+
+**Parameters**
+
+-   `point` **[Vector][32]** the point
+
+Returns **[boolean][33]** whether the point is inside of the polygon
+
+### nearestIntersection
+
+Calcualte the intersection with the nearest edge to a given point.
+
+**Parameters**
+
+-   `point` **[Vector][32]** the point
+
+Returns **[Vector][32]** the nearest intersection
+
+### map
+
+Create a mapped polygon.
+Comparable to [Array][37].map(), but for polygons.
+
+**Parameters**
+
+-   `callback` **[function][38]** the map function ([Vector][1] => [Vector][1])
+
+**Examples**
+
+```javascript
+const bigPolygon = smallPolygon.map(p => p.scaled(3));
+```
+
+Returns **[Polygon][36]** the mapped polygon
+
+### translate
+
+Create a translated version of this polygon.
+
+**Parameters**
+
+-   `vector` **[Vector][32]** the translation vector
+
+Returns **[Polygon][36]** the translated polygon
 
 [1]: #vector
 
 [2]: #dot
 
-[3]: #scale
+[3]: #determinant
 
 [4]: #scaled
 
-[5]: #add
+[5]: #sum
 
-[6]: #sum
+[6]: #diff
 
-[7]: #subtract
+[7]: #length
 
-[8]: #difference
+[8]: #perpendicular
 
-[9]: #length
+[9]: #angle
 
-[10]: #polarangle
+[10]: #rotate
 
-[11]: #normalized
+[11]: #isbetween
 
-[12]: #product
+[12]: #normalized
 
-[13]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[13]: #product
 
-[14]: #vector
+[14]: #frompolar
 
-[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[15]: #isvector
+
+[16]: #line
+
+[17]: #vector-1
+
+[18]: #determinant-1
+
+[19]: #lineintersection
+
+[20]: #intersection
+
+[21]: #contains
+
+[22]: #fromdirection
+
+[23]: #polygon
+
+[24]: #edges
+
+[25]: #outsidevector
+
+[26]: #contains-1
+
+[27]: #nearestintersection
+
+[28]: #map
+
+[29]: #translate
+
+[30]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[31]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[32]: #vector
+
+[33]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[34]: #line
+
+[35]: #linelineintersection
+
+[36]: #polygon
+
+[37]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[38]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function

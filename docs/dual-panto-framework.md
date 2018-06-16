@@ -8,32 +8,50 @@ This contains the API documentation of the main framework.
 
 -   [DualPantoFramework][1]
 -   [Broker][2]
-    -   [run_script][3]
-    -   [waitMS][4]
-    -   [devices][5]
--   [Device][6]
-    -   [getPosition][7]
-    -   [moveHandleTo][8]
-    -   [applyForceTo][9]
-    -   [movePantoTo][10]
-    -   [unblockHandle][11]
-    -   [speakText][12]
-    -   [onKeyword][13]
-    -   [onceKeyword][14]
-    -   [offKeyword][15]
-    -   [emitKeyword][16]
--   [VoiceInteraction][17]
-    -   [speakText][18]
-    -   [setCommands][19]
-    -   [beginListening][20]
-    -   [haltListening][21]
--   [util][22]
-    -   [delay][23]
+    -   [voiceInteraction][3]
+    -   [run_script][4]
+    -   [waitMS][5]
+    -   [setCommands][6]
+    -   [devices][7]
+-   [Device][8]
+    -   [getMePosition][9]
+    -   [getItPosition][10]
+    -   [createObstacle][11]
+    -   [removeObstacle][12]
+    -   [moveHandleTo][13]
+    -   [applyForceTo][14]
+    -   [movePantoTo][15]
+    -   [unblockHandle][16]
+    -   [speakText][17]
+    -   [onKeyword][18]
+    -   [onceKeyword][19]
+    -   [offKeyword][20]
+    -   [emitKeyword][21]
+-   [Handle][22]
+    -   [moveTo][23]
+    -   [applyForce][24]
+    -   [addObstacle][25]
+    -   [setObstacles][26]
+    -   [removeObstacle][27]
+    -   [unblock][28]
+-   [Player][29]
+    -   [then][30]
+    -   [play][31]
+    -   [pause][32]
+    -   [stop][33]
+-   [VoiceInteraction][34]
+    -   [speakText][35]
+    -   [playSound][36]
+    -   [setCommands][37]
+    -   [beginListening][38]
+    -   [haltListening][39]
+-   [util][40]
+    -   [delay][41]
 
 ## DualPantoFramework
 
-The dual panto framework. All classes and [utility][22] functions are exported.
-This also includes the [geometry][24] classes (e.g. [Vector][25]).
+The dual panto framework. All classes and [utility][40] functions are exported.
+This also includes the [geometry][42] classes (e.g. [Vector][43]).
 
 **Examples**
 
@@ -45,7 +63,7 @@ const broker = new Broker();
 broker.on('device', async device => {
     await delay(500);
     await device.movePantoTo(0, new Vector(20, -30, 0));
-    await device.speakText('Hallo Welt!');
+    await device.speakText('Hello World!');
 })
 ```
 
@@ -57,12 +75,36 @@ Class for device handling and basic functions
 
 **Parameters**
 
--   `options` **[Object][26]?** broker options (optional, default `{}`)
+-   `options` **[Object][44]?** broker options (optional, default `{}`)
+    -   `options.defaultSpeed` **[number][45]?** default speed for movements (overwrites duration)
+    -   `options.defaultDuration` **[number][45]** default duration for movements (optional, default `500`)
+    -   `options.defaultInterpolationMethod` **[Object][44]?** default interpolation method for movements
+    -   `options.defaultLanguage` **[string][46]** default language for spoken text (optional, default `'DE'`)
+    -   `options.defaultSpeechSpeed` **[number][45]** default speed for spoken text (optional, default `1.4`)
+    -   `options.visualDebugger` **([Object][44] \| `false`)** visual debugger options (false = disable) (optional, default `{}`)
+        -   `options.visualDebugger.port` **[number][45]** visual debugger port (optional, default `8080`)
+    -   `options.deviceAutodetection` **bool** enable device autodetection (optional, default `true`)
 
 **Properties**
 
--   `devices` **[Map][27]&lt;[string][28], [Device][29]>** map of connected devices
--   `disconnectTimeout` **[number][30]** timeout after which a device gets disconnected
+-   `deviceMap` **[Map][47]&lt;[string][46], [Device][48]>** map of connected devices
+-   `physicalDevices` **[Set][49]&lt;[Device][48]>** set of connected physical devices
+-   `defaultSpeed` **[number][45]** default speed for movements (overwrites duration)
+-   `defaultDuration` **[number][45]** default duration for movements
+-   `defaultInterpolationMethod` **[Object][44]** default interpolation method for movements
+-   `defaultLanguage` **[Object][44]** default language for spoken text
+-   `defaultSpeechSpeed` **[Object][44]** default speed for spoken text
+
+### voiceInteraction
+
+Get the voice interaction instance. Only for compatibilaty reasons.
+
+Type: [VoiceInteraction][50]
+
+**Meta**
+
+-   **deprecated**: **Use `device.speakText(text)` instead!**
+
 
 ### run_script
 
@@ -70,7 +112,7 @@ Creates a script that executes a list of promises.
 
 **Parameters**
 
--   `promiseList` **[array][31]** the list of promises to execute
+-   `promiseList` **[array][51]** the list of promises to execute
 
 **Examples**
 
@@ -93,7 +135,7 @@ device.on('handleMoved', async (index, position) => {
 
 **Meta**
 
--   **deprecated**: **use async / await instead**
+-   **deprecated**: **Use async / await instead!**
 
 
 ### waitMS
@@ -102,26 +144,37 @@ Generates a promise that creates a timeout.
 
 **Parameters**
 
--   `ms` **[number][30]** number ob ms to wait.
+-   `ms` **[number][45]** number of milliseconds to wait
 
 **Examples**
 
 ```javascript
+// deprecated:
 await broker.waitMS(500);
+// new style:
+const {delay} = require('dualpantoframework');
+// ...
+await delay(500);
 ```
-
-Returns **[Promise][32]** The promise executing the timeout.
 
 **Meta**
 
--   **deprecated**: **use delay instead**
+-   **deprecated**: **Use `delay(ms)` instead!**
 
+
+### setCommands
+
+Set the list of commands to listen for and begin listening.
+
+**Parameters**
+
+-   `commands` **[Array][51]&lt;[string][46]>** the commands
 
 ### devices
 
 Iterator over all connected devices.
 
-Type: Iterator&lt;[Device][29]>
+Type: Iterator&lt;[Device][48]>
 
 **Examples**
 
@@ -138,35 +191,71 @@ for(const device of broker.devices) {
 Device represents a physical or virtual dual panto device.
 A device is created by a broker when a physical device is connected
 or when the visual debugger needs a virtual device.
+Normaly created by the [Broker][2].
 
 **Parameters**
 
--   `broker` **[Broker][33]** the broker the device is created by
--   `port` **[string][28]** port on that the device is connected (or 'virtual<n>')
--   `isVirtual` **[boolean][34]** is this a virtual device
+-   `broker` **[Broker][52]** the broker the device is created by
+-   `port` **[string][46]** port on that the device is connected (or 'virtual<n>')
+-   `isVirtual` **[boolean][53]** is this a virtual device (optional, default `false`)
 
-### getPosition
+**Properties**
 
-Returns the current (or last known) position of the handle.
+-   `broker` **[Broker][52]** the broker the device is created by
+-   `port` **[string][46]** port on that the device is connected (or 'virtual<n>')
+-   `isVirtual` **[boolean][53]** is this a virtual device
+-   `protocol` **Protocol?** the protocol to communicate with the device
 
-**Parameters**
+### getMePosition
 
--   `index` **[number][30]** index of handle
+Gets the last known position of the me handle.
 
-**Examples**
-
-```javascript
-// deprecated:
-device.getPosition(0)
-// new style:
-device.meHandle.position
-```
-
-Returns **[Vector][35]** the position of the handle
+Returns **[Vector][54]** last known position
 
 **Meta**
 
--   **deprecated**: **Use [Handle#position][36] instead!**
+-   **deprecated**: **Use `device.meHandle.position` instead!**
+
+
+### getItPosition
+
+Gets the last known position of the it handle.
+
+Returns **[Vector][54]** last known position
+
+**Meta**
+
+-   **deprecated**: **Use `device.itHandle.position` instead!**
+
+
+### createObstacle
+
+Creates obstacles for handles
+
+**Parameters**
+
+-   `obstacle` **([Polygon][55] \| [Array][51]&lt;[Vector][54]>)** the obstacle or array of vertices
+-   `index` **[number][45]** index of affected handle with -1 meaning both (optional, default `-1`)
+
+Returns **[Polygon][55]** the created obstacle
+
+**Meta**
+
+-   **deprecated**: **Use `handle.addObstacle(obstacle)` instead!**
+
+
+### removeObstacle
+
+Remove obstacles for handles
+
+**Parameters**
+
+-   `obstacle` **[Polygon][55]** the obstacle to be removed
+-   `index` **[number][45]** index of affected handle with1 meaning both (optional, default `-1`)
+
+**Meta**
+
+-   **deprecated**: **Use `handle.removeObstacle(obstacle)` instead!**
 
 
 ### moveHandleTo
@@ -175,8 +264,8 @@ Moves a handle to a position.
 
 **Parameters**
 
--   `index` **[number][30]** index of handle to move
--   `target` **[Vector][35]** position the handle should move to
+-   `index` **[number][45]** index of handle to move
+-   `target` **[Vector][54]** position the handle should move to
 
 **Examples**
 
@@ -190,7 +279,7 @@ device.meHandle.moveTo(new Vector(35, -50, 0), 0);
 
 **Meta**
 
--   **deprecated**: **Use [Handle#moveTo][37] instead!**
+-   **deprecated**: **Use `handle.moveTo(target, 0)` instead!**
 
 
 ### applyForceTo
@@ -199,8 +288,8 @@ Applies force vector to the pantograph.
 
 **Parameters**
 
--   `index` **[number][30]** index of handle to apply force
--   `force` **[Vector][35]** vector of force to render (r component is ignored)
+-   `index` **[number][45]** index of handle to apply force
+-   `force` **[Vector][54]** vector of force to render (r component is ignored)
 
 **Examples**
 
@@ -213,7 +302,7 @@ device.meHandle.applyForce(new Vector(5, 7));
 
 **Meta**
 
--   **deprecated**: **Use [Handle#applyForce][38] instead!**
+-   **deprecated**: **Use `handle.applyForce(force)` instead!**
 
 
 ### movePantoTo
@@ -222,9 +311,9 @@ Moves a handle with tween movement behaviour.
 
 **Parameters**
 
--   `index` **[number][30]** index of handle to move
--   `target` **[Vector][35]** position the handle should move to
--   `options` **[Object][26]?** movement options
+-   `index` **[number][45]** index of handle to move
+-   `target` **[Vector][54]** position the handle should be moved to
+-   `options` **[Object][44]?** passed to moveTo
 
 **Examples**
 
@@ -252,7 +341,7 @@ await device.itHandle.moveTo(new Vector(-25, -38, Math.PI/2), {speed: 100});
 
 **Meta**
 
--   **deprecated**: **Use [Handle#moveTo][37] instead!**
+-   **deprecated**: **Use `Handle.moveTo(target, options)` instead!**
 
 
 ### unblockHandle
@@ -261,7 +350,7 @@ Unblocks a handle. This enables free movement.
 
 **Parameters**
 
--   `index` **[number][30]** index of handle to unblock
+-   `index` **[number][45]** index of handle to unblock
 
 **Examples**
 
@@ -274,7 +363,7 @@ device.meHandle.unblock();
 
 **Meta**
 
--   **deprecated**: **Use [Handle#unblock][39] instead!**
+-   **deprecated**: **Use `handle.unblock()` instead!**
 
 
 ### speakText
@@ -283,9 +372,9 @@ Speaks a text.
 
 **Parameters**
 
--   `text` **[string][28]** the text to speak
--   `language` **[string][28]** the language to speak (optional, default `broker.defaultLanguage`)
--   `speed` **[number][30]** the speed that is spoken with (optional, default `broker.defaultSpeechSpeed`)
+-   `text` **[string][46]** the text to speak
+-   `language` **[string][46]** the language to speak (optional, default `broker.defaultLanguage`)
+-   `speed` **[number][45]** the speed that is spoken with (optional, default `broker.defaultSpeechSpeed`)
 
 **Examples**
 
@@ -300,8 +389,8 @@ Works like device.on(...) but for keywords.
 
 **Parameters**
 
--   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][40]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][46]** the keyword to listen for
+-   `handler` **[function][56]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -309,7 +398,7 @@ Works like device.on(...) but for keywords.
 device.on('Hotels', showHotels);
 ```
 
-Returns **[Device][29]** the device the method was called on
+Returns **[Device][48]** the device the method was called on
 
 ### onceKeyword
 
@@ -318,8 +407,8 @@ It is like onKeyword, but the handler gets called only once.
 
 **Parameters**
 
--   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][40]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][46]** the keyword to listen for
+-   `handler` **[function][56]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -327,7 +416,7 @@ It is like onKeyword, but the handler gets called only once.
 device.once('Shutdown', c);
 ```
 
-Returns **[Device][29]** the device the method was called on
+Returns **[Device][48]** the device the method was called on
 
 ### offKeyword
 
@@ -336,8 +425,8 @@ It is like onKeyword, but the handler gets removed.
 
 **Parameters**
 
--   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][40]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][46]** the keyword to listen for
+-   `handler` **[function][56]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -345,7 +434,7 @@ It is like onKeyword, but the handler gets removed.
 device.off('Hotels', showHotels);
 ```
 
-Returns **[Device][29]** the device the method was called on
+Returns **[Device][48]** the device the method was called on
 
 ### emitKeyword
 
@@ -354,8 +443,8 @@ Emits a keyword event.
 
 **Parameters**
 
--   `keyword` **[string][28]** the keyword to listen for
--   `handler` **[function][40]** the handler to execute when the keyword is recognized
+-   `keyword` **[string][46]** the keyword to listen for
+-   `handler` **[function][56]** the handler to execute when the keyword is recognized
 
 **Examples**
 
@@ -363,17 +452,136 @@ Emits a keyword event.
 device.emitKeyword('Hotel');
 ```
 
-Returns **[Device][29]** the device the method was called on
+Returns **[Device][48]** the device the method was called on
+
+## Handle
+
+**Extends EventEmitter**
+
+A single handle of a dual panto.
+
+**Parameters**
+
+-   `device` **[Device][48]** the device the handle is part of
+-   `index` **[number][45]** the index number of the handle
+-   `leftMotor` **Motor** the left motor
+-   `rightMotor` **Motor** the right motor
+-   `handleMotor` **Motor** the handle motor
+
+**Properties**
+
+-   `device` **[Device][48]** the device the handle is part of
+-   `index` **[number][45]** the index number of the handle
+-   `leftMotor` **Motor** the left motor
+-   `rightMotor` **Motor** the right motor
+-   `handleMotor` **Motor** the handle motor
+-   `position` **[Vector][54]** the current position
+-   `controller` **Controller** the current movement controller
+-   `obstacles` **[Set][49]&lt;[Polygon][55]>** the current obstacles
+
+### moveTo
+
+Move the handle to a new position.
+Calls [PositionController#moveTo][57].
+
+**Parameters**
+
+-   `position` **[Vector][54]** the position the handle should move to
+-   `options` **[Object][44]** the movement options (optional, default `{}`)
+    -   `options.speed` **[number][45]?** the movement speed (in units per millisecond) (overwrites duration)
+    -   `options.duration` **[number][45]?** the movement duration (in milliseconds)
+    -   `options.interpolationMethod` **[Object][44]?** the movement interpolation method
+    -   `options.position` **[Vector][54]?** the start position of the movement
+
+### applyForce
+
+Apply a force to the handle.
+
+**Parameters**
+
+-   `force` **[Vector][54]** the force that should be apply
+
+### addObstacle
+
+Add an obstacle to the list of current obstacles.
+
+**Parameters**
+
+-   `obstacle` **[Polygon][55]** the new obstacle
+
+### setObstacles
+
+Set a new list of current obstacles.
+
+**Parameters**
+
+-   `obstacles` **[Array][51]&lt;[Polygon][55]>** the new obstacles
+
+### removeObstacle
+
+Remove an obstacle from the list of current obstacles.
+
+**Parameters**
+
+-   `obstacle` **[Polygon][55]** the obstacle to remove
+
+### unblock
+
+Unblock the handle. (i.e. allow free movement)
+
+## Player
+
+Player is a class to control the playing of a file.
+It starts playing the file immidiatly.
+
+**Parameters**
+
+-   `filename` **[string][46]** The filename of the soundfile.
+
+**Properties**
+
+-   `isPlaying` **[boolean][53]** is the player currently playing
+
+### then
+
+The Player object is awaitable.
+The then function is used internely by await or by the old `.then` syntax.
+
+**Parameters**
+
+-   `args` **...any** 
+
+**Examples**
+
+```javascript
+await new Player('test.mp3');
+// old syntax:
+new Player('test.mp3').then(() => console.log('done'));
+```
+
+Returns **[Promise][58]** The promise of the state after the callbacks in then.
+
+### play
+
+Continue playing.
+
+### pause
+
+Pause playing.
+
+### stop
+
+Stop playing.
 
 ## VoiceInteraction
 
 **Extends EventEmitter**
 
-Class for voice input and output
+Class for voice input and output.
 
 **Parameters**
 
--   `broker` **[Broker][33]?** the asociated broker (optional, default `null`)
+-   `broker` **[Broker][52]?**  (optional, default `null`)
 
 ### speakText
 
@@ -381,9 +589,9 @@ Speaks a text.
 
 **Parameters**
 
--   `text` **[string][28]** the text to speak
--   `language` **[string][28]** the language to speak (optional, default `DE`)
--   `speed` **[number][30]** the speed that is spoken with (optional, default `1.4`)
+-   `text` **[string][46]** the text to speak
+-   `language` **[string][46]** the language to speak (optional, default `DE`)
+-   `speed` **[number][45]** the speed that is spoken with (optional, default `1.4`)
 
 **Examples**
 
@@ -392,13 +600,23 @@ await VoiceInteraction.speakText('Hallo Welt!');
 await VoiceInteraction.speakText('Hello World', 'EN', 1.3);
 ```
 
+### playSound
+
+Play a soundfile.
+
+**Parameters**
+
+-   `filename` **[string][46]** The file to play.
+
+Returns **[Player][59]** The player playing the sound
+
 ### setCommands
 
 Sets up the voice input listener.
 
 **Parameters**
 
--   `commands` **[array][31]** List of Strings to listen for.
+-   `commands` **[array][51]** List of Strings to listen for.
 
 **Examples**
 
@@ -444,7 +662,7 @@ Creates a promise that resolves after a specified time.
 
 **Parameters**
 
--   `time` **[number][30]** time to wait at least befor resolving
+-   `time` **[number][45]** time to wait at least befor resolving
 
 **Examples**
 
@@ -452,84 +670,122 @@ Creates a promise that resolves after a specified time.
 await delay(500);
 ```
 
-Returns **[Promise][32]** the promise
+Returns **[Promise][58]** the promise
 
 [1]: #dualpantoframework
 
 [2]: #broker
 
-[3]: #run_script
+[3]: #voiceinteraction
 
-[4]: #waitms
+[4]: #run_script
 
-[5]: #devices
+[5]: #waitms
 
-[6]: #device
+[6]: #setcommands
 
-[7]: #getposition
+[7]: #devices
 
-[8]: #movehandleto
+[8]: #device
 
-[9]: #applyforceto
+[9]: #getmeposition
 
-[10]: #movepantoto
+[10]: #getitposition
 
-[11]: #unblockhandle
+[11]: #createobstacle
 
-[12]: #speaktext
+[12]: #removeobstacle
 
-[13]: #onkeyword
+[13]: #movehandleto
 
-[14]: #oncekeyword
+[14]: #applyforceto
 
-[15]: #offkeyword
+[15]: #movepantoto
 
-[16]: #emitkeyword
+[16]: #unblockhandle
 
-[17]: #voiceinteraction
+[17]: #speaktext
 
-[18]: #speaktext-1
+[18]: #onkeyword
 
-[19]: #setcommands
+[19]: #oncekeyword
 
-[20]: #beginlistening
+[20]: #offkeyword
 
-[21]: #haltlistening
+[21]: #emitkeyword
 
-[22]: #util
+[22]: #handle
 
-[23]: #delay
+[23]: #moveto
 
-[24]: geometry.md#geometry
+[24]: #applyforce
 
-[25]: geometry.md#vector
+[25]: #addobstacle
 
-[26]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+[26]: #setobstacles
 
-[27]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map
+[27]: #removeobstacle-1
 
-[28]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+[28]: #unblock
 
-[29]: #device
+[29]: #player
 
-[30]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[30]: #then
 
-[31]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[31]: #play
 
-[32]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[32]: #pause
 
-[33]: #broker
+[33]: #stop
 
-[34]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[34]: #voiceinteraction-1
 
-[35]: geometry.md#vector
+[35]: #speaktext-1
 
-[36]: Handle#position
+[36]: #playsound
 
-[37]: Handle#moveTo
+[37]: #setcommands-1
 
-[38]: Handle#applyForce
+[38]: #beginlistening
 
-[39]: Handle#unblock
+[39]: #haltlistening
 
-[40]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+[40]: #util
+
+[41]: #delay
+
+[42]: geometry.md#geometry
+
+[43]: geometry.md#vector
+
+[44]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+
+[45]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[46]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+
+[47]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map
+
+[48]: #device
+
+[49]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set
+
+[50]: #voiceinteraction
+
+[51]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[52]: #broker
+
+[53]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[54]: geometry.md#vector
+
+[55]: geometry.md#polygon
+
+[56]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
+
+[57]: PositionController#moveTo
+
+[58]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
+[59]: #player
