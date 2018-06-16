@@ -8,6 +8,8 @@
     "lint": "eslint lib",
     "lint-fix": "eslint --fix lib",
     "docs": "node scripts/docs",
+    "doc-server": "documentation serve --watch lib/dualpantoframework.js --access public private protected undefined",
+    "doc-server-public": "documentation serve --watch lib/dualpantoframework.js --access public protected undefined",
     "test": "node test.js",
     "check": "npm run docs && npm run lint && npm run ava && npm run test",
     "install": "node ./voice-command/build/build-release.js"
