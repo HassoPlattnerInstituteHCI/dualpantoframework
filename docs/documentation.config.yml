@@ -6,6 +6,7 @@ toc:
     - DualPantoFramework
     - Broker
     - Device
+    - Handle
     - Player
     - VoiceInteraction
     - util
@@ -14,3 +15,5 @@ toc:
     This contains the API documentation af the geometry helper classes.
   children:
     - Vector
+    - Line
+    - Polygon
