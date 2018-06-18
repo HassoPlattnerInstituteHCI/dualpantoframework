@@ -20,6 +20,7 @@ In [this wiki page](https://github.com/HassoPlattnerInstituteHCI/dualpantoframew
 ...under construction...
 
 ## Documentation
+- [Getting Started](docs/getting-started/README.md)
 - [API Documentation](docs/dual-panto-framework.md)
 
 ## Developer Documentation
