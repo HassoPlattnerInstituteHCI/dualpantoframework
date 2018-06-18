@@ -14,6 +14,8 @@ DualPantoFramework.on('devicesChanged', function(devices, attached, detached) {
 });
 
 // TODO: Test case termination
-setTimeout(function() {
-    process.exit(0);
-}, 1000);
+if(process.env.CI){
+    setTimeout(function() {
+        process.exit(0);
+    }, 1000);
+}
