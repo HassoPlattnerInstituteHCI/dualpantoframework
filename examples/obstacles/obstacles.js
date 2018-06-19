@@ -1,6 +1,6 @@
 'use strict';
 
-const {Broker, Vector, Polygon} = require('.');
+const {Broker, Vector, Polygon} = require('../..');
 
 const broker = new Broker();
 
