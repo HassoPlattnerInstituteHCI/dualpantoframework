@@ -190,6 +190,17 @@
                     node.className = 'history-item-force'
                     panto.force = data.force;
                     flushGlyph();
+                case 'createObstacle':
+                    if(data.index == -1){
+                      UpperPanto.addObstacle(data.pointArray);
+                      LowerPanto.addObstacle(data.pointArray);
+                    }else if(data.index == 0){
+                      UpperPanto.addObstacle(data.pointArray);
+                    }else if(data.index == 1){
+                      LowerPanto.addObstacle(data.pointArray);
+                    }
+                    flushGlyph();
+                    break;
                 default:
                     break;
             }
