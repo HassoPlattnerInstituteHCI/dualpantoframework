@@ -223,6 +223,21 @@ class PantographGlyph{
             this.fowardKinematics(this.lastLeftAngle, this.lastRightAngle);
         }
     }
+    addObstacle(pointArray){
+        let polygon = document.createElementNS("http://www.w3.org/2000/svg", 'polygon');
+        let points = '';
+        for(const p of pointArray){
+            console.log(p);
+            points += p.x + ' ' + p.y+' ';
+            console.log(points);
+        }
+        let style = this.id==0?'#4A4':'#66F';
+        polygon.setAttribute('points', points);
+        polygon.setAttribute('fill', style);
+        console.log(polygon);
+        const prefix = this.id==0?'upper-':'lower-';
+        document.getElementById(prefix+'obstacles').appendChild(polygon);
+    }
 }
 
 function flushGlyph(){
