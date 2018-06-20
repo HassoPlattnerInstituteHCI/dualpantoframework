@@ -188,8 +188,9 @@
                 case 'applyForceTo':
                     //TODO: force vector rendering
                     node.className = 'history-item-force'
-                    panto.force = data.force;
-                    flushGlyph();
+                    // panto.force = data.force;
+                    // flushGlyph();
+                    break;
                 case 'createObstacle':
                     if(data.index == -1){
                       UpperPanto.addObstacle(data.pointArray);
