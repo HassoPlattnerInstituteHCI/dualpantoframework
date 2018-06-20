@@ -242,6 +242,12 @@ class PantographGlyph{
         const prefix = this.id==0?'upper-':'lower-';
         document.getElementById(prefix+'obstacles').appendChild(polygon);
     }
+    removeObstacle(id){
+        //TODO: remove.
+        let _id = 'obstacle-'+this.id+'-'+id;
+        let obj = document.getElementById(_id)
+        if(obj)obj.remove();
+    }
 }
 
 function flushGlyph(){
