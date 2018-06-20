@@ -193,12 +193,24 @@
                     break;
                 case 'createObstacle':
                     if(data.index == -1){
-                      UpperPanto.addObstacle(data.pointArray);
-                      LowerPanto.addObstacle(data.pointArray);
+                      UpperPanto.addObstacle(data.pointArray, data.id);
+                      LowerPanto.addObstacle(data.pointArray, data.id);
                     }else if(data.index == 0){
-                      UpperPanto.addObstacle(data.pointArray);
+                      UpperPanto.addObstacle(data.pointArray, data.id);
                     }else if(data.index == 1){
-                      LowerPanto.addObstacle(data.pointArray);
+                      LowerPanto.addObstacle(data.pointArray, data.id);
+                    }
+                    flushGlyph();
+                    break;
+                case 'removeObstacle':
+                    console.log(data);
+                    if(data.index == -1){
+                      UpperPanto.removeObstacle(data.id);
+                      LowerPanto.removeObstacle(data.id);
+                    }else if(data.index == 0){
+                      UpperPanto.removeObstacle(data.id);
+                    }else if(data.index == 1){
+                      LowerPanto.removeObstacle(data.id);
                     }
                     flushGlyph();
                     break;
