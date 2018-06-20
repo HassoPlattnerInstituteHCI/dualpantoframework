@@ -91,22 +91,23 @@ wsServer.on('request', (request) => {
             for(connetion of connections)
                 connection.sendUTF(JSON.stringify(packet));
         });
-        device.on('createObstacle', (i, p) => {
+        device.on('createObstacle', (i, id, p) => {
             const packet ={
                 type: 'createObstacle',
                 port: device.port,
                 index: i,
+                id: id,
                 pointArray: p
             };
             for(connetion of connections)
                 connection.sendUTF(JSON.stringify(packet));
         });
-        device.on('removeObstacle', (i, o) => {
+        device.on('removeObstacle', (i,id, o) => {
             const packet ={
                 type: 'removeObstacle',
                 port: device.port,
                 index: i,
-                obstacle: p
+                id: id,
             };
             for(connetion of connections)
                 connection.sendUTF(JSON.stringify(packet));
