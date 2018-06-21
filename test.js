@@ -10,6 +10,7 @@ DualPantoFramework.on('devicesChanged', function(devices, attached, detached) {
             console.log(device.port, 'handleMoved', index, position);
         });
         device.moveHandleTo(0, new Vector(0, -80, 0));
+        device.moveHandleTo(1, new Vector(0, -80, 0));
     }
 });
 

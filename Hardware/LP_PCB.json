@@ -3,7 +3,8 @@
     "opMinDist": 15,
     "opMaxDist": 120,
     "opAngle": 2.2,
-    "pidFactor": [1.0, 0.0, 0.01],
+    "pidFactorPanto": [1.0, 0.0, 0.01],
+    "pidFactorHandle": [0.5, 0.0, 0.01],
     "forceFactor": 0.01,
     "pantos": {
         "upper": {
