@@ -227,7 +227,6 @@ class PantographGlyph{
         let polygon = document.createElementNS("http://www.w3.org/2000/svg", 'polygon');
         let points = '';
         if(!pointArray){
-            console.log('oops');
             return;
         }
         for(const p of pointArray){
