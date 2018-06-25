@@ -61,35 +61,57 @@ wsServer.on('request', (request) => {
     for(let device of DualPantoFramework.getDevices())
             bindEventHandler(device);
     function bindEventHandler(device){
-            device.on('handleMoved', (i, p) => {
-                const packet = {
-                    type: 'handleMoved',
-                    port: device.port,
-                    index: i,
-                    position: p
-                };
-                for(connetion of connections)
-                    connection.sendUTF(JSON.stringify(packet));
-            });
-            device.on('moveHandleTo', (i, p) => {
-                const packet = {
-                    type: 'moveHandleTo',
-                    port: device.port,
-                    index: i,
-                    position: p
-                };
-                for(connetion of connections)
-                    connection.sendUTF(JSON.stringify(packet));
-            });
-            device.on('applyForceTo', (i, f) => {
-                const packet = {
-                    type: 'applyForceTo',
-                    port: device.port,
-                    index: i,
-                    force: f
-                };
-            });
-        // }
+        device.on('handleMoved', (i, p) => {
+            const packet = {
+                type: 'handleMoved',
+                port: device.port,
+                index: i,
+                position: p
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
+        device.on('moveHandleTo', (i, p) => {
+            const packet = {
+                type: 'moveHandleTo',
+                port: device.port,
+                index: i,
+                position: p
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
+        device.on('applyForceTo', (i, f) => {
+            const packet = {
+                type: 'applyForceTo',
+                port: device.port,
+                index: i,
+                force: f
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
+        device.on('createObstacle', (i, id, p) => {
+            const packet ={
+                type: 'createObstacle',
+                port: device.port,
+                index: i,
+                id: id,
+                pointArray: p
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
+        device.on('removeObstacle', (i,id, o) => {
+            const packet ={
+                type: 'removeObstacle',
+                port: device.port,
+                index: i,
+                id: id,
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
     }
     connection.on('message', (message) => {
         const data = JSON.parse(message.utf8Data),
