@@ -32,9 +32,12 @@ function aggregate(name) {
     let array = aggregates[name];
     if(!array)
         array = [];
-    for(let i = 0; i < index; ++i)
+    for(let i = 0; i < index; ++i) {
         if(array[i] == undefined)
             array[i] = 0;
+        if(array[i] instanceof Array)
+            array[i] = `{${array[i].join(', ')}}`;
+    }
     return array.join(', ');
 }
 
@@ -43,7 +46,6 @@ const output =
 const float opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle};
-float pidFactor[] = {${input.pidFactor.join(', ')}};
 float forceFactor = ${input.forceFactor};
 const unsigned char pantoCount = ${pantoCount};
 const float linkageBaseX[] = {
@@ -60,6 +62,9 @@ const float linkageOuterLength[] = {
 };
 const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
+};
+float pidFactor[${pantoCount*3}][3] = {
+    ${aggregate('motor_pidFactor')}
 };
 const unsigned char motorPwmPin[] = {
     ${aggregate('motor_pwmPin')}
@@ -85,7 +90,7 @@ const unsigned char encoderIndexPin[] = {
 const uint32_t encoderSteps[] = {
     ${aggregate('encoder_steps')}
 };
-float actuationAngle[] = {
+const float setupAngle[] = {
     ${aggregate('encoder_setup')}
 };`;
 
