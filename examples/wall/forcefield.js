@@ -1,4 +1,4 @@
-const DualPantoFramework = require('./.'),
+const DualPantoFramework = require('./../../.'),
       {Vector} = DualPantoFramework;
 
 let device;
