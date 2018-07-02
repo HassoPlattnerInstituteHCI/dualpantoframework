@@ -62,7 +62,7 @@
                 "encoder": {
                     "aPin": 32,
                     "bPin": 30,
-                    "steps": 60,
+                    "steps": 136,
                     "setup": 0.0
                 }
             }
@@ -124,7 +124,7 @@
                 "encoder": {
                     "aPin": 42,
                     "bPin": 44,
-                    "steps": 60,
+                    "steps": 600,
                     "setup": 0.0
                 }
             }
