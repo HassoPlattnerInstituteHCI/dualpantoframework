@@ -47,7 +47,7 @@
                     "aPin": 52,
                     "bPin": 50,
                     "steps": 15360,
-                    "setup": 0.00
+                    "setup": -0.05
                 }
             },
             "handle": {
@@ -87,7 +87,7 @@
                     "aPin": 26,
                     "bPin": 28,
                     "steps": 15360,
-                    "setup": -0.53
+                    "setup": -0.45
                 }
             },
             "right": {
@@ -109,7 +109,7 @@
                     "aPin": 22,
                     "bPin": 24,
                     "steps": 15360,
-                    "setup": -0.03
+                    "setup": 0.0
                 }
             },
             "handle": {
