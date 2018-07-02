@@ -152,12 +152,11 @@ struct Panto {
         float error = targetAngle[i] - actuationAngle[i];
         unsigned char dir = error < 0;
         error = fabs(error);
-
         // Power: PID
-        integral[dofIndex+i] += error * dt;
-        float derivative = (error - previousDiff[dofIndex+i]) / dt;
-        previousDiff[dofIndex+i] = error;
-        setMotor(i, dir, pidFactor[dofIndex+i][0]*error + pidFactor[dofIndex+i][1]*integral[dofIndex+i] + pidFactor[dofIndex+i][2]*derivative);
+        integral[i] += error * dt;
+        float derivative = (error - previousDiff[i]) / dt;
+        previousDiff[i] = error;
+        setMotor(i, dir, pidFactor[dofIndex+i][0]*error + pidFactor[dofIndex+i][1]*integral[i] + pidFactor[dofIndex+i][2]*derivative);
       }
     }
   }
