@@ -172,7 +172,12 @@ struct Panto {
       integral[i] += error * dt;
       float derivative = (error - previousDiff[i]) / dt;
       previousDiff[i] = error;
-      setMotor(i, dir, pidFactor[0]*error + pidFactor[1]*integral[i] + pidFactor[2]*derivative);
+      if(i % 3 == 2) { //Handle
+        setMotor(i, dir, pidFactorHandle[0]*error + pidFactorHandle[1]*integral[i] + pidFactorHandle[2]*derivative);
+      } else { //Panto
+        setMotor(i, dir, pidFactorPanto[0]*error + pidFactorPanto[1]*integral[i] + pidFactorPanto[2]*derivative);
+      }
+      
     }
   }
 

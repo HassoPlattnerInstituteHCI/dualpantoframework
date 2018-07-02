@@ -9,7 +9,10 @@ DualPantoFramework.on('devicesChanged', function(devices, attached, detached) {
         device.on('handleMoved', function(index, position) {
             console.log(device.port, 'handleMoved', index, position);
         });
+        device.setPantoPID(2, 0, 0.01);
+        device.setHandlePID(0.25, 0, 0.01);
         device.moveHandleTo(0, new Vector(0, -80, 0));
+        device.moveHandleTo(1, new Vector(0, -80, 0));
     }
 });
 

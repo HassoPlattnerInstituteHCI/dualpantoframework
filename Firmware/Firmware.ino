@@ -18,6 +18,35 @@ void setup() {
   prevTime = micros();
 }
 
+void serialCommandPosition(unsigned char pantoIndex, float* values) {
+  if (pantoIndex < pantoCount) {
+    pantos[pantoIndex].isforceRendering = false;
+    pantos[pantoIndex].target = Vector2D(values[0], values[1]);
+    destinationAngle[pantoIndex*3+2] = values[2];
+    pantos[pantoIndex].inverseKinematics();
+  }
+}
+
+void serialCommandForce(unsigned char pantoIndex, float* values) {
+  if (pantoIndex < pantoCount) {
+    pantos[pantoIndex].force[0] = values[0];
+    pantos[pantoIndex].force[1] = values[1];
+    pantos[pantoIndex].isforceRendering = true;
+  }
+}
+
+void serialCommandPID(unsigned char pantoIndex, float* values) {
+  if (pantoIndex == 0) {
+    pidFactorPanto[0] = values[0];
+    pidFactorPanto[1] = values[1];
+    pidFactorPanto[2] = values[2];
+  } else if (pantoIndex == 1) {
+    pidFactorHandle[0] = values[0];
+    pidFactorHandle[1] = values[1];
+    pidFactorHandle[2] = values[2];
+  }
+}
+
 void loop() {
   // Receive motor commands
   const unsigned char expectedPayloadLength = sizeof(Number32)*3+1+1;
@@ -35,27 +64,17 @@ void loop() {
     unsigned char checksum = SerialUSB.read();
     if(checksum != inChecksum)
       continue;
-    if(pantoIndex < pantoCount) {
-      switch(controlMethod){
-        case 0:
-          pantos[pantoIndex].isforceRendering = false;
-          pantos[pantoIndex].target = Vector2D(values[0], values[1]);
-          destinationAngle[pantoIndex*3+2] = values[2];
-          pantos[pantoIndex].inverseKinematics();
-          break;
-        case 1:
-          pantos[pantoIndex].force[0] = values[0];
-          pantos[pantoIndex].force[1] = values[1];
-          pantos[pantoIndex].isforceRendering = true;
-          break;
-        default:
-          break;
-      }
-    }
-    else {
-      pidFactor[0] = values[0];
-      pidFactor[1] = values[1];
-      pidFactor[2] = values[2];
+    //TODO: maybe turn this into a lookup table
+    switch(controlMethod) {
+      case 0:
+        serialCommandPosition(pantoIndex, values);
+        break;
+      case 1:
+        serialCommandForce(pantoIndex, values);
+        break;
+      case 2:
+        serialCommandPID(pantoIndex, values);
+        break;
     }
   }
   
