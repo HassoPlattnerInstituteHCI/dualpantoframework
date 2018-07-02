@@ -2,7 +2,7 @@ const DualPantoFramework = require('./../../.'),
       {Vector} = DualPantoFramework;
 
 let device;
-let forcefield = [new Vector(-400, -100, NaN), new Vector(400, -100, NaN), new Vector(400, -200, NaN), new Vector(-400, -200, NaN)];
+let forcefield = [new Vector(-400, -30, NaN), new Vector(400, -30, NaN), new Vector(400, -200, NaN), new Vector(-400, -200, NaN)];
 DualPantoFramework.on('devicesChanged', function(devices){
   for(const newdevice of devices){
     if(!device){
@@ -16,11 +16,11 @@ DualPantoFramework.on('devicesChanged', function(devices){
 const rails = function(point){
   let force = 0;
   if(point.x < 0){
-    force = (point.x % 50) + 25;
+    force = (point.x % 20) + 10;
   }else{
-    force = (point.x % 50) - 25;
+    force = (point.x % 20) - 10;
   }
-  return new Vector(-force, 0, NaN);
+  return new Vector(-force*0.2, 0, NaN);
 }
 
 function start(){
