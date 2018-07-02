@@ -3,7 +3,6 @@
     "opMinDist": 15,
     "opMaxDist": 120,
     "opAngle": 2.2,
-    "pidFactor": [1.0, 0.0, 0.01],
     "forceFactor": 0.01,
     "pantos": {
         "upper": {
@@ -19,7 +18,8 @@
                     "dirAPin": 25,
                     "dirBPin": 23,
                     "flipped": false,
-                    "powerLimit": 0.4
+                    "powerLimit": 0.4,
+                    "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 48,
@@ -40,14 +40,14 @@
                     "dirAPin": 10,
                     "dirBPin": 9,
                     "flipped": false,
-                    "powerLimit": 0.4
-
+                    "powerLimit": 0.4,
+                    "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 52,
                     "bPin": 50,
                     "steps": 15360,
-                    "setup": 0.00
+                    "setup": -0.05
                 }
             },
             "handle": {
@@ -56,13 +56,13 @@
                     "dirAPin": 34,
                     "dirBPin": 36,
                     "flipped": false,
-                    "powerLimit": 0.2
-
+                    "powerLimit": 0.2,
+                    "pidFactor": [0.1, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 32,
                     "bPin": 30,
-                    "steps": 60,
+                    "steps": 136,
                     "setup": 0.0
                 }
             }
@@ -80,14 +80,14 @@
                     "dirAPin": 5,
                     "dirBPin": 6,
                     "flipped": false,
-                    "powerLimit": 0.4
-
+                    "powerLimit": 0.4,
+                    "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 26,
                     "bPin": 28,
                     "steps": 15360,
-                    "setup": -0.53
+                    "setup": -0.45
                 }
             },
             "right": {
@@ -102,14 +102,14 @@
                     "dirAPin": 11,
                     "dirBPin": 12,
                     "flipped": false,
-                    "powerLimit": 0.4
-
+                    "powerLimit": 0.4,
+                    "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 22,
                     "bPin": 24,
                     "steps": 15360,
-                    "setup": -0.03
+                    "setup": 0.0
                 }
             },
             "handle": {
@@ -118,13 +118,13 @@
                     "dirAPin": 38,
                     "dirBPin": 40,
                     "flipped": false,
-                    "powerLimit": 0.2
-
+                    "powerLimit": 0.2,
+                    "pidFactor": [0.1, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 42,
                     "bPin": 44,
-                    "steps": 60,
+                    "steps": 600,
                     "setup": 0.0
                 }
             }

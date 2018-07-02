@@ -14,7 +14,7 @@ void setup() {
   delay(1000);
   for(unsigned char i = 0; i < pantoCount; ++i)
     pantos[i].calibrationEnd();
-  
+
   prevTime = micros();
 }
 
@@ -35,30 +35,17 @@ void loop() {
     unsigned char checksum = SerialUSB.read();
     if(checksum != inChecksum)
       continue;
-    if(pantoIndex < pantoCount) {
-      switch(controlMethod){
-        case 0:
-          pantos[pantoIndex].isforceRendering = false;
-          pantos[pantoIndex].target = Vector2D(values[0], values[1]);
-          destinationAngle[pantoIndex*3+2] = values[2];
-          pantos[pantoIndex].inverseKinematics();
-          break;
-        case 1:
-          pantos[pantoIndex].force[0] = values[0];
-          pantos[pantoIndex].force[1] = values[1];
-          pantos[pantoIndex].isforceRendering = true;
-          break;
-        default:
-          break;
-      }
-    }
-    else {
-      pidFactor[0] = values[0];
-      pidFactor[1] = values[1];
-      pidFactor[2] = values[2];
+    if(controlMethod < 2 && pantoIndex < pantoCount) {
+      pantos[pantoIndex].isforceRendering = (controlMethod == 1);
+      pantos[pantoIndex].target = Vector2D(values[0], values[1]);
+      pantos[pantoIndex].targetAngle[2] = values[2];
+      pantos[pantoIndex].inverseKinematics();
+    } else if(controlMethod == 2 && pantoIndex < pantoCount*3) {
+      for(unsigned char i = 0; i < 3; ++i)
+        pidFactor[pantoIndex][i] = values[i];
     }
   }
-  
+
   for(unsigned char i = 0; i < pantoCount; ++i) {
     pantos[i].readEncoders();
     pantos[i].forwardKinematics();

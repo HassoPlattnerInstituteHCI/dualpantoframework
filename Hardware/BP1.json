@@ -2,7 +2,7 @@
     "opMinDist": 65,
     "opMaxDist": 210,
     "opAngle": 2.2,
-    "pidFactor": [5.0, 0.0, 0.0],
+    "forceFactor": 0.01,
     "pantos": {
         "upper": {
             "left": {
@@ -16,7 +16,8 @@
                     "pwmPin": 9,
                     "dirAPin": 26,
                     "flipped": true,
-                    "powerLimit": 0.2
+                    "powerLimit": 0.2,
+                    "pidFactor": [5.0, 0.0, 0.0]
                 },
                 "encoder": {
                     "aPin": 29,
@@ -36,7 +37,8 @@
                     "pwmPin": 8,
                     "dirAPin": 22,
                     "flipped": true,
-                    "powerLimit": 0.2
+                    "powerLimit": 0.2,
+                    "pidFactor": [5.0, 0.0, 0.0]
                 },
                 "encoder": {
                     "aPin": 25,
@@ -50,7 +52,8 @@
                     "pwmPin": 5,
                     "dirAPin": 38,
                     "flipped": true,
-                    "powerLimit": 0.2
+                    "powerLimit": 0.2,
+                    "pidFactor": [5.0, 0.0, 0.0]
                 },
                 "encoder": {
                     "aPin": 41,
@@ -72,7 +75,8 @@
                     "pwmPin": 6,
                     "dirAPin": 34,
                     "flipped": false,
-                    "powerLimit": 0.2
+                    "powerLimit": 0.2,
+                    "pidFactor": [5.0, 0.0, 0.0]
                 },
                 "encoder": {
                     "aPin": 36,
@@ -92,7 +96,8 @@
                     "pwmPin": 7,
                     "dirAPin": 30,
                     "flipped": false,
-                    "powerLimit": 0.2
+                    "powerLimit": 0.2,
+                    "pidFactor": [5.0, 0.0, 0.0]
                 },
                 "encoder": {
                     "aPin": 32,
@@ -106,7 +111,8 @@
                     "pwmPin": 4,
                     "dirAPin": 42,
                     "flipped": false,
-                    "powerLimit": 0.2
+                    "powerLimit": 0.2,
+                    "pidFactor": [5.0, 0.0, 0.0]
                 },
                 "encoder": {
                     "aPin": 45,
