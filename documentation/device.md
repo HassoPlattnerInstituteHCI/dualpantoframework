@@ -158,22 +158,23 @@ applies force vector to the pantograph
 
 **Parameters**
 
--   `index` **[number][53]** index of handle to apply force
--   `force`  
--   `target` **[Vector][52]** vector of force to render. 3rd element will be ignored.
+-   `index` **[number][53]** index of the handle to apply force to
+-   `force` **[Vector][52]** force vector to render. Third element will be ignored.
 
 ### rotateHandleTo
 
-Rotates a Handle to target angle
+Rotates a Handle to target angle inside the global coordinate system with zero beeing in postive x direction.
+Positive rotation is counterclockwise.
 
 **Parameters**
 
 -   `index` **[number][53]** index of handle to move
--   `targetAngle` **[number][53]** angle the handle should be rotated to
+-   `targetAngle` **[number][53]** angle in radiant the handle should be rotated to
 
 ### movePantoTo
 
-Returns a promise that invokes handle movement with tween behaviour
+Returns a promise that invokes handle movement with tween behaviour. Positive x goes to the right and positive y goes away from you.
+The point (0,0) is between the motors.
 
 **Parameters**
 
