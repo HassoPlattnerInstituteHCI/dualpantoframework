@@ -60,6 +60,9 @@ const float linkageInnerLength[] = {
 const float linkageOuterLength[] = {
     ${aggregate('linkage_outerLength')}
 };
+const char linkageHandleMount[] = {
+    ${aggregate('linkage_handleMount')}
+};
 const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
 };

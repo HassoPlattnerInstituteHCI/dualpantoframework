@@ -35,7 +35,7 @@ struct Panto {
     innerAngle[0] = diagonal.angle()-acos((diagonal*diagonal+linkageOuterLength[dofIndex+0]*linkageOuterLength[dofIndex+0]-linkageOuterLength[dofIndex+1]*linkageOuterLength[dofIndex+1])/(2 * diagonal.length() * linkageOuterLength[dofIndex+0]));
     handle = Vector2D::fromPolar(innerAngle[0], linkageOuterLength[dofIndex+0])+inner[0];
     innerAngle[1] = (handle-inner[1]).angle();
-    pointingAngle = actuationAngle[2]+innerAngle[1];
+    pointingAngle = actuationAngle[2]+innerAngle[linkageHandleMount[dofIndex+2]];
 
     J[0][0] = -linkageInnerLength[dofIndex+0] * sin(actuationAngle[0]) -
               (linkageInnerLength[dofIndex+0] * sin(innerAngle[0])*sin(innerAngle[1]-actuationAngle[0]))/(sin(innerAngle[0] - innerAngle[1]));
@@ -137,7 +137,8 @@ struct Panto {
 
   void readEncoders() {
     for(unsigned char i = 0; i < 3; ++i)
-      actuationAngle[i] = (encoder[i]) ? 2.0 * M_PI * encoder[i]->read() / encoderSteps[dofIndex+i] : NAN;
+      actuationAngle[i] = (encoder[i]) ? 2*M_PI * encoder[i]->read() / encoderSteps[dofIndex+i] : NAN;
+    actuationAngle[2] = fmod(actuationAngle[2], 2*M_PI);
   }
 
   void actuateMotors() {
@@ -150,6 +151,13 @@ struct Panto {
         setMotor(i, targetAngle[i] < 0, fabs(targetAngle[i])*forceFactor);
       } else {
         float error = targetAngle[i] - actuationAngle[i];
+        if(i == 2) { // Linkage offsets handle
+          error -= innerAngle[linkageHandleMount[dofIndex+2]];
+          if(error > M_PI)
+            error -= 2*M_PI;
+          else if(error < -M_PI)
+            error += 2*M_PI;
+        }
         unsigned char dir = error < 0;
         error = fabs(error);
         // Power: PID

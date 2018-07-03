@@ -51,6 +51,9 @@
                 }
             },
             "handle": {
+                "linkage": {
+                    "handleMount": 1
+                },
                 "motor": {
                     "pwmPin": 3,
                     "dirAPin": 34,
@@ -113,6 +116,9 @@
                 }
             },
             "handle": {
+                "linkage": {
+                    "handleMount": 0
+                },
                 "motor": {
                     "pwmPin": 4,
                     "dirAPin": 38,
