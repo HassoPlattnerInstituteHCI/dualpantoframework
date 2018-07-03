@@ -11,44 +11,47 @@
     -   [handleMoved][7]
     -   [createObstacle][8]
     -   [removeObstacle][9]
-    -   [moveHandleTo][10]
-    -   [applyForceTo][11]
-    -   [movePantoTo][12]
-    -   [unblockHandle][13]
-    -   [unblock][14]
-    -   [tweenPantoTo][15]
-    -   [step][16]
--   [Vector][17]
-    -   [dot][18]
-    -   [scale][19]
-    -   [scaled][20]
-    -   [add][21]
-    -   [sum][22]
-    -   [subtract][23]
-    -   [difference][24]
-    -   [length][25]
-    -   [polarAngle][26]
-    -   [rotate][27]
-    -   [normalized][28]
-    -   [product][29]
--   [Broker][30]
-    -   [run_script][31]
-    -   [waitMS][32]
-    -   [getDevices][33]
-    -   [getDeviceByPort][34]
-    -   [createVirtualDevice][35]
--   [VoiceInteraction][36]
-    -   [speakText][37]
-    -   [sayText][38]
-    -   [playSound][39]
-    -   [setCommands][40]
-    -   [beginListening][41]
-    -   [haltListening][42]
--   [Player][43]
-    -   [then][44]
-    -   [play][45]
-    -   [pause][46]
-    -   [stop][47]
+    -   [createForcefield][10]
+    -   [removeForcefield][11]
+    -   [moveHandleTo][12]
+    -   [applyForceTo][13]
+    -   [rotateHandleTo][14]
+    -   [movePantoTo][15]
+    -   [unblockHandle][16]
+    -   [unblock][17]
+    -   [tweenPantoTo][18]
+    -   [step][19]
+-   [Vector][20]
+    -   [dot][21]
+    -   [scale][22]
+    -   [scaled][23]
+    -   [add][24]
+    -   [sum][25]
+    -   [subtract][26]
+    -   [difference][27]
+    -   [length][28]
+    -   [polarAngle][29]
+    -   [rotate][30]
+    -   [normalized][31]
+    -   [product][32]
+-   [Broker][33]
+    -   [run_script][34]
+    -   [waitMS][35]
+    -   [getDevices][36]
+    -   [getDeviceByPort][37]
+    -   [createVirtualDevice][38]
+-   [VoiceInteraction][39]
+    -   [speakText][40]
+    -   [sayText][41]
+    -   [playSound][42]
+    -   [setCommands][43]
+    -   [beginListening][44]
+    -   [haltListening][45]
+-   [Player][46]
+    -   [then][47]
+    -   [play][48]
+    -   [pause][49]
+    -   [stop][50]
 
 ## Device
 
@@ -58,7 +61,7 @@ Class for panto interaction.
 
 **Parameters**
 
--   `port` **[String][48]** port on that the device is connected.
+-   `port` **[String][51]** port on that the device is connected.
 
 ### disconnect
 
@@ -72,13 +75,13 @@ Pulls new data from serial connection and handles them.
 
 gets the last known position of the me handle
 
-Returns **[Vector][49]** last known position as vector
+Returns **[Vector][52]** last known position as vector
 
 ### getItPosition
 
 gets the last known position of the it handle
 
-Returns **[Vector][49]** last known position as vector
+Returns **[Vector][52]** last known position as vector
 
 ### send
 
@@ -86,8 +89,8 @@ Enqueues a packet to be send via the serial connection to the panto.
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to send to
--   `packet` **[Buffer][51]** containing the payload data
+-   `index` **[number][53]** index of handle to send to
+-   `packet` **[Buffer][54]** containing the payload data
 
 ### handleMoved
 
@@ -95,8 +98,8 @@ sets new positions if handles are moved by ViDeb
 
 **Parameters**
 
--   `index` **[number][50]** index of moved handle
--   `position` **[Vector][49]** position the handle was moved to
+-   `index` **[number][53]** index of moved handle
+-   `position` **[Vector][52]** position the handle was moved to
 
 ### createObstacle
 
@@ -104,8 +107,8 @@ Creates obstacles for handles
 
 **Parameters**
 
--   `pointArray` **[array][52]** array containing edge points of the obstacle
--   `index` **[number][50]** index of affected handle with -1 meaning both (optional, default `-1`)
+-   `pointArray` **[array][55]** array containing edge points of the obstacle
+-   `index` **[number][53]** index of affected handle with -1 meaning both (optional, default `-1`)
 
 Returns **Obstacle** the created obstacle
 
@@ -116,8 +119,29 @@ Remove obstacles for handles
 **Parameters**
 
 -   `obstacle`  
--   `index` **[number][50]** index of affected handle with -1 meaning both (optional, default `-1`)
--   `pointArray` **[array][52]** array containing edge points of the obstacle
+-   `index` **[number][53]** index of affected handle with -1 meaning both (optional, default `-1`)
+-   `pointArray` **Obstacle** array containing edge points of the obstacle
+
+### createForcefield
+
+Creates forcefields for handles
+
+**Parameters**
+
+-   `pointArray` **[array][55]** array containing edge points of the forcefield
+-   `handleFunction` **[function][56]** function that translates a point to a force (see example folder)
+-   `index` **[number][53]** index of affected handle with -1 meaning both (optional, default `-1`)
+
+Returns **Forcefield** the created forcefield
+
+### removeForcefield
+
+Remove forcefields for handles
+
+**Parameters**
+
+-   `forcefield` **Forcefield** forcefield to be removed
+-   `index` **[number][53]** index of affected handle with -1 meaning both (optional, default `-1`)
 
 ### moveHandleTo
 
@@ -125,8 +149,8 @@ moves a Handle to a position
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to move
--   `target` **[Vector][49]** position the handle should be moved to
+-   `index` **[number][53]** index of handle to move
+-   `target` **[Vector][52]** position the handle should be moved to
 
 ### applyForceTo
 
@@ -134,9 +158,18 @@ applies force vector to the pantograph
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to apply force
+-   `index` **[number][53]** index of handle to apply force
 -   `force`  
--   `target` **[Vector][49]** vector of force to render. 3rd element will be ignored.
+-   `target` **[Vector][52]** vector of force to render. 3rd element will be ignored.
+
+### rotateHandleTo
+
+Rotates a Handle to target angle
+
+**Parameters**
+
+-   `index` **[number][53]** index of handle to move
+-   `targetAngle` **[number][53]** angle the handle should be rotated to
 
 ### movePantoTo
 
@@ -144,12 +177,12 @@ Returns a promise that invokes handle movement with tween behaviour
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to move
--   `target` **[Vector][49]** position the handle should be moved to
--   `speed` **[number][50]** speed of the movement in mm per second (max value is 120). (optional, default `120`)
--   `interpolation_method` **[Object][53]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.InOut`)
+-   `index` **[number][53]** index of handle to move
+-   `target` **[Vector][52]** position the handle should be moved to
+-   `speed` **[number][53]** speed of the movement in mm per second (max value is 120). (optional, default `120`)
+-   `interpolation_method` **[Object][57]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.InOut`)
 
-Returns **[promise][54]** the promise executing the movement
+Returns **[promise][58]** the promise executing the movement
 
 ### unblockHandle
 
@@ -157,9 +190,9 @@ Returns a promise that unblocks a handle
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to unblock
+-   `index` **[number][53]** index of handle to unblock
 
-Returns **[promise][54]** the promise executing the unblock
+Returns **[promise][58]** the promise executing the unblock
 
 ### unblock
 
@@ -167,7 +200,7 @@ Unblocks a handle
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to unblock
+-   `index` **[number][53]** index of handle to unblock
 
 ### tweenPantoTo
 
@@ -175,10 +208,10 @@ Moves a handle with tween movement behaviour
 
 **Parameters**
 
--   `index` **[number][50]** index of handle to move
--   `target` **[Vector][49]** position the handle should be moved to
--   `duration` **[number][50]** time in ms that the movement shall take. (optional, default `500`)
--   `interpolation_method` **[Object][53]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.InOut`)
+-   `index` **[number][53]** index of handle to move
+-   `target` **[Vector][52]** position the handle should be moved to
+-   `duration` **[number][53]** time in ms that the movement shall take. (optional, default `500`)
+-   `interpolation_method` **[Object][57]** tween function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.InOut`)
 
 ### step
 
@@ -190,9 +223,9 @@ Class for Class for defining Panto Vecotrs with x, y cords and r as roation
 
 **Parameters**
 
--   `x` **[number][50]** x coordinate (optional, default `0`)
--   `y` **[number][50]** y coordinate (optional, default `0`)
--   `r` **[number][50]** rotation in radian
+-   `x` **[number][53]** x coordinate (optional, default `0`)
+-   `y` **[number][53]** y coordinate (optional, default `0`)
+-   `r` **[number][53]** rotation in radian
 
 ### dot
 
@@ -200,9 +233,9 @@ Calculates and returns the dot product with another vector.
 
 **Parameters**
 
--   `vector` **[Vector][49]** vector to operate with
+-   `vector` **[Vector][52]** vector to operate with
 
-Returns **[number][50]** The calculated result
+Returns **[number][53]** The calculated result
 
 ### scale
 
@@ -210,9 +243,9 @@ Scales this Vector with a factor.
 
 **Parameters**
 
--   `factor` **[number][50]** factor to scale vector
+-   `factor` **[number][53]** factor to scale vector
 
-Returns **[Vector][49]** The scaled Vector
+Returns **[Vector][52]** The scaled Vector
 
 ### scaled
 
@@ -220,9 +253,9 @@ Creates a scaled vector.
 
 **Parameters**
 
--   `factor` **[number][50]** factor to scale vector
+-   `factor` **[number][53]** factor to scale vector
 
-Returns **[Vector][49]** The new scaled Vector
+Returns **[Vector][52]** The new scaled Vector
 
 ### add
 
@@ -230,9 +263,9 @@ Adds a vector to this vector.
 
 **Parameters**
 
--   `vector` **[Vector][49]** vector to operate with
+-   `vector` **[Vector][52]** vector to operate with
 
-Returns **[Vector][49]** The summed up vector
+Returns **[Vector][52]** The summed up vector
 
 ### sum
 
@@ -240,9 +273,9 @@ Returns the sum of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][49]** vector to operate with
+-   `vector` **[Vector][52]** vector to operate with
 
-Returns **[Vector][49]** The new summed up vector
+Returns **[Vector][52]** The new summed up vector
 
 ### subtract
 
@@ -250,9 +283,9 @@ Subtracts a vector from this vector.
 
 **Parameters**
 
--   `vector` **[Vector][49]** vector to operate with
+-   `vector` **[Vector][52]** vector to operate with
 
-Returns **[Vector][49]** The reduced vector
+Returns **[Vector][52]** The reduced vector
 
 ### difference
 
@@ -260,15 +293,15 @@ Returns the difference of this vector and another vector.
 
 **Parameters**
 
--   `vector` **[Vector][49]** vector to operate with
+-   `vector` **[Vector][52]** vector to operate with
 
-Returns **[Vector][49]** The difference vector
+Returns **[Vector][52]** The difference vector
 
 ### length
 
 Calculates the length of the vector
 
-Returns **[number][50]** length of vector
+Returns **[number][53]** length of vector
 
 ### polarAngle
 
@@ -277,7 +310,7 @@ Right-hand coordinate system:
 Positive rotation => Counter Clock Wise
 Positive X-Axis is 0
 
-Returns **[number][50]** polar angle of vector
+Returns **[number][53]** polar angle of vector
 
 ### rotate
 
@@ -288,15 +321,15 @@ Positive X-Axis is 0
 
 **Parameters**
 
--   `angle` **[number][50]** angle in radians
+-   `angle` **[number][53]** angle in radians
 
-Returns **[Vector][49]** The rotated vector
+Returns **[Vector][52]** The rotated vector
 
 ### normalized
 
 Normalizes the vector
 
-Returns **[Vector][49]** this normalized vector
+Returns **[Vector][52]** this normalized vector
 
 ### product
 
@@ -304,9 +337,9 @@ Creates a transformed vector by multiplication with a matrix
 
 **Parameters**
 
--   `matrix` **[Array][52]** matrix to operate with
+-   `matrix` **[Array][55]** matrix to operate with
 
-Returns **[Vector][49]** The transfromed vector
+Returns **[Vector][52]** The transfromed vector
 
 ## Broker
 
@@ -320,7 +353,7 @@ Creates a script that executes a list of promises.
 
 **Parameters**
 
--   `promise_list` **[array][52]** the list of promises to execute.
+-   `promise_list` **[array][55]** Array of functions which return promises.
 
 ### waitMS
 
@@ -328,15 +361,15 @@ Generates a promise that creates a timeout.
 
 **Parameters**
 
--   `ms` **[number][50]** number ob ms to wait.
+-   `ms` **[number][53]** number ob ms to wait.
 
-Returns **[Promise][54]** The promise executing the timeout.
+Returns **[Promise][58]** The promise executing the timeout.
 
 ### getDevices
 
 Returns all connected devices.
 
-Returns **[Set][55]** The connected devices.
+Returns **[Set][59]** The connected devices.
 
 ### getDeviceByPort
 
@@ -344,15 +377,15 @@ Returns the device connected to a specific port
 
 **Parameters**
 
--   `port` **[String][48]** the port of the device
+-   `port` **[String][51]** the port of the device
 
-Returns **[Device][56]** The connected device.
+Returns **[Device][60]** The connected device.
 
 ### createVirtualDevice
 
 Creates a new virtual device
 
-Returns **[Device][56]** The new virtual device.
+Returns **[Device][60]** The new virtual device.
 
 ## VoiceInteraction
 
@@ -366,9 +399,9 @@ Speaks a text.
 
 **Parameters**
 
--   `txt` **[String][48]** The text to speak.
--   `language` **[String][48]** The language to speak. (optional, default `DE`)
--   `speed` **[number][50]** The speed that is spoken with. (optional, default `1.4`)
+-   `txt` **[String][51]** The text to speak.
+-   `language` **[String][51]** The language to speak. (optional, default `DE`)
+-   `speed` **[number][53]** The speed that is spoken with. (optional, default `1.4`)
 
 ### sayText
 
@@ -376,7 +409,7 @@ Creates a script which speaks a german text with 1.4 speed.
 
 **Parameters**
 
--   `txt` **[String][48]** The text to speak.
+-   `txt` **[String][51]** The text to speak.
 
 ### playSound
 
@@ -384,9 +417,10 @@ Play a soundfile.
 
 **Parameters**
 
--   `filename` **[String][48]** The file to play.
+-   `filename` **[String][51]** The file to play.
+-   `loop`   (optional, default `false`)
 
-Returns **[Player][57]** The player playing the sound
+Returns **[Player][61]** The player playing the sound
 
 ### setCommands
 
@@ -394,7 +428,7 @@ Sets up the voice input listener.
 
 **Parameters**
 
--   `commands` **[array][52]** List of Strings to listen for.
+-   `commands` **[array][55]** List of Strings to listen for.
 
 ### beginListening
 
@@ -410,11 +444,12 @@ Player is a class to control the playing of a file
 
 **Parameters**
 
--   `filename` **[string][48]** The filename of the soundfile.
+-   `filename` **[string][51]** The filename of the soundfile.
+-   `loop`   (optional, default `false`)
 
 **Properties**
 
--   `isPlaying` **[boolean][58]** is the player currently playing
+-   `isPlaying` **[boolean][62]** is the player currently playing
 
 ### then
 
@@ -433,7 +468,7 @@ await new Player('test.mp3');
 new Player('test.mp3').then(() => console.log('done'));
 ```
 
-Returns **[Promise][54]** The promise of the state after the callbacks in then.
+Returns **[Promise][58]** The promise of the state after the callbacks in then.
 
 ### play
 
@@ -465,100 +500,108 @@ Stop playing.
 
 [9]: #removeobstacle
 
-[10]: #movehandleto
+[10]: #createforcefield
 
-[11]: #applyforceto
+[11]: #removeforcefield
 
-[12]: #movepantoto
+[12]: #movehandleto
 
-[13]: #unblockhandle
+[13]: #applyforceto
 
-[14]: #unblock
+[14]: #rotatehandleto
 
-[15]: #tweenpantoto
+[15]: #movepantoto
 
-[16]: #step
+[16]: #unblockhandle
 
-[17]: #vector
+[17]: #unblock
 
-[18]: #dot
+[18]: #tweenpantoto
 
-[19]: #scale
+[19]: #step
 
-[20]: #scaled
+[20]: #vector
 
-[21]: #add
+[21]: #dot
 
-[22]: #sum
+[22]: #scale
 
-[23]: #subtract
+[23]: #scaled
 
-[24]: #difference
+[24]: #add
 
-[25]: #length
+[25]: #sum
 
-[26]: #polarangle
+[26]: #subtract
 
-[27]: #rotate
+[27]: #difference
 
-[28]: #normalized
+[28]: #length
 
-[29]: #product
+[29]: #polarangle
 
-[30]: #broker
+[30]: #rotate
 
-[31]: #run_script
+[31]: #normalized
 
-[32]: #waitms
+[32]: #product
 
-[33]: #getdevices
+[33]: #broker
 
-[34]: #getdevicebyport
+[34]: #run_script
 
-[35]: #createvirtualdevice
+[35]: #waitms
 
-[36]: #voiceinteraction
+[36]: #getdevices
 
-[37]: #speaktext
+[37]: #getdevicebyport
 
-[38]: #saytext
+[38]: #createvirtualdevice
 
-[39]: #playsound
+[39]: #voiceinteraction
 
-[40]: #setcommands
+[40]: #speaktext
 
-[41]: #beginlistening
+[41]: #saytext
 
-[42]: #haltlistening
+[42]: #playsound
 
-[43]: #player
+[43]: #setcommands
 
-[44]: #then
+[44]: #beginlistening
 
-[45]: #play
+[45]: #haltlistening
 
-[46]: #pause
+[46]: #player
 
-[47]: #stop
+[47]: #then
 
-[48]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+[48]: #play
 
-[49]: #vector
+[49]: #pause
 
-[50]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[50]: #stop
 
-[51]: https://nodejs.org/api/buffer.html
+[51]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
-[52]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[52]: #vector
 
-[53]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+[53]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[54]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[54]: https://nodejs.org/api/buffer.html
 
-[55]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set
+[55]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-[56]: #device
+[56]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
 
-[57]: #player
+[57]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-[58]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[58]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
+[59]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Set
+
+[60]: #device
+
+[61]: #player
+
+[62]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
