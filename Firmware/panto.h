@@ -150,6 +150,8 @@ struct Panto {
         setMotor(i, targetAngle[i] < 0, fabs(targetAngle[i])*forceFactor);
       } else {
         float error = targetAngle[i] - actuationAngle[i];
+        if(i == 2)
+          error -= innerAngle[1]; // Right linkage offsets handle
         unsigned char dir = error < 0;
         error = fabs(error);
         // Power: PID
