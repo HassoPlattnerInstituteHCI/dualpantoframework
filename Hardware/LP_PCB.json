@@ -60,7 +60,7 @@
                     "dirBPin": 36,
                     "flipped": false,
                     "powerLimit": 0.2,
-                    "pidFactor": [0.1, 0.0, 0.01]
+                    "pidFactor": [0.6, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 32,
@@ -125,7 +125,7 @@
                     "dirBPin": 40,
                     "flipped": false,
                     "powerLimit": 0.2,
-                    "pidFactor": [0.1, 0.0, 0.01]
+                    "pidFactor": [0.6, 0.0, 0.01]
                 },
                 "encoder": {
                     "aPin": 42,
