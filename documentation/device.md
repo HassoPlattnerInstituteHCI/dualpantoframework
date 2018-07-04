@@ -118,9 +118,8 @@ Remove obstacles for handles
 
 **Parameters**
 
--   `obstacle`  
+-   `obstacle` **Obstacle** the obstacle that should be removed
 -   `index` **[number][53]** index of affected handle with -1 meaning both (optional, default `-1`)
--   `pointArray` **Obstacle** array containing edge points of the obstacle
 
 ### createForcefield
 
