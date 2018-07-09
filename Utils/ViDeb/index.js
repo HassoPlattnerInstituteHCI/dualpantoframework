@@ -81,6 +81,17 @@ wsServer.on('request', (request) => {
             for(connetion of connections)
                 connection.sendUTF(JSON.stringify(packet));
         });
+        device.on('rotateHandleTo', (i, t) => {
+            console.log('rotateHandleTo', 'index.js', i, t);
+            const packet = {
+                type: 'rotateHandleTo',
+                port: device.port,
+                index: i,
+                targetAngle: t
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
         device.on('applyForceTo', (i, f) => {
             const packet = {
                 type: 'applyForceTo',
