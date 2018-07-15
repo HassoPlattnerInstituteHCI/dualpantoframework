@@ -175,13 +175,19 @@
                 case 'moveHandleTo':
                     // TODO
                     if(data.position){
-                      panto.targetX = -data.position.x;
-                      panto.targetY = -data.position.y;
-                      panto.pointingAngle = data.position.r;
+                      if(!isNaN(data.position.x))panto.targetX = -data.position.x;
+                      if(!isNaN(data.position.y))panto.targetY = -data.position.y;
+                      if(!isNaN(data.position.r))panto.pointingAngle = -data.position.r;
                       panto.inverseKinematicsNumeric(panto.targetX,panto.targetY);
                       flushGlyph();
                     }
                     break;
+                case 'rotateHandleTo':
+                    if(data.targetAngle){
+                      panto.pointingAngle = -data.targetAngle;
+                      flushGlyph();
+                    }
+                    break;                
                 case 'saySpeak':
                     node.className = 'history-item-say'
                     break;
@@ -300,7 +306,6 @@
             }
           }
         }
-
     </script>
     <script src="js/bootstrap.min.js"></script>
   </body>
