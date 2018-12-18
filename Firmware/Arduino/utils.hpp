@@ -1,3 +1,5 @@
+#pragma once
+
 float clamp(float value, float min, float max) {
   return fmin(fmax(value, min), max);
 }

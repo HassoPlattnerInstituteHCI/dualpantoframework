@@ -1,4 +1,4 @@
-#include "panto.h"
+#include "panto.hpp"
 
 unsigned long prevTime, heartbeatCountdown = 0;
 

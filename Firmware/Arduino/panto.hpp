@@ -1,6 +1,8 @@
+#pragma once
+
 #include <Encoder.h>
-#include "config.h"
-#include "utils.h"
+#include "config.hpp"
+#include "utils.hpp"
 
 #define PWM_MAX 4095 // (2^12)-1
 

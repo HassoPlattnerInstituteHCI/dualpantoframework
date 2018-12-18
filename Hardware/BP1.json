@@ -1,4 +1,5 @@
 {
+    "firmware": "Arduino",
     "opMinDist": 65,
     "opMaxDist": 210,
     "opAngle": 2.2,

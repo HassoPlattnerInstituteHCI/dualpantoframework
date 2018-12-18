@@ -42,7 +42,9 @@ function aggregate(name) {
 }
 
 const output =
-`const unsigned char configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
+`#pragma once
+
+const unsigned char configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
 const float opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle};
@@ -98,4 +100,4 @@ const float setupAngle[] = {
 };`;
 
 console.log(output);
-fs.writeFileSync('Firmware/config.h', output);
+fs.writeFileSync('Firmware/' + input.firmware + '/config.hpp', output);

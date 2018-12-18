@@ -1,4 +1,5 @@
 {
+    "firmware": "Arduino",
     "baseDist": 43,
     "opMinDist": 65,
     "opMaxDist": 210,
