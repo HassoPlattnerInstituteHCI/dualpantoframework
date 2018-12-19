@@ -1,18 +1,18 @@
 {
   "configurations": [
     {
-      "name": "Win32",
+      "name": "Arduino Due",
       "includePath": [
-        "C:/Program Files (x86)/Arduino/tools/**",
-        "C:/Program Files (x86)/Arduino/hardware/arduino/avr/**",
-        "C:/Program Files (x86)/Arduino/hardware/tools/**",
-        "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/**",
-        "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/avr/**",
-        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.0/tools/sdk/include/**",
+        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/arduino/hardware/sam/1.6.11/variants/arduino_due_x",
+        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/arduino/hardware/sam/1.6.11/cores/arduino",
+        "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include",
+        "C:/Program Files (x86)/Arduino/libraries/**",
+        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/arduino/hardware/sam/1.6.11/libraries/**",
+        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/arduino/hardware/sam/1.6.11/system/**",
         "C:/Users/USERNAME/Documents/Arduino/libraries/**"
       ],
       "forcedInclude": [
-        "C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino/Arduino.h"
+        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/arduino/hardware/sam/1.6.11/cores/arduino/Arduino.h"
       ],
       "intelliSenseMode": "msvc-x64",
       "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Tools/MSVC/14.15.26726/bin/Hostx64/x64/cl.exe",
@@ -20,9 +20,29 @@
       "cppStandard": "c++17",
       "defines": [
         "USBCON",
-        "ARDUINO 100"
+        "ARDUINO=100"
       ]
-    }
+    },
+    {
+      "name": "ESP32",
+      "includePath": [
+          "C:/Users/USERNAME/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.0/cores/esp32",
+          "C:/Users/USERNAME/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.0/variants/esp32",
+          "C:/Users/USERNAME/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.0/tools/sdk/include/**",
+          "C:/Users/USERNAME/AppData/Local/Arduino15/packages/esp32/tools/xtensa-esp32-elf-gcc/1.22.0-80-g6c4433a-5.2.0/lib/gcc/xtensa-esp32-elf/5.2.0/include/**"
+      ],
+      "forcedInclude": [
+        "C:/Users/USERNAME/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.0/cores/esp32/Arduino.h"
+      ],
+      "intelliSenseMode": "msvc-x64",
+      "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Tools/MSVC/14.15.26726/bin/Hostx64/x64/cl.exe",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "defines": [
+          "USBCON",
+          "ARDUINO=100"
+        ]
+  }
   ],
   "version": 4
 }

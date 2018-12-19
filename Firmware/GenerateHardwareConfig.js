@@ -44,12 +44,12 @@ function aggregate(name) {
 const output =
 `#pragma once
 
-const unsigned char configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
+const uint8_t configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
 const float opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle};
 float forceFactor = ${input.forceFactor};
-const unsigned char pantoCount = ${pantoCount};
+const uint8_t pantoCount = ${pantoCount};
 const float linkageBaseX[] = {
     ${aggregate('linkage_baseX')}
 };
@@ -71,25 +71,25 @@ const float motorPowerLimit[] = {
 float pidFactor[${pantoCount*3}][3] = {
     ${aggregate('motor_pidFactor')}
 };
-const unsigned char motorPwmPin[] = {
+const uint8_t motorPwmPin[] = {
     ${aggregate('motor_pwmPin')}
 };
-const unsigned char motorDirAPin[] = {
+const uint8_t motorDirAPin[] = {
     ${aggregate('motor_dirAPin')}
 };
-const unsigned char motorDirBPin[] = {
+const uint8_t motorDirBPin[] = {
     ${aggregate('motor_dirBPin')}
 };
 const bool motorFlipped[] = {
     ${aggregate('motor_flipped')}
 };
-const unsigned char encoderAPin[] = {
+const uint8_t encoderAPin[] = {
     ${aggregate('encoder_aPin')}
 };
-const unsigned char encoderBPin[] = {
+const uint8_t encoderBPin[] = {
     ${aggregate('encoder_bPin')}
 };
-const unsigned char encoderIndexPin[] = {
+const uint8_t encoderIndexPin[] = {
     ${aggregate('encoder_indexPin')}
 };
 const uint32_t encoderSteps[] = {
