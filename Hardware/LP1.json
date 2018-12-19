@@ -6,6 +6,7 @@
     "opAngle": 2.2,
     "powerLimit": 0.2,
     "pidFactor": [5.0, 0.0, 0.0],
+    "dummyPin": 0,
     "pantos": {
         "upper": {
             "left": {
