@@ -16,16 +16,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 0,
+                    "pwmPin": 15,
                     "dirAPin": 2,
-                    "dirBPin": 4,
+                    "dirBPin": 0,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 34,
-                    "bPin": 35,
+                    "aPin": 4,
+                    "bPin": 16,
                     "steps": 15360,
                     "setup": -0.5
                 }
@@ -38,16 +38,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 5,
-                    "dirAPin": 12,
-                    "dirBPin": 13,
+                    "pwmPin": 17,
+                    "dirAPin": 5,
+                    "dirBPin": 18,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 36,
-                    "bPin": 39,
+                    "aPin": 19,
+                    "bPin": 21,
                     "steps": 15360,
                     "setup": -0.05
                 }
@@ -76,16 +76,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 14,
-                    "dirAPin": 15,
-                    "dirBPin": 16,
+                    "pwmPin": 22,
+                    "dirAPin": 23,
+                    "dirBPin": 13,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 17,
-                    "bPin": 18,
+                    "aPin": 12,
+                    "bPin": 14,
                     "steps": 15360,
                     "setup": -0.45
                 }
@@ -98,16 +98,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 19,
-                    "dirAPin": 21,
-                    "dirBPin": 22,
+                    "pwmPin": 27,
+                    "dirAPin": 26,
+                    "dirBPin": 25,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 23,
-                    "bPin": 25,
+                    "aPin": 33,
+                    "bPin": 32,
                     "steps": 15360,
                     "setup": 0.0
                 }

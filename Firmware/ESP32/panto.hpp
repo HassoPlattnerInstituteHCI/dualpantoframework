@@ -4,7 +4,9 @@
 #include "config.hpp"
 #include "utils.hpp"
 
-#define PWM_MAX 4095 // (2^12)-1
+const int ledcFrequency = 20000;
+const int ledcResolution = 12;
+const int PWM_MAX = 4095; // (2^12)-1
 
 const unsigned char dofCount = pantoCount*3;
 float dt;
@@ -84,11 +86,10 @@ struct Panto {
   void setMotor(unsigned char i, bool dir, float power) {
     if(motorFlipped[dofIndex+i])
         dir = !dir;
-    if(motorDirAPin[dofIndex+i])
-      digitalWrite(motorDirAPin[dofIndex+i], dir);
-    if(motorDirBPin[dofIndex+i])
-      digitalWrite(motorDirBPin[dofIndex+i], !dir);
-    if(motorPwmPin[dofIndex+i]) {
+        
+    digitalWrite(motorDirAPin[dofIndex+i], dir);
+    digitalWrite(motorDirBPin[dofIndex+i], !dir);
+    if(motorPwmPin[dofIndex+i] != dummyPin) {
       power = min(power, motorPowerLimit[dofIndex+i]);
       if(power < motorPowerLimit[dofIndex+i])
         engagedTime[i] = 0;
@@ -96,7 +97,7 @@ struct Panto {
         disengageMotors();
         while(1);
       }
-      analogWrite(motorPwmPin[dofIndex+i], power*PWM_MAX);
+      ledcWrite(dofIndex+i, power*PWM_MAX);
     }
   }
 
@@ -110,18 +111,19 @@ struct Panto {
       targetAngle[i] = NAN;
       previousDiff[i] = 0.0;
       integral[i] = 0.0;
-      if(encoderAPin[dofIndex+i] && encoderBPin[dofIndex+i])
+      if(encoderAPin[dofIndex+i] != dummyPin && encoderBPin[dofIndex+i] != dummyPin)
         encoder[i] = new Encoder(encoderAPin[dofIndex+i], encoderBPin[dofIndex+i]);
       else
         encoder[i] = NULL;
-      if(encoderIndexPin[dofIndex+i])
-        pinMode(encoderIndexPin[dofIndex+i], INPUT);
-      if(motorDirAPin[dofIndex+i])
-        pinMode(motorDirAPin[dofIndex+i], OUTPUT);
-      if(motorDirBPin[dofIndex+i])
-        pinMode(motorDirBPin[dofIndex+i], OUTPUT);
-      if(motorPwmPin[dofIndex+i])
-        pinMode(motorPwmPin[dofIndex+i], OUTPUT);
+
+      // we don't need additional checks aroud these - if the dummyPin is set properly, the ESP lib will check this anyway
+      pinMode(encoderIndexPin[dofIndex+i], INPUT);
+      pinMode(motorDirAPin[dofIndex+i], OUTPUT);
+      pinMode(motorDirBPin[dofIndex+i], OUTPUT);
+      pinMode(motorPwmPin[dofIndex+i], OUTPUT);
+
+      ledcSetup(dofIndex+i, ledcFrequency, ledcResolution);
+      ledcAttachPin(motorPwmPin[dofIndex+i], dofIndex+i);
 
       // TODO: Calibration
       // Use encoder index pin and actuate the motors to reach it

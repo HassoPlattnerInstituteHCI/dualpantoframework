@@ -60,6 +60,7 @@ const float opMinDist = ${input.opMinDist},
             opAngle = ${input.opAngle};
 float forceFactor = ${input.forceFactor};
 const uint8_t pantoCount = ${pantoCount};
+const uint8_t dummyPin = ${input.dummyPin};
 const float linkageBaseX[] = {
     ${aggregate('linkage_baseX')}
 };

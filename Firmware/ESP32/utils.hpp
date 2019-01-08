@@ -19,19 +19,19 @@ void sendNumber32(union Number32 value) {
     buffer[i] = (unsigned char)(value.i>>(i*8));
     outChecksum ^= buffer[i];
   }
-  SerialUSB.write(buffer, sizeof(buffer));
+  Serial.write(buffer, sizeof(buffer));
 }
 
 union Number32 receiveNumber32() {
   unsigned char buffer[4];
-  SerialUSB.readBytes(buffer, sizeof(buffer));
+  Serial.readBytes(buffer, sizeof(buffer));
   for(unsigned char i = 0; i < sizeof(buffer); ++i)
     inChecksum ^= buffer[i];
   return (int32_t)(buffer[0] | (buffer[1]<<8) | (buffer[2]<<16) | (buffer[3]<<24));
 }
 
 unsigned char receiveInt8() {
-  unsigned char result = SerialUSB.read();
+  unsigned char result = Serial.read();
   inChecksum ^= result;
   return result;
 }
