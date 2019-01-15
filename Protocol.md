@@ -1,10 +1,10 @@
 # Serial Communication Protocol - Revision 0
 
-All messages contain a header and an optional payload.
+All messages contain a [header](#header) and an optional [payload](#payload).
 
 ## Header
 
-The header consists of a magic number, the message type and the payload size.
+The header consists of a [magic number](#magic-number), the [message type](#message-type) and the [payload size](#payload-size).
 
 ### Magic Number
 
@@ -17,20 +17,21 @@ The next byte specifies the type of the following messages. Values from 0x00 to 
 The available values for messages from the hardware to the framework are:
 
 - 0x00 to 0x0F - Administration messages
-  - 0x00 Sync - The hardware tells the framework that it is a dualpanto devices and wants to connect.
-  - 0x01 Heartbeat - Need to be send regularly to avoid being disconnected for inactivity.
+  - [0x00 Sync](#0x00-Sync) - The hardware tells the framework that it is a dualpanto devices and wants to connect.
+  - [0x01 Heartbeat](#0x01-Heartbeat) - Need to be send regularly to avoid being disconnected for inactivity.
 - 0x10 to 0x1F - Data messages
-  - 0x10 Position - This message contains the current positions of the handles.
+  - [0x10 Position](#0x10-Position) - This message contains the current positions of the handles.
 - 0x20 to 0x2F - Auxiliary messages
-  - 0x20 Debug log - This message contains a user-defined string that is meant as a debug log.
+  - [0x20 Debug log](#0x20-Debug-log) - This message contains a user-defined string that is meant as a debug log.
 
 The available values for messages from the framework to the hardware are:
 
 - 0x80 to 0x8F - Administration messages
-  - 0x80 Ack - The framework acknowledges the device.
+  - [0x80 Sync Ack](#0x80-Sync-Ack) - The framework acknowledges the connection.
+  - [0x81 Heartbeat Ack](#0x81-Heartbeat-Ack) - The framework acknowledges the heartbeat.
 - 0x90 to 0x9F - Data messages
-  - 0x90 Motor - This message contains a motor movement.
-  - 0x91 PID values - This message contains PID values for one motor.
+  - [0x90 Motor](#0x90-Motor) - This message contains a motor movement.
+  - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one motor.
 
 ### Payload Size
 
@@ -99,14 +100,25 @@ Example message with text "HELP ME!":
 21       // !
 ```
 
-### 0x80 Ack
+### 0x80 Sync Ack
 
 This message type does not require a payload.
 
 Example message:
 ```
 4450     // magic number
-80       // message type: acknowledgement
+80       // message type: sync acknowledgement
+00000000 // payload lenght: no payload
+```
+
+### 0x81 Heartbeat Ack
+
+This message type does not require a payload.
+
+Example message:
+```
+4450     // magic number
+81       // message type: heartbeat acknowledgement
 00000000 // payload lenght: no payload
 ```
 
