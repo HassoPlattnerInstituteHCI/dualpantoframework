@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Arduino.h"
 #include <string>
 
 class DPSerial
@@ -69,7 +68,7 @@ private:
     static uint32_t receiveUInt32();
     static float receiveFloat();
     static MessageType receiveMessageType();
-    static bool findMagicNumber();
+    static bool receiveMagicNumber();
     static bool receiveHeader();
     static bool payloadReady();
 

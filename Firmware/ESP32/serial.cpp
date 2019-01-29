@@ -1,4 +1,5 @@
 #include "serial.hpp"
+#include "panto.hpp"
 
 const int DPSerial::c_magicNumber[] = {0x44, 0x50};
 const int DPSerial::c_magicNumberSize = 2;
@@ -69,11 +70,14 @@ void DPSerial::sendHeartbeat()
 void DPSerial::sendPosition()
 {
     sendMagicNumber();
-    sendHeader(POSITION, 24);
-    // TODO
-    sendFloat(42);
-    sendFloat(1337);
-    sendFloat(23);
+    sendHeader(POSITION, pantoCount * 3 * 4); // three values per panto, 4 bytes each
+    
+    for(auto i = 0; i < pantoCount; ++i)
+    {
+        sendFloat(pantos[i].handle.x);
+        sendFloat(pantos[i].handle.y);
+        sendFloat(pantos[i].pointingAngle);
+    }
 };
 
 void DPSerial::sendDebugLog(std::string message)
@@ -114,7 +118,7 @@ DPSerial::MessageType DPSerial::receiveMessageType()
 
 // receive
 
-bool DPSerial::findMagicNumber()
+bool DPSerial::receiveMagicNumber()
 {
     int magicNumberProgress = 0;
 
@@ -191,7 +195,7 @@ void DPSerial::receiveInvalid()
 
 void DPSerial::receive()
 {
-    if(s_receiveState == NONE && !findMagicNumber())
+    if(s_receiveState == NONE && !receiveMagicNumber())
     {
         return;
     }
