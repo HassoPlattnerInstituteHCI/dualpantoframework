@@ -1,4 +1,7 @@
 #include "panto.hpp"
+#include "serial.hpp"
+
+#define SERIALTEST
 
 unsigned long prevTime, heartbeatCountdown = 0;
 
@@ -8,6 +11,9 @@ void setup() {
   // https://forum.arduino.cc/index.php?topic=367154.0
   // http://playground.arduino.cc/Main/TimerPWMCheatsheet
 
+  #ifdef SERIALTEST
+  DPSerial::testSend();
+  #else
   for(unsigned char i = 0; i < pantoCount; ++i)
     pantos[i].setup(i);
   delay(1000);
@@ -15,9 +21,13 @@ void setup() {
     pantos[i].calibrationEnd();
 
   prevTime = micros();
+  #endif
 }
 
 void loop() {
+  #ifdef SERIALTEST
+
+  #else
   // Receive motor commands
   const unsigned char expectedPayloadLength = sizeof(Number32)*3+1+1;
   while(Serial.available() >= 6+expectedPayloadLength) {
@@ -78,4 +88,5 @@ void loop() {
   prevTime = now;
   for(unsigned char i = 0; i < pantoCount; ++i)
     pantos[i].actuateMotors();
+  #endif
 }
