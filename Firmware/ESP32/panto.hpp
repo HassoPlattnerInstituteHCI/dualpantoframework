@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arduino.h>
 #include <Encoder.h>
 #include "config.hpp"
 #include "utils.hpp"
@@ -30,7 +31,7 @@ struct Panto
                 | J00 J01 |
     Jt(x, t)  = |         |
                 | J10 J11 |
-  */
+    */
     float J[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
     void forwardKinematics();
@@ -51,4 +52,6 @@ struct Panto
 
     void disengageMotors();
 
-} pantos[pantoCount];
+};
+
+extern Panto pantos[pantoCount];

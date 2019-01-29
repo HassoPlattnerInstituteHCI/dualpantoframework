@@ -1,5 +1,7 @@
 #include "panto.hpp"
 
+Panto pantos[pantoCount];
+
 void Panto::forwardKinematics()
 {
     inner[0] = base[0] + Vector2D::fromPolar(actuationAngle[0], linkageInnerLength[dofIndex + 0]);
@@ -19,7 +21,7 @@ void Panto::forwardKinematics()
     J[1][1] = -(linkageInnerLength[dofIndex + 1] * cos(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[1])) / (sin(innerAngle[0] - innerAngle[1]));
 };
 
-void Panto::inverseKinematicsHelper(float inverted, float diff, float factor, float threshold = 0.001)
+void Panto::inverseKinematicsHelper(float inverted, float diff, float factor, float threshold)
 {
     diff *= factor;
     if (fabs(diff) < threshold)
