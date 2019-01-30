@@ -1,8 +1,6 @@
 #include "serial.hpp"
 #include "panto.hpp"
 
-const int DPSerial::c_magicNumber[] = {0x44, 0x50};
-const int DPSerial::c_magicNumberSize = 2;
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
@@ -242,6 +240,4 @@ void DPSerial::testSend()
     sendPosition();
     sendDebugLog("Sending debug log...");
     sendDebugLog("whoa");
-    sendDebugLog("Sending protocol value...");
-    sendFloat(protocolValue);
-}
+};
