@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <string>
+#include "protocol.hpp"
 
 class DPSerial
 {

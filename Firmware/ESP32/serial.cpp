@@ -242,4 +242,6 @@ void DPSerial::testSend()
     sendPosition();
     sendDebugLog("Sending debug log...");
     sendDebugLog("whoa");
+    sendDebugLog("Sending protocol value...");
+    sendFloat(protocolValue);
 }

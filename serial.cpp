@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "Protocol/protocol.hpp"
+
 const char* packetStart = "SYNC";
 unsigned char packetBuffer[255+6];
 char lineBuffer[255*3];
@@ -243,6 +245,8 @@ int main(int argc, char** argv) {
 	/*#ifndef WINDOWS
     fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
 	#endif*/
+
+    printf("%f", protocolValue);
 
     unsigned char packetLength;
     while(true) {
