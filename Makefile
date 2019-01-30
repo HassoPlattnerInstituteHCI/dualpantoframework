@@ -1,5 +1,5 @@
 ifeq ($(OS),Windows_NT)
-    CC = cl
+    CC = cl /Fo:Utils\\Serial\\
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
@@ -15,7 +15,7 @@ all: serial LP_PCB
 	node-gyp build
 
 serial:
-	$(CC) serial.cpp Protocol/protocol.cpp -o serial
+	$(CC) Utils/Serial/serial.cpp Protocol/protocol.cpp -o Utils/Serial/serial
 
 %: Hardware/%.json Firmware/GenerateHardwareConfig.js
 	node Firmware/GenerateHardwareConfig.js $@

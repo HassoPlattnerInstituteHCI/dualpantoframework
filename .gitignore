@@ -1,4 +1,5 @@
-serial
+Serial/*
+!Serial/.serial.cpp
 !voice-command/build/build-release.js
 build/
 node_modules/
