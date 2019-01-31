@@ -14,7 +14,7 @@ protected:
 
     // magic number
     static const int c_magicNumber[];
-    static const int c_magicNumberSize; // set in cpp alongside magic number to avoid incomplete changes
+    static const int c_magicNumberSize = 2;
 
     // header
     struct Header
