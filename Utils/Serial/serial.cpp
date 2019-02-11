@@ -1,6 +1,7 @@
 #include "../../Protocol/protocol.hpp"
 
 #include <string>
+#include <iostream>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define WINDOWS
@@ -21,17 +22,19 @@
 #else
 #include <node/node_api.h>
 #endif
+#define NAPI_CHECK(code) \
+    if (code != napi_ok) \
+        std::cerr << "NOT OK: " << __FILE__ << ":" << __LINE__ << std::endl;
 #else
-#include <iostream>
 #include <iomanip>
 #endif
 
 class DPSerial : DPProtocol
 {
   private:
-    static uint8_t s_headerBuffer[c_headerSize];
+    static char s_headerBuffer[c_headerSize];
     static Header s_header;
-    static uint8_t s_packetBuffer[255];
+    static char s_packetBuffer[255];
     static FILEHANDLE s_handle;
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
@@ -45,30 +48,42 @@ class DPSerial : DPProtocol
     static uint32_t receiveUInt32(uint8_t &offset);
     static float receiveFloat(uint8_t &offset);
 
-#ifdef NODE_GYP
-    static napi_value nodeOpen(napi_env env, napi_callback_info info);
-    static napi_value nodeClose(napi_env env, napi_callback_info info);
-    static napi_value nodePoll(napi_env env, napi_callback_info info);
-    static napi_value nodeSend(napi_env env, napi_callback_info info);
+    static void sendUInt8(uint8_t value, uint8_t &offset);
+    static void sendInt32(int32_t value, uint8_t &offset);
+    static void sendUInt32(uint32_t value, uint8_t &offset);
+    static void sendFloat(float value, uint8_t &offset);
 
+#ifdef NODE_GYP
     static napi_value nodeReceiveUInt8(napi_env env, uint8_t &offset);
     static napi_value nodeReceiveInt32(napi_env env, uint8_t &offset);
     static napi_value nodeReceiveUInt32(napi_env env, uint8_t &offset);
     static napi_value nodeReceiveFloat(napi_env env, uint8_t &offset);
+
+    static void nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset);
+    static void nodeSendInt32(napi_env env, napi_value value, uint8_t &offset);
+    static void nodeSendUInt32(napi_env env, napi_value value, uint8_t &offset);
+    static void nodeSendFloat(napi_env env, napi_value value, uint8_t &offset);
 #endif
 
   public:
     static bool setup(std::string path);
     static void terminate(int signal);
 
+#ifdef NODE_GYP
+    static napi_value nodeOpen(napi_env env, napi_callback_info info);
+    static napi_value nodeClose(napi_env env, napi_callback_info info);
+    static napi_value nodePoll(napi_env env, napi_callback_info info);
+    static napi_value nodeSend(napi_env env, napi_callback_info info);
+#endif
+
 #ifndef NODE_GYP
     static void printPacket();
 #endif
 };
 
-uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
+char DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
-uint8_t DPSerial::s_packetBuffer[255];
+char DPSerial::s_packetBuffer[255];
 FILEHANDLE DPSerial::s_handle;
 
 // private
@@ -180,6 +195,87 @@ float DPSerial::receiveFloat(uint8_t &offset)
     return *reinterpret_cast<float *>(&temp);
 }
 
+void DPSerial::sendUInt8(uint8_t value, uint8_t &offset)
+{
+    s_packetBuffer[offset++] = value;
+}
+
+void DPSerial::sendInt32(int32_t value, uint8_t &offset)
+{
+    s_packetBuffer[offset++] = value >> 24;
+    s_packetBuffer[offset++] = (value >> 16) & 255;
+    s_packetBuffer[offset++] = (value >> 8) & 255;
+    s_packetBuffer[offset++] = value & 255;
+}
+
+void DPSerial::sendUInt32(uint32_t value, uint8_t &offset)
+{
+    sendInt32(*reinterpret_cast<int32_t *>(&value), offset);
+}
+
+void DPSerial::sendFloat(float value, uint8_t &offset)
+{
+    sendInt32(*reinterpret_cast<int32_t *>(&value), offset);
+}
+
+#ifdef NODE_GYP
+napi_value DPSerial::nodeReceiveUInt8(napi_env env, uint8_t &offset)
+{
+    napi_value result;
+    napi_create_uint32(env, receiveUInt8(offset), &result);
+    return result;
+}
+
+napi_value DPSerial::nodeReceiveInt32(napi_env env, uint8_t &offset)
+{
+    napi_value result;
+    napi_create_int32(env, receiveInt32(offset), &result);
+    return result;
+}
+
+napi_value DPSerial::nodeReceiveUInt32(napi_env env, uint8_t &offset)
+{
+    napi_value result;
+    napi_create_uint32(env, receiveUInt32(offset), &result);
+    return result;
+}
+
+napi_value DPSerial::nodeReceiveFloat(napi_env env, uint8_t &offset)
+{
+    napi_value result;
+    napi_create_double(env, receiveFloat(offset), &result);
+    return result;
+}
+
+void DPSerial::nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset)
+{
+    uint32_t temp;
+    napi_get_value_uint32(env, value, &temp);
+    sendUInt8(static_cast<uint8_t>(temp), offset);
+}
+
+void DPSerial::nodeSendInt32(napi_env env, napi_value value, uint8_t &offset)
+{
+    int32_t temp;
+    napi_get_value_int32(env, value, &temp);
+    sendInt32(temp, offset);
+}
+
+void DPSerial::nodeSendUInt32(napi_env env, napi_value value, uint8_t &offset)
+{
+    uint32_t temp;
+    napi_get_value_uint32(env, value, &temp);
+    sendUInt32(temp, offset);
+}
+
+void DPSerial::nodeSendFloat(napi_env env, napi_value value, uint8_t &offset)
+{
+    double temp;
+    napi_get_value_double(env, value, &temp);
+    sendFloat(static_cast<float>(temp), offset);
+}
+#endif
+
 // public
 
 #ifdef WINDOWS
@@ -247,7 +343,7 @@ napi_value DPSerial::nodeOpen(napi_env env, napi_callback_info info)
     if (!setup(buffer))
         napi_throw_error(env, NULL, "open failed");
     napi_value result;
-    napi_create_int64(env, s_handle, &result);
+    napi_create_int64(env, reinterpret_cast<int64_t>(s_handle), &result);
     return result;
 }
 
@@ -257,7 +353,7 @@ napi_value DPSerial::nodeClose(napi_env env, napi_callback_info info)
     napi_value argv[1];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-    napi_get_value_int64(env, argv[0], &s_handle);
+    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
     tearDown();
     return NULL;
 }
@@ -275,70 +371,66 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
     napi_value argv[7];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-    napi_get_value_int64(env, argv[0], &s_handle);
+    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
 
     bool receivedPosition = false;
-    float positionCoords[2 * 3];
+    double positionCoords[2 * 3];
 
     while (getAvailableByteCount(s_handle))
     {
-        uint8_t length = receivePacket();
+        receivePacket();
 
+        uint8_t offset = 0;
         switch (s_header.MessageType)
         {
-            case SYNC:
-                uint8_t offset = 0;
-                uint32_t revision = receiveUInt32(offset);
-
-                if (revision == c_revision)
-                {
-                    napi_call_function(env, argv[1], argv[3], 0, NULL, NULL);
-                }
-                break;
-            case HEARTBEAT:
-                napi_call_function(env, argv[1], argv[4], 0, NULL, NULL);
-                break;
-            case POSITION:
-                receivedPosition = true;
-                uint8_t offset = 0;
-                while(offset < s_header.PayloadSize)
-                    positionCoords[offset / 4] = receiveFloat(offset);                
-                break;
-            case DEBUG_LOG:
-                napi_value result;
-                napi_create_string_utf8(env, s_packetBuffer, s_header.PayloadSize, &result);
-                
-                napi_call_function(env, argv[1], argv[6], 1, &result, NULL);
-                break;
-            default:
-                break;
+        case SYNC:
+            if (receiveUInt32(offset) == c_revision)
+            {
+                napi_call_function(env, argv[1], argv[3], 0, NULL, NULL);
+            }
+            break;
+        case HEARTBEAT:
+            napi_call_function(env, argv[1], argv[4], 0, NULL, NULL);
+            break;
+        case POSITION:
+            receivedPosition = true;
+            while (offset < s_header.PayloadSize)
+            {
+                uint8_t index = offset / 4;
+                positionCoords[index] = receiveFloat(offset);
+            }
+            break;
+        case DEBUG_LOG:
+            napi_value result;
+            napi_create_string_utf8(env, s_packetBuffer, s_header.PayloadSize, &result);
+            napi_call_function(env, argv[1], argv[6], 1, &result, NULL);
+            break;
+        default:
+            break;
         }
     }
 
-    if(receivedPosition)
+    if (receivedPosition)
     {
         napi_value result;
-        napi_create_array(env, result);
+        napi_create_array(env, &result);
 
         uint32_t ctorArgc = 3;
-        for(auto i = 0; i < 2; ++i)
+        for (auto i = 0u; i < 2; ++i)
         {
-            napi_value ctorArgv;
-            napi_create_array(env, ctorArgv);
-            
-            for(auto j = 0; j < ctorArgc; ++j)
+            napi_value ctorArgv[3];
+
+            for (auto j = 0u; j < ctorArgc; ++j)
             {
-                napi_value coord;
-                napi_create_double(env, positionCoords[i * 3 + j], coord);
-                napi_set_element(env, ctorArgv, j, coord);
+                napi_create_double(env, positionCoords[i * 3 + j], &(ctorArgv[j]));
             }
 
             napi_value vector;
-            napi_new_instance(env, argv[2], ctorArgc, ctorArgv, vector);
-            napi_set_element(env, result, i, vector);
+            NAPI_CHECK(napi_new_instance(env, argv[2], ctorArgc, ctorArgv, &vector))
+            NAPI_CHECK(napi_set_element(env, result, i, vector));
         }
-        
-        napi_call_function(env, argv[1], argv[5], 1, &result, NULL); 
+
+        NAPI_CHECK(napi_call_function(env, argv[1], argv[5], 1, &result, NULL));
     }
 
     return NULL;
@@ -346,45 +438,82 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
 
 napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
 {
-    size_t argc = 2;
-    napi_value argv[2];
+    size_t argc = 3;
+    napi_value argv[3];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
         napi_throw_error(env, NULL, "Failed to parse arguments");
-    napi_get_value_int64(env, argv[0], &s_handle);
-    unsigned char *payload;
-    size_t length;
-    napi_get_buffer_info(env, argv[1], (void **)&payload, &length);
-    memcpy(&s_packetBuffer[5], payload, length);
-    sendPacket(length);
+    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
+
+    uint32_t messageType;
+    napi_get_value_uint32(env, argv[1], &messageType);
+
+    s_header.MessageType = static_cast<MessageType>(messageType);
+
+    uint8_t offset = 0;
+    switch (messageType)
+    {
+    case SYNC_ACK:
+        break;
+    case HEARTBEAT_ACK:
+        break;
+    case MOTOR:
+    {
+        napi_value propertyName;
+        napi_value tempNapiValue;
+        uint32_t tempUInt32;
+
+        napi_create_string_utf8(env, "controlMethod", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "pantoIndex", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "position", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_value posNapiValue;
+        double posDouble;
+        for (auto i = 0; i < 3; ++i)
+        {
+            napi_get_element(env, tempNapiValue, i, &posNapiValue);
+            napi_get_value_double(env, posNapiValue, &posDouble);
+            sendFloat(static_cast<float>(posDouble), offset);
+        }
+        break;
+    }
+    case PID:
+        napi_value propertyName;
+        napi_value tempNapiValue;
+        uint32_t tempUInt32;
+
+        napi_create_string_utf8(env, "motorIndex", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "pid", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_value pidNapiValue;
+        double pidDouble;
+        for (auto i = 0; i < 3; ++i)
+        {
+            napi_get_element(env, tempNapiValue, i, &pidNapiValue);
+            napi_get_value_double(env, pidNapiValue, &pidDouble);
+            sendFloat(static_cast<float>(pidDouble), offset);
+        }
+        break;
+    default:
+        napi_throw_error(env, NULL, "Invalid message type");
+        return NULL;
+    }
+
+    s_header.PayloadSize = offset;
+    sendPacket();
+
     return NULL;
-}
-
-napi_value DPSerial::nodeReceiveUInt8(napi_env env, uint8_t &offset)
-{
-    napi_value result;
-    napi_create_uint32(env, receiveUInt8(offset), &result);
-    return result;
-}
-
-napi_value DPSerial::nodeReceiveInt32(napi_env env, uint8_t &offset)
-{
-    napi_value result;
-    napi_create_int32(env, receiveInt32(offset), &result);
-    return result;
-}
-
-napi_value DPSerial::nodeReceiveUInt32(napi_env env, uint8_t &offset)
-{
-    napi_value result;
-    napi_create_uint32(env, receiveUInt32(offset), &result);
-    return result;
-}
-
-napi_value DPSerial::nodeReceiveFloat(napi_env env, uint8_t &offset)
-{
-    napi_value result;
-    napi_create_double(env, receiveFloat(offset), &result);
-    return result;
 }
 
 #define defFunc(name, ptr)                                             \
@@ -396,10 +525,10 @@ napi_value DPSerial::nodeReceiveFloat(napi_env env, uint8_t &offset)
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_value fn;
-    defFunc("open", nodeOpen);
-    defFunc("close", nodeClose);
-    defFunc("poll", nodePoll);
-    defFunc("send", nodeSend);
+    defFunc("open", DPSerial::nodeOpen);
+    defFunc("close", DPSerial::nodeClose);
+    defFunc("poll", DPSerial::nodePoll);
+    defFunc("send", DPSerial::nodeSend);
     return exports;
 }
 
