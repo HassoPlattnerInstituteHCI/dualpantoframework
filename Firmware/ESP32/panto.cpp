@@ -1,5 +1,6 @@
 #include "panto.hpp"
 
+float Panto::dt = 0;
 Panto pantos[pantoCount];
 
 void Panto::forwardKinematics()

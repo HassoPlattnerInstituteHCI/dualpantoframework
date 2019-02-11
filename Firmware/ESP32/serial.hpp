@@ -22,6 +22,7 @@ private:
     // connection
     static bool s_connected;
     static const int c_heartbeatIntervalMs = 1000;
+    static unsigned long s_lastHeartbeatTime;
     static const int c_maxUnacklowledgedHeartbeats = 5;
     static int s_unacknowledgedHeartbeats;
 
@@ -54,13 +55,14 @@ private:
     static void receiveMotor();
     static void receivePID();
     static void receiveInvalid();
-public: 
+public:
+    // setup
+    static bool ensureConnection();
+
     // send
     static void sendPosition();
     static void sendDebugLog(std::string message);
 
     // receive
     static void receive();
-
-    static void testSend();
 };

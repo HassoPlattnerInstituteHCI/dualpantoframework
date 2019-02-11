@@ -32,9 +32,9 @@
 class DPSerial : DPProtocol
 {
   private:
-    static char s_headerBuffer[c_headerSize];
+    static uint8_t s_headerBuffer[c_headerSize];
     static Header s_header;
-    static char s_packetBuffer[255];
+    static uint8_t s_packetBuffer[255];
     static FILEHANDLE s_handle;
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
@@ -81,9 +81,9 @@ class DPSerial : DPProtocol
 #endif
 };
 
-char DPSerial::s_headerBuffer[DPSerial::c_headerSize];
+uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
-char DPSerial::s_packetBuffer[255];
+uint8_t DPSerial::s_packetBuffer[255];
 FILEHANDLE DPSerial::s_handle;
 
 // private
@@ -165,6 +165,7 @@ void DPSerial::sendPacket()
 
 #ifdef WINDOWS
     DWORD bytesWritten = 0;
+    WriteFile(s_handle, c_magicNumber, c_magicNumberSize, &bytesWritten, NULL);
     WriteFile(s_handle, s_headerBuffer, c_headerSize, &bytesWritten, NULL);
     WriteFile(s_handle, s_packetBuffer, s_header.PayloadSize, &bytesWritten, NULL);
 #else
@@ -373,6 +374,9 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
         napi_throw_error(env, NULL, "Failed to parse arguments");
     napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
 
+    // only keep binary state for packages where only the newest counts
+    bool receivedSync = false;
+    bool receivedHeartbeat = false;
     bool receivedPosition = false;
     double positionCoords[2 * 3];
 
@@ -386,11 +390,11 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
         case SYNC:
             if (receiveUInt32(offset) == c_revision)
             {
-                napi_call_function(env, argv[1], argv[3], 0, NULL, NULL);
+                receivedSync = true;
             }
             break;
         case HEARTBEAT:
-            napi_call_function(env, argv[1], argv[4], 0, NULL, NULL);
+            receivedHeartbeat = true;
             break;
         case POSITION:
             receivedPosition = true;
@@ -399,15 +403,26 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
                 uint8_t index = offset / 4;
                 positionCoords[index] = receiveFloat(offset);
             }
+
             break;
         case DEBUG_LOG:
             napi_value result;
-            napi_create_string_utf8(env, s_packetBuffer, s_header.PayloadSize, &result);
+            napi_create_string_utf8(env, reinterpret_cast<char*>(s_packetBuffer), s_header.PayloadSize, &result);
             napi_call_function(env, argv[1], argv[6], 1, &result, NULL);
             break;
         default:
             break;
         }
+    }
+
+    if(receivedSync)
+    {
+        napi_call_function(env, argv[1], argv[3], 0, NULL, NULL);
+    }
+
+    if(receivedHeartbeat)
+    {
+        napi_call_function(env, argv[1], argv[4], 0, NULL, NULL);
     }
 
     if (receivedPosition)

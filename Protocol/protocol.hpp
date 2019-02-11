@@ -13,8 +13,8 @@ protected:
     static const uint32_t c_revision = 0;
 
     // magic number
-    static const int c_magicNumber[];
-    static const int c_magicNumberSize = 2;
+    static const uint8_t c_magicNumber[];
+    static const uint8_t c_magicNumberSize = 2;
 
     // header
     struct Header
@@ -22,7 +22,7 @@ protected:
         uint8_t MessageType;
         uint32_t PayloadSize;
     };
-    static const int c_headerSize = 5;
+    static const uint8_t c_headerSize = 5;
 
     // message types
     enum MessageType

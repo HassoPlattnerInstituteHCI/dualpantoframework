@@ -4,7 +4,10 @@
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
+unsigned long DPSerial::s_lastHeartbeatTime = 0;
 int DPSerial::s_unacknowledgedHeartbeats = 0;
+
+// === private ===
 
 // send helper
 
@@ -63,26 +66,7 @@ void DPSerial::sendHeartbeat()
 {
     sendMagicNumber();
     sendHeader(HEARTBEAT, 0);
-};
-
-void DPSerial::sendPosition()
-{
-    sendMagicNumber();
-    sendHeader(POSITION, pantoCount * 3 * 4); // three values per panto, 4 bytes each
-    
-    for(auto i = 0; i < pantoCount; ++i)
-    {
-        sendFloat(pantos[i].handle.x);
-        sendFloat(pantos[i].handle.y);
-        sendFloat(pantos[i].pointingAngle);
-    }
-};
-
-void DPSerial::sendDebugLog(std::string message)
-{
-    sendMagicNumber();
-    sendHeader(DEBUG_LOG, message.length());
-    Serial.print(message.c_str());
+    s_unacknowledgedHeartbeats++;
 };
 
 // receive helper
@@ -114,8 +98,6 @@ DPSerial::MessageType DPSerial::receiveMessageType()
     return static_cast<MessageType>(Serial.read());
 }
 
-// receive
-
 bool DPSerial::receiveMagicNumber()
 {
     int magicNumberProgress = 0;
@@ -129,6 +111,7 @@ bool DPSerial::receiveMagicNumber()
             // yes - increase index. If check complete, return true.
             if(++magicNumberProgress == c_magicNumberSize)
             {
+                s_receiveState = FOUND_MAGIC;
                 return true;
             }
         }
@@ -153,6 +136,7 @@ bool DPSerial::receiveHeader()
 
     s_header.MessageType = receiveUInt8();
     s_header.PayloadSize = receiveUInt32();
+    s_receiveState = FOUND_HEADER;
     return true;
 };
 
@@ -161,28 +145,45 @@ bool DPSerial::payloadReady()
     return Serial.available() >= s_header.PayloadSize;
 };
 
+// receive
+
 void DPSerial::receiveSyncAck()
 {
-    // TODO
     sendDebugLog("receiveSyncAck");
+
+    s_connected = true;
 };
 
 void DPSerial::receiveHearbeatAck()
 {
-    // TODO
     sendDebugLog("receiveHearbeatAck");
+
+    s_unacknowledgedHeartbeats = 0;
 };
 
 void DPSerial::receiveMotor()
 {
-    // TODO
     sendDebugLog("receiveMotor");
+
+    auto controlMethod = receiveUInt8();
+    auto pantoIndex = receiveUInt8();
+
+    pantos[pantoIndex].isforceRendering = (controlMethod == 1);
+    pantos[pantoIndex].target = Vector2D(receiveFloat(), receiveFloat());
+    pantos[pantoIndex].targetAngle[2] = receiveFloat();
+    pantos[pantoIndex].inverseKinematics();
 };
 
 void DPSerial::receivePID()
 {
-    // TODO
     sendDebugLog("receivePID");
+
+    auto motorIndex = receiveUInt8();
+
+    for(auto i = 0; i < 3; ++i)
+    {
+        pidFactor[motorIndex][i] = receiveFloat();
+    }
 };
 
 void DPSerial::receiveInvalid()
@@ -190,6 +191,59 @@ void DPSerial::receiveInvalid()
     // TODO
     sendDebugLog("receiveInvalid");
 };
+
+// === public ===
+
+// setup
+
+bool DPSerial::ensureConnection()
+{
+    if(!s_connected)
+    {
+        sendSync();
+        return false;
+    }
+
+    if(s_unacknowledgedHeartbeats > c_maxUnacklowledgedHeartbeats)
+    {
+        sendDebugLog("Disconnected due to too many unacklowledged heartbeats.");
+        s_unacknowledgedHeartbeats = 0;
+        s_connected = false;
+        return false;
+    }
+
+    if(millis() > s_lastHeartbeatTime + c_heartbeatIntervalMs || s_lastHeartbeatTime == 0)
+    {
+        sendHeartbeat();
+        s_lastHeartbeatTime = millis();
+    }
+
+    return true;
+}
+
+// send
+
+void DPSerial::sendPosition()
+{
+    sendMagicNumber();
+    sendHeader(POSITION, pantoCount * 3 * 4); // three values per panto, 4 bytes each
+    
+    for(auto i = 0; i < pantoCount; ++i)
+    {
+        sendFloat(pantos[i].handle.x);
+        sendFloat(pantos[i].handle.y);
+        sendFloat(pantos[i].pointingAngle);
+    }
+};
+
+void DPSerial::sendDebugLog(std::string message)
+{
+    sendMagicNumber();
+    sendHeader(DEBUG_LOG, message.length());
+    Serial.print(message.c_str());
+};
+
+// receive
 
 void DPSerial::receive()
 {
@@ -205,6 +259,15 @@ void DPSerial::receive()
 
     if(s_receiveState == FOUND_HEADER && !payloadReady())
     {
+        return;
+    }
+    
+    if(!s_connected && s_header.MessageType != SYNC_ACK)
+    {
+        for(auto i = 0; i < s_header.PayloadSize; ++i)
+        {
+            Serial.read();
+        }
         return;
     }
 
@@ -228,16 +291,4 @@ void DPSerial::receive()
     }
 
     s_receiveState = NONE;
-};
-
-void DPSerial::testSend()
-{
-    sendDebugLog("Sending sync...");
-    sendSync();
-    sendDebugLog("Sending heartbeat...");
-    sendHeartbeat();
-    sendDebugLog("Sending position...");
-    sendPosition();
-    sendDebugLog("Sending debug log...");
-    sendDebugLog("whoa");
 };
