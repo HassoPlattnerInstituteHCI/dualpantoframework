@@ -7,8 +7,10 @@
 class DPSerial : DPProtocol
 {
 private:
-    // header
+    // data storage
     static Header s_header;
+    static const uint8_t c_debugLogBufferSize = 255;
+    static uint8_t s_debugLogBuffer[c_debugLogBufferSize];
     
     // receive state
     enum ReceiveState
@@ -61,7 +63,7 @@ public:
 
     // send
     static void sendPosition();
-    static void sendDebugLog(std::string message);
+    static void sendDebugLog(const char* message, ...);
 
     // receive
     static void receive();

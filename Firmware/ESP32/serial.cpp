@@ -2,6 +2,7 @@
 #include "panto.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
+uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
@@ -163,10 +164,10 @@ void DPSerial::receiveHearbeatAck()
 
 void DPSerial::receiveMotor()
 {
-    sendDebugLog("receiveMotor");
-
     auto controlMethod = receiveUInt8();
     auto pantoIndex = receiveUInt8();
+
+    sendDebugLog("receiveMotor - index %i", pantoIndex);
 
     pantos[pantoIndex].isforceRendering = (controlMethod == 1);
     pantos[pantoIndex].target = Vector2D(receiveFloat(), receiveFloat());
@@ -236,11 +237,15 @@ void DPSerial::sendPosition()
     }
 };
 
-void DPSerial::sendDebugLog(std::string message)
+void DPSerial::sendDebugLog(const char* message, ...)
 {
     sendMagicNumber();
-    sendHeader(DEBUG_LOG, message.length());
-    Serial.print(message.c_str());
+    va_list args;
+    va_start(args, message);
+    uint8_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    va_end(args);
+    sendHeader(DEBUG_LOG, length);
+    Serial.write(s_debugLogBuffer, length);
 };
 
 // receive
