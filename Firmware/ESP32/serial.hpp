@@ -11,7 +11,10 @@ private:
     static Header s_header;
     static const uint8_t c_debugLogBufferSize = 255;
     static uint8_t s_debugLogBuffer[c_debugLogBufferSize];
-    
+
+    // multithreading safety
+    static portMUX_TYPE s_serialMutex;
+     
     // receive state
     enum ReceiveState
     {

@@ -3,6 +3,7 @@
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
+portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
@@ -58,16 +59,20 @@ void DPSerial::sendHeader(MessageType messageType, uint32_t payloadSize)
 
 void DPSerial::sendSync()
 {
+    portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
     sendHeader(SYNC, 4);
     sendUInt32(c_revision);
+    portEXIT_CRITICAL(&s_serialMutex);
 };
 
 void DPSerial::sendHeartbeat()
 {
+    portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
     sendHeader(HEARTBEAT, 0);
     s_unacknowledgedHeartbeats++;
+    portEXIT_CRITICAL(&s_serialMutex);
 };
 
 // receive helper
@@ -167,7 +172,7 @@ void DPSerial::receiveMotor()
     auto controlMethod = receiveUInt8();
     auto pantoIndex = receiveUInt8();
 
-    sendDebugLog("receiveMotor - index %i", pantoIndex);
+    //sendDebugLog("receiveMotor - index %i", pantoIndex);
 
     pantos[pantoIndex].isforceRendering = (controlMethod == 1);
     pantos[pantoIndex].target = Vector2D(receiveFloat(), receiveFloat());
@@ -226,6 +231,7 @@ bool DPSerial::ensureConnection()
 
 void DPSerial::sendPosition()
 {
+    portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
     sendHeader(POSITION, pantoCount * 3 * 4); // three values per panto, 4 bytes each
     
@@ -235,10 +241,12 @@ void DPSerial::sendPosition()
         sendFloat(pantos[i].handle.y);
         sendFloat(pantos[i].pointingAngle);
     }
+    portEXIT_CRITICAL(&s_serialMutex);
 };
 
 void DPSerial::sendDebugLog(const char* message, ...)
 {
+    portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
     va_list args;
     va_start(args, message);
@@ -246,6 +254,7 @@ void DPSerial::sendDebugLog(const char* message, ...)
     va_end(args);
     sendHeader(DEBUG_LOG, length);
     Serial.write(s_debugLogBuffer, length);
+    portEXIT_CRITICAL(&s_serialMutex);
 };
 
 // receive
