@@ -11,8 +11,8 @@ else
 endif
 
 all: serial LP_PCB
-	node-gyp configure
-	node-gyp build
+	node-gyp configure --debug
+	node-gyp build --debug
 
 serial:
 	$(CC) Utils/Serial/serial.cpp Protocol/protocol.cpp -o Utils/Serial/serial
