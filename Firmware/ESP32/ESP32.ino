@@ -34,42 +34,33 @@ void setup()
     DPSerial::sendDebugLog("setup - this should not be printed");
 }
 
-void core0Looper(void * params)
-{
-    const unsigned long interval = 5000;
-    unsigned long last = millis();
-    unsigned long temp;
-    unsigned long loops = 0;
-    core0LoopTask:
-    core0Loop();
-    ++loops;
-    temp = millis();
-    if(temp >= last + interval)
-    {
-        DPSerial::sendDebugLog("fps: %i", loops);
-        last = temp;
-        loops = 0;
-    }
-    goto core0LoopTask;
-}
-
-void core1Looper(void * params)
-{
-    core1LoopTask: 
-    core1Loop(); 
-    goto core1LoopTask;
-}
-
 void core0Loop()
 {
-    //DPSerial::sendDebugLog("running on core %i - should be 0", xPortGetCoreID());
-    delay(100);
+    DPSerial::receive();
+    auto connected = DPSerial::ensureConnection();
+
+    for (unsigned char i = 0; i < pantoCount; ++i)
+    {
+        pantos[i].readEncoders();
+        pantos[i].forwardKinematics();
+    }
+
+    if (connected)
+    {
+        DPSerial::sendPosition();
+    }
+
+    unsigned long now = micros();
+    Panto::dt = now - prevTime;
+    prevTime = now;
+    for (unsigned char i = 0; i < pantoCount; ++i)
+        pantos[i].actuateMotors();
 }
 
 void core1Loop()
 {
-    //DPSerial::sendDebugLog("running on core %i - should be 1", xPortGetCoreID());
-    delay(100);
+    DPSerial::sendDebugLog("physics running on core %i - should be 1", xPortGetCoreID());
+    delay(1000);
 }
 
 void loop()
@@ -77,26 +68,3 @@ void loop()
     DPSerial::sendDebugLog("loop - this should not be printed");
     delay(1000);
 }
-
-// void loop()
-// {
-//     DPSerial::receive();
-//     auto connected = DPSerial::ensureConnection();
-
-//     for (unsigned char i = 0; i < pantoCount; ++i)
-//     {
-//         pantos[i].readEncoders();
-//         pantos[i].forwardKinematics();
-//     }
-
-//     if (connected)
-//     {
-//         DPSerial::sendPosition();
-//     }
-
-//     unsigned long now = micros();
-//     Panto::dt = now - prevTime;
-//     prevTime = now;
-//     for (unsigned char i = 0; i < pantoCount; ++i)
-//         pantos[i].actuateMotors();
-// }
