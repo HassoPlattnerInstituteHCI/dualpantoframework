@@ -67,6 +67,7 @@ public:
     // send
     static void sendPosition();
     static void sendDebugLog(const char* message, ...);
+    static void sendDebugData();
 
     // receive
     static void receive();
