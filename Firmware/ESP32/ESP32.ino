@@ -1,10 +1,8 @@
 #include "panto.hpp"
 #include "serial.hpp"
+#include "task.hpp"
 
 unsigned long prevTime = 0;
-
-TaskHandle_t core0LoopTask;
-TaskHandle_t core1LoopTask;
 
 void setup()
 {
@@ -21,11 +19,10 @@ void setup()
 
     prevTime = micros();
 
-    DPSerial::sendDebugLog("starting task 0");
-    createTask(core0Loop, core0LoopTask, 0);
-    DPSerial::sendDebugLog("starting task 1");
-    createTask(core1Loop, core1LoopTask, 1);
-    DPSerial::sendDebugLog("started tasks");
+    Task ioTask = Task(&core0Loop, "I/O", 0);
+    ioTask.run();
+    Task physicsTask(&core1Loop, "Physics", 1);
+    physicsTask.run();
 
     TaskHandle_t defaultTask = xTaskGetCurrentTaskHandle();
     DPSerial::sendDebugLog("default task handle is %i", defaultTask);
