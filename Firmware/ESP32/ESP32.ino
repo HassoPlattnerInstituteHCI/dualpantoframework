@@ -19,9 +19,9 @@ void setup()
 
     prevTime = micros();
 
-    Task ioTask = Task(&core0Loop, "I/O", 0);
+    Task ioTask = Task(&ioLoop, "I/O", 0);
     ioTask.run();
-    Task physicsTask(&core1Loop, "Physics", 1);
+    Task physicsTask = Task(&physicsLoop, "Physics", 1);
     physicsTask.run();
 
     TaskHandle_t defaultTask = xTaskGetCurrentTaskHandle();
@@ -31,7 +31,7 @@ void setup()
     DPSerial::sendDebugLog("setup - this should not be printed");
 }
 
-void core0Loop()
+void ioLoop()
 {
     DPSerial::receive();
     auto connected = DPSerial::ensureConnection();
@@ -54,7 +54,7 @@ void core0Loop()
         pantos[i].actuateMotors();
 }
 
-void core1Loop()
+void physicsLoop()
 {
     DPSerial::sendDebugLog("physics running on core %i - should be 1", xPortGetCoreID());
     delay(1000);

@@ -34,8 +34,6 @@ private:
     // fps counter funcs
     inline void initFps();
     inline void checkFps();
-
-
 public:
     Task(void (*loopFunc)(), const char *name, int core);
     void run();
