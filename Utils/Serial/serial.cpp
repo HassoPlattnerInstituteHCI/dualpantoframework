@@ -473,29 +473,27 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         break;
     case MOTOR:
     {
-        napi_value propertyName;
         napi_value tempNapiValue;
         uint32_t tempUInt32;
+        double tempDouble;
+        uint32_t index = 0;
 
-        napi_create_string_utf8(env, "controlMethod", NAPI_AUTO_LENGTH, &propertyName);
-        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        // control method
+        napi_get_element(env, argv[2], index++, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
         sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
-        napi_create_string_utf8(env, "pantoIndex", NAPI_AUTO_LENGTH, &propertyName);
-        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        // panto index
+        napi_get_element(env, argv[2], index++, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
         sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
-        napi_create_string_utf8(env, "position", NAPI_AUTO_LENGTH, &propertyName);
-        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
-        napi_value posNapiValue;
-        double posDouble;
-        for (auto i = 0; i < 3; ++i)
+        // position
+        while (index < 5)
         {
-            napi_get_element(env, tempNapiValue, i, &posNapiValue);
-            napi_get_value_double(env, posNapiValue, &posDouble);
-            sendFloat(static_cast<float>(posDouble), offset);
+            napi_get_element(env, argv[2], index++, &tempNapiValue);
+            napi_get_value_double(env, tempNapiValue, &tempDouble);
+            sendFloat(static_cast<float>(tempDouble), offset);
         }
         break;
     }
