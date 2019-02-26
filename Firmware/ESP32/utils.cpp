@@ -1,10 +1,5 @@
 #include "utils.hpp"
 
-float clamp(float value, float min, float max)
-{
-    return fmin(fmax(value, min), max);
-};
-
 Vector2D Vector2D::fromPolar(float angle, float length)
 {
     return Vector2D(cos(angle) * length, sin(angle) * length);

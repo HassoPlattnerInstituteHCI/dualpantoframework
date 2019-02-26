@@ -47,8 +47,8 @@ void Panto::inverseKinematics()
     else
     {
         const unsigned int iterations = 10;
-        float nextAngle = clamp(target.angle(), (-M_PI - opAngle) * 0.5, (-M_PI + opAngle) * 0.5),
-              nextRadius = clamp(target.length(), opMinDist, opMaxDist),
+        float nextAngle = constrain(target.angle(), (-M_PI - opAngle) * 0.5, (-M_PI + opAngle) * 0.5),
+              nextRadius = constrain(target.length(), opMinDist, opMaxDist),
               savedActuationAngle[] = {actuationAngle[0], actuationAngle[1]};
         for (unsigned int i = 0; i < iterations; ++i)
         {

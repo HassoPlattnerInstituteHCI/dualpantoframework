@@ -2,8 +2,6 @@
 
 #include <Arduino.h>
 
-float clamp(float value, float min, float max);
-
 struct Vector2D
 {
     float x, y;
