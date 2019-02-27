@@ -18,7 +18,4 @@ struct Vector2D
     Vector2D operator*(const float scale);
 };
 
-float determinant(Vector2D first, Vector2D second)
-{
-    return (first.x * second.y) - (first.y * second.x);
-};
+float determinant(Vector2D first, Vector2D second);

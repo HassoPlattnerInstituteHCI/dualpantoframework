@@ -1,5 +1,7 @@
 #include "godObject.hpp"
 
+#include <algorithm>
+
 GodObject::GodObject(Vector2D position) : m_position(position) { }
 
 void GodObject::setMovementDirection(Vector2D movementDirection)

@@ -34,3 +34,8 @@ Vector2D Vector2D::operator*(const float scale)
 {
     return Vector2D(x * scale, y * scale);
 };
+
+float determinant(Vector2D first, Vector2D second)
+{
+    return (first.x * second.y) - (first.y * second.x);
+};
