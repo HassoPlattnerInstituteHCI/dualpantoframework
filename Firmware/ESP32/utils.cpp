@@ -29,3 +29,8 @@ float Vector2D::operator*(const Vector2D &other)
 {
     return x * other.x + y * other.y;
 };
+
+Vector2D Vector2D::operator*(const float scale)
+{
+    return Vector2D(x * scale, y * scale);
+};
