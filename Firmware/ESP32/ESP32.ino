@@ -1,6 +1,8 @@
+#include <vector>
 #include "panto.hpp"
 #include "serial.hpp"
 #include "task.hpp"
+#include "pantoPhysics.hpp"
 
 unsigned long prevTime = 0;
 
@@ -12,10 +14,27 @@ void setup()
     // http://playground.arduino.cc/Main/TimerPWMCheatsheet
 
     for (unsigned char i = 0; i < pantoCount; ++i)
+    {
         pantos[i].setup(i);
+    }
     delay(1000);
     for (unsigned char i = 0; i < pantoCount; ++i)
+    {
         pantos[i].calibrationEnd();
+    }
+
+    auto path = std::vector<Vector2D>
+    {
+        Vector2D(-50, -80),
+        Vector2D(50, -80)
+    };
+    for (unsigned char i = 0; i < pantoCount; ++i)
+    {
+        pantoPhysics.emplace_back(&pantos[i]);
+        pantoPhysics[i].addObstacle(path);
+        pantoPhysics[i].addObstacle(path);
+        pantoPhysics[i].addObstacle(path);
+    }
 
     prevTime = micros();
 
@@ -42,10 +61,10 @@ void ioLoop()
         pantos[i].forwardKinematics();
     }
 
-    if (connected)
-    {
-        DPSerial::sendPosition();
-    }
+    // if (connected)
+    // {
+    //     DPSerial::sendPosition();
+    // }
 
     unsigned long now = micros();
     Panto::dt = now - prevTime;
@@ -56,8 +75,10 @@ void ioLoop()
 
 void physicsLoop()
 {
-    DPSerial::sendDebugLog("physics running on core %i - should be 1", xPortGetCoreID());
-    delay(1000);
+    for (unsigned char i = 0; i < pantoCount; ++i)
+    {
+        pantoPhysics[i].step();
+    }
 }
 
 void loop()

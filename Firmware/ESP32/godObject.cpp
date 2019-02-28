@@ -2,6 +2,9 @@
 
 #include <algorithm>
 
+const float GodObject::c_bigPantoForceScale = 0.1125;
+const float GodObject::c_smallPantoForceScale = 0.125;
+
 GodObject::GodObject(Vector2D position) : m_position(position) { }
 
 void GodObject::setMovementDirection(Vector2D movementDirection)
@@ -66,4 +69,24 @@ void GodObject::removeObstacle(Obstacle obstacle)
     {
         m_obstacles.erase(it);
     }
+}
+
+Vector2D GodObject::getPosition()
+{
+    return m_position;
+}
+
+Vector2D GodObject::getActiveForce()
+{
+    return m_activeForce;
+}
+
+bool GodObject::getProcessingObstacleCollision()
+{
+    return m_processingObstacleCollision;
+}
+
+bool GodObject::getDoneColliding()
+{
+    return m_doneColliding;
 }

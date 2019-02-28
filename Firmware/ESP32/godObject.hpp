@@ -14,8 +14,8 @@ private:
     std::vector<Obstacle> m_obstacles;
     bool m_processingObstacleCollision;
     bool m_doneColliding;
-    const float c_bigPantoForceScale = 0.1125;
-    const float c_smallPantoForceScale = 0.125;
+    static const float c_bigPantoForceScale;
+    static const float c_smallPantoForceScale;
 public:
     GodObject(Vector2D position = Vector2D());
     void setMovementDirection(Vector2D movementDirection);
@@ -23,4 +23,8 @@ public:
     std::vector<Collision> checkObstacleCollisions(Vector2D point);
     void addObstacle(Obstacle obstacle);
     void removeObstacle(Obstacle obstacle);
+    Vector2D getPosition();
+    Vector2D getActiveForce();
+    bool getProcessingObstacleCollision();
+    bool getDoneColliding();
 };

@@ -10,11 +10,11 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
         device.on('handleMoved', function(index, position){
           console.log('index: ', index, ' position: ', position);
         });
-        device.createObstacle([
-          new Vector(50, -200, 0),
-          new Vector(-50, -200, 0),
-          new Vector(-50, -80, 0),
-          new Vector(50, -80, 0)]);
+        // device.createObstacle([
+        //   new Vector(50, -200, 0),
+        //   new Vector(-50, -200, 0),
+        //   new Vector(-50, -80, 0),
+        //   new Vector(50, -80, 0)]);
       }
   }
 });
