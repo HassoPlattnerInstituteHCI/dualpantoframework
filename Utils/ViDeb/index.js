@@ -123,6 +123,16 @@ wsServer.on('request', (request) => {
             for(connetion of connections)
                 connection.sendUTF(JSON.stringify(packet));
         });
+        device.on('mapLine', (l,c) =>{
+            const packet ={
+                type: 'mapLine',
+                port: device.port,
+                line: l,
+                color: c
+            };
+            for(connetion of connections)
+                connection.sendUTF(JSON.stringify(packet));
+        });
     }
     connection.on('message', (message) => {
         const data = JSON.parse(message.utf8Data),
