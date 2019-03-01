@@ -1,7 +1,0 @@
-{
-    "programmer": "ArduinoISP",
-    "board": "arduino:sam:arduino_due_x",
-    "port": "COM4",
-    "output": "../BuildCache/Arduino",
-    "sketch": "Arduino.ino"
-}
