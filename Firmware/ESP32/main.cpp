@@ -35,7 +35,7 @@ void physicsLoop()
 
 void setup()
 {
-    Serial.begin(115200);
+    BOARD_DEPENDENT_SERIAL.begin(115200);
 
     // https://forum.arduino.cc/index.php?topic=367154.0
     // http://playground.arduino.cc/Main/TimerPWMCheatsheet
