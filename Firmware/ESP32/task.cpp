@@ -1,5 +1,7 @@
 #include "task.hpp"
 
+std::map<TaskHandle_t, uint32_t> Task::s_fpsMap;
+
 void Task::taskLoop(void *parameters)
 {
     Task *task = reinterpret_cast<Task *>(parameters);
@@ -27,12 +29,20 @@ inline void Task::checkFps()
     m_currentTime = millis();
     if (m_currentTime >= m_lastTime + m_fpsInterval)
     {
-        DPSerial::sendDebugLog(
-            "Task \"%s\" fps: %i",
-            m_name,
-            m_loopCount * 1000 / m_fpsInterval);
+        s_fpsMap[m_handle] = m_loopCount * 1000 / m_fpsInterval;
         m_lastTime = m_currentTime;
         m_loopCount = 0;
+
+        if(m_logFps)
+        {
+            for(auto& entry : s_fpsMap)
+            {
+                DPSerial::sendDebugLog(
+                    "Task \"%s\" fps: %i",
+                    pcTaskGetTaskName(entry.first),
+                    entry.second);
+            }
+        }
     }
 };
 
@@ -56,3 +66,8 @@ void Task::run()
         m_core);
     DPSerial::sendDebugLog("Started task \"%s\" on core %i.", m_name, m_core);
 };
+
+void Task::setLogFps(bool logFps)
+{
+    m_logFps = logFps;
+}

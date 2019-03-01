@@ -6,6 +6,8 @@
 
 unsigned long prevTime = 0;
 
+auto path = std::vector<Vector2D>();
+
 void setup()
 {
     Serial.begin(115200);
@@ -23,16 +25,14 @@ void setup()
         pantos[i].calibrationEnd();
     }
 
-    auto path = std::vector<Vector2D>
+    for(auto i = 0; i < 10; ++i)
     {
-        Vector2D(-50, -80),
-        Vector2D(50, -80)
+        path.emplace_back(i, -80);
     };
+
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
-        pantoPhysics[i].addObstacle(path);
-        pantoPhysics[i].addObstacle(path);
         pantoPhysics[i].addObstacle(path);
     }
 
@@ -40,6 +40,7 @@ void setup()
 
     Task ioTask = Task(&ioLoop, "I/O", 0);
     ioTask.run();
+    ioTask.setLogFps();
     Task physicsTask = Task(&physicsLoop, "Physics", 1);
     physicsTask.run();
 
