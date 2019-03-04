@@ -1,4 +1,6 @@
 #include "task.hpp"
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
 
 void Task::taskLoop(void *parameters)
 {
@@ -12,6 +14,9 @@ loopLabel:
 #if LOG_TASK_FPS
     task->checkFps();
 #endif
+    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+    TIMERG0.wdt_feed=1;
+    TIMERG0.wdt_wprotect=0;
     goto loopLabel;
 };
 
