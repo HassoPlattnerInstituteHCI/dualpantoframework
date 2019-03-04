@@ -10,7 +10,7 @@ else
     endif
 endif
 
-all: serial LP_PCB
+all: serial LP_PCB_ESP32
 	node-gyp configure --debug
 	node-gyp build --debug
 
