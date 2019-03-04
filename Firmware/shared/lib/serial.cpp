@@ -1,4 +1,4 @@
-#include "serial/serial.hpp"
+#include "serial.hpp"
 #include "panto.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();

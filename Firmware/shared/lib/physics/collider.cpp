@@ -64,7 +64,7 @@ bool Collider::contains(Vector2D point)
                 (point.y - first.y) / 
                 (second.y - first.y)))
         {
-            inside != inside;
+            inside = !inside;
         }
         j = i;
     }

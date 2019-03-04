@@ -1,11 +1,9 @@
 #include "panto.hpp"
-#include "serial/serial.hpp"
+#include "serial.hpp"
 #include "task.hpp"
 #include "physics/pantoPhysics.hpp"
 
 unsigned long prevTime = 0;
-
-auto path = std::vector<Vector2D>();
 
 void ioLoop()
 {
@@ -18,10 +16,10 @@ void ioLoop()
         pantos[i].forwardKinematics();
     }
 
-    if (connected)
-    {
-        DPSerial::sendPosition();
-    }
+    // if (connected)
+    // {
+    //     DPSerial::sendPosition();
+    // }
 
     unsigned long now = micros();
     Panto::dt = now - prevTime;
@@ -32,8 +30,10 @@ void ioLoop()
 
 void physicsLoop()
 {
-    DPSerial::sendDebugLog("physics running on core %i - should be 1", xPortGetCoreID());
-    delay(1000);
+    for (unsigned char i = 0; i < pantoCount; ++i)
+    {
+        pantoPhysics[i].step();
+    }
 }
 
 void setup()
@@ -53,15 +53,13 @@ void setup()
         pantos[i].calibrationEnd();
     }
 
-    for(auto i = 0; i < 10; ++i)
-    {
-        path.emplace_back(i, -80);
-    };
-
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
-        pantoPhysics[i].addObstacle(path);
+        pantoPhysics[i].addObstacle(std::vector<Vector2D>{
+            Vector2D(-50, -80),
+            Vector2D(50, -80)
+        });
     }
 
     prevTime = micros();
