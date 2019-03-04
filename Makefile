@@ -15,7 +15,7 @@ all: serial LP_PCB_ESP32
 	node-gyp build --debug
 
 serial:
-	$(CC) Utils/Serial/serial.cpp Protocol/protocol.cpp -o Utils/Serial/serial
+	$(CC) Utils/Serial/serial.cpp Protocol/lib/protocol.cpp -IProtocol/include -o Utils/Serial/serial
 
 %: Hardware/%.json Firmware/GenerateHardwareConfig.js
 	node Firmware/GenerateHardwareConfig.js $@
