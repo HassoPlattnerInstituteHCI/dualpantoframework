@@ -1,4 +1,6 @@
 #include "task.hpp"
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
 
 std::map<TaskHandle_t, uint32_t> Task::s_fpsMap;
 
@@ -14,6 +16,9 @@ loopLabel:
 #if LOG_TASK_FPS
     task->checkFps();
 #endif
+    TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+    TIMERG0.wdt_feed=1;
+    TIMERG0.wdt_wprotect=0;
     goto loopLabel;
 };
 
