@@ -1,16 +1,44 @@
-#include <vector>
 #include "panto.hpp"
-#include "serial.hpp"
+#include "serial/serial.hpp"
 #include "task.hpp"
-#include "pantoPhysics.hpp"
+#include "physics/pantoPhysics.hpp"
 
 unsigned long prevTime = 0;
 
 auto path = std::vector<Vector2D>();
 
+void ioLoop()
+{
+    DPSerial::receive();
+    auto connected = DPSerial::ensureConnection();
+
+    for (unsigned char i = 0; i < pantoCount; ++i)
+    {
+        pantos[i].readEncoders();
+        pantos[i].forwardKinematics();
+    }
+
+    if (connected)
+    {
+        DPSerial::sendPosition();
+    }
+
+    unsigned long now = micros();
+    Panto::dt = now - prevTime;
+    prevTime = now;
+    for (unsigned char i = 0; i < pantoCount; ++i)
+        pantos[i].actuateMotors();
+}
+
+void physicsLoop()
+{
+    DPSerial::sendDebugLog("physics running on core %i - should be 1", xPortGetCoreID());
+    delay(1000);
+}
+
 void setup()
 {
-    Serial.begin(115200);
+    BOARD_DEPENDENT_SERIAL.begin(115200);
 
     // https://forum.arduino.cc/index.php?topic=367154.0
     // http://playground.arduino.cc/Main/TimerPWMCheatsheet
@@ -49,37 +77,6 @@ void setup()
     vTaskSuspend(NULL);
     taskYIELD();
     DPSerial::sendDebugLog("setup - this should not be printed");
-}
-
-void ioLoop()
-{
-    DPSerial::receive();
-    auto connected = DPSerial::ensureConnection();
-
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantos[i].readEncoders();
-        pantos[i].forwardKinematics();
-    }
-
-    // if (connected)
-    // {
-    //     DPSerial::sendPosition();
-    // }
-
-    unsigned long now = micros();
-    Panto::dt = now - prevTime;
-    prevTime = now;
-    for (unsigned char i = 0; i < pantoCount; ++i)
-        pantos[i].actuateMotors();
-}
-
-void physicsLoop()
-{
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantoPhysics[i].step();
-    }
 }
 
 void loop()

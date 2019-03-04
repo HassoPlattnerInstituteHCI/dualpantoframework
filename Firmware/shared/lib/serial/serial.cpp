@@ -1,4 +1,4 @@
-#include "serial.hpp"
+#include "serial/serial.hpp"
 #include "panto.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
@@ -15,15 +15,15 @@ int DPSerial::s_unacknowledgedHeartbeats = 0;
 
 void DPSerial::sendUInt8(uint8_t data)
 {
-    Serial.write(data);
+    BOARD_DEPENDENT_SERIAL.write(data);
 }
 
 void DPSerial::sendInt32(int32_t data)
 {
-    Serial.write(static_cast<uint8_t>(data >> 24));
-    Serial.write(static_cast<uint8_t>((data >> 16) & 255));
-    Serial.write(static_cast<uint8_t>((data >> 8) & 255));
-    Serial.write(static_cast<uint8_t>(data & 255));
+    BOARD_DEPENDENT_SERIAL.write(static_cast<uint8_t>(data >> 24));
+    BOARD_DEPENDENT_SERIAL.write(static_cast<uint8_t>((data >> 16) & 255));
+    BOARD_DEPENDENT_SERIAL.write(static_cast<uint8_t>((data >> 8) & 255));
+    BOARD_DEPENDENT_SERIAL.write(static_cast<uint8_t>(data & 255));
 }
 
 void DPSerial::sendUInt32(uint32_t data)
@@ -38,7 +38,7 @@ void DPSerial::sendFloat(float data)
 
 void DPSerial::sendMessageType(DPSerial::MessageType data)
 {
-    Serial.write(data);
+    BOARD_DEPENDENT_SERIAL.write(data);
 }
 
 void DPSerial::sendMagicNumber()
@@ -79,12 +79,12 @@ void DPSerial::sendHeartbeat()
 
 uint8_t DPSerial::receiveUInt8()
 {
-    return static_cast<uint8_t>(Serial.read());
+    return static_cast<uint8_t>(BOARD_DEPENDENT_SERIAL.read());
 }
 
 int32_t DPSerial::receiveInt32()
 {
-    return Serial.read() << 24 | Serial.read() << 16 | Serial.read() << 8 | Serial.read();
+    return BOARD_DEPENDENT_SERIAL.read() << 24 | BOARD_DEPENDENT_SERIAL.read() << 16 | BOARD_DEPENDENT_SERIAL.read() << 8 | BOARD_DEPENDENT_SERIAL.read();
 }
 
 uint32_t DPSerial::receiveUInt32()
@@ -101,7 +101,7 @@ float DPSerial::receiveFloat()
 
 DPSerial::MessageType DPSerial::receiveMessageType()
 {
-    return static_cast<MessageType>(Serial.read());
+    return static_cast<MessageType>(BOARD_DEPENDENT_SERIAL.read());
 }
 
 bool DPSerial::receiveMagicNumber()
@@ -109,10 +109,10 @@ bool DPSerial::receiveMagicNumber()
     int magicNumberProgress = 0;
 
     // as long as enough data is available to find the magic number
-    while (Serial.available() >= c_magicNumberSize)
+    while (BOARD_DEPENDENT_SERIAL.available() >= c_magicNumberSize)
     {
         // does next byte fit expected by of magic number?
-        if (Serial.read() == c_magicNumber[magicNumberProgress])
+        if (BOARD_DEPENDENT_SERIAL.read() == c_magicNumber[magicNumberProgress])
         {
             // yes - increase index. If check complete, return true.
             if (++magicNumberProgress == c_magicNumberSize)
@@ -135,7 +135,7 @@ bool DPSerial::receiveMagicNumber()
 bool DPSerial::receiveHeader()
 {
     // make sure enough data is available
-    if (Serial.available() < c_headerSize)
+    if (BOARD_DEPENDENT_SERIAL.available() < c_headerSize)
     {
         return false;
     }
@@ -148,7 +148,7 @@ bool DPSerial::receiveHeader()
 
 bool DPSerial::payloadReady()
 {
-    return Serial.available() >= s_header.PayloadSize;
+    return BOARD_DEPENDENT_SERIAL.available() >= s_header.PayloadSize;
 };
 
 // receive
@@ -245,7 +245,7 @@ void DPSerial::sendDebugLog(const char *message, ...)
     uint8_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     sendHeader(DEBUG_LOG, length);
-    Serial.write(s_debugLogBuffer, length);
+    BOARD_DEPENDENT_SERIAL.write(s_debugLogBuffer, length);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
@@ -291,7 +291,7 @@ void DPSerial::receive()
     {
         for (auto i = 0; i < s_header.PayloadSize; ++i)
         {
-            Serial.read();
+            BOARD_DEPENDENT_SERIAL.read();
         }
         return;
     }

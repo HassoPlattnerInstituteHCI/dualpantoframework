@@ -1,4 +1,4 @@
-#include "obstacle.hpp"
+#include "physics/obstacle.hpp"
 
 Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) { }
 

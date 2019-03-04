@@ -3,8 +3,8 @@
 #include <vector>
 #include "panto.hpp"
 #include "utils.hpp"
-#include "godObject.hpp"
-#include "obstacle.hpp"
+#include "physics/godObject.hpp"
+#include "physics/obstacle.hpp"
 
 class PantoPhysics
 {

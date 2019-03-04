@@ -1,4 +1,4 @@
-#include "pantoPhysics.hpp"
+#include "physics/pantoPhysics.hpp"
 
 std::vector<PantoPhysics> pantoPhysics;
 

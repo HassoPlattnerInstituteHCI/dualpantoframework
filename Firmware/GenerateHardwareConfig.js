@@ -111,7 +111,7 @@ const float setupAngle[] = {
 };`;
 
 console.log(headerOutput);
-fs.writeFileSync('Firmware/' + input.firmware + '/config.hpp', headerOutput);
+fs.writeFileSync('Firmware/' + input.firmware + 'include/config.hpp', headerOutput);
 
 const sourceOutput =
 `/*
@@ -128,4 +128,4 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-fs.writeFileSync('Firmware/' + input.firmware + '/config.cpp', sourceOutput);
+fs.writeFileSync('Firmware/' + input.firmware + 'lib/config.cpp', sourceOutput);

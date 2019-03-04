@@ -1,4 +1,4 @@
-#include "godObject.hpp"
+#include "physics/godObject.hpp"
 
 #include <algorithm>
 
