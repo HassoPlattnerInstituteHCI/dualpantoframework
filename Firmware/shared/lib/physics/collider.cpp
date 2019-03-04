@@ -30,7 +30,7 @@ bool Collider::intersect(Edge edgeA, Edge edgeB, Vector2D* intersection, bool co
     auto dirA = edgeA.m_second - edgeA.m_first;
     auto dirB = edgeB.m_second - edgeB.m_first;
     auto detDirADirB = determinant(dirA, dirB);
-    if(abs(detDirADirB) < 0.001)
+    if(abs(detDirADirB) == 0)
     {
         return false;
     }
