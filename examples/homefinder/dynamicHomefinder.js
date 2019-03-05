@@ -5,29 +5,37 @@ const {Vector} = DualPantoFramework;
 let device;
 let follow = false;
 let activeObstacles = [];
-const hotelnamesKreuzberg = ['Zur Post'];
-const hotelnamesMitte = ['Krone', 'Zur Linde', 'Adlon'];
-const hotelnamesTempelhof = ['Adler', 'Deutsches Haus'];
-const apartmentnamesKreuzberg = ['Zwerg', 'Lindenblatt', 'Kottbusser Tor'];
-const apartmentnamesMitte = ['Gold im Mund'];
-const apartmentnamesTempelhof = ['Himmelsrausch', 'Luftbrücke'];
-
-const let = []
-apartments.push(new Apartment('Mitte', new Vector(-125, -45, NaN), 4500, 150, 3, false));
-apartments.push(new Apartment('Mitte',  new Vector(-75, -75, NaN), 3000, 100, 3, true));
-apartments.push(new Apartment('Mitte', new Vector(-100, -35, NaN), 1500, 30, 1, false));
-
-apartments.push(new Apartment('Kreuzberg', new Vector(0, -50, NaN), 350, 72, 1, false));
-apartments.push(new Apartment('Kreuzberg', new Vector(50, -75, NaN), 420, 120, 3, true));
-apartments.push(new Apartment('Kreuzberg', new Vector(100, -250, NaN), 270, 30, 1, false));
-apartments.push(new Apartment('Kreuzberg', new Vector(150, -80, NaN), 680, 220, 5, true));
-
-apartments.push(new Apartment('Tempelhof', new Vector(-50, -120, NaN), 600, 680, 8, true));
-apartments.push(new Apartment('Tempelhof', new Vector(0, -200 , NaN), 1200, 800, 6, true));
-apartments.push(new Apartment('Tempelhof', new Vector(-75, -150, NaN), 500, 450, 4, true));
-apartments.push(new Apartment('Tempelhof', new Vector(20, -200, NaN), 320, 100, 3, false));
+let stop = false;
+let filterActive = false;
+let maxprice = 4500;
+let firstTimefiler = true;
+const s1 = [{name: 'Yorkstraße', point: new Vector(-150, -300, NaN)}, {name: 'Anhalter Bahnhof', point: new Vector(-60, -150, NaN)}, {name: 'Potsdamer Platz', point: new Vector(-50, -90, NaN)}, {name: 'Brandenburger Tor', point: new Vector(-70, -75, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}];
+const s7 = [{name: 'Bellevue', point: new Vector(-180, -100, NaN)}, {name: 'Berliner Hauptbahnhof', point: new Vector(-100, -35, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}, {name: 'Hackescher Markt', point: new Vector(-25, -50, NaN)}, {name: 'Alexanderplatz', point: new Vector(0, -75, NaN)},  {name: 'Jannowitzbrücke', point: new Vector(40, -100, NaN)}, {name: 'Ostbahnhof', point: new Vector(100, -120, NaN)}]
 
 let filter = {area: false, price: false, size: false, amountRooms: false, cellar: false};
+
+const startPosition = new Vector(0, -75, NaN);
+let area = 'Mitte';
+let currentArea = 'Mitte';
+
+const mitteWalls = [[new Vector(-200, 0, NaN), new Vector(-200,-100, NaN)], [new Vector(-200,-100, NaN), new Vector(50, -100, NaN)], [new Vector(50, -100, NaN), new Vector(50, 0, NaN)]];
+const kreuzbergWalls = [[new Vector(50, -100, NaN), new Vector(50,0, NaN)],
+                       [new Vector(50, -100, NaN), new Vector(-75, -100, NaN)],
+                       [new Vector(-75, -100, NaN), new Vector(-75, -150, NaN)],
+                       [new Vector(-75, -150, NaN), new Vector(0, -150, NaN)],
+                       [new Vector(0, -150, NaN), new Vector(100,-400)]];
+const tempelhofWalls = [[new Vector(0, -150, NaN), new Vector(100,-400)],
+                       [new Vector(-75, -150, NaN), new Vector(0, -150, NaN)],
+                       [new Vector(-75, -100, NaN), new Vector(-75, -150, NaN)],
+                       [new Vector(-75, -100, NaN), new Vector(-200, -50, NaN)]];
+
+const mittePoint = new Vector(-100, -50, NaN);
+const kreuzbergPoint = new Vector(100, -200, NaN);
+const tempelhofPoint = new Vector(0, -300, NaN);
+
+let minRooms = 0;
+let wantCeller = true;
+let minSize = 0;
 
 class Apartment{
   constructor(area, cords=newVector(0,0,NaN), price=0, size=0, amountRooms=0, cellar=false){
@@ -60,24 +68,20 @@ class Apartment{
   }
 }
 
-const startPosition = new Vector(-100, -100, NaN);
-let area = 'Berlin';
-let currentArea = 'Kreuzberg';
+const apartments = []
+apartments.push(new Apartment('Mitte', new Vector(-125, -45, NaN), 4500, 150, 3, false));
+apartments.push(new Apartment('Mitte',  new Vector(-75, -75, NaN), 3000, 100, 3, true));
+apartments.push(new Apartment('Mitte', new Vector(-100, -35, NaN), 1500, 30, 1, false));
 
-const mitteWalls = [[new Vector(-200, 0, NaN), new Vector(-200,-100)], [new Vector(-50, -100, NaN), new Vector(-200,-100)], [new Vector(-50, -100, NaN), new Vector(-50,0)]];
-const kreuzbergWalls = [[new Vector(-50, -100, NaN), new Vector(-50,0)],
-                       [new Vector(-50,-100, NaN), new Vector(-75, -100, NaN)],
-                       [new Vector(-75, -100, NaN), new Vector(-75, -150, NaN)],
-                       [new Vector(-75, -150, NaN), new Vector(0, -150, NaN)],
-                       [new Vector(0, -150, NaN), new Vector(100,-400)]];
-const tempelhofWalls = [[new Vector(0, -150, NaN), new Vector(100,-400)],
-                       [new Vector(-75, -150, NaN), new Vector(0, -150, NaN)],
-                       [new Vector(-75, -100, NaN), new Vector(-75, -150, NaN)],
-                       [new Vector(-75, -100, NaN), new Vector(-200, -50, NaN)]];
+apartments.push(new Apartment('Kreuzberg', new Vector(60, -50, NaN), 350, 72, 1, false));
+apartments.push(new Apartment('Kreuzberg', new Vector(70, -75, NaN), 420, 120, 3, true));
+apartments.push(new Apartment('Kreuzberg', new Vector(100, -250, NaN), 270, 30, 1, false));
+apartments.push(new Apartment('Kreuzberg', new Vector(150, -80, NaN), 680, 220, 5, true));
 
-const mittePoint = new Vector(-100, -50, NaN);
-const kreuzbergPoint = new Vector(100, -200, NaN);
-const tempelhofPoint = new Vector(0, -300, NaN);
+apartments.push(new Apartment('Tempelhof', new Vector(-50, -120, NaN), 600, 680, 8, true));
+apartments.push(new Apartment('Tempelhof', new Vector(0, -200 , NaN), 1200, 800, 6, true));
+apartments.push(new Apartment('Tempelhof', new Vector(-75, -150, NaN), 500, 450, 4, true));
+apartments.push(new Apartment('Tempelhof', new Vector(20, -200, NaN), 320, 100, 3, false));
 
 DualPantoFramework.on('devicesChanged', function(devices){
   for(const newdevice of devices){
@@ -95,7 +99,7 @@ const inArea = (position_me, position_hotel)=> {
 const getArea = (position) => {
   follow = false;
   const lastArea = area;
-  if(position.x > -50){
+  if(position.x > 50){
     if(position.x >= 0){
       if(position.y >= -3.25 * position.x -75){
         area = 'Kreuzberg';
@@ -127,23 +131,24 @@ const getArea = (position) => {
 const poiNearby = (position) => {
   for(let i = 0; i<apartments.length; i++){
     if(apartments[i].matchFilters() && inArea(position, apartments[i].cords)){
-      const hasCellar = apartments[i].cellar ? 'einen' : 'keinen';
       follow = false;
+      const hasCellar = apartments[i].cellar ? 'a' : 'no';
       DualPantoFramework.run_script([
-        () => VoiceInteraction.speakText('Hier'),
-        () => device.movePantoTo(1, apartments[i].cords),
-        () => DualPantoFramework.waitMS(500),
-        () => VoiceInteraction.speakText('ist eine Wohnung in deiner unmittelbaren Nähe'),
-        () => DualPantoFramework.waitMS(500),
-        () => VoiceInteraction.speakText('Die Wohnung Kostet ' + apartments[i].price + ' Euro im Monat.'),
-        () => DualPantoFramework.waitMS(500),
-        () => VoiceInteraction.speakText('Die Wohnung ist ' + apartments[i].size + ' Quadratmeter groß.'),
-        () => DualPantoFramework.waitMS(500),
-        () => VoiceInteraction.speakText('Die Wohnung hat ' + apartments[i].amountRooms + ' Räume.'),
-        () => DualPantoFramework.waitMS(500),
-        () => VoiceInteraction.speakText('Die Wohnung hat' + hasCellar + ' Keller.'),
-        () => DualPantoFramework.waitMS(500)
-        () => refollow()
+        () => stop ? nothing() : VoiceInteraction.speakText('Here', 'EN'),
+        () => stop ? nothing() : device.movePantoTo(1, apartments[i].cords),
+        () => stop ? nothing() : DualPantoFramework.waitMS(500),
+        () => stop ? nothing() : VoiceInteraction.speakText('is an apartment', 'EN'),
+        () => stop ? nothing() : DualPantoFramework.waitMS(500),
+        () => stop ? nothing() : VoiceInteraction.speakText('The rent is ' + apartments[i].price + ' Euro per month.', 'EN'),
+        () => stop ? nothing() : DualPantoFramework.waitMS(500),
+        () => stop ? nothing() : VoiceInteraction.speakText('It is ' + apartments[i].size + ' squaremeter big,', 'EN'),
+        () => stop ? nothing() : DualPantoFramework.waitMS(500),
+        () => stop ? nothing() : VoiceInteraction.speakText('has ' + apartments[i].amountRooms + ' rooms and ', 'EN'),
+        () => stop ? nothing() : DualPantoFramework.waitMS(500),
+        () => stop ? nothing() : VoiceInteraction.speakText('has' + hasCellar + ' celler.', 'EN'),
+        () => stop ? nothing() : DualPantoFramework.waitMS(500),
+        () => refollow(),
+        () => resume()
       ]);
       return
     }
@@ -152,13 +157,15 @@ const poiNearby = (position) => {
 
 const areaChange = () => {
   DualPantoFramework.run_script([
-    () => VoiceInteraction.speakText('Du bist jetzt in ' + area),
+    () => VoiceInteraction.speakText('you are in ', 'EN'),
     () => DualPantoFramework.waitMS(500),
+    () => VoiceInteraction.speakText(area),
+    () => DualPantoFramework.waitMS(50)
   ]);
 }
 
 const start = ()=> {
-  VoiceInteraction.setCommands(['Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal', 'Anzahl der Räume ist egal']);
+  VoiceInteraction.setCommands(['Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin','Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal', 'Anzahl der Räume ist egal', 'Hilfe', 'Filter', 'Stop', 'stop', 'fertig', 'Wo bin ich', 'halt', 'abbrechen', 'Abbruch']);
   device.on('handleMoved', function(index, position){
     if(follow && index == 0){
       getArea(position);
@@ -167,92 +174,91 @@ const start = ()=> {
   });
 
   DualPantoFramework.run_script([
-    () => VoiceInteraction.speakText('Willkommen zu Homefinder!'),
-    () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Du bist aktuell hier, in Berlin.'),
+    () => VoiceInteraction.speakText('You are here', 'EN'),
     () => device.movePantoTo(0, startPosition),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Ich kann dir die Gegend Zeigen.'),
-    () => device.movePantoTo(1, startPosition),
+    () => VoiceInteraction.speakText('at Berlin Alexanderplatz', 'EN'),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Wir haben hier drei Bezirke: Kreuzberg, Mitte und Tempelhof'),
+    () => VoiceInteraction.speakText('that is in Mitte', 'EN'),
+    () => showMitte(),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Nenne einen dieser Namen und ich kann dich zu diesem Bezirk bewegen.'),
+    () => VoiceInteraction.speakText('Commands: apartments, where am I, search criteria, help', 'EN'),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Wenn du Berlin sagst, kannst du dich wieder frei in der Stadt bewegen.'),
-    () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Du kannst Orte sagen und ich zeige dir alle interessanten Orte für deine aktuelle Region'),
-    () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Wenn du Hotels oder Wohnungen sagst, kannst du nach diesen Filtern'),
-    () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Ich wünsche dir viel Spaß beim Erkunden von Berlin'),
+    () => VoiceInteraction.speakText('You can also walk around and find apartments by your own', 'EN'),
     () => device.unblockHandle(0),
     () => refollow(),
     () => VoiceInteraction.beginListening()
   ]);
 
-  let maxprice = 4500;
-  let minRooms = 0;
-  let wantCeller = true;
-  let minSize = 0;
   //'Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal'
   VoiceInteraction.on('keywordRecognized', function(word){
-    if(word === 'Preis hoch'){
-      maxprice = maxprice + 100;
+    if(filterActive && word === 'Preis hoch'){
+      if(maxprice + 100 > 1000){
+        maxprice = maxprice + 1000;
+      }else{
+        maxprice = maxprice + 100;
+      }
       VoiceInteraction.speakText('Der neue Maximal preis beträgt ' + maxprice + ' Euro im Monat.');
       filter.price = true;
     }
-    if(word === 'Preis runter'){
-      maxprice = maxprice - 100;
+    if(filterActive && word === 'Preis runter'){
+      if(maxprice - 1000 < 1000){
+        maxprice = maxprice - 100;
+      }else{
+        maxprice = maxprice - 1000;
+      }
+      if(maxprice < 0){
+        maxprice = 0;
+      }
       VoiceInteraction.speakText('Der neue Maximal preis beträgt ' + maxprice + ' Euro im Monat.');
       filter.price = true;
     }
-    if(word === 'Preis ist egal'){
+    if(filterActive && word === 'Preis ist egal'){
       VoiceInteraction.speakText('Der Maximalpreis Filter wurde entfernt.');
       filter.price = false;
     }
     if(word === 'Wohnungen'){
-      showAppartments();
+      showApartments();
     }
-    if(word === 'mehr Räume'){
+    if(filterActive && word === 'mehr Räume'){
       minRooms = minRooms + 1;
       filter.amountRooms = true;
       VoiceInteraction.speakText('Die Mindestanzahl der Räume wurde auf ' + minRooms + ' festgelegt.');
     }
-    if(word === 'weniger Räume'){
+    if(filterActive && word === 'weniger Räume'){
       minRooms = minRooms - 1;
       filter.amountRooms = true;
       VoiceInteraction.speakText('Die Mindestanzahl der Räume wurde auf ' + minRooms + ' festgelegt.');
     }
-    if(word === 'Anzahl der Räume ist egal'){
+    if(filterActive && word === 'Anzahl der Räume ist egal'){
       filter.amountRooms = false;
       VoiceInteraction.speakText('Der Räumefilter wurde entfernt.');
     }
-    if(word === 'Keller ist notwendig'){
+    if(filterActive && word === 'Keller ist notwendig'){
       VoiceInteraction.speakText('Es werden nur noch Wohnungen mit Keller gezeigt.');
       wantCeller = true;
       filter.cellar = false;
     }
-    if(word === 'kein Keller'){
+    if(filterActive && word === 'kein Keller'){
       VoiceInteraction.speakText('Es werden nur noch Wohnungen ohne Keller gezeigt.');
       wantCeller = false;
       filter.cellar = false;
     }
-    if(word === 'Keller ist egal'){
+    if(filterActive && word === 'Keller ist egal'){
       VoiceInteraction.speakText('Es werden Wohnungen unabhängig vom Keller gezeigt.');
       filter.cellar = false;
     }
-    if(word === 'Größe anheben'){
+    if(filterActive && word === 'Größe anheben'){
       minSize = minSize + 25;
       VoiceInteraction.speakText('Die Mindestgröße wurde auf ' + minSize + ' Quadratmeter gesetzt.')
       filter.size = false;
     }
-    if(word === 'Größe verringern'){
+    if(filterActive && word === 'Größe verringern'){
       minSize = minSize - 25;
       VoiceInteraction.speakText('Die Mindestgröße wurde auf ' + minSize + ' Quadratmeter gesetzt.')
       filter.size = false;
     }
-    if(word === 'Größe ist egal'){
+    if(filterActive && word === 'Größe ist egal'){
       VoiceInteraction.speakText('Der Mindestgrößenfilter wurde entfernt.')
       filter.size = false;
     }
@@ -268,119 +274,141 @@ const start = ()=> {
     if(word === 'Kreuzberg'){
       moveToKreuzberg();
     }
+    if(word === 'Hilfe'){
+      if(filterActive){
+        firstTimefiler = true;
+        initFilter();
+      }else{
+        help();
+      }
+    }
+    if(word === 'Filter'){
+      initFilter();
+    }
+    if(word === 'Stop' || word === 'stop' || word === 'halt' || word === 'abbrechen' || word === 'Abbruch'){
+      stop = true;
+    }
+    if(filterActive && word === 'fertig'){
+      closeFilter();
+    }
+    if(word === 'Wo bin ich'){
+      follow = false;
+      locationhelp();
+    }
   });
 }
 
-const showAppartmens = ()=> {
-  let script = [];
-  let counter = 0;
-  script.push('placeholder');
-  script.push(() => DualPantoFramework.waitMS(500));
-  if(currentArea === 'Berlin' || currentArea === 'Tempelhof'){
-    counter = counter + apartmentsTempelhof.length;
-    for(const apartment of apartmentsTempelhof){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, apartment));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist eine Wohnung'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
+const locationhelp = () => {
+  let temp = [];
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Hier'));
+  temp.push(() => stop ? nothing() : device.movePantoTo(1, startPosition));
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Ist der Alexanderplatz'));
+  temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Die S sieben fährt hier lang'));
+  temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+  for(const station of s7){
+    temp.push(() => stop ? nothing() : device.movePantoTo(1, station.point));
+    temp.push(() => stop ? nothing() : VoiceInteraction.speakText(station.name));
+    temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
   }
-  if(currentArea === 'Berlin' || currentArea === 'Mitte'){
-    counter = counter + apartmentsMitte.length;
-    for(const apartment of apartmentsMitte){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, apartment));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist eine Wohnung'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Die S eins fährt hier lang'));
+  temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+  for(const station of s1){
+    temp.push(() => stop ? nothing() : device.movePantoTo(1, station.point));
+    temp.push(() => stop ? nothing() : VoiceInteraction.speakText(station.name));
+    temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
   }
-  if(currentArea === 'Berlin' || currentArea === 'Kreuzberg'){
-    counter = counter + apartmentsKreuzberg.length;
-    for(const apartment of apartmentsKreuzberg){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, apartment));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist eine Wohnung'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
-  }
-  script[0] = () => VoiceInteraction.speakText('In deiner Gegend sind ' + counter + ' Wohnungen');
-  DualPantoFramework.run_script(script);
+  temp.push(() => refollow());
+  temp.push(() => resume());
+  DualPantoFramework.run_script(temp);
 }
 
-const showPlaces = ()=> {
+const initFilter = () =>{
+  filterActive = true;
+  DualPantoFramework.run_script([
+    () => stop ? nothing() : VoiceInteraction.speakText('Filtermenü. Sage fertig um das Menü zu verlassen'),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Es gibt verschiedene Filter: Preis, Anzahl der Räume, Keller vorhanden undGröße'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Preisfilter zu aktivieren musst du einen Maximalpreis setzen.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando Preis hoch oder Preis runter, kannst du den Preisfilter aktivieren und gleichzeitig den Preis anpassen.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Preisfilter deaktivieren, sage Preis ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Raumfilter zu aktivieren musst du einen Mindestanzahl an Räumen setzen.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando mehr Räume oder weniger Räume, kannst du den Raumfilter aktivieren und gleichzeitig die Mindestanzahl an Räumen anpassen.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Raumfilter deaktivieren, sage Anzahl der Räume ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Kellerfilter zu aktivieren musst du angeben, ob du einen Keller möchtest oder nicht.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando Keller ist notwendig oder kein Keller, setzt du deine Präferenz und aktivierst den Keller.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Kellerfilter deaktivieren, sage Keller ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Größenfilter zu aktivieren musst du eine Mindestgröße setzen.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando Größe anheben oder Größe verringern, kannst du den Größenfilter aktivieren und gleichzeitig die Mindestgröße anpassen.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Größenfilter deaktivieren, sage Größe ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => filterintroDone(),
+    () => resume()
+  ]);
+}
+
+const closeFilter = () => {
+  stop = true;
+  VoiceInteraction.speakText('Filtermenü geschlossen');
+  filterActive = false;
+  setTimeout(resume, 500);
+}
+
+const help = ()=> {
+  DualPantoFramework.run_script([
+    () => stop ? nothing() : VoiceInteraction.speakText('Sage Wo bin ich und ich gebe dir Anhaltspunkte in Berlin.'),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop ? nothing() : VoiceInteraction.speakText('Sage Wohnungen und ich zeige dir alle Wohnungen.'),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop ? nothing() : VoiceInteraction.speakText('Du kannst auch selbst herumlaufen und Wohnungen finden.'),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop ? nothing() : VoiceInteraction.speakText('Mit Filter öffnest du das Filtermenü.'),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => resume()
+  ]);
+}
+
+const showApartments = ()=> {
+  follow = false;
   let script = [];
-  let counterHotels = 0;
-  let counterAppartments = 0;
-  script.push('placeholder');
-  script.push(() => DualPantoFramework.waitMS(500));
-  if(currentArea === 'Berlin' || currentArea === 'Tempelhof'){
-    counterHotels = counterHotels + hotelsTempelhof.length;
-    for(const hotel of hotelsTempelhof){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, hotel));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist ein Hotel'));
-      script.push(() => DualPantoFramework.waitMS(500));
+  for(const apartment of apartments){
+    if(apartment.matchFilters()){
+      const hasCellar = apartment.cellar ? 'einen' : 'keinen';
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Hier'));
+      script.push(() => stop ? nothing() : device.movePantoTo(1, apartment.cords));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText('ist eine Wohnung in ' + apartment.area));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung Kostet ' + apartment.price + ' Euro im Monat.'));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung ist ' + apartment.size + ' Quadratmeter groß.'));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung hat ' + apartment.amountRooms + ' Räume.'));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung hat' + hasCellar + ' Keller.'));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
+
     }
   }
-  if(currentArea === 'Berlin' || currentArea === 'Mitte'){
-    counterHotels = counterHotels + hotelsMitte.length;
-    for(const hotel of hotelsMitte){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, hotel));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist ein Hotel'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
-  }
-  if(currentArea === 'Berlin' || currentArea === 'Kreuzberg'){
-    counterHotels = counterHotels + hotelsKreuzberg.length;
-    for(const hotel of hotelsKreuzberg){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, hotel));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist ein Hotel'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
-  }
-  if(currentArea === 'Berlin' || currentArea === 'Tempelhof'){
-    counterAppartments = counterAppartments + apartmentsTempelhof.length;
-    for(const apartment of apartmentsTempelhof){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, apartment));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist eine Wohnung'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
-  }
-  if(currentArea === 'Berlin' || currentArea === 'Mitte'){
-    counterAppartments = counterAppartments + apartmentsMitte.length;
-    for(const apartment of apartmentsMitte){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, apartment));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist eine Wohnung'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
-  }
-  if(currentArea === 'Berlin' || currentArea === 'Kreuzberg'){
-    counterAppartments = counterAppartments + apartmentsKreuzberg.length;
-    for(const apartment of apartmentsKreuzberg){
-      script.push(() => VoiceInteraction.speakText('Hier'));
-      script.push(() => device.movePantoTo(1, apartment));
-      script.push(() => DualPantoFramework.waitMS(500));
-      script.push(() => VoiceInteraction.speakText('ist eine Wohnung'));
-      script.push(() => DualPantoFramework.waitMS(500));
-    }
-  }
-  script[0] = () => VoiceInteraction.speakText('In deiner Gegend sind ' + counterHotels + ' Hotels und '+ counterAppartments + ' Wohnungen');
+  script.push(() => refollow());
+  script.push(() => resume());
   DualPantoFramework.run_script(script);
 }
 
 const moveToKreuzberg = ()=> {
+  filter.area = true;
   follow = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
@@ -404,6 +432,7 @@ const moveToKreuzberg = ()=> {
 }
 
 const moveToTempelhof = ()=> {
+  filter.area = true;
   follow = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
@@ -427,6 +456,7 @@ const moveToTempelhof = ()=> {
 }
 
 const moveToMitte = ()=> {
+  filter.area = true;
   follow = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
@@ -450,6 +480,7 @@ const moveToMitte = ()=> {
 }
 
 const moveToBerlin = ()=> {
+  filter.area = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
   }
@@ -464,9 +495,47 @@ const refollow = ()=>{
   });
 }
 
-const promiseObstacles = (pointArray, index=-1)=>{
-  return new Promise (resolve => {
-    device.createObstacle(pointArray, index);
+const nothing = () =>{
+  return new Promise(resolve => {
     resolve(resolve);
   });
 }
+
+const resume = () =>{
+  return new Promise(resolve => {
+    stop = false;
+    resolve(resolve);
+  });
+}
+
+const filterintroDone = () => {
+  return new Promise(resolve => {
+    firstTimefiler = false;
+    resolve(resolve);
+  });
+}
+
+const promiseObstacles = (pointArray, index=-1)=>{
+  return new Promise (resolve => {
+    activeObstacles.push(device.createObstacle(pointArray, index));
+    resolve(resolve);
+  });
+}
+
+const showMitte = () => {
+  return new Promise (resolve => {
+    DualPantoFramework.run_script([
+      () => device.movePantoTo(1, new Vector(-150, -40, NaN)),
+      () => DualPantoFramework.waitMS(1000),
+      () => device.movePantoTo(1, new Vector(-150, -100, NaN)),
+      () => DualPantoFramework.waitMS(1000),
+      () => device.movePantoTo(1, new Vector(50, -100, NaN)),
+      () => DualPantoFramework.waitMS(1000),
+      () => device.movePantoTo(1, new Vector(50, -40, NaN)),
+      () => DualPantoFramework.waitMS(1000),
+      () => device.movePantoTo(1, new Vector(-150, -40, NaN))
+    ]);
+    resolve(resolve);
+  });
+}
+
