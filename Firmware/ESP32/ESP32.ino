@@ -25,10 +25,8 @@ void setup()
         pantos[i].calibrationEnd();
     }
 
-    for(auto i = 0; i < 10; ++i)
-    {
-        path.emplace_back(i, -80);
-    };
+    path.emplace_back(-50, -150);
+    path.emplace_back(50, -150);
 
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
