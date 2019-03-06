@@ -2,14 +2,17 @@
 #include "serial.hpp"
 #include "task.hpp"
 #include "physics/pantoPhysics.hpp"
+#include "spiEncoder.hpp"
 
 unsigned long prevTime = 0;
+SPIEncoderChain spi(numberOfSpiEncoders);
 
 void ioLoop()
 {
     DPSerial::receive();
     auto connected = DPSerial::ensureConnection();
 
+    spi.update();
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantos[i].readEncoders();
@@ -48,9 +51,24 @@ void setup()
         pantos[i].setup(i);
     }
     delay(1000);
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    std::vector<uint16_t> startPositions;
+    #endif
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantos[i].calibrationEnd();
+        #ifdef LINKAGE_ENCODER_USE_SPI
+        for (unsigned char j = 0; j < 3; ++j)
+        {
+            auto index = encoderSpiIndex[i * 3 + j];
+            if(index != -1)
+            {
+                startPositions.push_back(pantos[i].actuationAngle[j] / (2.0 * PI) * encoderSteps[i * 3 + j]);
+                pantos[i].angleAccessors[j] = spi.getAngleAccessor(index);
+            }
+        }
+        spi.setPosition(startPositions);
+        #endif
     }
 
     std::vector<Vector2D> path{
