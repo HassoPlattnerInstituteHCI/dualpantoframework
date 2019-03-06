@@ -63,6 +63,7 @@ const float opMinDist = ${input.opMinDist},
 extern float forceFactor;
 const uint8_t pantoCount = ${pantoCount};
 const uint8_t dummyPin = ${input.dummyPin};
+${input.usesSpi ? "#define LINKAGE_ENCODER_USE_SPI" : ""}
 const float linkageBaseX[] = {
     ${aggregate('linkage_baseX')}
 };
@@ -105,6 +106,9 @@ const uint8_t encoderIndexPin[] = {
 };
 const uint32_t encoderSteps[] = {
     ${aggregate('encoder_steps')}
+};
+const uint32_t encoderSpiIndex[] = {
+    ${aggregate('encoder_spiIndex', -1)}
 };
 const float setupAngle[] = {
     ${aggregate('encoder_setup')}

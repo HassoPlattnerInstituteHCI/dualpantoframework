@@ -87,6 +87,29 @@ void SPIEncoderChain::transfer(uint16_t transmission)
     end();
 }
 
+void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
+{
+    transfer(SPICommands::c_highZeroWrite);
+
+    begin();
+    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    {
+        m_encoders[i].transfer(SPIPacket(0, newZero[i] >> 6).m_transmission);
+    }
+    end();
+
+    transfer(SPICommands::c_lowZeroWrite);
+
+    begin();
+    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    {
+        m_encoders[i].transfer(SPIPacket(0, newZero[i] & 0b111111).m_transmission);
+    }
+    end();
+
+    transfer(SPICommands::c_readAngle);
+}
+
 SPIEncoderChain::SPIEncoderChain(uint32_t numberOfEncoders)
 : m_settings(10000000, SPI_MSBFIRST, SPI_MODE1)
 , m_spi(HSPI)
@@ -184,25 +207,7 @@ void SPIEncoderChain::setZero()
         newZero[i] = currentZero[i] + m_encoders[i].m_lastValidAngle;
     }
 
-    transfer(SPICommands::c_highZeroWrite);
-
-    begin();
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
-    {
-        m_encoders[i].transfer(SPIPacket(0, newZero[i] >> 6).m_transmission);
-    }
-    end();
-
-    transfer(SPICommands::c_lowZeroWrite);
-
-    begin();
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
-    {
-        m_encoders[i].transfer(SPIPacket(0, newZero[i] & 0b111111).m_transmission);
-    }
-    end();
-
-    transfer(SPICommands::c_readAngle);
+    setZero(newZero);
 }
 
 bool SPIEncoderChain::needsZero()
@@ -219,6 +224,22 @@ bool SPIEncoderChain::needsZero()
     transfer(SPICommands::c_readAngle);
     
     return allZero;
+}
+
+void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
+{
+    auto currentZero = getZero();
+    update();
+
+    std::vector<uint16_t> newZero(m_numberOfEncoders);
+
+    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    {
+        newZero[i] = currentZero[i] + m_encoders[i].m_lastValidAngle;
+        newZero[i] -= positions[i];
+    }
+
+    setZero(newZero);
 }
 
 std::function<uint32_t()> SPIEncoderChain::getAngleAccessor(uint32_t index)
