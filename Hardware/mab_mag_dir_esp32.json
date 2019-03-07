@@ -19,7 +19,7 @@
                     "pwmPin": 4,
                     "dirAPin": 5,
                     "flipped": true,
-                    "powerLimit": 1.0,
+                    "powerLimit": 0.5,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
@@ -39,7 +39,7 @@
                     "pwmPin": 17,
                     "dirAPin": 16,
                     "flipped": true,
-                    "powerLimit": 1.0,
+                    "powerLimit": 0.5,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
