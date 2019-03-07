@@ -2,6 +2,7 @@ const DualPantoFramework = require('../..');
 const VoiceInteraction = DualPantoFramework.voiceInteraction;
 const {Vector} = DualPantoFramework;
 
+const language = process.argv[2] ? process.argv[2] : 'DE';
 let device;
 let follow = false;
 let activeObstacles = [];
@@ -9,6 +10,13 @@ let stop = false;
 let filterActive = false;
 let maxprice = 4500;
 let firstTimefiler = true;
+let currentApartment;
+let priceActive = false;
+let sizeActive = false;
+let roomsActive = false;
+let cellarActive = false;
+let lastRotation = 0;
+let lastSpokenPrice = 0;
 const s1 = [{name: 'Yorkstraße', point: new Vector(-150, -300, NaN)}, {name: 'Anhalter Bahnhof', point: new Vector(-60, -150, NaN)}, {name: 'Potsdamer Platz', point: new Vector(-50, -90, NaN)}, {name: 'Brandenburger Tor', point: new Vector(-70, -75, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}];
 const s7 = [{name: 'Bellevue', point: new Vector(-180, -100, NaN)}, {name: 'Berliner Hauptbahnhof', point: new Vector(-100, -35, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}, {name: 'Hackescher Markt', point: new Vector(-25, -50, NaN)}, {name: 'Alexanderplatz', point: new Vector(0, -75, NaN)},  {name: 'Jannowitzbrücke', point: new Vector(40, -100, NaN)}, {name: 'Ostbahnhof', point: new Vector(100, -120, NaN)}]
 
@@ -36,7 +44,7 @@ const tempelhofPoint = new Vector(0, -300, NaN);
 let minRooms = 0;
 let wantCeller = true;
 let minSize = 0;
-
+let helpRunning = false;
 class Apartment{
   constructor(area, cords=newVector(0,0,NaN), price=0, size=0, amountRooms=0, cellar=false){
     this.area = area
@@ -131,21 +139,13 @@ const getArea = (position) => {
 const poiNearby = (position) => {
   for(let i = 0; i<apartments.length; i++){
     if(apartments[i].matchFilters() && inArea(position, apartments[i].cords)){
+      currentApartment = apartments[i];
       follow = false;
-      const hasCellar = apartments[i].cellar ? 'a' : 'no';
       DualPantoFramework.run_script([
-        () => stop ? nothing() : VoiceInteraction.speakText('Here', 'EN'),
+        () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'Here', 'DE' : 'Hier'}[language], language),
         () => stop ? nothing() : device.movePantoTo(1, apartments[i].cords),
         () => stop ? nothing() : DualPantoFramework.waitMS(500),
-        () => stop ? nothing() : VoiceInteraction.speakText('is an apartment', 'EN'),
-        () => stop ? nothing() : DualPantoFramework.waitMS(500),
-        () => stop ? nothing() : VoiceInteraction.speakText('The rent is ' + apartments[i].price + ' Euro per month.', 'EN'),
-        () => stop ? nothing() : DualPantoFramework.waitMS(500),
-        () => stop ? nothing() : VoiceInteraction.speakText('It is ' + apartments[i].size + ' squaremeter big,', 'EN'),
-        () => stop ? nothing() : DualPantoFramework.waitMS(500),
-        () => stop ? nothing() : VoiceInteraction.speakText('has ' + apartments[i].amountRooms + ' rooms and ', 'EN'),
-        () => stop ? nothing() : DualPantoFramework.waitMS(500),
-        () => stop ? nothing() : VoiceInteraction.speakText('has' + hasCellar + ' celler.', 'EN'),
+        () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'is an apartment', 'DE' : 'ist eine Wohnung'}[language], language),
         () => stop ? nothing() : DualPantoFramework.waitMS(500),
         () => refollow(),
         () => resume()
@@ -155,36 +155,69 @@ const poiNearby = (position) => {
   }
 }
 
+const getDetails = () => {
+  if(language === 'EN'){
+    hasCellar = currentApartment.cellar ? 'a' : 'no';
+  }else{
+    hasCellar = currentApartment.cellar ? 'einen' : 'keinen';
+  }
+  DualPantoFramework.run_script([
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'The rent is ' + currentApartment.price + ' Euro per month.', 'DE' : 'Die Miete beträgt ' + currentApartment.price + ' Euro pro Monat'}[language], language),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'It is ' + currentApartment.size + ' squaremeter big,', 'DE' : 'Sie ist ' + currentApartment.size + ' Quadratmeter groß.'}[language], language),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'has ' + currentApartment.amountRooms + ' rooms and ', 'DE' : 'hat ' + currentApartment.amountRooms + ' Räume und '}[language], language),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'has' + hasCellar + ' celler.', 'DE' : 'hat ' + hasCellar + ' Keller.'}[language], language),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+  ]);
+}
+
 const areaChange = () => {
   DualPantoFramework.run_script([
-    () => VoiceInteraction.speakText('you are in ', 'EN'),
+    () => VoiceInteraction.speakText({'EN' : 'You are in ', 'DE' : 'Du bist in '}[language], language),
     () => DualPantoFramework.waitMS(500),
     () => VoiceInteraction.speakText(area),
     () => DualPantoFramework.waitMS(50)
   ]);
 }
-
 const start = ()=> {
-  VoiceInteraction.setCommands(['Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin','Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal', 'Anzahl der Räume ist egal', 'Hilfe', 'Filter', 'Stop', 'stop', 'fertig', 'Wo bin ich', 'halt', 'abbrechen', 'Abbruch']);
+  if(language === 'EN'){
+    console.log('english input');
+    VoiceInteraction.setCommands(['apartments', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin', 'price up', 'price down', 'more rooms', 'less rooms', 'cellar needed', 'meet basement', 'need cellar', 'no cellar', 'increase size', 'decrease size', 'prices does not matter', 'size does not matter', 'cellar does not matter', 'rooms do not matter', 'help', 'search criteria', 'done', 'where am I', 'stop', 'cancel', 'details']);
+  }else{
+    VoiceInteraction.setCommands(['Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin','Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal', 'Anzahl der Räume ist egal', 'Hilfe', 'Suchkriterien', 'Stop', 'stop', 'fertig', 'Wo bin ich', 'halt', 'abbrechen', 'Abbruch', 'Details']);
+  }
   device.on('handleMoved', function(index, position){
     if(follow && index == 0){
       getArea(position);
       poiNearby(position);
     }
+    if(priceActive && index == 0){
+      const rotDifference = position.r - lastRotation;
+      maxprice = maxprice + Math.round(100 * rotDifference);
+      if(Math.abs(maxprice - lastSpokenPrice) > 100){
+        VoiceInteraction.speakText({'EN' : 'new maximum price: ' + maxprice, 'DE' : 'Neuer maximalpreis: ' + maxprice}[language], language);
+        lastSpokenPrice = maxprice;
+      }      
+    }
+    if(index == 0){
+      lastRotation = position.r;
+    }
   });
 
   DualPantoFramework.run_script([
-    () => VoiceInteraction.speakText('You are here', 'EN'),
+    () => VoiceInteraction.speakText({'EN' : 'You are here', 'DE' : 'Du bist hier'}[language], language),
     () => device.movePantoTo(0, startPosition),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('at Berlin Alexanderplatz', 'EN'),
+    () => VoiceInteraction.speakText({'EN' : 'at Berlin Alexanderplatz', 'DE' : 'am Alexanderplatz'}[language], language),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('that is in Mitte', 'EN'),
+    () => VoiceInteraction.speakText({'EN' : 'that is in Berlin Mitte', 'DE' : 'Das liegt in Berlin Mitte'}[language], language),
     () => showMitte(),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('Commands: apartments, where am I, search criteria, help', 'EN'),
+    () => VoiceInteraction.speakText({'EN' : 'say: apartments, where am I, search criteria, help', 'DE' : 'sag: Wohnungen, Wo bin ich, Suchkriterien, Hilfe'}[language], language),
     () => DualPantoFramework.waitMS(500),
-    () => VoiceInteraction.speakText('You can also walk around and find apartments by your own', 'EN'),
+    () => VoiceInteraction.speakText({'EN' : 'Or walk around the city with the me handle', 'DE' : 'oder laufe mit dem me handle durch die Stadt.'}[language], language),
     () => device.unblockHandle(0),
     () => refollow(),
     () => VoiceInteraction.beginListening()
@@ -192,16 +225,16 @@ const start = ()=> {
 
   //'Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal'
   VoiceInteraction.on('keywordRecognized', function(word){
-    if(filterActive && word === 'Preis hoch'){
+    if(filterActive && (word === 'Preis hoch' || word === 'price up')){
       if(maxprice + 100 > 1000){
         maxprice = maxprice + 1000;
       }else{
         maxprice = maxprice + 100;
       }
-      VoiceInteraction.speakText('Der neue Maximal preis beträgt ' + maxprice + ' Euro im Monat.');
+      VoiceInteraction.speakText({'EN' : 'The new maximum price is ' + maxprice, 'DE' : 'Der neue Maximal preis beträgt ' + maxprice}[language], language);
       filter.price = true;
     }
-    if(filterActive && word === 'Preis runter'){
+    if(filterActive && (word === 'Preis runter' || word === 'price down')){
       if(maxprice - 1000 < 1000){
         maxprice = maxprice - 100;
       }else{
@@ -210,56 +243,56 @@ const start = ()=> {
       if(maxprice < 0){
         maxprice = 0;
       }
-      VoiceInteraction.speakText('Der neue Maximal preis beträgt ' + maxprice + ' Euro im Monat.');
+      VoiceInteraction.speakText({'EN' : 'The new maximum price is ' + maxprice, 'DE' : 'Der neue Maximal preis beträgt ' + maxprice}[language], language);
       filter.price = true;
     }
-    if(filterActive && word === 'Preis ist egal'){
-      VoiceInteraction.speakText('Der Maximalpreis Filter wurde entfernt.');
+    if(filterActive && (word === 'Preis ist egal' || word === 'price does not matter')){
+      VoiceInteraction.speakText({'EN' : 'Maximal Price removed', 'DE' : 'Maximalpreis entfernt'}[language], language);
       filter.price = false;
     }
-    if(word === 'Wohnungen'){
+    if(word === 'Wohnungen' || word === 'apartments'){
       showApartments();
     }
-    if(filterActive && word === 'mehr Räume'){
+    if(filterActive && (word === 'mehr Räume' || word === 'more rooms')){
       minRooms = minRooms + 1;
       filter.amountRooms = true;
-      VoiceInteraction.speakText('Die Mindestanzahl der Räume wurde auf ' + minRooms + ' festgelegt.');
+      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms is ' + minRooms, 'DE' : 'Minimalanzahl an Räumen ist ' + minRooms}[language], language);
     }
-    if(filterActive && word === 'weniger Räume'){
+    if(filterActive && (word === 'weniger Räume' || word === 'less rooms')){
       minRooms = minRooms - 1;
       filter.amountRooms = true;
-      VoiceInteraction.speakText('Die Mindestanzahl der Räume wurde auf ' + minRooms + ' festgelegt.');
+      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms is ' + minRooms, 'DE' : 'Minimalanzahl an Räumen ist ' + minRooms}[language], language);
     }
-    if(filterActive && word === 'Anzahl der Räume ist egal'){
+    if(filterActive && (word === 'Anzahl der Räume ist egal' || word === 'rooms do not matter')){
       filter.amountRooms = false;
-      VoiceInteraction.speakText('Der Räumefilter wurde entfernt.');
+      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms removed', 'DE' : 'Minimalanzahl an Räumen entfernt'}[language], language);
     }
-    if(filterActive && word === 'Keller ist notwendig'){
-      VoiceInteraction.speakText('Es werden nur noch Wohnungen mit Keller gezeigt.');
+    if(filterActive && (word === 'Keller ist notwendig' || word === 'cellar required')){
+      VoiceInteraction.speakText({'EN' : 'Cellar only', 'DE' : 'Keller notwendig'}[language], language);
       wantCeller = true;
       filter.cellar = false;
     }
-    if(filterActive && word === 'kein Keller'){
-      VoiceInteraction.speakText('Es werden nur noch Wohnungen ohne Keller gezeigt.');
+    if(filterActive && (word === 'kein Keller' || word === 'no cellar')){
+      VoiceInteraction.speakText({'EN' : 'without Cellar', 'DE' : 'Keller fehlt'}[language], language);
       wantCeller = false;
       filter.cellar = false;
     }
-    if(filterActive && word === 'Keller ist egal'){
-      VoiceInteraction.speakText('Es werden Wohnungen unabhängig vom Keller gezeigt.');
+    if(filterActive && (word === 'Keller ist egal' || word === 'cellar does not matter')){
+      VoiceInteraction.speakText({'EN' : 'Cellar does not matter', 'DE' : 'Keller egal'}[language], language);
       filter.cellar = false;
     }
-    if(filterActive && word === 'Größe anheben'){
+    if(filterActive && (word === 'Größe anheben' || word === 'increase size')){
       minSize = minSize + 25;
-      VoiceInteraction.speakText('Die Mindestgröße wurde auf ' + minSize + ' Quadratmeter gesetzt.')
+      VoiceInteraction.speakText({'EN' : 'Minimum size is ' + minSize, 'DE' : 'Minimalgröße ist ' + minSize}[language], language);
       filter.size = false;
     }
-    if(filterActive && word === 'Größe verringern'){
+    if(filterActive && (word === 'Größe verringern' || word === 'decrease size')){
       minSize = minSize - 25;
-      VoiceInteraction.speakText('Die Mindestgröße wurde auf ' + minSize + ' Quadratmeter gesetzt.')
+      VoiceInteraction.speakText({'EN' : 'Minimum size is ' + minSize, 'DE' : 'Minimalgröße ist ' + minSize}[language], language);
       filter.size = false;
     }
-    if(filterActive && word === 'Größe ist egal'){
-      VoiceInteraction.speakText('Der Mindestgrößenfilter wurde entfernt.')
+    if(filterActive && (word === 'Größe ist egal' || word === 'size does not matter')){
+      VoiceInteraction.speakText({'EN' : 'Minimum size removed', 'DE' : 'Minimalgröße entfernt'}[language], language)
       filter.size = false;
     }
     if(word === 'Berlin'){
@@ -274,44 +307,51 @@ const start = ()=> {
     if(word === 'Kreuzberg'){
       moveToKreuzberg();
     }
-    if(word === 'Hilfe'){
+    if(word === 'Hilfe' || word === 'help'){
       if(filterActive){
         firstTimefiler = true;
         initFilter();
-      }else{
+      }else if(!helpRunning){
+        helpRunning = true;
         help();
       }
     }
-    if(word === 'Filter'){
+    if(word === 'Suchkriterien' || word === 'search criteria'){
       initFilter();
     }
-    if(word === 'Stop' || word === 'stop' || word === 'halt' || word === 'abbrechen' || word === 'Abbruch'){
+    if(word === 'Stop' || word === 'stop' || word === 'halt' || word === 'abbrechen' || word === 'Abbruch' || word === 'cancel'){
       stop = true;
     }
-    if(filterActive && word === 'fertig'){
+    if(filterActive && (word === 'fertig' || word === 'done')){
       closeFilter();
     }
-    if(word === 'Wo bin ich'){
+    if(word === 'Wo bin ich' || word === 'where am I'){
       follow = false;
       locationhelp();
+    }
+    if(word === 'Details' || word === 'details'){
+      if(currentApartment){
+        stop = true;
+        getDetails();
+      }
     }
   });
 }
 
 const locationhelp = () => {
   let temp = [];
-  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Hier'));
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'Here', 'DE' : 'Hier'}[language], language));
   temp.push(() => stop ? nothing() : device.movePantoTo(1, startPosition));
-  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Ist der Alexanderplatz'));
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'is the Alexanderplatz', 'DE' : 'Ist der Alexanderplatz'}[language], language));
   temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Die S sieben fährt hier lang'));
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'the s seven is going along this way', 'DE' : 'Die S sieben fährt hier lang'}[language], language));
   temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
   for(const station of s7){
     temp.push(() => stop ? nothing() : device.movePantoTo(1, station.point));
     temp.push(() => stop ? nothing() : VoiceInteraction.speakText(station.name));
     temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
   }
-  temp.push(() => stop ? nothing() : VoiceInteraction.speakText('Die S eins fährt hier lang'));
+  temp.push(() => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'the s one is going along this way', 'DE' : 'Die S eins fährt hier lang'}[language], language));
   temp.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
   for(const station of s1){
     temp.push(() => stop ? nothing() : device.movePantoTo(1, station.point));
@@ -326,55 +366,71 @@ const locationhelp = () => {
 const initFilter = () =>{
   filterActive = true;
   DualPantoFramework.run_script([
-    () => stop ? nothing() : VoiceInteraction.speakText('Filtermenü. Sage fertig um das Menü zu verlassen'),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'search criteria menu. Say done to leave', 'DE' : 'Suchkriterienmenü. Sage fertig um das Menü zu verlassen'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Es gibt verschiedene Filter: Preis, Anzahl der Räume, Keller vorhanden undGröße'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'there are different search criteria: price, rooms, cellar and size', 'DE' : 'Es gibt verschiedene Suchkriterien: Preis, Räume, Keller und Größe'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Preisfilter zu aktivieren musst du einen Maximalpreis setzen.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'The price search criteria sets a maximum price.', 'DE' : 'Um das Preissuchkriterium zu aktivieren musst du einen Maximalpreis setzen.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando Preis hoch oder Preis runter, kannst du den Preisfilter aktivieren und gleichzeitig den Preis anpassen.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'Say price up or down to change the maximum price.', 'DE' : 'Mit dem Kommando Preis hoch oder Preis runter, kannst du das Preissuchkriterium aktivieren und gleichzeitig den Preis anpassen.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Preisfilter deaktivieren, sage Preis ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'with price does not matter can you deactivate the search criteria', 'DE' : 'Möchtest du das Preissuchkriterium deaktivieren, sage Preis ist egal.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Raumfilter zu aktivieren musst du einen Mindestanzahl an Räumen setzen.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'The room search criteria sets a minimum amount of rooms.', 'DE' : 'Um das Raumsuchkriterium zu aktivieren musst du einen Mindestanzahl an Räumen setzen.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando mehr Räume oder weniger Räume, kannst du den Raumfilter aktivieren und gleichzeitig die Mindestanzahl an Räumen anpassen.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'Say more or less rooms to change the minimum', 'DE' : 'Mit dem Kommando mehr Räume oder weniger Räume, kannst du das Raumsuchkriterium aktivieren und gleichzeitig die Mindestanzahl an Räumen anpassen.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Raumfilter deaktivieren, sage Anzahl der Räume ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'To deactivate the search criteria say rooms do not matter', 'DE' : 'Möchtest du das Raumsuchkriterium deaktivieren, sage Anzahl der Räume ist egal.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Kellerfilter zu aktivieren musst du angeben, ob du einen Keller möchtest oder nicht.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'The cellar search criteria filters apartments for the existences of cellars', 'DE' : 'Um das Kellersuchkriterium zu aktivieren musst du angeben, ob du einen Keller möchtest oder nicht.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando Keller ist notwendig oder kein Keller, setzt du deine Präferenz und aktivierst den Keller.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'Say cellar needed or no cellar to change your preferences.', 'DE' : 'Mit dem Kommando Keller ist notwendig oder kein Keller, setzt du deine Präferenz und aktivierst den Keller.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Kellerfilter deaktivieren, sage Keller ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'cellar does not matter deactivates the search criteria', 'DE' : 'Möchtest du das Kellersuchkriterium deaktivieren, sage Keller ist egal.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Um den Größenfilter zu aktivieren musst du eine Mindestgröße setzen.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'The size search criteria sets a minimum size.', 'DE' : 'Um das Größensuchkriterium zu aktivieren musst du eine Mindestgröße setzen.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Mit dem Kommando Größe anheben oder Größe verringern, kannst du den Größenfilter aktivieren und gleichzeitig die Mindestgröße anpassen.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'say increase or decrease size to adjust the value', 'DE' : 'Mit dem Kommando Größe anheben oder Größe verringern, kannst du das Größensuchkriterium aktivieren und gleichzeitig die Mindestgröße anpassen.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText('Möchtest du den Größenfilter deaktivieren, sage Größe ist egal.'),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'size does not matter deactivates the search criteria', 'DE' : 'Möchtest du das Größensuchkriterium deaktivieren, sage Größe ist egal.'}[language], language),
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
     () => filterintroDone(),
     () => resume()
   ]);
 }
 
+const initNewFilter = () =>{
+  filterActive = true;
+  const currentRotation = device.getMePosition().r;
+  DualPantoFramework.run_script([
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'search criteria menu. Say done to leave', 'DE' : 'Suchkriterienmenü. Sage fertig um das Menü zu verlassen'}[language], language),
+    () => stop ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'there are different search criteria: price, rooms, cellar and size', 'DE' : 'Es gibt verschiedene Suchkriterien: Preis, Räume, Keller und Größe'}[language], language),
+    () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
+    () => stop || !firstTimefiler ? nothing() : VoiceInteraction.speakText({'EN' : 'which one do you want to set?', 'DE' : 'Welches möchtest du einstellen?'}[language], language),
+    () => resume()
+  ]);
+}
+
+const configurePrice = () => {
+  priceActive = true;
+  VoiceInteraction.speakText({'EN' : 'rotate the me handle to set the price. Say done when you are finished', 'DE' : 'drehe den oberen Griff um den Preis einzustellen. Sage fertig wenn du den Preis eingestellt hast.'}[language], language);
+}
+
 const closeFilter = () => {
   stop = true;
-  VoiceInteraction.speakText('Filtermenü geschlossen');
+  VoiceInteraction.speakText({'EN' : 'Search criteria menu closed', 'DE' : 'Suchkriterienmenü geschlossen'}[language], language);
   filterActive = false;
   setTimeout(resume, 500);
 }
 
 const help = ()=> {
   DualPantoFramework.run_script([
-    () => stop ? nothing() : VoiceInteraction.speakText('Sage Wo bin ich und ich gebe dir Anhaltspunkte in Berlin.'),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'say where am I and I show you knowen points', 'DE' : 'Sage Wo bin ich und ich gebe dir Anhaltspunkte in Berlin.'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop ? nothing() : VoiceInteraction.speakText('Sage Wohnungen und ich zeige dir alle Wohnungen.'),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'say apartments and I show you apartments', 'DE' : 'Sage Wohnungen und ich zeige dir alle Wohnungen.'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop ? nothing() : VoiceInteraction.speakText('Du kannst auch selbst herumlaufen und Wohnungen finden.'),
-    () => stop ? nothing() : DualPantoFramework.waitMS(500),
-    () => stop ? nothing() : VoiceInteraction.speakText('Mit Filter öffnest du das Filtermenü.'),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'say search criteria and you open the specific menu', 'DE' : 'Mit Suchkriterien öffnest du das entsprechende Menü.'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
     () => resume()
   ]);
@@ -385,21 +441,12 @@ const showApartments = ()=> {
   let script = [];
   for(const apartment of apartments){
     if(apartment.matchFilters()){
-      const hasCellar = apartment.cellar ? 'einen' : 'keinen';
-      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Hier'));
+      script.push(() => stop ? nothing() : setCurrentApartment(apartment));
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'Here', 'DE' : 'Hier'}[language], language));
       script.push(() => stop ? nothing() : device.movePantoTo(1, apartment.cords));
       script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-      script.push(() => stop ? nothing() : VoiceInteraction.speakText('ist eine Wohnung in ' + apartment.area));
-      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung Kostet ' + apartment.price + ' Euro im Monat.'));
-      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung ist ' + apartment.size + ' Quadratmeter groß.'));
-      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung hat ' + apartment.amountRooms + ' Räume.'));
-      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-      script.push(() => stop ? nothing() : VoiceInteraction.speakText('Die Wohnung hat' + hasCellar + ' Keller.'));
-      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(500));
-
+      script.push(() => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'is an apartment', 'DE' : 'ist eine Wohnung'}[language], language));
+      script.push(() => stop ? nothing() : DualPantoFramework.waitMS(2000));
     }
   }
   script.push(() => refollow());
@@ -423,7 +470,7 @@ const moveToKreuzberg = ()=> {
     currentArea = 'Kreuzberg';
     area = 'Kreuzberg';
     DualPantoFramework.run_script([
-      () => VoiceInteraction.speakText('Du bist jetzt in Kreuzberg'),
+      () => VoiceInteraction.speakText({'EN' : 'You are now in Kreuzberg', 'DE' : 'Du bist jetzt in Kreuzberg'}[language], language),
       () => DualPantoFramework.waitMS(1000),
       () => refollow(),
       () => device.unblockHandle(0)
@@ -447,7 +494,7 @@ const moveToTempelhof = ()=> {
     currentArea = 'Tempelhof';
     area = 'Tempelhof';
     DualPantoFramework.run_script([
-      () => VoiceInteraction.speakText('Du bist jetzt in Tempelhof'),
+      () => VoiceInteraction.speakText({'EN' : 'You are now in Tempelhof', 'DE' : 'Du bist jetzt in Tempelhof'}[language], language),
       () => DualPantoFramework.waitMS(1000),
       () => refollow(),
       () => device.unblockHandle(0)
@@ -471,7 +518,7 @@ const moveToMitte = ()=> {
     currentArea = 'Mitte';
     area = 'Mitte';
     DualPantoFramework.run_script([
-      () => VoiceInteraction.speakText('Du bist jetzt in Mitte'),
+      () => VoiceInteraction.speakText({'EN' : 'You are now in Mitte', 'DE' : 'Du bist jetzt in Mitte'}[language], language),
       () => DualPantoFramework.waitMS(1000),
       () => refollow(),
       () => device.unblockHandle(0)
@@ -504,6 +551,9 @@ const nothing = () =>{
 const resume = () =>{
   return new Promise(resolve => {
     stop = false;
+    if(helpRunning){
+      helpRunning = !helpRunning;
+    }
     resolve(resolve);
   });
 }
@@ -538,4 +588,12 @@ const showMitte = () => {
     resolve(resolve);
   });
 }
+
+const setCurrentApartment = (apartment) => {
+  return new Promise (resolve => {
+    currentApartment = apartment;
+    resolve(resolve);
+  });
+}
+
 
