@@ -121,7 +121,7 @@ const uint32_t encoderSteps[] = {
     ${aggregate('encoder_steps')}
 };
 const uint32_t encoderSpiIndex[] = {
-    ${aggregate('encoder_spiIndex', -1)}
+    ${aggregate('encoder_spiIndex', 0xffffffff)}
 };
 const float setupAngle[] = {
     ${aggregate('encoder_setup')}

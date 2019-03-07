@@ -25,13 +25,13 @@ struct SPIPacket
 
 namespace SPICommands
 {
-    const uint16_t c_readAngle;
-    const uint16_t c_clearError;
-    const uint16_t c_nop;
-    const uint16_t c_highZeroRead;
-    const uint16_t c_lowZeroRead;
-    const uint16_t c_highZeroWrite;
-    const uint16_t c_lowZeroWrite;
+    extern const uint16_t c_readAngle;
+    extern const uint16_t c_clearError;
+    extern const uint16_t c_nop;
+    extern const uint16_t c_highZeroRead;
+    extern const uint16_t c_lowZeroRead;
+    extern const uint16_t c_highZeroWrite;
+    extern const uint16_t c_lowZeroWrite;
 };
 
 class SPIEncoder
@@ -52,16 +52,17 @@ class SPIEncoderChain
 {
 private:
     SPISettings m_settings;
-    SPIClass m_spi;
     uint32_t m_numberOfEncoders;
     std::vector<SPIEncoder> m_encoders;
     static const uint32_t c_hspiSsPin = 15;
     void begin();
+    void step();
     void end();
     std::vector<uint16_t> getZero();
     void transfer(uint16_t transmission);
     void setZero(std::vector<uint16_t> newZero);
 public:
+    SPIClass m_spi;
     SPIEncoderChain(uint32_t numberOfEncoders);
     void update();
     void clearError();

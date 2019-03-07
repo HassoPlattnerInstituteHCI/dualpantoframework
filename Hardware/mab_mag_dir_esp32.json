@@ -12,7 +12,7 @@
                 "linkage": {
                     "innerLength": 100,
                     "outerLength": 125,
-                    "baseX": -51,
+                    "baseX": -31.5,
                     "baseY": 0
                 },
                 "motor": {
@@ -32,7 +32,7 @@
                 "linkage": {
                     "innerLength": 100,
                     "outerLength": 125,
-                    "baseX": 51,
+                    "baseX": 31.5,
                     "baseY": 0
                 },
                 "motor": {

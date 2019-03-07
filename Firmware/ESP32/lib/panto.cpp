@@ -1,4 +1,5 @@
 #include "panto.hpp"
+#include <serial.hpp>
 
 float Panto::dt = 0;
 Panto pantos[pantoCount];
@@ -7,12 +8,30 @@ void Panto::forwardKinematics()
 {
     inner[0] = base[0] + Vector2D::fromPolar(actuationAngle[0], linkageInnerLength[dofIndex + 0]);
     inner[1] = base[1] + Vector2D::fromPolar(actuationAngle[1], linkageInnerLength[dofIndex + 1]);
+    //DPSerial::sendDebugLog("inner0: %+08.3f | %+08.3f inner1: %+08.3f | %+08.3f", inner[0].x, inner[0].y, inner[1].x, inner[1].y);
     Vector2D diagonal = inner[1] - inner[0];
     // innerAngle[0] = diagonal.angle()-acos(diagonal.length()/(linkageOuterLength[dofIndex+0]+linkageOuterLength[dofIndex+1]));
+    //DPSerial::sendDebugLog("angle %+08.3f acos %+08.3f", diagonal.angle(), acos((diagonal * diagonal + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0])));
+
+    auto diagSquared = diagonal * diagonal;
+    auto lol0Sq = linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0];
+    auto lol1Sq = linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1];
+    auto dividend = (diagSquared + lol0Sq - lol1Sq);
+
+    auto divisor = (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]);
+
+    auto acosv = acos(dividend / divisor);
+
+    //DPSerial::sendDebugLog("diaX %+08.3f diaY %+08.3f diaSq %+08.3f lol0 %+08.3f lol0Sq %+08.3f lol1 %+08.3f lol1Sq %+08.3f divid %+08.3f diaL %+08.3f divis %+08.3f acosv %+08.3f", diagonal.x, diagonal.y, diagSquared, linkageOuterLength[dofIndex + 0], lol0Sq, linkageOuterLength[dofIndex + 1], lol1Sq, dividend, diagonal.length(), divisor, acosv);
+
     innerAngle[0] = diagonal.angle() - acos((diagonal * diagonal + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]));
+    //DPSerial::sendDebugLog("innerAngle[0]: %+08.3f linkageOuterLength[dofIndex + 0]: %+08.3f inner[0].x: %+08.3f inner[0].y: %+08.3f", innerAngle[0], linkageOuterLength[dofIndex + 0], inner[0].x, inner[0].y);
     handle = Vector2D::fromPolar(innerAngle[0], linkageOuterLength[dofIndex + 0]) + inner[0];
+    //DPSerial::sendDebugLog("handle: %+08.3f inner[1]: %+08.3f", handle, inner[1]);
     innerAngle[1] = (handle - inner[1]).angle();
     pointingAngle = actuationAngle[2] + innerAngle[linkageHandleMount[dofIndex + 2]];
+    //DPSerial::sendDebugLog("pointing: %+08.3f", pointingAngle);
+    //DPSerial::sendDebugLog("innerA0: %+08.3f innerA1: %+08.3f", innerAngle[0], innerAngle[1]);
 
     J[0][0] = -linkageInnerLength[dofIndex + 0] * sin(actuationAngle[0]) -
               (linkageInnerLength[dofIndex + 0] * sin(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[0])) / (sin(innerAngle[0] - innerAngle[1]));
@@ -20,6 +39,7 @@ void Panto::forwardKinematics()
               (linkageInnerLength[dofIndex + 0] * cos(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[0])) / (sin(innerAngle[0] - innerAngle[1]));
     J[1][0] = (linkageInnerLength[dofIndex + 1] * sin(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[1])) / (sin(innerAngle[0] - innerAngle[1]));
     J[1][1] = -(linkageInnerLength[dofIndex + 1] * cos(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[1])) / (sin(innerAngle[0] - innerAngle[1]));
+    //DPSerial::sendDebugLog("J[0][0]: %+08.3f J[0][1]: %+08.3f J[1][0]: %+08.3f J[1][1]: %+08.3f", J[0][0], J[0][1], J[1][0], J[1][1]);
 };
 
 void Panto::inverseKinematicsHelper(float inverted, float diff, float factor, float threshold)
@@ -129,17 +149,40 @@ void Panto::calibrationEnd()
 
 void Panto::readEncoders()
 {
+    // for (unsigned char i = 0; i < 3; ++i)
+    //     actuationAngle[i] = 
+    //         (encoder[i]) ? 
+    //         2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i] : 
+    //         #ifdef LINKAGE_ENCODER_USE_SPI
+    //         (i < 2 && dofIndex == 0 ? 
+    //         2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i] : 
+    //         NAN);
+    //         #else
+    //         NAN;
+    //         #endif
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    if(dofIndex > 0)
+        return;
+    //DPSerial::sendDebugLog("%04X %04X", angleAccessors[0](), angleAccessors[1]());
+    for (unsigned char i = 0; i < 2; ++i)
+    {
+        actuationAngle[i] =
+            2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i];
+        if(actuationAngle[i] > PI)
+        {
+            actuationAngle[i] -= 2*PI;
+        }
+    }
+    actuationAngle[2] = (encoder[2]) ? 
+        (2 * PI * encoder[2]->read() / encoderSteps[dofIndex + 2]) : NAN;
+    #else
     for (unsigned char i = 0; i < 3; ++i)
-        actuationAngle[i] = 
-            (encoder[i]) ? 
-            2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i] : 
-            #ifdef LINKAGE_ENCODER_USE_SPI
-            i < 2 ? 
-            2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i] : 
-            NAN;
-            #else
-            NAN;
-            #endif;
+    actuationAngle[i] = 
+        (encoder[i]) ? 
+        (2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i]) :
+        NAN;
+    #endif
+    
     actuationAngle[2] = fmod(actuationAngle[2], 2 * PI);
 };
 
