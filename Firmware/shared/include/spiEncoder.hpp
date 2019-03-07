@@ -52,17 +52,16 @@ class SPIEncoderChain
 {
 private:
     SPISettings m_settings;
+    SPIClass m_spi;
     uint32_t m_numberOfEncoders;
     std::vector<SPIEncoder> m_encoders;
     static const uint32_t c_hspiSsPin = 15;
     void begin();
-    void step();
     void end();
     std::vector<uint16_t> getZero();
     void transfer(uint16_t transmission);
     void setZero(std::vector<uint16_t> newZero);
 public:
-    SPIClass m_spi;
     SPIEncoderChain(uint32_t numberOfEncoders);
     void update();
     void clearError();

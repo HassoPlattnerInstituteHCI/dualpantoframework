@@ -59,7 +59,6 @@ SPIEncoder::SPIEncoder(SPIClass* spi) : m_spi(spi) { };
 void SPIEncoder::transfer(uint16_t transmission)
 {
     m_lastPacket = SPIPacket(m_spi->transfer16(transmission));
-    //DPSerial::sendDebugLog("%04X >>> %04X", transmission, m_lastPacket.m_transmission);
 }
 
 uint32_t SPIEncoder::getAngle()
@@ -73,18 +72,11 @@ void SPIEncoderChain::begin()
     digitalWrite(c_hspiSsPin, LOW);
 }
 
-void SPIEncoderChain::step()
-{
-    digitalWrite(c_hspiSsPin, HIGH);
-    delay(1); // TODO: remove or make smaller
-    digitalWrite(c_hspiSsPin, LOW);
-}
-
 void SPIEncoderChain::end()
 {
     digitalWrite(c_hspiSsPin, HIGH);
     m_spi.endTransaction();
-    delay(1); // TODO: remove or make smaller
+    //delay(1); // TODO: remove or make smaller
 }
 
 void SPIEncoderChain::transfer(uint16_t transmission)
@@ -99,7 +91,6 @@ void SPIEncoderChain::transfer(uint16_t transmission)
 
 void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
 {
-    //DPSerial::sendDebugLog("setZero(std::vector<uint16_t> newZero)");
     transfer(SPICommands::c_highZeroWrite);
 
     begin();
@@ -122,16 +113,14 @@ void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
 }
 
 SPIEncoderChain::SPIEncoderChain(uint32_t numberOfEncoders)
-: m_settings(1000000, SPI_MSBFIRST, SPI_MODE1)
+: m_settings(10000000, SPI_MSBFIRST, SPI_MODE1)
 , m_spi(HSPI)
 , m_numberOfEncoders(numberOfEncoders)
 , m_encoders(numberOfEncoders, &m_spi)
 {
     m_spi.begin();
     pinMode(c_hspiSsPin, OUTPUT);
-    //DPSerial::sendDebugLog("initial clearError");
     clearError();
-    //DPSerial::sendDebugLog("initial update");
     update();
 }
 
@@ -163,11 +152,9 @@ void SPIEncoderChain::update()
 
 void SPIEncoderChain::clearError()
 {
-    //DPSerial::sendDebugLog("request clear, don't care about return value");
     // first pass - request clear, don't care about return value
     transfer(SPICommands::c_clearError);
 
-    //DPSerial::sendDebugLog("don't care about request, return value contains error flags");
     // second pass - don't care about request, return value contains error flags
     transfer(SPICommands::c_nop);
 
@@ -186,14 +173,12 @@ void SPIEncoderChain::clearError()
         }
     }
 
-    //DPSerial::sendDebugLog("request angle again as preparation for next update, don't care about return value - it's just the empty registers");
     // third pass - request angle again as preparation for next update, don't care about return value - it's just the empty registers
     transfer(SPICommands::c_readAngle);
 }
 
 std::vector<uint16_t> SPIEncoderChain::getZero()
 {
-    //DPSerial::sendDebugLog("getZero()");
     // first pass - request high part of zero, don't care about current return value
     transfer(SPICommands::c_highZeroRead);
 
@@ -220,7 +205,6 @@ std::vector<uint16_t> SPIEncoderChain::getZero()
 
 void SPIEncoderChain::setZero()
 {
-    //DPSerial::sendDebugLog("setZero()");
     auto currentZero = getZero();
     update();
 
@@ -236,7 +220,6 @@ void SPIEncoderChain::setZero()
 
 bool SPIEncoderChain::needsZero()
 {
-    //DPSerial::sendDebugLog("needsZero()");
     auto currentZero = getZero();
 
     bool allZero = true;
@@ -263,7 +246,6 @@ void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
     {
         newZero[i] = currentZero[i] + m_encoders[i].m_lastValidAngle;
         newZero[i] -= positions[i];
-        DPSerial::sendDebugLog("cz: %i, la: %i, po: %i, nz: %i", currentZero[i], m_encoders[i].m_lastValidAngle, positions[i], newZero[i]);
     }
 
     setZero(newZero);
