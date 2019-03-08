@@ -1,11 +1,11 @@
 {
-    "firmware": "Arduino",
+    "firmware": "ESP32",
     "baseDist": 21.5,
     "opMinDist": 15,
     "opMaxDist": 120,
     "opAngle": 2.2,
     "forceFactor": 0.01,
-    "dummyPin": 0,
+    "dummyPin": 40,
     "pantos": {
         "upper": {
             "left": {
@@ -16,16 +16,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 2,
-                    "dirAPin": 25,
-                    "dirBPin": 23,
+                    "pwmPin": 15,
+                    "dirAPin": 2,
+                    "dirBPin": 0,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 48,
-                    "bPin": 46,
+                    "aPin": 4,
+                    "bPin": 16,
                     "steps": 15360,
                     "setup": -0.5
                 }
@@ -38,16 +38,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 8,
-                    "dirAPin": 10,
-                    "dirBPin": 9,
+                    "pwmPin": 17,
+                    "dirAPin": 5,
+                    "dirBPin": 18,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 52,
-                    "bPin": 50,
+                    "aPin": 19,
+                    "bPin": 21,
                     "steps": 15360,
                     "setup": -0.05
                 }
@@ -57,16 +57,11 @@
                     "handleMount": 1
                 },
                 "motor": {
-                    "pwmPin": 3,
-                    "dirAPin": 34,
-                    "dirBPin": 36,
                     "flipped": false,
                     "powerLimit": 0.2,
                     "pidFactor": [0.6, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 32,
-                    "bPin": 30,
                     "steps": 136,
                     "setup": 0.0
                 }
@@ -81,16 +76,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 7,
-                    "dirAPin": 5,
-                    "dirBPin": 6,
+                    "pwmPin": 22,
+                    "dirAPin": 23,
+                    "dirBPin": 13,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 26,
-                    "bPin": 28,
+                    "aPin": 12,
+                    "bPin": 14,
                     "steps": 15360,
                     "setup": -0.45
                 }
@@ -103,16 +98,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 13,
-                    "dirAPin": 11,
-                    "dirBPin": 12,
+                    "pwmPin": 27,
+                    "dirAPin": 26,
+                    "dirBPin": 25,
                     "flipped": false,
                     "powerLimit": 0.4,
                     "pidFactor": [1.0, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 22,
-                    "bPin": 24,
+                    "aPin": 33,
+                    "bPin": 32,
                     "steps": 15360,
                     "setup": 0.0
                 }
@@ -122,16 +117,11 @@
                     "handleMount": 0
                 },
                 "motor": {
-                    "pwmPin": 4,
-                    "dirAPin": 38,
-                    "dirBPin": 40,
                     "flipped": false,
                     "powerLimit": 0.2,
                     "pidFactor": [0.6, 0.0, 0.01]
                 },
                 "encoder": {
-                    "aPin": 42,
-                    "bPin": 44,
                     "steps": 600,
                     "setup": 0.0
                 }

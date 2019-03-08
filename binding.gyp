@@ -1,7 +1,7 @@
 {
     "targets": [{
         "target_name": "serial",
-        "sources": [ "./serial.c" ],
+        "sources": [ "./Utils/Serial/serial.cpp", "./Protocol/protocol.cpp" ],
         "defines": [ "NODE_GYP" ]
     }]
 }
