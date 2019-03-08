@@ -1,7 +1,14 @@
 {
   "name": "dualpantoframework",
   "version": "0.2.0",
-  "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff",
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true
+    },
+    "extends": "google"
+  },
+  "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff, Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner",
   "main": "lib/dualpantoframework.js",
   "scripts": {
     "test": "node test.js",
