@@ -186,7 +186,7 @@ const areaChange = () => {
 const start = ()=> {
   if(language === 'EN'){
     console.log('english input');
-    VoiceInteraction.setCommands(['apartments', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin', 'price up', 'price down', 'more rooms', 'less rooms', 'cellar needed', 'meet basement', 'need cellar', 'no cellar', 'increase size', 'decrease size', 'prices does not matter', 'size does not matter', 'cellar does not matter', 'rooms do not matter', 'help', 'search criteria', 'done', 'where am I', 'stop', 'cancel', 'details']);
+    VoiceInteraction.setCommands(['apartments', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin', 'price', 'rooms', 'cellar', 'size', 'prices does not matter', 'size does not matter', 'cellar does not matter', 'rooms do not matter', 'help', 'search criteria', 'done', 'where am I', 'stop', 'cancel', 'details']);
   }else{
     VoiceInteraction.setCommands(['Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin','Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal', 'Anzahl der Räume ist egal', 'Hilfe', 'Suchkriterien', 'Stop', 'stop', 'fertig', 'Wo bin ich', 'halt', 'abbrechen', 'Abbruch', 'Details']);
   }
@@ -205,7 +205,9 @@ const start = ()=> {
     }
     if(sizeActive && index == 0){
       const rotDifference = position.r - lastRotation;
-      minSize = minSize + Math.round(20 * rotDifference);
+      console.log(position.r, lastRotation, rotDifference);
+      minSize = minSize + Math.round(2000 * rotDifference);
+      console.log(minSize);
       if(Math.abs(minSize - lastSpokenSize) > 20){
         VoiceInteraction.speakText({'EN' : 'new minimum size: ' + minSize, 'DE' : 'Neue Minimalgröße: ' + minSize}[language], language);
         lastSpokenSize = minSize;
@@ -372,7 +374,7 @@ const locationhelp = () => {
 }
 
 const initFilter = () =>{
-  filterActive = true;
+  /*filterActive = true;
   DualPantoFramework.run_script([
     () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'search criteria menu. Say done to leave', 'DE' : 'Suchkriterienmenü. Sage fertig um das Menü zu verlassen'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
@@ -404,7 +406,8 @@ const initFilter = () =>{
     () => stop || !firstTimefiler ? nothing() : DualPantoFramework.waitMS(500),
     () => filterintroDone(),
     () => resume()
-  ]);
+  ]);*/
+  initNewFilter();
 }
 
 const initNewFilter = () =>{
