@@ -39,8 +39,15 @@
       "es6": true
     },
     "extends": "./node_modules/eslint-config-google/index.js",
-    "rules":{
-      "comma-dangle": ["error", "never"]
+    "rules": {
+      "comma-dangle": [
+        "error",
+        "never"
+      ],
+      "linebreak-style": [
+        "off",
+        "unix"
+      ]
     }
   }
 }
