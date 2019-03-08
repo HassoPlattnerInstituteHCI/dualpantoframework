@@ -17,6 +17,8 @@ let roomsActive = false;
 let cellarActive = false;
 let lastRotation = 0;
 let lastSpokenPrice = 0;
+let lastSpokenRooms = 0;
+let lastSpokenSize = 0;
 const s1 = [{name: 'Yorkstraße', point: new Vector(-150, -300, NaN)}, {name: 'Anhalter Bahnhof', point: new Vector(-60, -150, NaN)}, {name: 'Potsdamer Platz', point: new Vector(-50, -90, NaN)}, {name: 'Brandenburger Tor', point: new Vector(-70, -75, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}];
 const s7 = [{name: 'Bellevue', point: new Vector(-180, -100, NaN)}, {name: 'Berliner Hauptbahnhof', point: new Vector(-100, -35, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}, {name: 'Hackescher Markt', point: new Vector(-25, -50, NaN)}, {name: 'Alexanderplatz', point: new Vector(0, -75, NaN)},  {name: 'Jannowitzbrücke', point: new Vector(40, -100, NaN)}, {name: 'Ostbahnhof', point: new Vector(100, -120, NaN)}]
 
@@ -197,8 +199,36 @@ const start = ()=> {
       const rotDifference = position.r - lastRotation;
       maxprice = maxprice + Math.round(100 * rotDifference);
       if(Math.abs(maxprice - lastSpokenPrice) > 100){
-        VoiceInteraction.speakText({'EN' : 'new maximum price: ' + maxprice, 'DE' : 'Neuer maximalpreis: ' + maxprice}[language], language);
+        VoiceInteraction.speakText({'EN' : 'new maximum price: ' + maxprice, 'DE' : 'Neuer Maximalpreis: ' + maxprice}[language], language);
         lastSpokenPrice = maxprice;
+      }      
+    }
+    if(sizeActive && index == 0){
+      const rotDifference = position.r - lastRotation;
+      minSize = minSize + Math.round(20 * rotDifference);
+      if(Math.abs(minSize - lastSpokenSize) > 20){
+        VoiceInteraction.speakText({'EN' : 'new minimum size: ' + minSize, 'DE' : 'Neue Minimalgröße: ' + minSize}[language], language);
+        lastSpokenSize = minSize;
+      }      
+    }
+    if(cellarActive && index == 0){
+      const rotDifference = position.r - lastRotation;
+      if(rotDifference >= 2 * Math.PI){
+        if(filter.cellar){
+          filter.celler = false;
+          VoiceInteraction.speakText({'EN' : 'without cellar', 'DE' : 'ohne Keller'}[language], language);
+        }else{
+          filter.celler = true;
+          VoiceInteraction.speakText({'EN' : 'with cellar', 'DE' : 'mit Keller'}[language], language);
+        }
+      }      
+    }
+    if(roomsActive && index == 0){
+      const rotDifference = position.r - lastRotation;
+      minRooms = minRooms + Math.round(rotDifference / Math.PI);
+      if(Math.abs(minRooms - lastSpokenRooms) > 1){
+        VoiceInteraction.speakText({'EN' : 'new minimum amount of rooms: ' + minRooms, 'DE' : 'Minimale Anzahl an Räumen: ' + minRooms}[language], language);
+        lastSpokenRooms = minRooms;
       }      
     }
     if(index == 0){
@@ -225,75 +255,48 @@ const start = ()=> {
 
   //'Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal'
   VoiceInteraction.on('keywordRecognized', function(word){
-    if(filterActive && (word === 'Preis hoch' || word === 'price up')){
-      if(maxprice + 100 > 1000){
-        maxprice = maxprice + 1000;
-      }else{
-        maxprice = maxprice + 100;
-      }
-      VoiceInteraction.speakText({'EN' : 'The new maximum price is ' + maxprice, 'DE' : 'Der neue Maximal preis beträgt ' + maxprice}[language], language);
-      filter.price = true;
-    }
-    if(filterActive && (word === 'Preis runter' || word === 'price down')){
-      if(maxprice - 1000 < 1000){
-        maxprice = maxprice - 100;
-      }else{
-        maxprice = maxprice - 1000;
-      }
-      if(maxprice < 0){
-        maxprice = 0;
-      }
-      VoiceInteraction.speakText({'EN' : 'The new maximum price is ' + maxprice, 'DE' : 'Der neue Maximal preis beträgt ' + maxprice}[language], language);
-      filter.price = true;
-    }
     if(filterActive && (word === 'Preis ist egal' || word === 'price does not matter')){
-      VoiceInteraction.speakText({'EN' : 'Maximal Price removed', 'DE' : 'Maximalpreis entfernt'}[language], language);
-      filter.price = false;
+      if(priceActive){
+        priceActive = false;
+        VoiceInteraction.speakText({'EN' : 'Maximal Price removed', 'DE' : 'Maximalpreis entfernt'}[language], language);
+        filter.price = false;
+      }
     }
     if(word === 'Wohnungen' || word === 'apartments'){
       showApartments();
     }
-    if(filterActive && (word === 'mehr Räume' || word === 'more rooms')){
-      minRooms = minRooms + 1;
-      filter.amountRooms = true;
-      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms is ' + minRooms, 'DE' : 'Minimalanzahl an Räumen ist ' + minRooms}[language], language);
-    }
-    if(filterActive && (word === 'weniger Räume' || word === 'less rooms')){
-      minRooms = minRooms - 1;
-      filter.amountRooms = true;
-      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms is ' + minRooms, 'DE' : 'Minimalanzahl an Räumen ist ' + minRooms}[language], language);
-    }
     if(filterActive && (word === 'Anzahl der Räume ist egal' || word === 'rooms do not matter')){
-      filter.amountRooms = false;
-      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms removed', 'DE' : 'Minimalanzahl an Räumen entfernt'}[language], language);
-    }
-    if(filterActive && (word === 'Keller ist notwendig' || word === 'cellar required')){
-      VoiceInteraction.speakText({'EN' : 'Cellar only', 'DE' : 'Keller notwendig'}[language], language);
-      wantCeller = true;
-      filter.cellar = false;
-    }
-    if(filterActive && (word === 'kein Keller' || word === 'no cellar')){
-      VoiceInteraction.speakText({'EN' : 'without Cellar', 'DE' : 'Keller fehlt'}[language], language);
-      wantCeller = false;
-      filter.cellar = false;
+      if(roomsActive){
+        roomsActive = false;
+        filter.amountRooms = false;
+        VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms removed', 'DE' : 'Minimalanzahl an Räumen entfernt'}[language], language);
+      }
     }
     if(filterActive && (word === 'Keller ist egal' || word === 'cellar does not matter')){
-      VoiceInteraction.speakText({'EN' : 'Cellar does not matter', 'DE' : 'Keller egal'}[language], language);
-      filter.cellar = false;
-    }
-    if(filterActive && (word === 'Größe anheben' || word === 'increase size')){
-      minSize = minSize + 25;
-      VoiceInteraction.speakText({'EN' : 'Minimum size is ' + minSize, 'DE' : 'Minimalgröße ist ' + minSize}[language], language);
-      filter.size = false;
-    }
-    if(filterActive && (word === 'Größe verringern' || word === 'decrease size')){
-      minSize = minSize - 25;
-      VoiceInteraction.speakText({'EN' : 'Minimum size is ' + minSize, 'DE' : 'Minimalgröße ist ' + minSize}[language], language);
-      filter.size = false;
+      if(cellarActive){
+        cellarActive = false;
+        VoiceInteraction.speakText({'EN' : 'Cellar does not matter', 'DE' : 'Keller egal'}[language], language);
+        filter.cellar = false;
+      }
     }
     if(filterActive && (word === 'Größe ist egal' || word === 'size does not matter')){
-      VoiceInteraction.speakText({'EN' : 'Minimum size removed', 'DE' : 'Minimalgröße entfernt'}[language], language)
-      filter.size = false;
+      if(priceActive){
+        priceActive = false;
+        VoiceInteraction.speakText({'EN' : 'Minimum size removed', 'DE' : 'Minimalgröße entfernt'}[language], language)
+        filter.size = false;
+      }
+    }
+    if(filterActive && (word === 'Preis' || word === 'price') && !roomsActive && !cellarActive && !sizeActive){
+      configurePrice();
+    }
+    if(filterActive && (word === 'Räume' || word === 'rooms') && !priceActive && !cellarActive && !sizeActive){
+      configureRooms();
+    }
+    if(filterActive && (word === 'Keller' || word === 'cellar') && !roomsActive && !priceActive && !sizeActive){
+      configureCellar();
+    }
+    if(filterActive && (word === 'Größe' || word === 'size') && !roomsActive && !cellarActive && !priceActive){
+      configureSize();
     }
     if(word === 'Berlin'){
       moveToBerlin();
@@ -323,7 +326,12 @@ const start = ()=> {
       stop = true;
     }
     if(filterActive && (word === 'fertig' || word === 'done')){
-      closeFilter();
+      if(priceActive){
+        priceActive = false;
+        filter.price = true;
+      }else{
+        closeFilter();
+      }
     }
     if(word === 'Wo bin ich' || word === 'where am I'){
       follow = false;
@@ -414,8 +422,40 @@ const initNewFilter = () =>{
 
 const configurePrice = () => {
   priceActive = true;
-  VoiceInteraction.speakText({'EN' : 'rotate the me handle to set the price. Say done when you are finished', 'DE' : 'drehe den oberen Griff um den Preis einzustellen. Sage fertig wenn du den Preis eingestellt hast.'}[language], language);
+  DualPantoFramework.run_script([
+    () => VoiceInteraction.speakText({'EN' : 'rotate the me handle to set the price. Say done when you are finished', 'DE' : 'drehe den oberen Griff um den Preis einzustellen. Sage fertig wenn du den Preis eingestellt hast.'}[language], language),
+    () => DualPantoFramework.waitMS(500),
+    () => VoiceInteraction.speakText({'EN' : 'say price does not matter to deactivate the maximum price', 'DE' : 'sage Preis ist egal um den Maxmimalpreis zu deaktivieren'}[language], language)
+  ]);
 }
+
+const configureSize = () => {
+  sizeActive = true;
+  DualPantoFramework.run_script([
+    () => VoiceInteraction.speakText({'EN' : 'rotate the me handle to set the size. Say done when you are finished', 'DE' : 'drehe den oberen Griff um die Größe einzustellen. Sage fertig wenn du die Größe eingestellt hast.'}[language], language),
+    () => DualPantoFramework.waitMS(500),
+    () => VoiceInteraction.speakText({'EN' : 'say size does not matter to deactivate the minimum size', 'DE' : 'sage Größe ist egal um die Minimalgröße zu deaktivieren'}[language], language)
+  ]);
+}
+
+const configureRooms = () => {
+  roomsActive = true;
+  DualPantoFramework.run_script([
+    () => VoiceInteraction.speakText({'EN' : 'rotate the me handle to set the amount of rooms. Say done when you are finished', 'DE' : 'drehe den oberen Griff um die Anzahl der Räume einzustellen. Sage fertig wenn du alles eingestellt hast.'}[language], language),
+    () => DualPantoFramework.waitMS(500),
+    () => VoiceInteraction.speakText({'EN' : 'say rooms do not matter to deactivate the filter', 'DE' : 'sage Anzahl der Räume ist egal um den filter zu deaktivieren'}[language], language)
+  ]);
+}
+
+const configureCellar = () => {
+  cellarActive = true;
+  DualPantoFramework.run_script([
+    () => VoiceInteraction.speakText({'EN' : 'rotate the me handle to set cellar or no cellar. Say done when you are finished', 'DE' : 'drehe den oberen Griff um Keller oder kein Keller einzustellen. Sage fertig am Ende.'}[language], language),
+    () => DualPantoFramework.waitMS(500),
+    () => VoiceInteraction.speakText({'EN' : 'say cellar does not matter to deactivate this option.', 'DE' : 'sage Kellers ist egal um das Kellerkriterium zu deaktivieren'}[language], language)
+  ]);
+}
+
 
 const closeFilter = () => {
   stop = true;
@@ -533,6 +573,7 @@ const moveToBerlin = ()=> {
   }
   activeObstacles = [];
   currentArea = 'Berlin';
+  () => VoiceInteraction.speakText({'EN' : 'You are now in Berlin', 'DE' : 'Du bist jetzt in Berlin'}[language], language)
 }
 
 const refollow = ()=>{
@@ -595,5 +636,3 @@ const setCurrentApartment = (apartment) => {
     resolve(resolve);
   });
 }
-
-
