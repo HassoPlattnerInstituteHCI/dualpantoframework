@@ -39,7 +39,7 @@ The available values for messages from the framework to the hardware are:
 
 ### Payload Size
 
-The payload size is encoded as a 32 bit integer. It may be zero if the message doesn't contain a payload.
+The payload size is encoded as a 32 bit unsigned integer. It may be zero if the message doesn't contain a payload.
 
 ## Payload
 
@@ -47,7 +47,7 @@ The content of the payload is based on the message type.
 
 ### 0x00 Sync
 
-The message only contains the protocol revision, encoded as a 32 bit integer.
+The message only contains the protocol revision, encoded as a 32 bit unsigned integer.
 
 Example message for protocol revision 0:
 ```
@@ -128,7 +128,7 @@ Example message:
 
 ### 0x90 Motor
 
-This message contains the control method and pantograph index, both encoded as a 8 bit integer, followed by the target position data (x, y, rotation), each encoded as a 32 bit float.
+This message contains the control method and pantograph index, both encoded as a 8 bit unsigned integer, followed by the target position data (x, y, rotation), each encoded as a 32 bit float.
 
 Available control method values:
 
@@ -149,7 +149,7 @@ FFFFFFFF // target rotation
 
 ### 0x91 PID values
 
-This message contains the motor index encoded as an 8 bit integer, followed by the P, I and D values, each encoded as 32 bit float.
+This message contains the motor index encoded as an 8 bit unsigned integer, followed by the P, I and D values, each encoded as 32 bit float.
 
 The motor indices are counted as follows:
 
@@ -172,7 +172,7 @@ FFFFFFFF // D value
 
 ### 0xA0 Create obstacle
 
-This message contains the pantograph index, encoded as an 8 bit integer, the obstacle ID, encoded as a 16 bit integer, and multiple 2D vectors, each encoded as a pair of 32 bit floats.
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the obstacle ID, encoded as a 16 bit unsigned integer, and multiple 2D vectors, each encoded as a pair of 32 bit floats.
 
 Setting the pantograph index to 0xFF creates the obstacle for both handles.
 
@@ -191,7 +191,7 @@ FFFFFFFF // second vector, y
 
 ### 0xA1 Delete obstacle
 
-This message contains the pantograph index, encoded as an 8 bit integer, and the obstacle ID, encoded as a 16 bit integer.
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
 
 Setting the pantograph index to 0xFF deletes the obstacle for both handles.
 
@@ -206,7 +206,7 @@ FF       // pantograph index - both handles
 
 ### 0xA2 Enable obstacle
 
-This message contains the pantograph index, encoded as an 8 bit integer, and the obstacle ID, encoded as a 16 bit integer.
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
 
 Setting the pantograph index to 0xFF enables the obstacle for both handles.
 
@@ -221,7 +221,7 @@ FF       // pantograph index - both handles
 
 ### 0xA3 Disable obstacle
 
-This message contains the pantograph index, encoded as an 8 bit integer, and the obstacle ID, encoded as a 16 bit integer.
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
 
 Setting the pantograph index to 0xFF disables the obstacle for both handles.
 
