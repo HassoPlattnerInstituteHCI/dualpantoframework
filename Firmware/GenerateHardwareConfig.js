@@ -30,13 +30,16 @@ for(const pantoName in input.pantos) {
 
 function aggregate(name, valueIfUndefined = 0) {
     let array = aggregates[name];
-    if(!array)
+    if(!array) {
         array = [];
+    }
     for(let i = 0; i < index; ++i) {
-        if(array[i] == undefined)
+        if(array[i] == undefined) {
             array[i] = valueIfUndefined;
-        if(array[i] instanceof Array)
+        }
+        if(array[i] instanceof Array) {
             array[i] = `{${array[i].join(', ')}}`;
+        }
     }
     return array.join(', ');
 }
