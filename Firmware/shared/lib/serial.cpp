@@ -1,4 +1,6 @@
 #include "serial.hpp"
+#include <vector>
+#include "utils.hpp"
 #include "panto.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
@@ -8,6 +10,17 @@ DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
 int DPSerial::s_unacknowledgedHeartbeats = 0;
+std::map<DPProtocol::MessageType, std::function<void()>> 
+    DPSerial::s_receiveHandlers = {
+        {SYNC_ACK, DPSerial::receiveSyncAck},
+        {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
+        {MOTOR, DPSerial::receiveMotor},
+        {PID, DPSerial::receivePID},
+        {CREATE_OBSTACLE, DPSerial::receiveCreateObstacle},
+        {DELETE_OBSTACLE, DPSerial::receiveDeleteObstacle},
+        {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
+        {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle}
+    };
 
 // === private ===
 
@@ -16,6 +29,17 @@ int DPSerial::s_unacknowledgedHeartbeats = 0;
 void DPSerial::sendUInt8(uint8_t data)
 {
     BOARD_DEPENDENT_SERIAL.write(data);
+}
+
+void DPSerial::sendInt16(int16_t data)
+{
+    BOARD_DEPENDENT_SERIAL.write(static_cast<uint8_t>(data >> 8));
+    BOARD_DEPENDENT_SERIAL.write(static_cast<uint8_t>(data & 255));
+}
+
+void DPSerial::sendUInt16(uint16_t data)
+{
+    sendInt16(*reinterpret_cast<int16_t *>(&data));
 }
 
 void DPSerial::sendInt32(int32_t data)
@@ -80,6 +104,17 @@ void DPSerial::sendHeartbeat()
 uint8_t DPSerial::receiveUInt8()
 {
     return static_cast<uint8_t>(BOARD_DEPENDENT_SERIAL.read());
+}
+
+int16_t DPSerial::receiveInt16()
+{
+    return BOARD_DEPENDENT_SERIAL.read() << 8 | BOARD_DEPENDENT_SERIAL.read();
+}
+
+uint16_t DPSerial::receiveUInt16()
+{
+    auto temp = receiveInt16();
+    return *reinterpret_cast<uint16_t *>(&temp);
 }
 
 int32_t DPSerial::receiveInt32()
@@ -184,10 +219,51 @@ void DPSerial::receivePID()
     }
 };
 
+void DPSerial::receiveCreateObstacle()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto vecCount = (s_header.PayloadSize - 8 - 16) / (4 * 2);
+
+    std::vector<Vector2D> path;
+    path.reserve(vecCount);
+
+    for(auto i = 0; i < vecCount; ++i)
+    {
+        path.emplace_back(receiveFloat(), receiveFloat());
+    }
+
+    // TODO: call
+}
+
+void DPSerial::receiveDeleteObstacle()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    // TODO: call
+}
+
+void DPSerial::receiveEnableObstacle()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    // TODO: call
+}
+
+void DPSerial::receiveDisableObstacle()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    // TODO: call
+}
+
 void DPSerial::receiveInvalid()
 {
-    // TODO
-    sendDebugLog("receiveInvalid");
+    sendDebugLog("Received invalid message: %02X", s_header.MessageType);
 };
 
 // === public ===
@@ -296,23 +372,15 @@ void DPSerial::receive()
         return;
     }
 
-    switch (s_header.MessageType)
+    auto handler = s_receiveHandlers.find((MessageType)(s_header.MessageType));
+
+    if(handler == s_receiveHandlers.end())
     {
-    case SYNC_ACK:
-        receiveSyncAck();
-        break;
-    case HEARTBEAT_ACK:
-        receiveHearbeatAck();
-        break;
-    case MOTOR:
-        receiveMotor();
-        break;
-    case PID:
-        receivePID();
-        break;
-    default:
         receiveInvalid();
-        break;
+    }
+    else
+    {
+        handler->second();
     }
 
     s_receiveState = NONE;

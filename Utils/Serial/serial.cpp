@@ -34,7 +34,7 @@ class DPSerial : DPProtocol
   private:
     static uint8_t s_headerBuffer[c_headerSize];
     static Header s_header;
-    static uint8_t s_packetBuffer[255];
+    static uint8_t s_packetBuffer[0xFFFF];
     static FILEHANDLE s_handle;
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
@@ -44,22 +44,30 @@ class DPSerial : DPProtocol
     static void sendPacket();
 
     static uint8_t receiveUInt8(uint8_t &offset);
+    static int16_t receiveInt16(uint8_t &offset);
+    static uint16_t receiveUInt16(uint8_t &offset);
     static int32_t receiveInt32(uint8_t &offset);
     static uint32_t receiveUInt32(uint8_t &offset);
     static float receiveFloat(uint8_t &offset);
 
     static void sendUInt8(uint8_t value, uint8_t &offset);
+    static void sendInt16(int16_t value, uint8_t &offset);
+    static void sendUInt16(uint16_t value, uint8_t &offset);
     static void sendInt32(int32_t value, uint8_t &offset);
     static void sendUInt32(uint32_t value, uint8_t &offset);
     static void sendFloat(float value, uint8_t &offset);
 
 #ifdef NODE_GYP
     static napi_value nodeReceiveUInt8(napi_env env, uint8_t &offset);
+    static napi_value nodeReceiveInt16(napi_env env, uint8_t &offset);
+    static napi_value nodeReceiveUInt16(napi_env env, uint8_t &offset);
     static napi_value nodeReceiveInt32(napi_env env, uint8_t &offset);
     static napi_value nodeReceiveUInt32(napi_env env, uint8_t &offset);
     static napi_value nodeReceiveFloat(napi_env env, uint8_t &offset);
 
     static void nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset);
+    static void nodeSendInt16(napi_env env, napi_value value, uint8_t &offset);
+    static void nodeSendUInt16(napi_env env, napi_value value, uint8_t &offset);
     static void nodeSendInt32(napi_env env, napi_value value, uint8_t &offset);
     static void nodeSendUInt32(napi_env env, napi_value value, uint8_t &offset);
     static void nodeSendFloat(napi_env env, napi_value value, uint8_t &offset);
@@ -83,7 +91,7 @@ class DPSerial : DPProtocol
 
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
-uint8_t DPSerial::s_packetBuffer[255];
+uint8_t DPSerial::s_packetBuffer[0xFFFF];
 FILEHANDLE DPSerial::s_handle;
 
 // private
@@ -179,6 +187,17 @@ uint8_t DPSerial::receiveUInt8(uint8_t &offset)
     return s_packetBuffer[offset++];
 }
 
+int16_t DPSerial::receiveInt16(uint8_t &offset)
+{
+    return s_packetBuffer[offset++] << 8 | s_packetBuffer[offset++];
+}
+
+uint16_t DPSerial::receiveUInt16(uint8_t &offset)
+{
+    auto temp = receiveInt16(offset);
+    return *reinterpret_cast<uint16_t *>(&temp);
+}
+
 int32_t DPSerial::receiveInt32(uint8_t &offset)
 {
     return s_packetBuffer[offset++] << 24 | s_packetBuffer[offset++] << 16 | s_packetBuffer[offset++] << 8 | s_packetBuffer[offset++];
@@ -199,6 +218,17 @@ float DPSerial::receiveFloat(uint8_t &offset)
 void DPSerial::sendUInt8(uint8_t value, uint8_t &offset)
 {
     s_packetBuffer[offset++] = value;
+}
+
+void DPSerial::sendInt16(int16_t value, uint8_t &offset)
+{
+    s_packetBuffer[offset++] = value >> 8;
+    s_packetBuffer[offset++] = value & 255;
+}
+
+void DPSerial::sendUInt16(uint16_t value, uint8_t &offset)
+{
+    sendInt16(*reinterpret_cast<int16_t *>(&value), offset);
 }
 
 void DPSerial::sendInt32(int32_t value, uint8_t &offset)
@@ -224,6 +254,20 @@ napi_value DPSerial::nodeReceiveUInt8(napi_env env, uint8_t &offset)
 {
     napi_value result;
     napi_create_uint32(env, receiveUInt8(offset), &result);
+    return result;
+}
+
+napi_value DPSerial::nodeReceiveInt16(napi_env env, uint8_t &offset)
+{
+    napi_value result;
+    napi_create_int16(env, receiveInt16(offset), &result);
+    return result;
+}
+
+napi_value DPSerial::nodeReceiveUInt16(napi_env env, uint8_t &offset)
+{
+    napi_value result;
+    napi_create_uint16(env, receiveUInt16(offset), &result);
     return result;
 }
 
@@ -255,6 +299,20 @@ void DPSerial::nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset)
     sendUInt8(static_cast<uint8_t>(temp), offset);
 }
 
+void DPSerial::nodeSendInt16(napi_env env, napi_value value, uint8_t &offset)
+{
+    int16_t temp;
+    napi_get_value_int16(env, value, &temp);
+    sendInt16(temp, offset);
+}
+
+void DPSerial::nodeSendUInt16(napi_env env, napi_value value, uint8_t &offset)
+{
+    uint16_t temp;
+    napi_get_value_uint16(env, value, &temp);
+    sendUInt16(temp, offset);
+}
+
 void DPSerial::nodeSendInt32(napi_env env, napi_value value, uint8_t &offset)
 {
     int32_t temp;
@@ -282,7 +340,7 @@ void DPSerial::nodeSendFloat(napi_env env, napi_value value, uint8_t &offset)
 #ifdef WINDOWS
 bool DPSerial::setup(std::string path)
 {
-    s_handle = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+    s_handle = CreateFileA(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (s_handle == INVALID_HANDLE_VALUE)
         return false;
 
@@ -517,6 +575,51 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
             napi_get_value_double(env, pidNapiValue, &pidDouble);
             sendFloat(static_cast<float>(pidDouble), offset);
         }
+        break;
+    case CREATE_OBSTACLE:
+        napi_value propertyName;
+        napi_value tempNapiValue;
+        uint32_t tempUInt32;
+
+        napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "id", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "posArray", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        uint32_t posArraySize;
+        napi_get_array_length(env, tempNapiValue, &posArraySize);
+        napi_value posNapiValue;
+        double posDouble;
+        for (auto i = 0; i < posArraySize; ++i)
+        {
+            napi_get_element(env, tempNapiValue, i, &posNapiValue);
+            napi_get_value_double(env, posNapiValue, &posDouble);
+            sendFloat(static_cast<float>(posDouble), offset);
+        }
+        break;
+    case DELETE_OBSTACLE:
+    case ENABLE_OBSTACLE:
+    case DISABLE_OBSTACLE:
+        napi_value propertyName;
+        napi_value tempNapiValue;
+        uint32_t tempUInt32;
+
+        napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "id", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
         break;
     default:
         napi_throw_error(env, NULL, "Invalid message type");
