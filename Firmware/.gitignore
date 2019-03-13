@@ -3,3 +3,6 @@ config.cpp
 protocol.hpp
 protocol.cpp
 .vscode
+.pio
+.pioenvs
+.piolibdeps

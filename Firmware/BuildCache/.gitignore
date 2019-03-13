@@ -1,3 +1,0 @@
-# This folder is needed in order to use VS Code to build Arduino code, but the contents can be ignored.
-*
-!.gitignore
