@@ -16,11 +16,10 @@ let sizeActive = false;
 let roomsActive = false;
 let cellarActive = false;
 let lastRotation = 0;
-let lastSpokenPrice = 0;
-let lastSpokenRooms = 0;
-let lastSpokenSize = 0;
+let speaking = false;
+let rotSum = 0;
 const s1 = [{name: 'Yorkstraße', point: new Vector(-150, -300, NaN)}, {name: 'Anhalter Bahnhof', point: new Vector(-60, -150, NaN)}, {name: 'Potsdamer Platz', point: new Vector(-50, -90, NaN)}, {name: 'Brandenburger Tor', point: new Vector(-70, -75, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}];
-const s7 = [{name: 'Bellevue', point: new Vector(-180, -100, NaN)}, {name: 'Berliner Hauptbahnhof', point: new Vector(-100, -35, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}, {name: 'Hackescher Markt', point: new Vector(-25, -50, NaN)}, {name: 'Alexanderplatz', point: new Vector(0, -75, NaN)},  {name: 'Jannowitzbrücke', point: new Vector(40, -100, NaN)}, {name: 'Ostbahnhof', point: new Vector(100, -120, NaN)}]
+const s7 = [{name: 'Bellevue', point: new Vector(-180, -100, NaN)}, {name: 'Berliner Hauptbahnhof', point: new Vector(-100, -35, NaN)}, {name: 'Friedrichstraße', point: new Vector(-50, -50, NaN)}, {name: 'Hackescher Markt', point: new Vector(-25, -50, NaN)}, {name: 'Alexanderplatz', point: new Vector(0, -75, NaN)}, {name: 'Jannowitzbrücke', point: new Vector(40, -100, NaN)}, {name: 'Ostbahnhof', point: new Vector(100, -120, NaN)}];
 
 let filter = {area: false, price: false, size: false, amountRooms: false, cellar: false};
 
@@ -185,55 +184,80 @@ const areaChange = () => {
 }
 const start = ()=> {
   if(language === 'EN'){
-    console.log('english input');
     VoiceInteraction.setCommands(['apartments', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin', 'price', 'rooms', 'cellar', 'size', 'prices does not matter', 'size does not matter', 'cellar does not matter', 'rooms do not matter', 'help', 'search criteria', 'done', 'where am I', 'stop', 'cancel', 'details']);
   }else{
     VoiceInteraction.setCommands(['Wohnungen', 'Kreuzberg', 'Mitte', 'Tempelhof', 'Berlin','Preis hoch', 'Preis runter', 'mehr Räume', 'weniger Räume', 'Keller ist notwendig', 'kein Keller', 'Größe anheben', 'Größe verringern', 'Preis ist egal', 'Größe ist egal', 'Keller ist egal', 'Anzahl der Räume ist egal', 'Hilfe', 'Suchkriterien', 'Stop', 'stop', 'fertig', 'Wo bin ich', 'halt', 'abbrechen', 'Abbruch', 'Details']);
   }
   device.on('handleMoved', function(index, position){
-    if(follow && index == 0){
-      getArea(position);
-      poiNearby(position);
-    }
-    if(priceActive && index == 0){
-      const rotDifference = position.r - lastRotation;
-      maxprice = maxprice + Math.round(100 * rotDifference);
-      if(Math.abs(maxprice - lastSpokenPrice) > 100){
-        VoiceInteraction.speakText({'EN' : 'new maximum price: ' + maxprice, 'DE' : 'Neuer Maximalpreis: ' + maxprice}[language], language);
-        lastSpokenPrice = maxprice;
-      }      
-    }
-    if(sizeActive && index == 0){
-      const rotDifference = position.r - lastRotation;
-      console.log(position.r, lastRotation, rotDifference);
-      minSize = minSize + Math.round(2000 * rotDifference);
-      console.log(minSize);
-      if(Math.abs(minSize - lastSpokenSize) > 20){
-        VoiceInteraction.speakText({'EN' : 'new minimum size: ' + minSize, 'DE' : 'Neue Minimalgröße: ' + minSize}[language], language);
-        lastSpokenSize = minSize;
-      }      
-    }
-    if(cellarActive && index == 0){
-      const rotDifference = position.r - lastRotation;
-      if(rotDifference >= 2 * Math.PI){
-        if(filter.cellar){
-          filter.celler = false;
-          VoiceInteraction.speakText({'EN' : 'without cellar', 'DE' : 'ohne Keller'}[language], language);
-        }else{
-          filter.celler = true;
-          VoiceInteraction.speakText({'EN' : 'with cellar', 'DE' : 'mit Keller'}[language], language);
-        }
-      }      
-    }
-    if(roomsActive && index == 0){
-      const rotDifference = position.r - lastRotation;
-      minRooms = minRooms + Math.round(rotDifference / Math.PI);
-      if(Math.abs(minRooms - lastSpokenRooms) > 1){
-        VoiceInteraction.speakText({'EN' : 'new minimum amount of rooms: ' + minRooms, 'DE' : 'Minimale Anzahl an Räumen: ' + minRooms}[language], language);
-        lastSpokenRooms = minRooms;
-      }      
-    }
     if(index == 0){
+      console.log(position.r, lastRotation);
+      let rotDifference = Math.abs(position.r) - Math.abs(lastRotation);
+      if(rotDifference > Math.PI){
+        rotDifference = Math.abs(lastRotation) + 2 * Math.PI - Math.abs(position.r);
+      }
+      if(rotDifference < -1 * Math.PI){
+        rotDifference = 2 * Math.PI + Math.abs(position.r) - Math.abs(lastRotation);
+      }
+      if(follow){
+        getArea(position);
+        poiNearby(position);
+      }
+      if(priceActive){
+        maxprice = maxprice + Math.round(100 * rotDifference);
+        if(maxprice < 0){
+          maxprice = 0;
+        }
+        if(!speaking){
+          VoiceInteraction.stopText();
+          VoiceInteraction.speakText({'EN' : maxprice + ' is the new maximum preis', 'DE' : maxprice + ' ist der neue Maximalpreis'}[language], language);
+          speaking = true;
+          setTimeout(stopedSpeaking, 1250);
+        }      
+      }
+      if(sizeActive){
+        console.log(rotDifference);
+        minSize = minSize + Math.round(200 * rotDifference);
+        if(minSize < 0){
+          minSize = 0;
+        }
+        if(!speaking){
+          VoiceInteraction.stopText();
+          VoiceInteraction.speakText({'EN' : minSize + ' is the new minimum size', 'DE' : minSize + ' ist die neue Minimalgröße'}[language], language);
+          speaking = true;
+          setTimeout(stopedSpeaking, 1250);
+        }      
+      }
+      if(cellarActive){
+        rotSum = rotSum + rotDifference;
+        if(Math.abs(rotSum) >= Math.PI){
+          rotSum = 0;
+          if(filter.cellar){
+            filter.celler = false;
+            if(!speaking){
+              VoiceInteraction.stopText();
+              VoiceInteraction.speakText({'EN' : 'without cellar', 'DE' : 'ohne Keller'}[language], language);
+              speaking = true;
+              setTimeout(stopedSpeaking, 1250);
+            }
+          }else{
+            filter.celler = true;
+            if(!speaking){
+              VoiceInteraction.stopText();
+              VoiceInteraction.speakText({'EN' : 'with cellar', 'DE' : 'mit Keller'}[language], language);
+              speaking = true;
+              setTimeout(stopedSpeaking, 1250);
+            }
+          }
+        }      
+      }
+      if(roomsActive){
+        minRooms = minRooms + Math.round(rotDifference / Math.PI);
+        if(!speaking){
+          VoiceInteraction.speakText({'EN' : minRooms + ' rooms required', 'DE' :minRooms + ' ist die Minimalanzahl an Räumen'}[language], language);
+          speaking = true;
+          setTimeout(stopedSpeaking, 1250);
+        }      
+      }
       lastRotation = position.r;
     }
   });
@@ -267,25 +291,36 @@ const start = ()=> {
     if(word === 'Wohnungen' || word === 'apartments'){
       showApartments();
     }
+    if(filterActive && (word === 'Preis ist egal' || word === 'prize does not matter')){
+      filter.price = false;
+      VoiceInteraction.speakText({'EN' : 'Minimum price removed', 'DE' : 'Minimalpreis entfernt'}[language], language);
+      if(priceActive){
+        priceActive = false;
+        initNewFilter();
+      }
+    }
     if(filterActive && (word === 'Anzahl der Räume ist egal' || word === 'rooms do not matter')){
+      filter.amountRooms = false;
+      VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms removed', 'DE' : 'Minimalanzahl an Räumen entfernt'}[language], language);
       if(roomsActive){
         roomsActive = false;
-        filter.amountRooms = false;
-        VoiceInteraction.speakText({'EN' : 'Minimum amount of rooms removed', 'DE' : 'Minimalanzahl an Räumen entfernt'}[language], language);
+        initNewFilter();
       }
     }
     if(filterActive && (word === 'Keller ist egal' || word === 'cellar does not matter')){
+      VoiceInteraction.speakText({'EN' : 'Cellar does not matter', 'DE' : 'Keller egal'}[language], language);
+      filter.cellar = false;
       if(cellarActive){
         cellarActive = false;
-        VoiceInteraction.speakText({'EN' : 'Cellar does not matter', 'DE' : 'Keller egal'}[language], language);
-        filter.cellar = false;
+        initNewFilter();
       }
     }
     if(filterActive && (word === 'Größe ist egal' || word === 'size does not matter')){
-      if(priceActive){
-        priceActive = false;
-        VoiceInteraction.speakText({'EN' : 'Minimum size removed', 'DE' : 'Minimalgröße entfernt'}[language], language)
-        filter.size = false;
+      VoiceInteraction.speakText({'EN' : 'Minimum size removed', 'DE' : 'Minimalgröße entfernt'}[language], language)
+      filter.size = false;
+      if(sizeActive){
+        sizeActive = false;
+        initNewFilter();
       }
     }
     if(filterActive && (word === 'Preis' || word === 'price') && !roomsActive && !cellarActive && !sizeActive){
@@ -325,12 +360,26 @@ const start = ()=> {
       initFilter();
     }
     if(word === 'Stop' || word === 'stop' || word === 'halt' || word === 'abbrechen' || word === 'Abbruch' || word === 'cancel'){
+      VoiceInteraction.stopText();
       stop = true;
     }
     if(filterActive && (word === 'fertig' || word === 'done')){
       if(priceActive){
         priceActive = false;
         filter.price = true;
+        initNewFilter();
+      }else if(sizeActive){
+        sizeActive = false;
+        filer.size = true;
+        initNewFilter();
+      }else if(cellarActive){
+        cellarActive = false;
+        filter.cellar = true;
+        initNewFilter();
+      }else if(roomsActive){
+        roomsActive = false;
+        filter.amountRooms = true;
+        initNewFilter();
       }else{
         closeFilter();
       }
@@ -412,7 +461,6 @@ const initFilter = () =>{
 
 const initNewFilter = () =>{
   filterActive = true;
-  const currentRotation = device.getMePosition().r;
   DualPantoFramework.run_script([
     () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'search criteria menu. Say done to leave', 'DE' : 'Suchkriterienmenü. Sage fertig um das Menü zu verlassen'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
@@ -451,6 +499,7 @@ const configureRooms = () => {
 }
 
 const configureCellar = () => {
+  rotSum = 0;
   cellarActive = true;
   DualPantoFramework.run_script([
     () => VoiceInteraction.speakText({'EN' : 'rotate the me handle to set cellar or no cellar. Say done when you are finished', 'DE' : 'drehe den oberen Griff um Keller oder kein Keller einzustellen. Sage fertig am Ende.'}[language], language),
@@ -469,7 +518,7 @@ const closeFilter = () => {
 
 const help = ()=> {
   DualPantoFramework.run_script([
-    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'say where am I and I show you knowen points', 'DE' : 'Sage Wo bin ich und ich gebe dir Anhaltspunkte in Berlin.'}[language], language),
+    () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'say where am I and I show you known points', 'DE' : 'Sage Wo bin ich und ich gebe dir Anhaltspunkte in Berlin.'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
     () => stop ? nothing() : VoiceInteraction.speakText({'EN' : 'say apartments and I show you apartments', 'DE' : 'Sage Wohnungen und ich zeige dir alle Wohnungen.'}[language], language),
     () => stop ? nothing() : DualPantoFramework.waitMS(500),
@@ -498,18 +547,18 @@ const showApartments = ()=> {
 }
 
 const moveToKreuzberg = ()=> {
-  filter.area = true;
+  /*filter.area = true;
   follow = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
-  }
+  }*/
   device.movePantoTo(0, kreuzbergPoint);
-  setTimeout(() =>{
+  /*setTimeout(() =>{
     let temp = [];
     for(const wall of kreuzbergWalls){
       temp.push(device.createObstacle(wall, 0));
     }
-    activeObstacles = temp
+    activeObstacles = temp*/
     currentArea = 'Kreuzberg';
     area = 'Kreuzberg';
     DualPantoFramework.run_script([
@@ -518,22 +567,22 @@ const moveToKreuzberg = ()=> {
       () => refollow(),
       () => device.unblockHandle(0)
     ]);
-  }, 1000);
+  //}, 1000);
 }
 
 const moveToTempelhof = ()=> {
-  filter.area = true;
+  /*filter.area = true;
   follow = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
-  }
+  }*/
   device.movePantoTo(0, tempelhofPoint);
-  setTimeout(() =>{
+  /*setTimeout(() =>{
     let temp = [];
     for(const wall of tempelhofWalls){
       temp.push(device.createObstacle(wall, 0));
     }
-    activeObstacles = temp
+    activeObstacles = temp*/
     currentArea = 'Tempelhof';
     area = 'Tempelhof';
     DualPantoFramework.run_script([
@@ -542,22 +591,22 @@ const moveToTempelhof = ()=> {
       () => refollow(),
       () => device.unblockHandle(0)
     ]);
-  }, 1000);
+  //}, 1000);
 }
 
 const moveToMitte = ()=> {
-  filter.area = true;
+  /*filter.area = true;
   follow = false;
   for(const obs of activeObstacles){
     device.removeObstacle(obs, 0);
-  }
+  }*/
   device.movePantoTo(0, mittePoint);
-  setTimeout(() =>{
+  /*setTimeout(() =>{
     let temp = [];
     for(const wall of mitteWalls){
       temp.push(device.createObstacle(wall, 0));
     }
-    activeObstacles = temp
+    activeObstacles = temp*/
     currentArea = 'Mitte';
     area = 'Mitte';
     DualPantoFramework.run_script([
@@ -566,7 +615,7 @@ const moveToMitte = ()=> {
       () => refollow(),
       () => device.unblockHandle(0)
     ]);
-  }, 1000);
+  //}, 1000);
 }
 
 const moveToBerlin = ()=> {
@@ -638,4 +687,8 @@ const setCurrentApartment = (apartment) => {
     currentApartment = apartment;
     resolve(resolve);
   });
+}
+
+const stopedSpeaking = () => {
+  speaking = false;
 }
