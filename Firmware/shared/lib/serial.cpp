@@ -222,7 +222,6 @@ void DPSerial::receivePID()
 
 void DPSerial::receiveCreateObstacle()
 {
-    DPSerial::sendDebugLog("receiveCreateObstacle");
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 

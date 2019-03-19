@@ -71,7 +71,6 @@ std::vector<Collision> GodObject::checkObstacleCollisions(Vector2D point)
 
 void GodObject::addObstacle(uint16_t id, std::vector<Vector2D> points)
 {
-    DPSerial::sendDebugLog("addObstacle");
     auto temp = Obstacle(points);
     portENTER_CRITICAL(&m_obstacleMutex);
     m_obstacles.emplace(id, std::move(temp));

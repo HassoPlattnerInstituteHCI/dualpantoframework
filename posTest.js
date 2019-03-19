@@ -11,24 +11,11 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
           console.log('index: ', index, ' position: ', position);
         });
         setTimeout(() => {
-          console.log("createObstacle");
           const id = device.createObstacle([
             new Vector(50, -200, 0),
             new Vector(-50, -200, 0),
             new Vector(-50, -80, 0),
             new Vector(50, -80, 0)]);
-          setTimeout(() => {
-            console.log("disableObstacle");
-            device.disableObstacle(id);
-          }, 5000);
-          setTimeout(() => {
-            console.log("enableObstacle");
-            device.enableObstacle(id);
-          }, 10000);
-          setTimeout(() => {
-            console.log("deleteObstacle");
-            device.deleteObstacle(id);
-          }, 15000);
         }, 3000);
       }
   }
