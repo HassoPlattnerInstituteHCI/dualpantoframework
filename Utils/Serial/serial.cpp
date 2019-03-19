@@ -94,7 +94,9 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
     DWORD commerr;
     COMSTAT comstat;
     if (!ClearCommError(s_handle, &commerr, &comstat))
+    {
         return 0;
+    }
     return comstat.cbInQue;
 }
 #else
@@ -102,7 +104,9 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
     uint32_t available = 0;
     if (ioctl(fileno(s_handle), FIONREAD, &available) < 0)
+    {
         return 0;
+    }
     return available;
 }
 #endif
@@ -142,9 +146,13 @@ void DPSerial::receivePacket()
     {
         readBytesFromSerial(&received, 1);
         if (received == c_magicNumber[index])
+        {
             ++index;
+        }
         else
+        {
             index = 0;
+        }
     }
 
     readBytesFromSerial(s_headerBuffer, c_headerSize);
@@ -284,18 +292,24 @@ bool DPSerial::setup(std::string path)
 {
     s_handle = CreateFile(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (s_handle == INVALID_HANDLE_VALUE)
+    {
         return false;
+    }
 
     DCB dcbSerialParams = {0};
     dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
     if (!GetCommState(s_handle, &dcbSerialParams))
+    {
         return false;
+    }
     dcbSerialParams.BaudRate = CBR_115200;
     dcbSerialParams.ByteSize = 8;
     dcbSerialParams.StopBits = ONESTOPBIT;
     dcbSerialParams.Parity = NOPARITY;
     if (!SetCommState(s_handle, &dcbSerialParams))
+    {
         return false;
+    }
 
     COMMTIMEOUTS timeouts = {0};
     timeouts.ReadIntervalTimeout = 50;
@@ -310,11 +324,15 @@ bool DPSerial::setup(std::string path)
 {
     int fd = open(path.c_str(), O_RDWR | O_NOCTTY);
     if (fd < 0)
+    {
         return false;
+    }
     struct termios tty;
     std::memset(&tty, 0, sizeof(tty));
     if (tcgetattr(fd, &tty) < 0)
+    {
         return false;
+    }
     const speed_t speed = B115200;
     cfsetospeed(&tty, speed);
     cfsetispeed(&tty, speed);
@@ -322,7 +340,9 @@ bool DPSerial::setup(std::string path)
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 1;
     if (tcsetattr(fd, TCSANOW, &tty) < 0)
+    {
         return false;
+    }
     s_handle = fdopen(fd, "rw");
     return true;
 }
@@ -337,12 +357,16 @@ napi_value DPSerial::nodeOpen(napi_env env, napi_callback_info info)
     size_t argc = 1;
     napi_value argv[1];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Failed to parse arguments");
+    }
     size_t length;
     char buffer[64];
     napi_get_value_string_utf8(env, argv[0], buffer, sizeof(buffer), &length);
     if (!setup(buffer))
+    {
         napi_throw_error(env, NULL, "open failed");
+    }
     napi_value result;
     napi_create_int64(env, reinterpret_cast<int64_t>(s_handle), &result);
     return result;
@@ -353,7 +377,9 @@ napi_value DPSerial::nodeClose(napi_env env, napi_callback_info info)
     size_t argc = 1;
     napi_value argv[1];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Failed to parse arguments");
+    }
     napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
     tearDown();
     return NULL;
@@ -371,7 +397,9 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
     size_t argc = 7;
     napi_value argv[7];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Failed to parse arguments");
+    }
     napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
 
     // only keep binary state for packages where only the newest counts
@@ -456,7 +484,9 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
     size_t argc = 3;
     napi_value argv[3];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Failed to parse arguments");
+    }
     napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
 
     uint32_t messageType;
@@ -531,9 +561,13 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
 
 #define defFunc(name, ptr)                                             \
     if (napi_create_function(env, NULL, 0, ptr, NULL, &fn) != napi_ok) \
+    {                                                                  \
         napi_throw_error(env, NULL, "Unable to wrap native function"); \
+    }                                                                  \
     if (napi_set_named_property(env, exports, name, fn) != napi_ok)    \
-        napi_throw_error(env, NULL, "Unable to populate exports");
+    {                                                                  \
+        napi_throw_error(env, NULL, "Unable to populate exports");     \
+    }
 
 napi_value Init(napi_env env, napi_value exports)
 {
