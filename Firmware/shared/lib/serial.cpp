@@ -43,7 +43,7 @@ void DPSerial::sendInt16(int16_t data)
 
 void DPSerial::sendUInt16(uint16_t data)
 {
-    sendInt16(*reinterpret_cast<int16_t *>(&data));
+    sendInt16(reinterpret_cast<int16_t &>(data));
 }
 
 void DPSerial::sendInt32(int32_t data)
@@ -56,12 +56,15 @@ void DPSerial::sendInt32(int32_t data)
 
 void DPSerial::sendUInt32(uint32_t data)
 {
-    sendInt32(*reinterpret_cast<int32_t *>(&data));
+    sendInt32(reinterpret_cast<int32_t &>(data));
 }
 
 void DPSerial::sendFloat(float data)
 {
-    sendInt32(*reinterpret_cast<int32_t *>(&data));
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+    sendInt32(reinterpret_cast<int32_t &>(data));
+    #pragma GCC diagnostic pop
 }
 
 void DPSerial::sendMessageType(DPSerial::MessageType data)
@@ -118,7 +121,7 @@ int16_t DPSerial::receiveInt16()
 uint16_t DPSerial::receiveUInt16()
 {
     auto temp = receiveInt16();
-    return *reinterpret_cast<uint16_t *>(&temp);
+    return reinterpret_cast<uint16_t &>(temp);
 }
 
 int32_t DPSerial::receiveInt32()
@@ -129,13 +132,16 @@ int32_t DPSerial::receiveInt32()
 uint32_t DPSerial::receiveUInt32()
 {
     auto temp = receiveInt32();
-    return *reinterpret_cast<uint32_t *>(&temp);
+    return reinterpret_cast<uint32_t &>(temp);
 }
 
 float DPSerial::receiveFloat()
 {
     auto temp = receiveInt32();
-    return *reinterpret_cast<float *>(&temp);
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+    return reinterpret_cast<float &>(temp);
+    #pragma GCC diagnostic pop
 }
 
 DPSerial::MessageType DPSerial::receiveMessageType()
