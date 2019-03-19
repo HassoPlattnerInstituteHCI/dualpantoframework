@@ -2,6 +2,7 @@
 #include <vector>
 #include "utils.hpp"
 #include "panto.hpp"
+#include "physics/pantoPhysics.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
@@ -221,10 +222,11 @@ void DPSerial::receivePID()
 
 void DPSerial::receiveCreateObstacle()
 {
+    DPSerial::sendDebugLog("receiveCreateObstacle");
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 
-    auto vecCount = (s_header.PayloadSize - 8 - 16) / (4 * 2);
+    auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
 
     std::vector<Vector2D> path;
     path.reserve(vecCount);
@@ -234,7 +236,13 @@ void DPSerial::receiveCreateObstacle()
         path.emplace_back(receiveFloat(), receiveFloat());
     }
 
-    // TODO: call
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject().addObstacle(id, path);
+        }
+    }
 }
 
 void DPSerial::receiveDeleteObstacle()
@@ -242,7 +250,13 @@ void DPSerial::receiveDeleteObstacle()
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 
-    // TODO: call
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject().deleteObstacle(id);
+        }
+    }
 }
 
 void DPSerial::receiveEnableObstacle()
@@ -250,7 +264,13 @@ void DPSerial::receiveEnableObstacle()
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 
-    // TODO: call
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject().enableObstacle(id);
+        }
+    }
 }
 
 void DPSerial::receiveDisableObstacle()
@@ -258,7 +278,13 @@ void DPSerial::receiveDisableObstacle()
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 
-    // TODO: call
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject().enableObstacle(id, false);
+        }
+    }
 }
 
 void DPSerial::receiveInvalid()

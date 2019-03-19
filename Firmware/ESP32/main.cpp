@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "panto.hpp"
 #include "serial.hpp"
 #include "task.hpp"
@@ -52,15 +53,10 @@ void setup()
     {
         pantos[i].calibrationEnd();
     }
-
-    std::vector<Vector2D> path{
-        Vector2D(-50, -80),
-        Vector2D(50, -80)
-    };
+    
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
-        pantoPhysics[i].addObstacle(path);
     }
 
     prevTime = micros();

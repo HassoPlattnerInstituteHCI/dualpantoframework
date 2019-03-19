@@ -260,14 +260,14 @@ napi_value DPSerial::nodeReceiveUInt8(napi_env env, uint8_t &offset)
 napi_value DPSerial::nodeReceiveInt16(napi_env env, uint8_t &offset)
 {
     napi_value result;
-    napi_create_int16(env, receiveInt16(offset), &result);
+    napi_create_int32(env, receiveInt16(offset), &result);
     return result;
 }
 
 napi_value DPSerial::nodeReceiveUInt16(napi_env env, uint8_t &offset)
 {
     napi_value result;
-    napi_create_uint16(env, receiveUInt16(offset), &result);
+    napi_create_uint32(env, receiveUInt16(offset), &result);
     return result;
 }
 
@@ -301,16 +301,16 @@ void DPSerial::nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset)
 
 void DPSerial::nodeSendInt16(napi_env env, napi_value value, uint8_t &offset)
 {
-    int16_t temp;
-    napi_get_value_int16(env, value, &temp);
-    sendInt16(temp, offset);
+    uint32_t temp;
+    napi_get_value_uint32(env, value, &temp);
+    sendInt16(static_cast<int16_t>(temp), offset);
 }
 
 void DPSerial::nodeSendUInt16(napi_env env, napi_value value, uint8_t &offset)
 {
-    uint16_t temp;
-    napi_get_value_uint16(env, value, &temp);
-    sendUInt16(temp, offset);
+    uint32_t temp;
+    napi_get_value_uint32(env, value, &temp);
+    sendUInt16(static_cast<uint16_t>(temp), offset);
 }
 
 void DPSerial::nodeSendInt32(napi_env env, napi_value value, uint8_t &offset)
@@ -556,6 +556,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         break;
     }
     case PID:
+    {
         napi_value propertyName;
         napi_value tempNapiValue;
         uint32_t tempUInt32;
@@ -576,7 +577,9 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
             sendFloat(static_cast<float>(pidDouble), offset);
         }
         break;
+    }
     case CREATE_OBSTACLE:
+    {
         napi_value propertyName;
         napi_value tempNapiValue;
         uint32_t tempUInt32;
@@ -604,9 +607,11 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
             sendFloat(static_cast<float>(posDouble), offset);
         }
         break;
+    }
     case DELETE_OBSTACLE:
     case ENABLE_OBSTACLE:
     case DISABLE_OBSTACLE:
+    {
         napi_value propertyName;
         napi_value tempNapiValue;
         uint32_t tempUInt32;
@@ -621,8 +626,9 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
         sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
         break;
+    }
     default:
-        napi_throw_error(env, NULL, "Invalid message type");
+        napi_throw_error(env, NULL, (std::string("Invalid message type") + std::to_string(messageType)).c_str());
         return NULL;
     }
 
