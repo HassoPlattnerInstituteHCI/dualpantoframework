@@ -28,7 +28,7 @@ for(const pantoName in input.pantos) {
     }
 }
 
-function aggregate(name, valueIfUndefined = 0) {
+function aggregate(name, valueIfUndefined = 0, map = (x => x)) {
     let array = aggregates[name];
     if(!array)
         array = [];
@@ -38,7 +38,7 @@ function aggregate(name, valueIfUndefined = 0) {
         if(array[i] instanceof Array)
             array[i] = `{${array[i].join(', ')}}`;
     }
-    return array.join(', ');
+    return array.map(map).join(', ');
 }
 
 function count(name) {
@@ -122,6 +122,9 @@ const uint32_t encoderSteps[] = {
 };
 const uint32_t encoderSpiIndex[] = {
     ${aggregate('encoder_spiIndex', 0xffffffff)}
+};
+const float encoderFlipped[] = {
+    ${aggregate('encoder_flipped', false, x => x ? -1 : 1)}
 };
 const float setupAngle[] = {
     ${aggregate('encoder_setup')}

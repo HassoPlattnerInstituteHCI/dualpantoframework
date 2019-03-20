@@ -129,20 +129,18 @@ void Panto::calibrationEnd()
 void Panto::readEncoders()
 {
     #ifdef LINKAGE_ENCODER_USE_SPI
-    if(dofIndex > 0)
-        return;
     for (unsigned char i = 0; i < 2; ++i)
     {
         actuationAngle[i] =
-            2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i];
+            encoderFlipped[dofIndex + i] * 2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i];
     }
     actuationAngle[2] = (encoder[2]) ? 
-        (2 * PI * encoder[2]->read() / encoderSteps[dofIndex + 2]) : NAN;
+        (encoderFlipped[dofIndex + 2] * 2 * PI * encoder[2]->read() / encoderSteps[dofIndex + 2]) : NAN;
     #else
     for (unsigned char i = 0; i < 3; ++i)
     actuationAngle[i] = 
         (encoder[i]) ? 
-        (2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i]) :
+        (encoderFlipped[dofIndex + i] * 2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i]) :
         NAN;
     #endif
     

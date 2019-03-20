@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "panto.hpp"
 #include "serial.hpp"
 #include "task.hpp"
@@ -64,7 +65,7 @@ void setup()
     }
     delay(1000);
     #ifdef LINKAGE_ENCODER_USE_SPI
-    std::vector<uint16_t> startPositions;
+    std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
@@ -75,7 +76,7 @@ void setup()
             auto index = encoderSpiIndex[i * 3 + j];
             if(index != 0xffffffff)
             {
-                startPositions.push_back((uint16_t)(pantos[i].actuationAngle[j] / (2.0 * PI) * encoderSteps[i * 3 + j]) & 0x3fff);
+                startPositions[index] = ((uint16_t)(pantos[i].actuationAngle[j] / (2.0 * PI) * encoderSteps[i * 3 + j]) & 0x3fff);
                 pantos[i].angleAccessors[j] = spi->getAngleAccessor(index);
             }
         }

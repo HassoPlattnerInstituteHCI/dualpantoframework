@@ -10,9 +10,9 @@
         "upper": {
             "left": {
                 "linkage": {
-                    "innerLength": 100,
-                    "outerLength": 125,
-                    "baseX": -31.5,
+                    "innerLength": 80,
+                    "outerLength": 120,
+                    "baseX": -45,
                     "baseY": 0
                 },
                 "motor": {
@@ -24,15 +24,15 @@
                 },
                 "encoder": {
                     "steps": 16384,
-                    "setup": -0.44,
-                    "spiIndex": 0
+                    "setup": -0.444,
+                    "spiIndex": 3
                 }
             },
             "right": {
                 "linkage": {
-                    "innerLength": 100,
-                    "outerLength": 125,
-                    "baseX": 31.5,
+                    "innerLength": 80,
+                    "outerLength": 120,
+                    "baseX": 45,
                     "baseY": 0
                 },
                 "motor": {
@@ -44,8 +44,8 @@
                 },
                 "encoder": {
                     "steps": 16384,
-                    "setup": -0.06,
-                    "spiIndex": 1
+                    "setup": -0.056,
+                    "spiIndex": 2
                 }
             },
             "handle": {
@@ -63,40 +63,44 @@
         "lower": {
             "left": {
                 "linkage": {
-                    "innerLength": 98,
-                    "outerLength": 128,
-                    "baseX": -24,
+                    "innerLength": 80,
+                    "outerLength": 120,
+                    "baseX": -84,
                     "baseY": 0
                 },
                 "motor": {
                     "pwmPin": 18,
                     "dirAPin": 19,
                     "flipped": false,
-                    "powerLimit": 1.0,
+                    "powerLimit": 0.5,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
                     "steps": 16384,
-                    "setup": -0.5
+                    "flipped": true,
+                    "setup": 0.444,
+                    "spiIndex": 0
                 }
             },
             "right": {
                 "linkage": {
-                    "innerLength": 98,
-                    "outerLength": 128,
-                    "baseX": 24,
+                    "innerLength": 80,
+                    "outerLength": 120,
+                    "baseX": 6,
                     "baseY": 0
                 },
                 "motor": {
                     "pwmPin": 21,
                     "dirAPin": 22,
                     "flipped": false,
-                    "powerLimit": 1.0,
+                    "powerLimit": 0.5,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
                     "steps": 16384,
-                    "setup": 0.0
+                    "flipped": true,
+                    "setup": 0.056,
+                    "spiIndex": 1
                 }
             },
             "handle": {
