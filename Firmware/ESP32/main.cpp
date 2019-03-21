@@ -29,7 +29,7 @@ void ioLoop()
 
     // if (connected)
     // {
-    //     DPSerial::sendDebugData();
+    //     DPSerial::sendPosition();
     // }
 
     unsigned long now = micros();

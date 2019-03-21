@@ -76,7 +76,6 @@ void SPIEncoderChain::end()
 {
     digitalWrite(c_hspiSsPin, HIGH);
     m_spi.endTransaction();
-    //delay(1); // TODO: remove or make smaller
 }
 
 void SPIEncoderChain::transfer(uint16_t transmission)
@@ -126,7 +125,10 @@ SPIEncoderChain::SPIEncoderChain(uint32_t numberOfEncoders)
 
 void SPIEncoderChain::update()
 {
+    // first pass - request position
     transfer(SPICommands::c_readAngle);
+
+    // second pass - receive position, just send nop
     transfer(SPICommands::c_nop);
 
     bool allValid = true;
@@ -172,9 +174,6 @@ void SPIEncoderChain::clearError()
             DPSerial::sendDebugLog("Encoder %u reported parity=%u, command=%u, framing=%u", i, parityError, commandInvalidError, framingError);
         }
     }
-
-    // third pass - request angle again as preparation for next update, don't care about return value - it's just the empty registers
-    transfer(SPICommands::c_readAngle);
 }
 
 std::vector<uint16_t> SPIEncoderChain::getZero()
@@ -192,8 +191,8 @@ std::vector<uint16_t> SPIEncoderChain::getZero()
         result[i] = m_encoders[i].m_lastPacket.m_data << 6;
     }
 
-    // third pass - request angle again as preparation for next update, the return value contains the low part
-    transfer(SPICommands::c_readAngle);
+    // third pass - jsut send nop, the return value contains the low part
+    transfer(SPICommands::c_nop);
 
     for(auto i = 0; i < m_numberOfEncoders; ++i)
     {
@@ -236,7 +235,6 @@ bool SPIEncoderChain::needsZero()
 
 void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
 {
-    //DPSerial::sendDebugLog("setPosition(std::vector<uint16_t> positions)");
     auto currentZero = getZero();
     update();
 
