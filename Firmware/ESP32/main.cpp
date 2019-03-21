@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "config.hpp"
 #include "panto.hpp"
 #include "serial.hpp"
@@ -85,15 +86,10 @@ void setup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi->setPosition(startPositions);
     #endif
-
-    std::vector<Vector2D> path{
-        Vector2D(-100, -140),
-        Vector2D(100, -140)
-    };
+    
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
-        pantoPhysics[i].addObstacle(path);
     }
 
     prevTime = micros();

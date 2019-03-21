@@ -5,25 +5,7 @@
 #include <iomanip>
 #include <limits>
 
-Collider::Collider(std::vector<Vector2D> points) : m_points(points)
-{
-    m_id = generateGUID();
-}
-
-std::string Collider::generateGUID()
-{
-    std::ostringstream ss;
-    ss << std::hex << std::uppercase << std::setfill('0');
-    std::random_device rd;
-    std::uniform_int_distribution<char> dist(0, 255);
-
-    for(auto i = 0; i < 16; ++i)
-    {
-        ss << std::setw(2) << dist(rd);
-    }
-
-    return ss.str();
-}
+Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }
 
 bool Collider::intersect(Edge edgeA, Edge edgeB, Vector2D* intersection, bool constrainToSegment)
 {
@@ -140,9 +122,4 @@ Vector2D Collider::getClosestOutsidePoint(Edge edge, Vector2D handlePosition)
     
     auto collisionVec = intersection - handlePosition;
     return handlePosition + collisionVec * 1.1f;
-}
-
-bool Collider::operator==(const Collider other)
-{
-    return m_id == other.m_id;
 }

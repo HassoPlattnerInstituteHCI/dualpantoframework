@@ -1,4 +1,4 @@
-# Serial Communication Protocol - Revision 0
+# Serial Communication Protocol - Revision 1
 
 All messages contain a [header](#header) and an optional [payload](#payload).
 
@@ -29,13 +29,17 @@ The available values for messages from the framework to the hardware are:
 - 0x80 to 0x8F - Administration messages
   - [0x80 Sync Ack](#0x80-Sync-Ack) - The framework acknowledges the connection.
   - [0x81 Heartbeat Ack](#0x81-Heartbeat-Ack) - The framework acknowledges the heartbeat.
-- 0x90 to 0x9F - Data messages
+- 0x90 to 0xAF - Data messages
   - [0x90 Motor](#0x90-Motor) - This message contains a motor movement.
-  - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one motor.
+  - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one 
+  - [0xA0 Create obstacle](#0xA0-Create-obstacle) - This message specifies an obstacle to be added to one or both handles.
+  - [0xA1 Remove obstacle](#0xA1-Remove-obstacle) - This message specifies an obstacle to remove.
+  - [0xA2 Enable obstacle](#0xA2-Enable-obstacle) - This message specifies an obstacle to enable.
+  - [0xA3 Disable obstacle](#0xA3-Disable-obstacle) - This message specifies an obstacle to disable.
 
 ### Payload Size
 
-The payload size is encoded as a 32 bit integer. It may be zero if the message doesn't contain a payload.
+The payload size is encoded as a 32 bit unsigned integer. It may be zero if the message doesn't contain a payload.
 
 ## Payload
 
@@ -43,7 +47,7 @@ The content of the payload is based on the message type.
 
 ### 0x00 Sync
 
-The message only contains the protocol revision, encoded as a 32 bit integer.
+The message only contains the protocol revision, encoded as a 32 bit unsigned integer.
 
 Example message for protocol revision 0:
 ```
@@ -124,7 +128,7 @@ Example message:
 
 ### 0x90 Motor
 
-This message contains the control method and pantograph index, both encoded as a 8 bit integer, followed by the target position data (x, y, rotation), each encoded as a 32 bit float.
+This message contains the control method and pantograph index, both encoded as a 8 bit unsigned integer, followed by the target position data (x, y, rotation), each encoded as a 32 bit float.
 
 Available control method values:
 
@@ -145,7 +149,7 @@ FFFFFFFF // target rotation
 
 ### 0x91 PID values
 
-This message contains the motor index encoded as an 8 bit integer, followed by the P, I and D values, each encoded as 32 bit float.
+This message contains the motor index encoded as an 8 bit unsigned integer, followed by the P, I and D values, each encoded as 32 bit float.
 
 The motor indices are counted as follows:
 
@@ -164,4 +168,68 @@ Example message for tuning the second pantograph's rotation motor:
 FFFFFFFF // P value
 FFFFFFFF // I value
 FFFFFFFF // D value
+```
+
+### 0xA0 Create obstacle
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the obstacle ID, encoded as a 16 bit unsigned integer, and multiple 2D vectors, each encoded as a pair of 32 bit floats.
+
+Setting the pantograph index to 0xFF creates the obstacle for both handles.
+
+Example message for adding an obstacle to both handles:
+```
+4450     // magic number
+A0       // message type: Create obstacle
+00000013 // payload lenght: 1 byte for index, 2 for ID, 4*4 for values
+FF       // pantograph index - both handles
+0023     // obstacle ID
+FFFFFFFF // first vector, x
+FFFFFFFF // first vector, y
+FFFFFFFF // second vector, x
+FFFFFFFF // second vector, y
+```
+
+### 0xA1 Remove obstacle
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
+
+Setting the pantograph index to 0xFF removes the obstacle for both handles.
+
+Example message for removing an obstacle from both handles:
+```
+4450     // magic number
+A1       // message type: Remove obstacle
+00000003 // payload lenght: 1 byte for index, 2 for ID
+FF       // pantograph index - both handles
+0023     // obstacle ID
+```
+
+### 0xA2 Enable obstacle
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
+
+Setting the pantograph index to 0xFF enables the obstacle for both handles.
+
+Example message for enabling an obstacle for both handles:
+```
+4450     // magic number
+A2       // message type: Enable obstacle
+00000003 // payload lenght: 1 byte for index, 2 for ID
+FF       // pantograph index - both handles
+0023     // obstacle ID
+```
+
+### 0xA3 Disable obstacle
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
+
+Setting the pantograph index to 0xFF disables the obstacle for both handles.
+
+Example message for disables an obstacle for both handles:
+```
+4450     // magic number
+A3       // message type: Disable obstacle
+00000003 // payload lenght: 1 byte for index, 2 for ID
+FF       // pantograph index - both handles
+0023     // obstacle ID
 ```

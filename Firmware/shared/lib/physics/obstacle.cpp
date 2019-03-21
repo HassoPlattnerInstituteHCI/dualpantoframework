@@ -9,3 +9,13 @@ Vector2D Obstacle::handleCollision(Vector2D targetPoint, Vector2D position)
     getEnteringEdge(targetPoint, position, &collidingEdge);
     return getClosestOutsidePoint(collidingEdge, targetPoint);
 }
+
+bool Obstacle::enabled()
+{
+    return m_enabled;
+}
+
+void Obstacle::enable(bool enable)
+{
+    m_enabled = enable;
+}
