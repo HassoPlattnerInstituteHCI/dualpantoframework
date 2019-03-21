@@ -66,7 +66,7 @@ private:
     static void receiveMotor();
     static void receivePID();
     static void receiveCreateObstacle();
-    static void receiveDeleteObstacle();
+    static void receiveRemoveObstacle();
     static void receiveEnableObstacle();
     static void receiveDisableObstacle();
     static void receiveInvalid();

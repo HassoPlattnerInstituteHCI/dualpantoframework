@@ -77,7 +77,7 @@ void GodObject::addObstacle(uint16_t id, std::vector<Vector2D> points)
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
-void GodObject::deleteObstacle(uint16_t id)
+void GodObject::removeObstacle(uint16_t id)
 {
     portENTER_CRITICAL(&m_obstacleMutex);
     m_obstacles.erase(id);

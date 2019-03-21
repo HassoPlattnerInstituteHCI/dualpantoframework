@@ -638,7 +638,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         }
         break;
     }
-    case DELETE_OBSTACLE:
+    case REMOVE_OBSTACLE:
     case ENABLE_OBSTACLE:
     case DISABLE_OBSTACLE:
     {

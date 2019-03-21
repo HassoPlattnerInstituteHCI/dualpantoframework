@@ -33,7 +33,7 @@ The available values for messages from the framework to the hardware are:
   - [0x90 Motor](#0x90-Motor) - This message contains a motor movement.
   - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one 
   - [0xA0 Create obstacle](#0xA0-Create-obstacle) - This message specifies an obstacle to be added to one or both handles.
-  - [0xA1 Delete obstacle](#0xA1-Delete-obstacle) - This message specifies an obstacle to delete.
+  - [0xA1 Remove obstacle](#0xA1-Remove-obstacle) - This message specifies an obstacle to remove.
   - [0xA2 Enable obstacle](#0xA2-Enable-obstacle) - This message specifies an obstacle to enable.
   - [0xA3 Disable obstacle](#0xA3-Disable-obstacle) - This message specifies an obstacle to disable.
 
@@ -189,16 +189,16 @@ FFFFFFFF // second vector, x
 FFFFFFFF // second vector, y
 ```
 
-### 0xA1 Delete obstacle
+### 0xA1 Remove obstacle
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the obstacle ID, encoded as a 16 bit unsigned integer.
 
-Setting the pantograph index to 0xFF deletes the obstacle for both handles.
+Setting the pantograph index to 0xFF removes the obstacle for both handles.
 
-Example message for deleting an obstacle from both handles:
+Example message for removing an obstacle from both handles:
 ```
 4450     // magic number
-A1       // message type: Delete obstacle
+A1       // message type: Remove obstacle
 00000003 // payload lenght: 1 byte for index, 2 for ID
 FF       // pantograph index - both handles
 0023     // obstacle ID

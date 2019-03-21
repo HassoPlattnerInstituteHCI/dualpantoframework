@@ -25,7 +25,7 @@ public:
     void move();
     std::vector<Collision> checkObstacleCollisions(Vector2D point);
     void addObstacle(uint16_t id, std::vector<Vector2D> points);
-    void deleteObstacle(uint16_t id);
+    void removeObstacle(uint16_t id);
     void enableObstacle(uint16_t id, bool enable = true);
     Vector2D getPosition();
     Vector2D getActiveForce();

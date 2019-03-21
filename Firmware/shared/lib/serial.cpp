@@ -18,7 +18,7 @@ std::map<DPProtocol::MessageType, std::function<void()>>
         {MOTOR, DPSerial::receiveMotor},
         {PID, DPSerial::receivePID},
         {CREATE_OBSTACLE, DPSerial::receiveCreateObstacle},
-        {DELETE_OBSTACLE, DPSerial::receiveDeleteObstacle},
+        {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle}
     };
@@ -244,7 +244,7 @@ void DPSerial::receiveCreateObstacle()
     }
 }
 
-void DPSerial::receiveDeleteObstacle()
+void DPSerial::receiveRemoveObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
@@ -253,7 +253,7 @@ void DPSerial::receiveDeleteObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().deleteObstacle(id);
+            pantoPhysics[i].godObject().removeObstacle(id);
         }
     }
 }

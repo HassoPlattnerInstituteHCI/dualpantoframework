@@ -36,7 +36,7 @@ protected:
         MOTOR = 0x90,
         PID = 0x91,
         CREATE_OBSTACLE = 0xA0,
-        DELETE_OBSTACLE = 0xA1,
+        REMOVE_OBSTACLE = 0xA1,
         ENABLE_OBSTACLE = 0xA2,
         DISABLE_OBSTACLE = 0xA3
     };
