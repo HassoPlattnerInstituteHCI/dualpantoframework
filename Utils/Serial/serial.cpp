@@ -185,6 +185,7 @@ void DPSerial::sendPacket()
     WriteFile(s_handle, s_headerBuffer, c_headerSize, &bytesWritten, NULL);
     WriteFile(s_handle, s_packetBuffer, s_header.PayloadSize, &bytesWritten, NULL);
 #else
+    write(fileno(s_handle), c_magicNumber, c_magicNumberSize);
     write(fileno(s_handle), s_headerBuffer, c_headerSize);
     write(fileno(s_handle), s_packetBuffer, s_header.PayloadSize);
 #endif
