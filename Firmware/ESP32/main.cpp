@@ -87,8 +87,8 @@ void setup()
     #endif
 
     std::vector<Vector2D> path{
-        Vector2D(-100, -100),
-        Vector2D(100, -100)
+        Vector2D(-100, -140),
+        Vector2D(100, -140)
     };
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
