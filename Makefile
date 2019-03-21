@@ -6,7 +6,7 @@ else
         CC = g++
     endif
     ifeq ($(UNAME_S),Darwin)
-        CC = clang
+        CC = clang++
     endif
 endif
 
