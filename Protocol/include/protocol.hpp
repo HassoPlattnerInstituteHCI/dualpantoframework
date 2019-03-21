@@ -10,7 +10,7 @@ class DPProtocol
 {
 protected:
     // revision
-    static const uint32_t c_revision = 0;
+    static const uint32_t c_revision = 1;
 
     // magic number
     static const uint8_t c_magicNumber[];
