@@ -4,6 +4,7 @@
 #include <Encoder.h>
 #include "config.hpp"
 #include "utils.hpp"
+#include <functional>
 
 struct Panto
 {
@@ -17,6 +18,9 @@ struct Panto
 
     unsigned char dofIndex;
 
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    std::function<uint32_t()> angleAccessors[2];
+    #endif
     Encoder *encoder[3];
     float actuationAngle[3];
     float targetAngle[3];

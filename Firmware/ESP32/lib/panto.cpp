@@ -8,7 +8,6 @@ void Panto::forwardKinematics()
     inner[0] = base[0] + Vector2D::fromPolar(actuationAngle[0], linkageInnerLength[dofIndex + 0]);
     inner[1] = base[1] + Vector2D::fromPolar(actuationAngle[1], linkageInnerLength[dofIndex + 1]);
     Vector2D diagonal = inner[1] - inner[0];
-    // innerAngle[0] = diagonal.angle()-acos(diagonal.length()/(linkageOuterLength[dofIndex+0]+linkageOuterLength[dofIndex+1]));
     innerAngle[0] = diagonal.angle() - acos((diagonal * diagonal + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]));
     handle = Vector2D::fromPolar(innerAngle[0], linkageOuterLength[dofIndex + 0]) + inner[0];
     innerAngle[1] = (handle - inner[1]).angle();
@@ -47,7 +46,7 @@ void Panto::inverseKinematics()
     else
     {
         const unsigned int iterations = 10;
-        float nextAngle = constrain(target.angle(), (-M_PI - opAngle) * 0.5, (-M_PI + opAngle) * 0.5),
+        float nextAngle = constrain(target.angle(), (-PI - opAngle) * 0.5, (-PI + opAngle) * 0.5),
               nextRadius = constrain(target.length(), opMinDist, opMaxDist),
               savedActuationAngle[] = {actuationAngle[0], actuationAngle[1]};
         for (unsigned int i = 0; i < iterations; ++i)
@@ -93,7 +92,7 @@ void Panto::setup(unsigned char _dofIndex)
     target = Vector2D(NAN, NAN);
     for (unsigned char i = 0; i < 3; ++i)
     {
-        actuationAngle[i] = setupAngle[dofIndex + i] * 2.0 * M_PI;
+        actuationAngle[i] = setupAngle[dofIndex + i] * 2.0 * PI;
         targetAngle[i] = NAN;
         previousDiff[i] = 0.0;
         integral[i] = 0.0;
@@ -123,15 +122,29 @@ void Panto::calibrationEnd()
     {
         // setMotor(i, false, 0);
         if (encoder[i])
-            encoder[i]->write(actuationAngle[i] / (2.0 * M_PI) * encoderSteps[dofIndex + i]);
+            encoder[i]->write(actuationAngle[i] / (2.0 * PI) * encoderSteps[dofIndex + i]);
     }
 };
 
 void Panto::readEncoders()
 {
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    for (unsigned char i = 0; i < 2; ++i)
+    {
+        actuationAngle[i] =
+            encoderFlipped[dofIndex + i] * 2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i];
+    }
+    actuationAngle[2] = (encoder[2]) ? 
+        (encoderFlipped[dofIndex + 2] * 2 * PI * encoder[2]->read() / encoderSteps[dofIndex + 2]) : NAN;
+    #else
     for (unsigned char i = 0; i < 3; ++i)
-        actuationAngle[i] = (encoder[i]) ? 2 * M_PI * encoder[i]->read() / encoderSteps[dofIndex + i] : NAN;
-    actuationAngle[2] = fmod(actuationAngle[2], 2 * M_PI);
+    actuationAngle[i] = 
+        (encoder[i]) ? 
+        (encoderFlipped[dofIndex + i] * 2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i]) :
+        NAN;
+    #endif
+    
+    actuationAngle[2] = fmod(actuationAngle[2], 2 * PI);
 };
 
 void Panto::actuateMotors()
@@ -153,10 +166,10 @@ void Panto::actuateMotors()
             if (i == 2)
             { // Linkage offsets handle
                 error -= innerAngle[linkageHandleMount[dofIndex + 2]];
-                if (error > M_PI)
-                    error -= 2 * M_PI;
-                else if (error < -M_PI)
-                    error += 2 * M_PI;
+                if (error > PI)
+                    error -= 2 * PI;
+                else if (error < -PI)
+                    error += 2 * PI;
             }
             unsigned char dir = error < 0;
             error = fabs(error);

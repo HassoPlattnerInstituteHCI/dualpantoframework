@@ -35,7 +35,7 @@ for (const pantoName in input.pantos) {
   }
 }
 
-function aggregate(name, valueIfUndefined = 0) {
+function aggregate(name, valueIfUndefined = 0, map = ((x) => x)) {
   let array = aggregates[name];
   if (!array) {
     array = [];
@@ -48,7 +48,21 @@ function aggregate(name, valueIfUndefined = 0) {
       array[i] = `{${array[i].join(', ')}}`;
     }
   }
-  return array.join(', ');
+  return array.map(map).join(', ');
+}
+
+function count(name) {
+  const array = aggregates[name];
+  if (!array) {
+    return 0;
+  }
+  let count = 0;
+  for (let i = 0; i < index; ++i) {
+    if (array[i] != undefined) {
+      count++;
+    }
+  }
+  return count;
 }
 
 const headerOutput =
@@ -73,6 +87,8 @@ const float opMinDist = ${input.opMinDist},
 extern float forceFactor;
 const uint8_t pantoCount = ${pantoCount};
 const uint8_t dummyPin = ${input.dummyPin};
+${input.usesSpi ? '#define LINKAGE_ENCODER_USE_SPI' : ''}
+const uint32_t numberOfSpiEncoders = ${count('encoder_spiIndex')};
 const float linkageBaseX[] = {
     ${aggregate('linkage_baseX')}
 };
@@ -115,6 +131,12 @@ const uint8_t encoderIndexPin[] = {
 };
 const uint32_t encoderSteps[] = {
     ${aggregate('encoder_steps')}
+};
+const uint32_t encoderSpiIndex[] = {
+    ${aggregate('encoder_spiIndex', 0xffffffff)}
+};
+const float encoderFlipped[] = {
+    ${aggregate('encoder_flipped', false, (x) => x ? -1 : 1)}
 };
 const float setupAngle[] = {
     ${aggregate('encoder_setup')}
