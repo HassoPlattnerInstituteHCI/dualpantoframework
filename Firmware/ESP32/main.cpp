@@ -86,14 +86,20 @@ void setup()
     spi->setPosition(startPositions);
     #endif
 
-    std::vector<Vector2D> path{
-        Vector2D(-100, -140),
+    std::vector<Vector2D> path1{
+        Vector2D(-100, -137),
+        Vector2D(100, -140)
+    };
+
+    std::vector<Vector2D> path2{
+        Vector2D(-100, -143),
         Vector2D(100, -140)
     };
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
-        pantoPhysics[i].addObstacle(path);
+        pantoPhysics[i].addObstacle(path1);
+        pantoPhysics[i].addObstacle(path2);
     }
 
     prevTime = micros();
