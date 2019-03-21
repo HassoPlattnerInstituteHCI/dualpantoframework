@@ -5,7 +5,7 @@
   "main": "lib/dualpantoframework.js",
   "scripts": {
     "test": "node test.js",
-    "install": "make && node ./voice-command/build/build-release.js && node ./Protocol/setup.js"
+    "install": "make && node ./voice-command/build/build-release.js"
   },
   "repository": {
     "type": "git",

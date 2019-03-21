@@ -15,4 +15,7 @@ struct Vector2D
     Vector2D operator+(const Vector2D &other);
     Vector2D operator-(const Vector2D &other);
     float operator*(const Vector2D &other);
+    Vector2D operator*(const float scale);
 };
+
+float determinant(Vector2D first, Vector2D second);

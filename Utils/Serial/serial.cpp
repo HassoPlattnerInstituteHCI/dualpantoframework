@@ -1,4 +1,4 @@
-#include "../../Protocol/protocol.hpp"
+#include "protocol.hpp"
 
 #include <string>
 #include <iostream>
