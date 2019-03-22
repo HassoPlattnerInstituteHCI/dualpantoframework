@@ -27,10 +27,10 @@ void ioLoop()
         pantos[i].forwardKinematics();
     }
 
-    // if (connected)
-    // {
-    //     DPSerial::sendPosition();
-    // }
+    if (connected)
+    {
+        DPSerial::sendPosition();
+    }
 
     unsigned long now = micros();
     Panto::dt = now - prevTime;
@@ -96,7 +96,7 @@ void setup()
 
     Task ioTask = Task(&ioLoop, "I/O", 0);
     ioTask.run();
-    ioTask.setLogFps();
+    //ioTask.setLogFps();
     Task physicsTask = Task(&physicsLoop, "Physics", 1);
     physicsTask.run();
 
