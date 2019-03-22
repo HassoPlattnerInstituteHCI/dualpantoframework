@@ -44,3 +44,14 @@ fi\n\
 exit $?";
 
 fs.writeFileSync('./.git/hooks/pre-commit', script);
+
+if (process.platform == 'win32') {
+  console.log('skipping chmod for windows');
+} else {
+  const exec = require('child_process').exec;
+  exec('chmod +x ./.git/hooks/pre-commit', (error, stdout, stderr) => {
+    if (error) {
+      console.log('exec error: ' + error);
+    }
+  });
+}
