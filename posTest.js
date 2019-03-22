@@ -10,7 +10,7 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
   for (const device of devices) {
     if (device) {
       device.on('handleMoved', function(index, position) {
-        console.log('index: ', index, ' position: ', position);
+        //console.log('index: ', index, ' position: ', position);
       });
       setTimeout(() => {
         device.createObstacle([
