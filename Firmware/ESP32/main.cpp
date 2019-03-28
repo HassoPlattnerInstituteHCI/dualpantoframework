@@ -96,7 +96,7 @@ void setup()
 
     Task ioTask = Task(&ioLoop, "I/O", 0);
     ioTask.run();
-    //ioTask.setLogFps();
+    ioTask.setLogFps();
     Task physicsTask = Task(&physicsLoop, "Physics", 1);
     physicsTask.run();
 
