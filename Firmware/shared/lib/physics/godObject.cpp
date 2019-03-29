@@ -4,8 +4,8 @@
 #include <utility>
 #include <serial.hpp>
 
-const float GodObject::c_bigPantoForceScale = 0.1125;
-const float GodObject::c_smallPantoForceScale = 0.125;
+const double GodObject::c_bigPantoForceScale = 0.1125;
+const double GodObject::c_smallPantoForceScale = 0.125;
 
 GodObject::GodObject(Vector2D position)
 : m_position(position)
