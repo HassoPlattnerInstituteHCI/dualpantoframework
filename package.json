@@ -4,8 +4,22 @@
   "description": "dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff, Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner",
   "main": "lib/dualpantoframework.js",
   "scripts": {
-    "test": "node test.js",
-    "install": "make && node ./voice-command/build/build-release.js"
+    "install": "npm run build-framework && npm run build-firmware",
+    "clean": "npm run clean-framework && npm run clean-firmware",
+    "build-framework": "npm run build-voice-command && npm run build-serial-plugin && npm run build-serial-standalone",
+    "build-voice-command": "node ./voice-command/build/build-release.js",
+    "build-serial-plugin": "make serial-plugin",
+    "build-serial-standalone": "make serial-standalone",
+    "clean-framework": "npm run clean-voice-command && npm run clean-serial-plugin && npm run clean-serial-standalone",
+    "clean-voice-command": "make delete target=voice-command/.bin",
+    "clean-serial-plugin": "make delete target=build",
+    "clean-serial-standalone": "echo clean-serial-standalone not implemented yet",
+    "build-firmware": "npm run generate-hardware-config && npm run platformio-upload",
+    "generate-hardware-config": "node Firmware/GenerateHardwareConfig.js LP_PCB_ESP32",
+    "platformio-upload": "make platformio command=upload",
+    "clean-firmware": "npm run platformio-clean && npm run clean-hardware-config",
+    "platformio-clean": "make platformio command=clean",
+    "clean-hardware-config": "make delete target=Firmware/shared/lib/config.cpp && make delete target=Firmware/shared/include/config.hpp"
   },
   "repository": {
     "type": "git",
