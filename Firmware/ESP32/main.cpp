@@ -87,13 +87,13 @@ void setup()
     #endif
 
     std::vector<Vector2D> path1{
-        Vector2D(-100, -137),
-        Vector2D(100, -140)
+        Vector2D(-80, -137),
+        Vector2D(80, -140)
     };
 
     std::vector<Vector2D> path2{
-        Vector2D(-100, -143),
-        Vector2D(100, -140)
+        Vector2D(-80, -143),
+        Vector2D(80, -140)
     };
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
