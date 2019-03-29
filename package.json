@@ -15,7 +15,7 @@
     "clean-serial-plugin": "make delete target=build",
     "clean-serial-standalone": "echo clean-serial-standalone not implemented yet",
     "build-firmware": "npm run generate-hardware-config && npm run platformio-upload",
-    "generate-hardware-config": "node Firmware/GenerateHardwareConfig.js LP_PCB_ESP32",
+    "generate-hardware-config": "node Firmware/GenerateHardwareConfig.js barbie",
     "platformio-upload": "make platformio command=upload",
     "clean-firmware": "npm run platformio-clean && npm run clean-hardware-config",
     "platformio-clean": "make platformio command=clean",
