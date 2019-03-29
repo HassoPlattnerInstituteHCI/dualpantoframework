@@ -4,6 +4,7 @@
 #include <random>
 #include <iomanip>
 #include <limits>
+#include <serial.hpp>
 
 Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }
 
@@ -76,8 +77,10 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
             Edge(objectPosition, handlePosition), 
             Edge(first, second),
             &intersection);
+        //DPSerial::sendDebugLog("GOD %+08.3f %+08.3f HAN %+08.3f %+08.3f FRS %+08.3f %+08.3f SND %+08.3f %+08.3f INT %i", objectPosition.x, objectPosition.y, handlePosition.x, handlePosition.y, first.x, first.y, second.x, second.y, intersects);
         if(!intersects)
         {
+            j = i;
             continue;
         }
 
@@ -92,6 +95,7 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
         
         if(scale < 0 || scale > 1)
         {
+            j = i;
             continue;
         }
 
@@ -102,6 +106,8 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
             *enteringEdge = Edge(first, second);
             foundAny = true;
         }
+        
+        j = i;
     }
 
     return foundAny;
