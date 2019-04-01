@@ -77,7 +77,6 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
             Edge(objectPosition, handlePosition), 
             Edge(first, second),
             &intersection);
-        //DPSerial::sendDebugLog("GOD %+08.3f %+08.3f HAN %+08.3f %+08.3f FRS %+08.3f %+08.3f SND %+08.3f %+08.3f INT %i", objectPosition.x, objectPosition.y, handlePosition.x, handlePosition.y, first.x, first.y, second.x, second.y, intersects);
         if(!intersects)
         {
             j = i;
