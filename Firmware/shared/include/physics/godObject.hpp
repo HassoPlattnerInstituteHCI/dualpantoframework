@@ -17,8 +17,8 @@ private:
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
     bool m_doneColliding;
-    static const float c_bigPantoForceScale;
-    static const float c_smallPantoForceScale;
+    static const double c_bigPantoForceScale;
+    static const double c_smallPantoForceScale;
 public:
     GodObject(Vector2D position = Vector2D());
     void setMovementDirection(Vector2D movementDirection);

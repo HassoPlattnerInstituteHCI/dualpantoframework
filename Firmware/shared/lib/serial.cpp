@@ -232,7 +232,7 @@ void DPSerial::receiveCreateObstacle()
 
     for(auto i = 0; i < vecCount; ++i)
     {
-        path.emplace_back(receiveFloat(), receiveFloat());
+        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
     for(auto i = 0; i < pantoPhysics.size(); ++i)
