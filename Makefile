@@ -3,10 +3,10 @@ ifeq ($(OS),Windows_NT)
 	RM = del /s /q /f
 	CC = cl /Fo:Utils\\Serial\\
 else
-	if ($(shell which platformio))
-		PLATFORMIO = platformio
-	else
+	ifeq $(, shell which platformio)
 		PLATFORMIO = ~/.platformio/penv/bin/platformio
+	else
+		PLATFORMIO = platformio
 	endif
 	RM = rm -rdf
 	UNAME_S := $(shell uname -s)

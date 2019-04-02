@@ -17,7 +17,7 @@
     "clean-serial-standalone": "echo clean-serial-standalone not implemented yet",
     "build-firmware": "npm run generate-hardware-config && npm run platformio-build",
     "generate-hardware-config": "node Firmware/GenerateHardwareConfig.js barbie",
-    "platformio-build": "make platformio command=build",
+    "platformio-build": "make platformio command=.",
     "clean-firmware": "npm run platformio-clean && npm run clean-hardware-config",
     "platformio-clean": "make platformio command=clean",
     "clean-hardware-config": "make delete target=Firmware/shared/lib/config.cpp && make delete target=Firmware/shared/include/config.hpp"
