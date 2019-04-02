@@ -17,9 +17,9 @@
 #endif
 
 #ifdef NODE_GYP
-#ifdef WINDOWS
+#if __has_include("node_api.h")
 #include <node_api.h>
-#else
+#elif __has_include("node/node_api.h")
 #include <node/node_api.h>
 #endif
 #define NAPI_CHECK(code) \
