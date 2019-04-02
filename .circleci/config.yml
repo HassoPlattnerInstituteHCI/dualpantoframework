@@ -22,7 +22,7 @@ jobs:
           command: sudo apt-get install python-pip
       - run:
           name: Installing platformio
-          command: sudo pip install platformio
+          command: sudo pip install -U platformio
       - run:
           name: Install dependencies / build serial
           command: npm i
