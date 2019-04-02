@@ -12,19 +12,14 @@ jobs:
             echo "Node $(node -v)"
             echo "Yarn v$(yarn --version)"
       - run:
-          name: update apt-repository
-          command: sudo apt-get update; sudo apt-get upgrade
+          name: Installing dependecies
+          command: |
+            sudo apt-get update; sudo apt-get upgrade
+            sudo apt-get install build-essential libudev-dev
+            sudo apt-get install python-pip
+            sudo pip install -U platformio
       - run:
-          name: Installing libudev-dev
-          command: sudo apt-get install build-essential libudev-dev
-      - run:
-          name: Installing pip
-          command: sudo apt-get install python-pip
-      - run:
-          name: Installing platformio
-          command: sudo pip install -U platformio
-      - run:
-          name: Install dependencies / build serial
+          name: Run npm install
           command: npm i
       - run:
           name: TestTest
