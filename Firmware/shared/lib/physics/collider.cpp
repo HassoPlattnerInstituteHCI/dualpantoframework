@@ -1,10 +1,6 @@
 #include "physics/collider.hpp"
 
-#include <sstream>
-#include <random>
-#include <iomanip>
-#include <limits>
-#include <serial.hpp>
+#include "serial.hpp"
 
 Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }
 

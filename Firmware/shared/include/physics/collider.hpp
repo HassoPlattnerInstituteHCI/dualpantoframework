@@ -1,10 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <string>
-#include <utility>
-#include "utils.hpp"
+
 #include "edge.hpp"
+#include "utils.hpp"
 
 class Collider
 {
