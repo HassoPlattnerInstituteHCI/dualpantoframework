@@ -15,8 +15,14 @@ jobs:
           name: update apt-repository
           command: sudo apt-get update; sudo apt-get upgrade
       - run:
-          name: "Installing libudev-dev"
+          name: Installing libudev-dev
           command: sudo apt-get install build-essential libudev-dev
+      - run:
+          name: Installing pip
+          command: sudo apt-get install python-pip
+      - run:
+          name: Installing platformio
+          command: sudo pip install platformio
       - run:
           name: Install dependencies / build serial
           command: npm i
