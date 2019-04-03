@@ -20,7 +20,7 @@
 #ifdef WINDOWS
 #include <node_api.h>
 #else
-#include <node_api.h>
+#include <node/node_api.h>
 #endif
 #define NAPI_CHECK(code) \
     if (code != napi_ok) \
@@ -554,9 +554,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
     s_header.MessageType = static_cast<MessageType>(messageType);
 
     uint8_t offset = 0;
-    if(s_header.MessageType != SYNC_ACK){
-        std::cout << "MessageType Framework " << (int)(s_header.MessageType) << std::endl;
-    }
+    
     switch (messageType)
     {
     case SYNC_ACK:

@@ -396,7 +396,7 @@ void DPSerial::receive()
         }
         return;
     }
-    sendDebugLog("MessageType: %i", s_header.MessageType);
+
     auto handler = s_receiveHandlers.find((MessageType)(s_header.MessageType));
 
     if(handler == s_receiveHandlers.end())
