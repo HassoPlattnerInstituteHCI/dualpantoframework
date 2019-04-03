@@ -1,11 +1,16 @@
 #include "physics/godObject.hpp"
 
 #include <algorithm>
+#include <utility>
+#include <serial.hpp>
 
-const float GodObject::c_bigPantoForceScale = 0.1125;
-const float GodObject::c_smallPantoForceScale = 0.125;
+const double GodObject::c_bigPantoForceScale = 0.1125;
+const double GodObject::c_smallPantoForceScale = 0.125;
 
-GodObject::GodObject(Vector2D position) : m_position(position) { }
+GodObject::GodObject(Vector2D position)
+: m_position(position)
+, m_obstacleMutex{portMUX_FREE_VAL, 0}
+{ }
 
 void GodObject::setMovementDirection(Vector2D movementDirection)
 {
@@ -44,30 +49,47 @@ std::vector<Collision> GodObject::checkObstacleCollisions(Vector2D point)
     std::vector<Collision> result;
     Edge enteringEdge;
 
+    portENTER_CRITICAL(&m_obstacleMutex);
     for(auto obstacle : m_obstacles)
     {
+        if(!obstacle.second.enabled())
+        {
+            continue;
+        }
+
         auto colliding =
-            obstacle.getEnteringEdge(point, m_position, &enteringEdge);
+            obstacle.second.getEnteringEdge(point, m_position, &enteringEdge);
         if(colliding)
         {
-            result.emplace_back(obstacle, enteringEdge);
+            result.emplace_back(obstacle.second, enteringEdge);
         }
     }
+    portEXIT_CRITICAL(&m_obstacleMutex);
 
     return result;
 }
 
-void GodObject::addObstacle(Obstacle obstacle)
+void GodObject::addObstacle(uint16_t id, std::vector<Vector2D> points)
 {
-    m_obstacles.push_back(obstacle);
+    auto temp = Obstacle(points);
+    portENTER_CRITICAL(&m_obstacleMutex);
+    m_obstacles.emplace(id, std::move(temp));
+    portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
-void GodObject::removeObstacle(Obstacle obstacle)
+void GodObject::removeObstacle(uint16_t id)
 {
-    auto it = std::find(m_obstacles.begin(), m_obstacles.end(), obstacle);
+    portENTER_CRITICAL(&m_obstacleMutex);
+    m_obstacles.erase(id);
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::enableObstacle(uint16_t id, bool enable)
+{
+    auto it = m_obstacles.find(id);
     if(it != m_obstacles.end())
     {
-        m_obstacles.erase(it);
+        m_obstacles.at(id).enable(enable);
     }
 }
 

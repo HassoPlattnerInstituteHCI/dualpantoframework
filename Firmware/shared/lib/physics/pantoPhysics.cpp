@@ -8,10 +8,9 @@ PantoPhysics::PantoPhysics(Panto* panto) : m_panto(panto)
     m_godObject = GodObject(m_currentPosition);
 }
 
-void PantoPhysics::addObstacle(std::vector<Vector2D> points)
+GodObject& PantoPhysics::godObject()
 {
-    m_obstacles.emplace_back(points);
-    m_godObject.addObstacle(m_obstacles.back());
+    return m_godObject;
 }
 
 void PantoPhysics::step()
@@ -29,8 +28,8 @@ void PantoPhysics::step()
     }
     else if(m_godObject.getDoneColliding())
     {
-        m_panto->isforceRendering = true;
-        m_panto->target = Vector2D();
+        m_panto->isforceRendering = false;
+        m_panto->target = Vector2D(NAN, NAN);
         m_panto->inverseKinematics();
     }
 }

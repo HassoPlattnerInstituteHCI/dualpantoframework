@@ -1,56 +1,68 @@
-const input = require('../Hardware/'+process.argv[2]+'.json'),
-      fs = require('fs'),
-      crypto = require('crypto'),
-      hash = crypto.createHash('md5').update(JSON.stringify(input)).digest(),
-      aggregates = {};
+// just assume the input config file is correct and we don't need this check
+/* eslint-disable guard-for-in */
+// also, this is just a helper script and does not need documentation
+/* eslint-disable require-jsdoc */
+// the template strings can't ne broken into multiple lines
+/* eslint-disable max-len */
+const input = require('../Hardware/'+process.argv[2]+'.json');
+const fs = require('fs');
+const crypto = require('crypto');
+const hash = crypto.createHash('md5').update(JSON.stringify(input)).digest();
+const aggregates = {};
 
 function insert(index, categoryName, valueName, value) {
-    const aggregate = categoryName+'_'+valueName;
-    if(!aggregates[aggregate])
-        aggregates[aggregate] = [];
-    aggregates[aggregate][index] = value;
+  const aggregate = categoryName+'_'+valueName;
+  if (!aggregates[aggregate]) {
+    aggregates[aggregate] = [];
+  }
+  aggregates[aggregate][index] = value;
 }
 
-let index = 0, pantoCount = 0;
-for(const pantoName in input.pantos) {
-    ++pantoCount;
-    const panto = input.pantos[pantoName];
-    for(const dofName in panto) {
-        const dof = panto[dofName];
-        for(const categoryName in dof) {
-            const category = dof[categoryName];
-            for(const valueName in category) {
-                const value = category[valueName];
-                insert(index, categoryName, valueName, value);
-            }
-        }
-        ++index;
+let index = 0; let pantoCount = 0;
+for (const pantoName in input.pantos) {
+  ++pantoCount;
+  const panto = input.pantos[pantoName];
+  for (const dofName in panto) {
+    const dof = panto[dofName];
+    for (const categoryName in dof) {
+      const category = dof[categoryName];
+      for (const valueName in category) {
+        const value = category[valueName];
+        insert(index, categoryName, valueName, value);
+      }
     }
+    ++index;
+  }
 }
 
-function aggregate(name, valueIfUndefined = 0, map = (x => x)) {
-    let array = aggregates[name];
-    if(!array)
-        array = [];
-    for(let i = 0; i < index; ++i) {
-        if(array[i] == undefined)
-            array[i] = valueIfUndefined;
-        if(array[i] instanceof Array)
-            array[i] = `{${array[i].join(', ')}}`;
+function aggregate(name, valueIfUndefined = 0, map = ((x) => x)) {
+  let array = aggregates[name];
+  if (!array) {
+    array = [];
+  }
+  for (let i = 0; i < index; ++i) {
+    if (array[i] == undefined) {
+      array[i] = valueIfUndefined;
     }
-    return array.map(map).join(', ');
+    if (array[i] instanceof Array) {
+      array[i] = `{${array[i].join(', ')}}`;
+    }
+  }
+  return array.map(map).join(', ');
 }
 
 function count(name) {
-    let array = aggregates[name];
-    if(!array)
-        return 0;
-    let count = 0;
-    for(let i = 0; i < index; ++i) {
-        if(array[i] != undefined)
-            count++;
+  const array = aggregates[name];
+  if (!array) {
+    return 0;
+  }
+  let count = 0;
+  for (let i = 0; i < index; ++i) {
+    if (array[i] != undefined) {
+      count++;
     }
-    return count;
+  }
+  return count;
 }
 
 const headerOutput =
@@ -68,14 +80,14 @@ const headerOutput =
 
 #include <Arduino.h>
 
-const uint8_t configHash[] = {${Array.from(hash).map(x => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
+const uint8_t configHash[] = {${Array.from(hash).map((x) => '0x'+('0'+(Number(x).toString(16))).slice(-2).toUpperCase()).join(', ')}};
 const float opMinDist = ${input.opMinDist},
             opMaxDist = ${input.opMaxDist},
             opAngle = ${input.opAngle};
 extern float forceFactor;
 const uint8_t pantoCount = ${pantoCount};
 const uint8_t dummyPin = ${input.dummyPin};
-${input.usesSpi ? "#define LINKAGE_ENCODER_USE_SPI" : ""}
+${input.usesSpi ? '#define LINKAGE_ENCODER_USE_SPI' : ''}
 const uint32_t numberOfSpiEncoders = ${count('encoder_spiIndex')};
 const float linkageBaseX[] = {
     ${aggregate('linkage_baseX')}
@@ -124,14 +136,14 @@ const uint32_t encoderSpiIndex[] = {
     ${aggregate('encoder_spiIndex', 0xffffffff)}
 };
 const float encoderFlipped[] = {
-    ${aggregate('encoder_flipped', false, x => x ? -1 : 1)}
+    ${aggregate('encoder_flipped', false, (x) => x ? -1 : 1)}
 };
 const float setupAngle[] = {
     ${aggregate('encoder_setup')}
 };`;
 
 console.log(headerOutput);
-fs.writeFileSync('Firmware/' + input.firmware + '/include/config.hpp', headerOutput);
+fs.writeFileSync('Firmware/shared/include/config.hpp', headerOutput);
 
 const sourceOutput =
 `/*
@@ -148,4 +160,4 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-fs.writeFileSync('Firmware/' + input.firmware + '/lib/config.cpp', sourceOutput);
+fs.writeFileSync('Firmware/shared/lib/config.cpp', sourceOutput);

@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "config.hpp"
 #include "panto.hpp"
 #include "serial.hpp"
@@ -28,7 +29,7 @@ void ioLoop()
 
     // if (connected)
     // {
-    //     DPSerial::sendDebugData();
+    //     DPSerial::sendPosition();
     // }
 
     unsigned long now = micros();
@@ -85,21 +86,10 @@ void setup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi->setPosition(startPositions);
     #endif
-
-    std::vector<Vector2D> path1{
-        Vector2D(-80, -137),
-        Vector2D(80, -140)
-    };
-
-    std::vector<Vector2D> path2{
-        Vector2D(-80, -143),
-        Vector2D(80, -140)
-    };
+    
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
-        pantoPhysics[i].addObstacle(path1);
-        pantoPhysics[i].addObstacle(path2);
     }
 
     prevTime = micros();

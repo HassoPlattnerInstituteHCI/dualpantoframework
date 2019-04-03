@@ -10,7 +10,7 @@ class DPProtocol
 {
 protected:
     // revision
-    static const uint32_t c_revision = 0;
+    static const uint32_t c_revision = 1;
 
     // magic number
     static const uint8_t c_magicNumber[];
@@ -34,6 +34,10 @@ protected:
         SYNC_ACK = 0x80,
         HEARTBEAT_ACK = 0x81,
         MOTOR = 0x90,
-        PID = 0x91
+        PID = 0x91,
+        CREATE_OBSTACLE = 0xA0,
+        REMOVE_OBSTACLE = 0xA1,
+        ENABLE_OBSTACLE = 0xA2,
+        DISABLE_OBSTACLE = 0xA3
     };
 };
