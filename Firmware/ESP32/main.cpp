@@ -28,10 +28,10 @@ void ioLoop()
         pantos[i].forwardKinematics();
     }
 
-    // if (connected)
-    // {
-    //     DPSerial::sendPosition();
-    // }
+    if (connected)
+    {
+        DPSerial::sendPosition();
+    }
 
     unsigned long now = micros();
     Panto::dt = now - prevTime;
