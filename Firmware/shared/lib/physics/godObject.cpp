@@ -4,8 +4,7 @@
 #include <utility>
 #include <serial.hpp>
 
-const double GodObject::c_bigPantoForceScale = 0.1125;
-const double GodObject::c_smallPantoForceScale = 0.125;
+#include "config.hpp"
 
 GodObject::GodObject(Vector2D position)
 : m_position(position)
@@ -38,7 +37,9 @@ void GodObject::move()
 
     if(m_processingObstacleCollision)
     {
-        m_activeForce = (m_position - nextPosition) * c_smallPantoForceScale;
+        auto error = m_position - nextPosition;
+        m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
+        m_lastError = error;
     }
     
     m_doneColliding = lastState && !m_processingObstacleCollision;

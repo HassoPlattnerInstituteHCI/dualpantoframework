@@ -108,6 +108,12 @@ const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
 };
 extern float pidFactor[${pantoCount*3}][3];
+const float forceP = ${input.forcePidFactor[0]};
+const float forceI = ${input.forcePidFactor[1]};
+const float forceD = ${input.forcePidFactor[2]};
+const float forcePidFactor[2][3] = {
+  {forceP, forceI, forceD}, {forceP, forceI, forceD}
+};
 const uint8_t motorPwmPin[] = {
     ${aggregate('motor_pwmPin', input.dummyPin)}
 };
