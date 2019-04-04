@@ -554,6 +554,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
     s_header.MessageType = static_cast<MessageType>(messageType);
 
     uint8_t offset = 0;
+    
     switch (messageType)
     {
     case SYNC_ACK:
