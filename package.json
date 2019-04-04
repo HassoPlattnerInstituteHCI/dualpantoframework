@@ -7,7 +7,7 @@
     "install": "npm run build-framework && npm run build-firmware",
     "clean": "npm run clean-framework && npm run clean-firmware",
     "platformio-upload": "make platformio command=upload",
-    "build-framework": "npm run build-voice-command && npm run build-serial-plugin && npm run build-serial-standalone && setup-commit-hook",
+    "build-framework": "npm run build-voice-command && npm run build-serial-plugin && npm run build-serial-standalone && npm run setup-commit-hook",
     "build-voice-command": "node ./voice-command/build/build-release.js",
     "build-serial-plugin": "make serial-plugin",
     "build-serial-standalone": "make serial-standalone",
