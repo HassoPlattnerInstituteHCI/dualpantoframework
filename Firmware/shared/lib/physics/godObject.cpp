@@ -1,8 +1,6 @@
 #include "physics/godObject.hpp"
 
-#include <algorithm>
-#include <utility>
-#include <serial.hpp>
+#include "serial.hpp"
 
 const double GodObject::c_bigPantoForceScale = 0.1125;
 const double GodObject::c_smallPantoForceScale = 0.125;

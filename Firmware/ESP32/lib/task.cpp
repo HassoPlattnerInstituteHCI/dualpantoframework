@@ -1,6 +1,9 @@
 #include "task.hpp"
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
+
+#include <soc/timer_group_reg.h>
+#include <soc/timer_group_struct.h>
+
+#include "serial.hpp"
 
 std::map<TaskHandle_t, uint32_t> Task::s_fpsMap;
 

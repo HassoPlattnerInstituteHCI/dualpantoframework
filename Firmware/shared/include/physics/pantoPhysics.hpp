@@ -1,10 +1,10 @@
 #pragma once
 
 #include <vector>
+
 #include "panto.hpp"
-#include "utils.hpp"
 #include "physics/godObject.hpp"
-#include "physics/obstacle.hpp"
+#include "utils.hpp"
 
 class PantoPhysics
 {
