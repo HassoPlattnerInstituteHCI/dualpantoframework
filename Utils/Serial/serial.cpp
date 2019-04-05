@@ -17,9 +17,9 @@
 #endif
 
 #ifdef NODE_GYP
-#ifdef WINDOWS
+#if __has_include("node_api.h")
 #include <node_api.h>
-#else
+#elif __has_include("node/node_api.h")
 #include <node/node_api.h>
 #endif
 #define NAPI_CHECK(code) \
@@ -574,6 +574,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
     s_header.MessageType = static_cast<MessageType>(messageType);
 
     uint8_t offset = 0;
+    
     switch (messageType)
     {
     case SYNC_ACK:

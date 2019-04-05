@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
-#include <vector>
 #include <map>
-#include "utils.hpp"
+#include <vector>
+
 #include "collision.hpp"
 #include "obstacle.hpp"
+#include "utils.hpp"
 
 class GodObject
 {

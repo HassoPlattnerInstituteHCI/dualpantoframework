@@ -1,8 +1,8 @@
 #pragma once
 
+#include <functional>
 #include <SPI.h>
 #include <vector>
-#include <functional>
 
 struct SPIPacket
 {
