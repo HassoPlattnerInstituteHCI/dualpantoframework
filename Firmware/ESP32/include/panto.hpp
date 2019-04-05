@@ -2,9 +2,10 @@
 
 #include <Arduino.h>
 #include <Encoder.h>
+#include <functional>
+
 #include "config.hpp"
 #include "utils.hpp"
-#include <functional>
 
 struct Panto
 {
@@ -55,7 +56,6 @@ struct Panto
     void actuateMotors();
 
     void disengageMotors();
-
 };
 
 extern Panto pantos[pantoCount];

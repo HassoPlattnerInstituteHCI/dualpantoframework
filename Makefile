@@ -3,7 +3,11 @@ ifeq ($(OS),Windows_NT)
 	RM = del /s /q /f
 	CC = cl /Fo:Utils\\Serial\\
 else
-	PLATFORMIO = ~/.platformio/penv/bin/platformio
+	ifeq (, $(shell which platformio))
+		PLATFORMIO = ~/.platformio/penv/bin/platformio
+	else
+		PLATFORMIO = platformio
+	endif
 	RM = rm -rdf
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
