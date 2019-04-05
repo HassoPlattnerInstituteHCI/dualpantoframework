@@ -1,5 +1,7 @@
 #include "physics/collider.hpp"
 
+#include <cmath>
+
 #include "serial.hpp"
 
 Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }
@@ -9,7 +11,7 @@ bool Collider::intersect(Edge edgeA, Edge edgeB, Vector2D* intersection, bool co
     auto dirA = edgeA.m_second - edgeA.m_first;
     auto dirB = edgeB.m_second - edgeB.m_first;
     auto detDirADirB = determinant(dirA, dirB);
-    if(abs(detDirADirB) == 0)
+    if(std::abs(detDirADirB) == 0)
     {
         return false;
     }
