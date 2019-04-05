@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include <map>
-#include "serial.hpp"
 
 // enable/disable debug logging here
 #define LOG_TASK_FPS true

@@ -1,8 +1,10 @@
 #include "serial.hpp"
+
 #include <vector>
-#include "utils.hpp"
+
 #include "panto.hpp"
 #include "physics/pantoPhysics.hpp"
+#include "utils.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
