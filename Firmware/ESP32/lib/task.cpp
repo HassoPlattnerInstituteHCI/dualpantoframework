@@ -14,11 +14,16 @@ void Task::taskLoop(void *parameters)
 #if LOG_TASK_FPS
     task->initFps();
 #endif
+
+    task->m_setupFunc();
+
 loopLabel:
     task->m_loopFunc();
+
 #if LOG_TASK_FPS
     task->checkFps();
 #endif
+
     TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
     TIMERG0.wdt_feed=1;
     TIMERG0.wdt_wprotect=0;
@@ -54,8 +59,9 @@ inline void Task::checkFps()
     }
 };
 
-Task::Task(void (*loopFunc)(), const char *name, int core)
-    : m_loopFunc(loopFunc),
+Task::Task(void (*setupFunc)(), void (*loopFunc)(), const char *name, int core)
+    : m_setupFunc(setupFunc),
+      m_loopFunc(loopFunc),
       m_name(name),
       m_stackDepth(c_defaultStackDepth),
       m_priority(c_defaultPriority),
@@ -78,4 +84,9 @@ void Task::run()
 void Task::setLogFps(bool logFps)
 {
     m_logFps = logFps;
+}
+
+TaskHandle_t Task::getHandle()
+{
+    return m_handle;
 }

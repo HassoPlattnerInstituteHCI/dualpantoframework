@@ -15,6 +15,7 @@ private:
     static const uint32_t c_defaultFpsInterval = 1000;
 
     // task data
+    void (*m_setupFunc)();
     void (*m_loopFunc)();
     const char *m_name;
     uint32_t m_stackDepth;
@@ -37,7 +38,8 @@ private:
     inline void initFps();
     inline void checkFps();
 public:
-    Task(void (*loopFunc)(), const char *name, int core);
+    Task(void (*setupFunc)(), void (*loopFunc)(), const char *name, int core);
     void run();
     void setLogFps(bool logFps = true);
+    TaskHandle_t getHandle();
 };

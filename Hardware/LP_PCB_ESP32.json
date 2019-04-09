@@ -6,6 +6,7 @@
     "opAngle": 2.2,
     "forceFactor": 0.01,
     "dummyPin": 40,
+    "forcePidFactor": [0.375, 0, 0.01],
     "pantos": {
         "upper": {
             "left": {
