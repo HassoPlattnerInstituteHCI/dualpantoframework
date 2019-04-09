@@ -1,21 +1,40 @@
 ifeq ($(OS),Windows_NT)
-    CC = cl /Fo:Utils\\Serial\\
+	PLATFORMIO = %userprofile%/.platformio/penv/Scripts/platformio
+	RM = del /s /q /f
+	CC = cl /Fo:Utils\\Serial\\
 else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        CC = g++
-    endif
-    ifeq ($(UNAME_S),Darwin)
-        CC = clang++
-    endif
+	ifeq (, $(shell which platformio))
+		PLATFORMIO = ~/.platformio/penv/bin/platformio
+	else
+		PLATFORMIO = platformio
+	endif
+	RM = rm -rdf
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		CC = g++
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		CC = clang++
+	endif
 endif
 
-all: serial mab_mag_dir_esp32
-	node-gyp configure --debug
-	node-gyp build --debug
+all:
+	@echo Don't run make directly. Please use the provided npm run commands instead.
 
-serial:
+platformio:
+	"$(PLATFORMIO)" run -t $(command) -d Firmware
+
+ifeq ($(OS),Windows_NT)
+delete:
+	$(RM) "$(subst /,\,$(target))"
+else
+delete:
+	$(RM) "$(target)"
+endif
+
+serial-plugin:
+	node-gyp configure
+	node-gyp build
+
+serial-standalone:
 	$(CC) Utils/Serial/serial.cpp Protocol/lib/protocol.cpp -IProtocol/include -o Utils/Serial/serial
-
-%: Hardware/%.json Firmware/GenerateHardwareConfig.js
-	node Firmware/GenerateHardwareConfig.js $@

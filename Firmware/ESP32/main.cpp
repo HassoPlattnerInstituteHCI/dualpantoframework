@@ -1,11 +1,12 @@
 #include <Arduino.h>
+#include <SPI.h>
+
 #include "config.hpp"
 #include "panto.hpp"
-#include "serial.hpp"
-#include "task.hpp"
 #include "physics/pantoPhysics.hpp"
-#include <SPI.h>
+#include "serial.hpp"
 #include "spiEncoder.hpp"
+#include "task.hpp"
 
 unsigned long prevTime = 0;
 #ifdef LINKAGE_ENCODER_USE_SPI

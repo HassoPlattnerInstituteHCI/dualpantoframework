@@ -108,6 +108,12 @@ const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
 };
 extern float pidFactor[${pantoCount*3}][3];
+const float forceP = ${input.forcePidFactor[0]};
+const float forceI = ${input.forcePidFactor[1]};
+const float forceD = ${input.forcePidFactor[2]};
+const float forcePidFactor[2][3] = {
+  {forceP, forceI, forceD}, {forceP, forceI, forceD}
+};
 const uint8_t motorPwmPin[] = {
     ${aggregate('motor_pwmPin', input.dummyPin)}
 };
@@ -143,7 +149,7 @@ const float setupAngle[] = {
 };`;
 
 console.log(headerOutput);
-fs.writeFileSync('Firmware/' + input.firmware + '/include/config.hpp', headerOutput);
+fs.writeFileSync('Firmware/shared/include/config.hpp', headerOutput);
 
 const sourceOutput =
 `/*
@@ -160,4 +166,4 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-fs.writeFileSync('Firmware/' + input.firmware + '/lib/config.cpp', sourceOutput);
+fs.writeFileSync('Firmware/shared/lib/config.cpp', sourceOutput);

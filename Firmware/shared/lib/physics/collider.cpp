@@ -1,9 +1,8 @@
 #include "physics/collider.hpp"
 
-#include <sstream>
-#include <random>
-#include <iomanip>
-#include <limits>
+#include <cmath>
+
+#include "serial.hpp"
 
 Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }
 
@@ -12,7 +11,7 @@ bool Collider::intersect(Edge edgeA, Edge edgeB, Vector2D* intersection, bool co
     auto dirA = edgeA.m_second - edgeA.m_first;
     auto dirB = edgeB.m_second - edgeB.m_first;
     auto detDirADirB = determinant(dirA, dirB);
-    if(abs(detDirADirB) == 0)
+    if(std::abs(detDirADirB) == 0)
     {
         return false;
     }
@@ -57,7 +56,7 @@ bool Collider::contains(Vector2D point)
 bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition, Edge* enteringEdge)
 {
     // will contain result
-    auto minDist = 0.0f;
+    auto minDist = 0.0;
     auto foundAny = false;
     // loop vars
     auto edgeCount = m_points.size();
@@ -65,7 +64,7 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
     // pre-allocate
     Vector2D first, second, intersection;
     bool intersects;
-    float scale, dist;
+    double scale, dist;
 
     for(auto i = 0; i < edgeCount; ++i)
     {
@@ -78,6 +77,7 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
             &intersection);
         if(!intersects)
         {
+            j = i;
             continue;
         }
 
@@ -92,6 +92,7 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
         
         if(scale < 0 || scale > 1)
         {
+            j = i;
             continue;
         }
 
@@ -102,6 +103,8 @@ bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition,
             *enteringEdge = Edge(first, second);
             foundAny = true;
         }
+        
+        j = i;
     }
 
     return foundAny;
@@ -121,5 +124,5 @@ Vector2D Collider::getClosestOutsidePoint(Edge edge, Vector2D handlePosition)
         false);
     
     auto collisionVec = intersection - handlePosition;
-    return handlePosition + collisionVec * 1.1f;
+    return handlePosition + collisionVec * 1.1;
 }

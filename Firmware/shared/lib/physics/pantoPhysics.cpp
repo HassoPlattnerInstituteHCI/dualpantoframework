@@ -28,8 +28,8 @@ void PantoPhysics::step()
     }
     else if(m_godObject.getDoneColliding())
     {
-        m_panto->isforceRendering = true;
-        m_panto->target = Vector2D();
+        m_panto->isforceRendering = false;
+        m_panto->target = Vector2D(NAN, NAN);
         m_panto->inverseKinematics();
     }
 }

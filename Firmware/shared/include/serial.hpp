@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
-#include <string>
 #include <map>
 #include <functional>
+
 #include "protocol.hpp"
 
 class DPSerial : DPProtocol

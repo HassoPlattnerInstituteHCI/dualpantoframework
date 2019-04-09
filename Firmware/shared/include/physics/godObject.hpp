@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
-#include <vector>
 #include <map>
-#include "utils.hpp"
+#include <vector>
+
 #include "collision.hpp"
 #include "obstacle.hpp"
+#include "utils.hpp"
 
 class GodObject
 {
@@ -17,8 +18,7 @@ private:
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
     bool m_doneColliding;
-    static const float c_bigPantoForceScale;
-    static const float c_smallPantoForceScale;
+    Vector2D m_lastError;
 public:
     GodObject(Vector2D position = Vector2D());
     void setMovementDirection(Vector2D movementDirection);

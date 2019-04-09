@@ -1,8 +1,10 @@
 #include "serial.hpp"
+
 #include <vector>
-#include "utils.hpp"
+
 #include "panto.hpp"
 #include "physics/pantoPhysics.hpp"
+#include "utils.hpp"
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
@@ -232,7 +234,7 @@ void DPSerial::receiveCreateObstacle()
 
     for(auto i = 0; i < vecCount; ++i)
     {
-        path.emplace_back(receiveFloat(), receiveFloat());
+        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
     for(auto i = 0; i < pantoPhysics.size(); ++i)

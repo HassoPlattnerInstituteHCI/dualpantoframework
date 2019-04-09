@@ -17,9 +17,9 @@
 #endif
 
 #ifdef NODE_GYP
-#ifdef WINDOWS
+#if __has_include("node_api.h")
 #include <node_api.h>
-#else
+#elif __has_include("node/node_api.h")
 #include <node/node_api.h>
 #endif
 #define NAPI_CHECK(code) \
@@ -198,7 +198,13 @@ uint8_t DPSerial::receiveUInt8(uint8_t &offset)
 
 int16_t DPSerial::receiveInt16(uint8_t &offset)
 {
-    return s_packetBuffer[offset++] << 8 | s_packetBuffer[offset++];
+    uint8_t temp[2];
+    for(auto i = 0; i < 2; ++i)
+    {
+        temp[i] = s_packetBuffer[offset + i];
+    }
+    offset += 2;
+    return temp[0] << 8 | temp[1];
 }
 
 uint16_t DPSerial::receiveUInt16(uint8_t &offset)
@@ -209,7 +215,13 @@ uint16_t DPSerial::receiveUInt16(uint8_t &offset)
 
 int32_t DPSerial::receiveInt32(uint8_t &offset)
 {
-    return s_packetBuffer[offset++] << 24 | s_packetBuffer[offset++] << 16 | s_packetBuffer[offset++] << 8 | s_packetBuffer[offset++];
+    uint8_t temp[4];
+    for(auto i = 0; i < 4; ++i)
+    {
+        temp[i] = s_packetBuffer[offset + i];
+    }
+    offset += 4;
+    return temp[0] << 24 | temp[1] << 16 | temp[2] << 8 | temp[3];
 }
 
 uint32_t DPSerial::receiveUInt32(uint8_t &offset)
@@ -475,11 +487,20 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
         switch (s_header.MessageType)
         {
         case SYNC:
-            if (receiveUInt32(offset) == c_revision)
+        {
+            auto receivedRevision = receiveUInt32(offset);
+            if (receivedRevision == c_revision)
             {
                 receivedSync = true;
             }
+            else
+            {
+                std::cout
+                    << "Received invalid revision id " << receivedRevision
+                    << " (expected " << c_revision << ")." << std::endl;
+            }
             break;
+        }
         case HEARTBEAT:
             receivedHeartbeat = true;
             break;
@@ -490,7 +511,6 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
                 uint8_t index = offset / 4;
                 positionCoords[index] = receiveFloat(offset);
             }
-
             break;
         case DEBUG_LOG:
             napi_value result;

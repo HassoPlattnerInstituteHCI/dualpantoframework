@@ -16,10 +16,10 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 4,
-                    "dirAPin": 5,
+                    "pwmPin": 21,
+                    "dirAPin": 22,
                     "flipped": true,
-                    "powerLimit": 0.5,
+                    "powerLimit": 1.0,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
@@ -36,10 +36,10 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 17,
-                    "dirAPin": 16,
+                    "pwmPin": 18,
+                    "dirAPin": 19,
                     "flipped": true,
-                    "powerLimit": 0.5,
+                    "powerLimit": 1.0,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
@@ -50,6 +50,9 @@
             },
             "handle": {
                 "motor": {
+                    "pwmPin": 25,
+                    "dirAPin": 32,
+                    "dirBPin": 33,
                     "flipped": false,
                     "powerLimit": 0.2,
                     "pidFactor": [0.3, 0.0, 30.0]
@@ -65,14 +68,14 @@
                 "linkage": {
                     "innerLength": 80,
                     "outerLength": 120,
-                    "baseX": -84,
+                    "baseX": -45,
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 18,
-                    "dirAPin": 19,
-                    "flipped": false,
-                    "powerLimit": 0.5,
+                    "pwmPin": 4,
+                    "dirAPin": 16,
+                    "flipped": true,
+                    "powerLimit": 1.0,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
@@ -86,14 +89,14 @@
                 "linkage": {
                     "innerLength": 80,
                     "outerLength": 120,
-                    "baseX": 6,
+                    "baseX": 45,
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPin": 21,
-                    "dirAPin": 22,
-                    "flipped": false,
-                    "powerLimit": 0.5,
+                    "pwmPin": 17,
+                    "dirAPin": 5,
+                    "flipped": true,
+                    "powerLimit": 1.0,
                     "pidFactor": [0.99, 0.0, 6.5]
                 },
                 "encoder": {
@@ -105,9 +108,6 @@
             },
             "handle": {
                 "motor": {
-                    "pwmPin": 23,
-                    "dirAPin": 25,
-                    "dirBPin": 26,
                     "flipped": false,
                     "powerLimit": 0.7,
                     "pidFactor": [5.0, 0.0, 0.0]
