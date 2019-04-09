@@ -2,6 +2,7 @@
 #include <SPI.h>
 
 #include "config.hpp"
+#include "framerateLimiter.hpp"
 #include "panto.hpp"
 #include "physics/pantoPhysics.hpp"
 #include "serial.hpp"
@@ -12,6 +13,8 @@ unsigned long prevTime = 0;
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
 #endif
+
+FramerateLimiter sendLimiter(60);
 
 void ioLoop()
 {
@@ -28,7 +31,7 @@ void ioLoop()
         pantos[i].forwardKinematics();
     }
 
-    if (connected)
+    if (connected && sendLimiter.step())
     {
         DPSerial::sendPosition();
     }
