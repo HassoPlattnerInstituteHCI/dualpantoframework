@@ -21,15 +21,15 @@ void ioSetup()
 
 void ioLoop()
 {
-    PERFMON_START("Receive serial");
+    PERFMON_START("[a] Receive serial");
     DPSerial::receive();
     auto connected = DPSerial::ensureConnection();
-    PERFMON_STOP("Receive serial");
+    PERFMON_STOP("[a] Receive serial");
 
-    PERFMON_START("Send positions");
+    PERFMON_START("[b] Send positions");
     if (connected && sendLimiter.step())
     {
         DPSerial::sendPosition();
     }
-    PERFMON_STOP("Send positions");
+    PERFMON_STOP("[b] Send positions");
 }
