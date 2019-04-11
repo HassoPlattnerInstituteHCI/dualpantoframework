@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <map>
 
+#include "framerateLimiter.hpp"
+
 // enable/disable debug logging here
 #define LOG_TASK_FPS true
 
@@ -28,8 +30,7 @@ private:
 
     // fps counter data
     uint32_t m_fpsInterval;
-    uint32_t m_lastTime;
-    uint32_t m_currentTime;
+    FramerateLimiter m_fpsCalcLimiter;
     uint32_t m_loopCount;
     static std::map<TaskHandle_t, uint32_t> s_fpsMap;
     bool m_logFps;

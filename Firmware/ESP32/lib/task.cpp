@@ -3,9 +3,12 @@
 #include <soc/timer_group_reg.h>
 #include <soc/timer_group_struct.h>
 
+#include "framerateLimiter.hpp"
+#include "performanceMonitor.hpp"
 #include "serial.hpp"
 
 std::map<TaskHandle_t, uint32_t> Task::s_fpsMap;
+FramerateLimiter loggingLimiter = FramerateLimiter::fromSeconds(1);
 
 void Task::taskLoop(void *parameters)
 {
@@ -32,29 +35,34 @@ loopLabel:
 
 inline void Task::initFps()
 {
-    m_lastTime = millis();
+    m_fpsCalcLimiter.reset();
     m_loopCount = 0;
 };
 
 inline void Task::checkFps()
 {
     ++m_loopCount;
-    m_currentTime = millis();
-    if (m_currentTime >= m_lastTime + m_fpsInterval)
+    if (m_fpsCalcLimiter.step())
     {
         s_fpsMap[m_handle] = m_loopCount * 1000 / m_fpsInterval;
-        m_lastTime = m_currentTime;
         m_loopCount = 0;
 
-        if(m_logFps)
+        if(m_logFps && loggingLimiter.step())
         {
-            for(auto& entry : s_fpsMap)
+            for(const auto& entry : s_fpsMap)
             {
                 DPSerial::sendDebugLog(
                     "Task \"%s\" fps: %i",
                     pcTaskGetTaskName(entry.first),
                     entry.second);
             }
+
+            #ifdef ENABLE_PERFMON
+            for(const auto& entry : PerfMon.getResults())
+            {
+                DPSerial::sendDebugLog(entry.c_str());
+            }
+            #endif
         }
     }
 };
@@ -66,7 +74,8 @@ Task::Task(void (*setupFunc)(), void (*loopFunc)(), const char *name, int core)
       m_stackDepth(c_defaultStackDepth),
       m_priority(c_defaultPriority),
       m_core(core),
-      m_fpsInterval(c_defaultFpsInterval){};
+      m_fpsInterval(c_defaultFpsInterval),
+      m_fpsCalcLimiter(FramerateLimiter::fromMilliseconds(m_fpsInterval)){};
 
 void Task::run()
 {

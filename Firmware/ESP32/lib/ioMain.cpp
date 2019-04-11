@@ -2,10 +2,11 @@
 
 #include "framerateLimiter.hpp"
 #include "panto.hpp"
+#include "performanceMonitor.hpp"
 #include "serial.hpp"
 #include "taskRegistry.hpp"
 
-FramerateLimiter sendLimiter(60);
+FramerateLimiter sendLimiter = FramerateLimiter::fromFPS(60);
 
 void ioSetup()
 {
@@ -20,11 +21,15 @@ void ioSetup()
 
 void ioLoop()
 {
+    PERFMON_START("Receive serial");
     DPSerial::receive();
     auto connected = DPSerial::ensureConnection();
+    PERFMON_STOP("Receive serial");
 
+    PERFMON_START("Send positions");
     if (connected && sendLimiter.step())
     {
         DPSerial::sendPosition();
     }
+    PERFMON_STOP("Send positions");
 }
