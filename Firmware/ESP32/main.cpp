@@ -1,52 +1,11 @@
 #include <Arduino.h>
 #include <SPI.h>
+#include <utility>
 
-#include "config.hpp"
-#include "panto.hpp"
-#include "physics/pantoPhysics.hpp"
+#include "ioMain.hpp"
+#include "physicsMain.hpp"
 #include "serial.hpp"
-#include "spiEncoder.hpp"
-#include "task.hpp"
-
-unsigned long prevTime = 0;
-#ifdef LINKAGE_ENCODER_USE_SPI
-SPIEncoderChain* spi;
-#endif
-
-void ioLoop()
-{
-    DPSerial::receive();
-    auto connected = DPSerial::ensureConnection();
-
-    #ifdef LINKAGE_ENCODER_USE_SPI
-    spi->update();
-    #endif
-
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantos[i].readEncoders();
-        pantos[i].forwardKinematics();
-    }
-
-    if (connected)
-    {
-        DPSerial::sendPosition();
-    }
-
-    unsigned long now = micros();
-    Panto::dt = now - prevTime;
-    prevTime = now;
-    for (unsigned char i = 0; i < pantoCount; ++i)
-        pantos[i].actuateMotors();
-}
-
-void physicsLoop()
-{
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantoPhysics[i].step();
-    }
-}
+#include "taskRegistry.hpp"
 
 void setup()
 {
@@ -54,53 +13,18 @@ void setup()
 
     DPSerial::sendDebugLog("========== START ==========");
 
-    // https://forum.arduino.cc/index.php?topic=367154.0
-    // http://playground.arduino.cc/Main/TimerPWMCheatsheet
-
-    #ifdef LINKAGE_ENCODER_USE_SPI
-    spi = new SPIEncoderChain(numberOfSpiEncoders);
-    #endif
-
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantos[i].setup(i);
-    }
-    delay(1000);
-    #ifdef LINKAGE_ENCODER_USE_SPI
-    std::vector<uint16_t> startPositions(numberOfSpiEncoders);
-    #endif
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantos[i].calibrationEnd();
-        #ifdef LINKAGE_ENCODER_USE_SPI
-        for (unsigned char j = 0; j < 3; ++j)
-        {
-            auto index = encoderSpiIndex[i * 3 + j];
-            if(index != 0xffffffff)
-            {
-                startPositions[index] = ((uint16_t)(pantos[i].actuationAngle[j] / (2.0 * PI) * encoderSteps[i * 3 + j]) & 0x3fff);
-                pantos[i].angleAccessors[j] = spi->getAngleAccessor(index);
-            }
-        }
-        #endif
-    }
-    #ifdef LINKAGE_ENCODER_USE_SPI
-    spi->setPosition(startPositions);
-    #endif
+    Tasks.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple("I/O"), 
+        std::forward_as_tuple(&ioSetup, &ioLoop, "I/O", 0));
+    Tasks.at("I/O").run();
+    Tasks.at("I/O").setLogFps();
+    Tasks.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple("Physics"),
+        std::forward_as_tuple(&physicsSetup, &physicsLoop, "Physics", 1));
+    Tasks.at("Physics").run();
     
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantoPhysics.emplace_back(&pantos[i]);
-    }
-
-    prevTime = micros();
-
-    Task ioTask = Task(&ioLoop, "I/O", 0);
-    ioTask.run();
-    ioTask.setLogFps();
-    Task physicsTask = Task(&physicsLoop, "Physics", 1);
-    physicsTask.run();
-
     TaskHandle_t defaultTask = xTaskGetCurrentTaskHandle();
     DPSerial::sendDebugLog("default task handle is %i", defaultTask);
     vTaskSuspend(NULL);
