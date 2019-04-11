@@ -1,7 +1,9 @@
 #include "protocol.hpp"
 
 #include <string>
+#include <iomanip>
 #include <iostream>
+#include <fstream>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define WINDOWS
@@ -25,8 +27,6 @@
 #define NAPI_CHECK(code) \
     if (code != napi_ok) \
         std::cerr << "NOT OK: " << __FILE__ << ":" << __LINE__ << std::endl;
-#else
-#include <iomanip>
 #endif
 
 class DPSerial : DPProtocol
@@ -34,7 +34,8 @@ class DPSerial : DPProtocol
   private:
     static uint8_t s_headerBuffer[c_headerSize];
     static Header s_header;
-    static uint8_t s_packetBuffer[0xFFFF];
+    static const uint32_t c_packetSize = 0xFFFF;
+    static uint8_t s_packetBuffer[c_packetSize];
     static FILEHANDLE s_handle;
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
@@ -87,11 +88,14 @@ class DPSerial : DPProtocol
 #ifndef NODE_GYP
     static void printPacket();
 #endif
+
+    static void dumpBuffers();
+    static void dumpBuffersToFile();
 };
 
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
-uint8_t DPSerial::s_packetBuffer[0xFFFF];
+uint8_t DPSerial::s_packetBuffer[c_packetSize];
 FILEHANDLE DPSerial::s_handle;
 
 // private
@@ -573,8 +577,8 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
 
     s_header.MessageType = static_cast<MessageType>(messageType);
 
-    uint8_t offset = 0;
-    
+    uint16_t offset = 0;
+
     switch (messageType)
     {
     case SYNC_ACK:
@@ -762,3 +766,43 @@ int main(int argc, char **argv)
 }
 
 #endif
+
+void dumpBuffer(uint8_t* begin, uint32_t size)
+{
+    const uint32_t bytesPerLine = 16;
+    uint32_t index = 0;
+
+    std::cout << std::hex << std::uppercase << std::setfill('0');
+
+    while(index < size)
+    {
+        std::cout << "0x" << std::setw(8) << index << " |";
+        for(auto i = 0u; i < bytesPerLine; ++i)
+        {
+            std::cout << " " << std::setw(2) << (int)begin[index + i];
+        }
+        std::cout << std::endl;
+        index += bytesPerLine;
+    }
+}
+
+void DPSerial::dumpBuffers()
+{
+    std::cout << "===== HEADER =====" << std::endl;
+    dumpBuffer(s_headerBuffer, c_headerSize);
+    std::cout << "===== PACKET =====" << std::endl;
+    dumpBuffer(s_packetBuffer, c_packetSize);
+}
+
+void dumpBufferToFile(uint8_t* begin, uint32_t size, std::string file)
+{
+    std::ofstream out;
+    out.open(file, std::ios::out | std::ios::binary);
+    out.write(reinterpret_cast<char *>(begin), size);
+}
+
+void DPSerial::dumpBuffersToFile()
+{
+    dumpBufferToFile(s_headerBuffer, c_headerSize, "dumpheader.bin");
+    dumpBufferToFile(s_packetBuffer, c_packetSize, "dumppacket.bin");
+}
