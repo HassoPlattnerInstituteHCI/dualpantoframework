@@ -2,18 +2,22 @@
 
 [![CircleCI](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework.svg?style=svg&circle-token=32b766f8a9d2c9a0c612d215322a6dab4aec813d)](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework)
 
+version 0.2
 
-version 0.1
-
-dev : Oliver Schneider, Jotaro Shigeyama, Alexander Meiﬂner, Nico Bˆckhoff
+dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Gl√∂ckner, Oliver Schneider, Jotaro Shigeyama, Alexander Mei√üner, Nico B√∂ckhoff
 
 firstname.lastname@hpi.de
 
-## Installation & Setup
 Welcome to the `dualpantoframework` repository!
-This repository contains source codes for __reading and writing__ signals to the dualpanto-board, as well as some useful tools to debug and test the pantograph.
+This repository contains the JS framework for controlling the dualpanto, as well as the firmware and some useful tools to debug and test the pantograph.
 
-In [this wiki page](https://github.com/HassoPlattnerInstituteHCI/dualpantoframework/wiki/Installation-&-Setup), we introduce you how to install the library in your system. Follow these steps to install required dependencies for `dualpantoframework`.
+## Installation & Setup
+
+A setup guide can be found [here](documentation/setup/setup.md).
+
+## Transmission Protocol
+
+The communication protocol between the framework and the device is specified [here](documentation/protocol/protocol.md).
 
 ## Examples
 
