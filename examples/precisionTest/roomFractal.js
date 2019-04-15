@@ -117,7 +117,7 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
               }
               console.log(out);
 
-              device.createObstacle(path);
+              device.createObstacle(path, 0);
             }, 3000);
           });
         }

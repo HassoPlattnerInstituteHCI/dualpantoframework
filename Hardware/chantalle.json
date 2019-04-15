@@ -25,7 +25,8 @@
                 },
                 "encoder": {
                     "steps": 16384,
-                    "setup": 0.44,
+                    "flipped": true,
+                    "setup": -0.44,
                     "spiIndex": 3
                 }
             },
@@ -45,7 +46,8 @@
                 },
                 "encoder": {
                     "steps": 16384,
-                    "setup": 0.06,
+                    "flipped": true,
+                    "setup": -0.06,
                     "spiIndex": 2
                 }
             },
