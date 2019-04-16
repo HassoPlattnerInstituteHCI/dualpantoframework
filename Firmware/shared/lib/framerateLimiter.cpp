@@ -18,9 +18,29 @@ uint64_t FramerateLimiter::now()
     return s_period * c_periodLength + now;
 }
 
-FramerateLimiter::FramerateLimiter(double targetFps)
-: m_delta(1e6 / targetFps)
+FramerateLimiter::FramerateLimiter(uint64_t microseconds)
+: m_delta(microseconds)
 , m_last(0) { }
+
+FramerateLimiter FramerateLimiter::fromFPS(double fps)
+{
+    return FramerateLimiter(1e6 / fps);
+}
+
+FramerateLimiter FramerateLimiter::fromSeconds(uint64_t seconds)
+{
+    return FramerateLimiter(1000000 * seconds);
+}
+
+FramerateLimiter FramerateLimiter::fromMilliseconds(uint64_t milliseconds)
+{
+    return FramerateLimiter(1000 * milliseconds);
+}
+
+FramerateLimiter FramerateLimiter::fromMicroseconds(uint64_t microseconds)
+{
+    return FramerateLimiter(microseconds);
+}
 
 bool FramerateLimiter::step()
 {
@@ -31,4 +51,9 @@ bool FramerateLimiter::step()
     }
     m_last = now;
     return true;
+}
+
+void FramerateLimiter::reset()
+{
+    m_last = FramerateLimiter::now();
 }

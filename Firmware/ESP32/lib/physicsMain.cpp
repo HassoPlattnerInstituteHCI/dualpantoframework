@@ -1,6 +1,7 @@
 #include "physicsMain.hpp"
 
 #include "panto.hpp"
+#include "performanceMonitor.hpp"
 #include "physics/pantoPhysics.hpp"
 #include "spiEncoder.hpp"
 
@@ -48,24 +49,34 @@ void physicsSetup()
 
 void physicsLoop()
 {
+    PERFMON_START("[a] Read encoders");
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi->update();
     #endif
 
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
+        PERFMON_START("[aa] Actually read");
         pantos[i].readEncoders();
+        PERFMON_STOP("[aa] Actually read");
+        PERFMON_START("[ab] Calc fwd kinematics");
         pantos[i].forwardKinematics();
+        PERFMON_STOP("[ab] Calc fwd kinematics");
     }
+    PERFMON_STOP("[a] Read encoders");
 
+    PERFMON_START("[b] Calculate physics");
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics[i].step();
     }
+    PERFMON_STOP("[b] Calculate physics");
 
+    PERFMON_START("[c] Actuate motors");
     unsigned long now = micros();
     Panto::dt = now - prevTime;
     prevTime = now;
     for (unsigned char i = 0; i < pantoCount; ++i)
         pantos[i].actuateMotors();
+    PERFMON_STOP("[c] Actuate motors");
 }
