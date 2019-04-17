@@ -11,7 +11,7 @@ class DPSerial : DPProtocol
 private:
     // data storage
     static Header s_header;
-    static const uint8_t c_debugLogBufferSize = 255;
+    static const uint8_t c_debugLogBufferSize = 256;
     static uint8_t s_debugLogBuffer[c_debugLogBufferSize];
 
     // multithreading safety
@@ -42,7 +42,7 @@ private:
     static void sendFloat(float data);
     static void sendMessageType(MessageType data);
     static void sendMagicNumber();
-    static void sendHeader(MessageType messageType, uint32_t payloadSize);
+    static void sendHeader(MessageType messageType, uint16_t payloadSize);
     
     // send
     static void sendSync();
@@ -66,6 +66,7 @@ private:
     static void receiveMotor();
     static void receivePID();
     static void receiveCreateObstacle();
+    static void receiveAddToObstacle();
     static void receiveRemoveObstacle();
     static void receiveEnableObstacle();
     static void receiveDisableObstacle();
@@ -75,6 +76,7 @@ private:
     static std::map<DPProtocol::MessageType, std::function<void()>> s_receiveHandlers;
 public:
     // setup
+    static void init();
     static bool ensureConnection();
 
     // send

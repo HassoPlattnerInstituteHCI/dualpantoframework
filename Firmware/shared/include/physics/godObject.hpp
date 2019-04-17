@@ -24,7 +24,8 @@ public:
     void setMovementDirection(Vector2D movementDirection);
     void move();
     std::vector<Collision> checkObstacleCollisions(Vector2D point);
-    void addObstacle(uint16_t id, std::vector<Vector2D> points);
+    void createObstacle(uint16_t id, std::vector<Vector2D> points);
+    void addToObstacle(uint16_t id, std::vector<Vector2D> points);
     void removeObstacle(uint16_t id);
     void enableObstacle(uint16_t id, bool enable = true);
     Vector2D getPosition();

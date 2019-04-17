@@ -9,7 +9,7 @@
 
 void setup()
 {
-    BOARD_DEPENDENT_SERIAL.begin(115200);
+    DPSerial::init();
 
     DPSerial::sendDebugLog("========== START ==========");
 

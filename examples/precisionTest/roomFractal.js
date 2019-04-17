@@ -90,7 +90,7 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
         () => {
           return new Promise((resolve) => {
             setTimeout( () => {
-              let path = [];
+              const path = [];
               generateRoom(path, false, -30, -80, 50, 4);
               let minX = 10000;
               let maxX = -10000;
@@ -104,7 +104,6 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
                   maxY.toFixed(1)
               );
 
-              path = path.slice(0, 31);
               console.log(path);
 
               let out = '';
