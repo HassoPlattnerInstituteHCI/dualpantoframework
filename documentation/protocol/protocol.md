@@ -2,6 +2,16 @@
 
 All messages contain a [header](#header) and an optional [payload](#payload).
 
+## Serial Transmission Configuration
+
+### Baud Rate
+
+The transmission uses a baud rate of 115200.
+
+### Packet Size
+
+The maximum packet size is 261 bytes, with 5 bytes being used for the header and 256 bytes for the payload. This limit for the payload size was chosen to avoid blocking the transmission for too long.
+
 ## Header
 
 The header consists of a [magic number](#magic-number), the [message type](#message-type) and the [payload size](#payload-size).
