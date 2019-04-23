@@ -49,9 +49,9 @@ Python is a programming language you've probably heard of before. In this projec
 
 ## 5. Install the Visual Studio C++ compiler
 
-- Both 2017 and 2019 should work. We've mainly tested with 2017, but there shoulnd't be a problem if you install the 2019 version.
+- Currently, only VS 2017 works properly due to node-gyp having problems with VS 2019. Once [this pull request](https://github.com/nodejs/node-gyp/pull/1715) is merged, both 2017 and 2019 should work.
 - If you have a Visual Studio version installed, run the installer again to make sure the right package (see below) is installed. You should be able to run it by searching for `Visual Studio Installer` in the Windows search.
-- You can either get VS 2017 Enterprise [from the HPI](https://aka.ms/devtoolsforteaching), or you can use the [Community Version](https://visualstudio.microsoft.com/de/vs/community/) of either VS 2017 or VS 2019.
+- You can either get VS 2017 Enterprise [from the HPI](https://aka.ms/devtoolsforteaching), or you can use the [Community Version](https://visualstudio.microsoft.com/de/downloads/) of either VS 2017 (further down the page) or VS 2019 (see notes above).
 - Run the installer
 - Select at least the workload "Desktopentwicklung mit C++"
 
