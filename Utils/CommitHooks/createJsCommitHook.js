@@ -43,6 +43,13 @@ fi\n\
 \n\
 exit $?";
 
+// if we're in a submodule, there is no .git folder - skip hook creation
+const gitInfo = fs.statSync('./.git');
+if(!gitInfo.isDirectory())
+{
+  return;
+}
+
 fs.writeFileSync('./.git/hooks/pre-commit', script);
 
 if (process.platform == 'win32') {
