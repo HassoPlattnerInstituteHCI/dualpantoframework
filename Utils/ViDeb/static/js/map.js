@@ -5,15 +5,12 @@ const width = 1200 - margin.left - margin.right;
 
 const dualPantos = [];
 let svg;
+const obstacles = [];
 
 const ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
 ws.onopen = function(event) {
   console.log('Connection open');
   setup();
-  const packet = {
-    type: 'createVirtualDevice'
-  };
-  ws.send(JSON.stringify(packet));
 };
 
 ws.onmessage = function(event) {
@@ -24,8 +21,6 @@ ws.onmessage = function(event) {
   if (!panto) {
     panto = new DualPanto(data.port);
     dualPantos.push(panto);
-  }
-  if (!data.port.match('virtual')) {
   }
   switch (data.type) {
     case 'mapLine':
@@ -64,7 +59,7 @@ ws.onmessage = function(event) {
     case 'createObstacle':
       if (data.pointArray.length == 2) {
         drawLine(data.pointArray, 'black');
-      } else {
+      } else {/*
         let points = '';
         for (let i = 0; i < data.pointArray.length; i++) {
           if (i != 0) {
@@ -73,7 +68,13 @@ ws.onmessage = function(event) {
           points = points.concat((data.pointArray[i].x + 150) + ',' +
               (-data.pointArray[i].y));
         }
-        drawObstacle(points, data.id);
+        drawObstacle(points, data.id);*/
+        let lastPoint = data.pointArray[0];
+        for (let i = 1; i < data.pointArray.length; i++) {
+          drawLine([lastPoint, data.pointArray[i]], 'black');
+          lastPoint = data.pointArray[i];
+        }
+        drawLine([lastPoint, data.pointArray[0]], 'black');
       }
       break;
     case 'removeObstacle':
@@ -106,10 +107,10 @@ const setup = function() {
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 };
 
-const drawObstacle = function(points, id) {
+/*  const drawObstacle = function(points, id) {
   obstacles[id] = svg.append('polygon')
       .attr('points', points);
-};
+};  */
 
 const removeObstacle = function(id) {
   obstacles[id].remove();
@@ -138,6 +139,9 @@ class DualPanto {
   drawHandle(positionX, positionY, angle, index) {
     const xDirection = Math.cos(angle);
     const yDirection = Math.sin(angle);
+    const directionVec = new Vector(xDirection, -yDirection, NaN)
+        .normalized()
+        .scaled(50);
     let color = 'blue';
     if (index == 1) {
       color = 'green';
@@ -152,9 +156,9 @@ class DualPanto {
       this.token.push(svg.append('line')
           .attr('class', 'aimline')
           .attr('x1', positionX)
-          .attr('y1', positionY)
-          .attr('x2', positionX + 25 * xDirection)
-          .attr('y2', positionY + 25 * -yDirection)
+          .attr('y1', -positionY)
+          .attr('x2', positionX + 150 + directionVec.x)
+          .attr('y2', -positionY + directionVec.y)
           .style('stroke', 'black'));
     } else {
       this.token[0 + offset].attr('cx', positionX + 150)
@@ -162,8 +166,8 @@ class DualPanto {
 
       this.token[1 + offset].attr('x1', positionX +150)
           .attr('y1', -positionY)
-          .attr('x2', positionX + 175 * xDirection)
-          .attr('y2', -positionY + 25 * -yDirection);
+          .attr('x2', positionX + 150 + directionVec.x)
+          .attr('y2', -positionY + directionVec.y);
     }
   }
 }

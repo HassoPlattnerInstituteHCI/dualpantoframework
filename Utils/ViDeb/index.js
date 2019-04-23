@@ -30,6 +30,9 @@ const server = http.createServer((request, response) => {
     case '.jpg':
       contentType = 'image/jpg';
       break;
+    case '.svg':
+      contentType = 'image/svg';
+      break;
   }
 
   fs.readFile(filePath, function(error, content) {
@@ -60,6 +63,26 @@ wsServer.on('request', (request) => {
   const connection = request.accept();
   connections.add(connection);
   console.log((new Date()) + ' Connection accepted.');
+  /*  let beginSvg = false;
+  const rl = readline.createInterface({
+    input: fs.createReadStream('./Utils/ViDeb/static/Zeichnung.svg'),
+    crlfDelay: Infinity
+  });
+  rl.on('line', (line) => {
+    if(!beginSvg && line == '<svg'){
+    beginSvg = true;
+    }
+    if(beginSvg){
+      const svgLine = {
+        type: 'svgBuilder',
+        line: line
+      }
+      for (connetion of connections) {
+          connection.sendUTF(JSON.stringify(svgLine));
+      }
+    }
+  }); */
+
   for (const device of DualPantoFramework.getDevices()) {
     bindEventHandler(device);
   }
