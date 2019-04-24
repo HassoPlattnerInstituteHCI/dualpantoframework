@@ -1,5 +1,5 @@
 ifeq ($(OS),Windows_NT)
-	PLATFORMIO = %userprofile%/.platformio/penv/Scripts/platformio
+	PLATFORMIO = "%userprofile%/.platformio/penv/Scripts/platformio"
 	RM = del /s /q /f
 	CC = cl /Fo:Utils\\Serial\\
 else
@@ -22,7 +22,7 @@ all:
 	@echo Don't run make directly. Please use the provided npm run commands instead.
 
 platformio:
-	"$(PLATFORMIO)" run -t $(command) -d Firmware
+	$(PLATFORMIO) run -t $(command) -d Firmware
 
 ifeq ($(OS),Windows_NT)
 delete:
