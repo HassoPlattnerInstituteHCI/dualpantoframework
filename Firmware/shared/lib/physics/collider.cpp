@@ -6,6 +6,11 @@
 
 Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }
 
+void Collider::add(std::vector<Vector2D> points)
+{
+    m_points.insert(m_points.end(), points.begin(), points.end());
+}
+
 bool Collider::intersect(Edge edgeA, Edge edgeB, Vector2D* intersection, bool constrainToSegment)
 {
     auto dirA = edgeA.m_second - edgeA.m_first;

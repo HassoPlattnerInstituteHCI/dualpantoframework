@@ -5,7 +5,7 @@
 class Obstacle : public Collider
 {
 private:
-    bool m_enabled = true;
+    bool m_enabled = false;
 public:
     Obstacle(std::vector<Vector2D> points);
     Vector2D handleCollision(Vector2D targetPoint, Vector2D position);

@@ -1,7 +1,9 @@
 #include "protocol.hpp"
 
 #include <string>
+#include <iomanip>
 #include <iostream>
+#include <fstream>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define WINDOWS
@@ -25,16 +27,17 @@
 #define NAPI_CHECK(code) \
     if (code != napi_ok) \
         std::cerr << "NOT OK: " << __FILE__ << ":" << __LINE__ << std::endl;
-#else
-#include <iomanip>
 #endif
+
+//#define DEBUG_LOGGING
 
 class DPSerial : DPProtocol
 {
   private:
     static uint8_t s_headerBuffer[c_headerSize];
     static Header s_header;
-    static uint8_t s_packetBuffer[0xFFFF];
+    static const uint32_t c_packetSize = 0xFF;
+    static uint8_t s_packetBuffer[c_packetSize];
     static FILEHANDLE s_handle;
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
@@ -43,34 +46,34 @@ class DPSerial : DPProtocol
     static void receivePacket();
     static void sendPacket();
 
-    static uint8_t receiveUInt8(uint8_t &offset);
-    static int16_t receiveInt16(uint8_t &offset);
-    static uint16_t receiveUInt16(uint8_t &offset);
-    static int32_t receiveInt32(uint8_t &offset);
-    static uint32_t receiveUInt32(uint8_t &offset);
-    static float receiveFloat(uint8_t &offset);
+    static uint8_t receiveUInt8(uint16_t &offset);
+    static int16_t receiveInt16(uint16_t &offset);
+    static uint16_t receiveUInt16(uint16_t &offset);
+    static int32_t receiveInt32(uint16_t &offset);
+    static uint32_t receiveUInt32(uint16_t &offset);
+    static float receiveFloat(uint16_t &offset);
 
-    static void sendUInt8(uint8_t value, uint8_t &offset);
-    static void sendInt16(int16_t value, uint8_t &offset);
-    static void sendUInt16(uint16_t value, uint8_t &offset);
-    static void sendInt32(int32_t value, uint8_t &offset);
-    static void sendUInt32(uint32_t value, uint8_t &offset);
-    static void sendFloat(float value, uint8_t &offset);
+    static void sendUInt8(uint8_t value, uint16_t &offset);
+    static void sendInt16(int16_t value, uint16_t &offset);
+    static void sendUInt16(uint16_t value, uint16_t &offset);
+    static void sendInt32(int32_t value, uint16_t &offset);
+    static void sendUInt32(uint32_t value, uint16_t &offset);
+    static void sendFloat(float value, uint16_t &offset);
 
 #ifdef NODE_GYP
-    static napi_value nodeReceiveUInt8(napi_env env, uint8_t &offset);
-    static napi_value nodeReceiveInt16(napi_env env, uint8_t &offset);
-    static napi_value nodeReceiveUInt16(napi_env env, uint8_t &offset);
-    static napi_value nodeReceiveInt32(napi_env env, uint8_t &offset);
-    static napi_value nodeReceiveUInt32(napi_env env, uint8_t &offset);
-    static napi_value nodeReceiveFloat(napi_env env, uint8_t &offset);
+    static napi_value nodeReceiveUInt8(napi_env env, uint16_t &offset);
+    static napi_value nodeReceiveInt16(napi_env env, uint16_t &offset);
+    static napi_value nodeReceiveUInt16(napi_env env, uint16_t &offset);
+    static napi_value nodeReceiveInt32(napi_env env, uint16_t &offset);
+    static napi_value nodeReceiveUInt32(napi_env env, uint16_t &offset);
+    static napi_value nodeReceiveFloat(napi_env env, uint16_t &offset);
 
-    static void nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset);
-    static void nodeSendInt16(napi_env env, napi_value value, uint8_t &offset);
-    static void nodeSendUInt16(napi_env env, napi_value value, uint8_t &offset);
-    static void nodeSendInt32(napi_env env, napi_value value, uint8_t &offset);
-    static void nodeSendUInt32(napi_env env, napi_value value, uint8_t &offset);
-    static void nodeSendFloat(napi_env env, napi_value value, uint8_t &offset);
+    static void nodeSendUInt8(napi_env env, napi_value value, uint16_t &offset);
+    static void nodeSendInt16(napi_env env, napi_value value, uint16_t &offset);
+    static void nodeSendUInt16(napi_env env, napi_value value, uint16_t &offset);
+    static void nodeSendInt32(napi_env env, napi_value value, uint16_t &offset);
+    static void nodeSendUInt32(napi_env env, napi_value value, uint16_t &offset);
+    static void nodeSendFloat(napi_env env, napi_value value, uint16_t &offset);
 #endif
 
   public:
@@ -87,11 +90,14 @@ class DPSerial : DPProtocol
 #ifndef NODE_GYP
     static void printPacket();
 #endif
+
+    static void dumpBuffers();
+    static void dumpBuffersToFile();
 };
 
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
-uint8_t DPSerial::s_packetBuffer[0xFFFF];
+uint8_t DPSerial::s_packetBuffer[c_packetSize];
 FILEHANDLE DPSerial::s_handle;
 
 // private
@@ -166,7 +172,12 @@ void DPSerial::receivePacket()
     readBytesFromSerial(s_headerBuffer, c_headerSize);
 
     s_header.MessageType = s_headerBuffer[0];
-    s_header.PayloadSize = s_headerBuffer[1] << 24 | s_headerBuffer[2] << 16 | s_headerBuffer[3] << 8 | s_headerBuffer[4];
+    s_header.PayloadSize = s_headerBuffer[1] << 8 | s_headerBuffer[2];
+
+    if(s_header.PayloadSize > c_maxPayloadSize)
+    {
+        return;
+    }
 
     readBytesFromSerial(s_packetBuffer, s_header.PayloadSize);
 }
@@ -174,10 +185,8 @@ void DPSerial::receivePacket()
 void DPSerial::sendPacket()
 {
     s_headerBuffer[0] = s_header.MessageType;
-    s_headerBuffer[1] = s_header.PayloadSize >> 24;
-    s_headerBuffer[2] = (s_header.PayloadSize >> 16) & 255;
-    s_headerBuffer[3] = (s_header.PayloadSize >> 8) & 255;
-    s_headerBuffer[4] = s_header.PayloadSize & 255;
+    s_headerBuffer[1] = s_header.PayloadSize >> 8;
+    s_headerBuffer[2] = s_header.PayloadSize & 255;
 
 #ifdef WINDOWS
     DWORD bytesWritten = 0;
@@ -191,12 +200,12 @@ void DPSerial::sendPacket()
 #endif
 }
 
-uint8_t DPSerial::receiveUInt8(uint8_t &offset)
+uint8_t DPSerial::receiveUInt8(uint16_t &offset)
 {
     return s_packetBuffer[offset++];
 }
 
-int16_t DPSerial::receiveInt16(uint8_t &offset)
+int16_t DPSerial::receiveInt16(uint16_t &offset)
 {
     uint8_t temp[2];
     for(auto i = 0; i < 2; ++i)
@@ -207,13 +216,13 @@ int16_t DPSerial::receiveInt16(uint8_t &offset)
     return temp[0] << 8 | temp[1];
 }
 
-uint16_t DPSerial::receiveUInt16(uint8_t &offset)
+uint16_t DPSerial::receiveUInt16(uint16_t &offset)
 {
     auto temp = receiveInt16(offset);
     return *reinterpret_cast<uint16_t *>(&temp);
 }
 
-int32_t DPSerial::receiveInt32(uint8_t &offset)
+int32_t DPSerial::receiveInt32(uint16_t &offset)
 {
     uint8_t temp[4];
     for(auto i = 0; i < 4; ++i)
@@ -224,35 +233,35 @@ int32_t DPSerial::receiveInt32(uint8_t &offset)
     return temp[0] << 24 | temp[1] << 16 | temp[2] << 8 | temp[3];
 }
 
-uint32_t DPSerial::receiveUInt32(uint8_t &offset)
+uint32_t DPSerial::receiveUInt32(uint16_t &offset)
 {
     auto temp = receiveInt32(offset);
     return *reinterpret_cast<uint32_t *>(&temp);
 }
 
-float DPSerial::receiveFloat(uint8_t &offset)
+float DPSerial::receiveFloat(uint16_t &offset)
 {
     auto temp = receiveInt32(offset);
     return *reinterpret_cast<float *>(&temp);
 }
 
-void DPSerial::sendUInt8(uint8_t value, uint8_t &offset)
+void DPSerial::sendUInt8(uint8_t value, uint16_t &offset)
 {
     s_packetBuffer[offset++] = value;
 }
 
-void DPSerial::sendInt16(int16_t value, uint8_t &offset)
+void DPSerial::sendInt16(int16_t value, uint16_t &offset)
 {
     s_packetBuffer[offset++] = value >> 8;
     s_packetBuffer[offset++] = value & 255;
 }
 
-void DPSerial::sendUInt16(uint16_t value, uint8_t &offset)
+void DPSerial::sendUInt16(uint16_t value, uint16_t &offset)
 {
     sendInt16(*reinterpret_cast<int16_t *>(&value), offset);
 }
 
-void DPSerial::sendInt32(int32_t value, uint8_t &offset)
+void DPSerial::sendInt32(int32_t value, uint16_t &offset)
 {
     s_packetBuffer[offset++] = value >> 24;
     s_packetBuffer[offset++] = (value >> 16) & 255;
@@ -260,95 +269,95 @@ void DPSerial::sendInt32(int32_t value, uint8_t &offset)
     s_packetBuffer[offset++] = value & 255;
 }
 
-void DPSerial::sendUInt32(uint32_t value, uint8_t &offset)
+void DPSerial::sendUInt32(uint32_t value, uint16_t &offset)
 {
     sendInt32(*reinterpret_cast<int32_t *>(&value), offset);
 }
 
-void DPSerial::sendFloat(float value, uint8_t &offset)
+void DPSerial::sendFloat(float value, uint16_t &offset)
 {
     sendInt32(*reinterpret_cast<int32_t *>(&value), offset);
 }
 
 #ifdef NODE_GYP
-napi_value DPSerial::nodeReceiveUInt8(napi_env env, uint8_t &offset)
+napi_value DPSerial::nodeReceiveUInt8(napi_env env, uint16_t &offset)
 {
     napi_value result;
     napi_create_uint32(env, receiveUInt8(offset), &result);
     return result;
 }
 
-napi_value DPSerial::nodeReceiveInt16(napi_env env, uint8_t &offset)
+napi_value DPSerial::nodeReceiveInt16(napi_env env, uint16_t &offset)
 {
     napi_value result;
     napi_create_int32(env, receiveInt16(offset), &result);
     return result;
 }
 
-napi_value DPSerial::nodeReceiveUInt16(napi_env env, uint8_t &offset)
+napi_value DPSerial::nodeReceiveUInt16(napi_env env, uint16_t &offset)
 {
     napi_value result;
     napi_create_uint32(env, receiveUInt16(offset), &result);
     return result;
 }
 
-napi_value DPSerial::nodeReceiveInt32(napi_env env, uint8_t &offset)
+napi_value DPSerial::nodeReceiveInt32(napi_env env, uint16_t &offset)
 {
     napi_value result;
     napi_create_int32(env, receiveInt32(offset), &result);
     return result;
 }
 
-napi_value DPSerial::nodeReceiveUInt32(napi_env env, uint8_t &offset)
+napi_value DPSerial::nodeReceiveUInt32(napi_env env, uint16_t &offset)
 {
     napi_value result;
     napi_create_uint32(env, receiveUInt32(offset), &result);
     return result;
 }
 
-napi_value DPSerial::nodeReceiveFloat(napi_env env, uint8_t &offset)
+napi_value DPSerial::nodeReceiveFloat(napi_env env, uint16_t &offset)
 {
     napi_value result;
     napi_create_double(env, receiveFloat(offset), &result);
     return result;
 }
 
-void DPSerial::nodeSendUInt8(napi_env env, napi_value value, uint8_t &offset)
+void DPSerial::nodeSendUInt8(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
     sendUInt8(static_cast<uint8_t>(temp), offset);
 }
 
-void DPSerial::nodeSendInt16(napi_env env, napi_value value, uint8_t &offset)
+void DPSerial::nodeSendInt16(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
     sendInt16(static_cast<int16_t>(temp), offset);
 }
 
-void DPSerial::nodeSendUInt16(napi_env env, napi_value value, uint8_t &offset)
+void DPSerial::nodeSendUInt16(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
     sendUInt16(static_cast<uint16_t>(temp), offset);
 }
 
-void DPSerial::nodeSendInt32(napi_env env, napi_value value, uint8_t &offset)
+void DPSerial::nodeSendInt32(napi_env env, napi_value value, uint16_t &offset)
 {
     int32_t temp;
     napi_get_value_int32(env, value, &temp);
     sendInt32(temp, offset);
 }
 
-void DPSerial::nodeSendUInt32(napi_env env, napi_value value, uint8_t &offset)
+void DPSerial::nodeSendUInt32(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
     sendUInt32(temp, offset);
 }
 
-void DPSerial::nodeSendFloat(napi_env env, napi_value value, uint8_t &offset)
+void DPSerial::nodeSendFloat(napi_env env, napi_value value, uint16_t &offset)
 {
     double temp;
     napi_get_value_double(env, value, &temp);
@@ -373,7 +382,7 @@ bool DPSerial::setup(std::string path)
     {
         return false;
     }
-    dcbSerialParams.BaudRate = CBR_115200;
+    dcbSerialParams.BaudRate = c_baudRate;
     dcbSerialParams.ByteSize = 8;
     dcbSerialParams.StopBits = ONESTOPBIT;
     dcbSerialParams.Parity = NOPARITY;
@@ -404,7 +413,7 @@ bool DPSerial::setup(std::string path)
     {
         return false;
     }
-    const speed_t speed = B115200;
+    const speed_t speed = c_baudRate;
     cfsetospeed(&tty, speed);
     cfsetispeed(&tty, speed);
     cfmakeraw(&tty);
@@ -483,7 +492,12 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
     {
         receivePacket();
 
-        uint8_t offset = 0;
+        if(s_header.PayloadSize > c_maxPayloadSize)
+        {
+            continue;
+        }
+
+        uint16_t offset = 0;
         switch (s_header.MessageType)
         {
         case SYNC:
@@ -573,8 +587,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
 
     s_header.MessageType = static_cast<MessageType>(messageType);
 
-    uint8_t offset = 0;
-    
+    uint16_t offset = 0;
     switch (messageType)
     {
     case SYNC_ACK:
@@ -631,6 +644,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         break;
     }
     case CREATE_OBSTACLE:
+    case ADD_TO_OBSTACLE:
     {
         napi_value propertyName;
         napi_value tempNapiValue;
@@ -684,8 +698,22 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         return NULL;
     }
 
+    #ifdef DEBUG_LOGGING
+    std::cout << "Payload size: 0x" << std::setw(2) << offset << std::endl;
+    #endif
+
+    if(offset > c_maxPayloadSize)
+    {
+        std::cout << "Error: payload size of " << offset << " exceeds max payload size (" << c_maxPayloadSize << ")." << std::endl;
+        return NULL;
+    }
+
     s_header.PayloadSize = offset;
     sendPacket();
+
+    #ifdef DEBUG_LOGGING
+    dumpBuffers();
+    #endif
 
     return NULL;
 }
@@ -762,3 +790,43 @@ int main(int argc, char **argv)
 }
 
 #endif
+
+void dumpBuffer(uint8_t* begin, uint32_t size)
+{
+    const uint32_t bytesPerLine = 16;
+    uint32_t index = 0;
+
+    std::cout << std::hex << std::uppercase << std::setfill('0');
+
+    while(index < size)
+    {
+        std::cout << "0x" << std::setw(8) << index << " |";
+        for(auto i = 0u; i < bytesPerLine && index + i < size; ++i)
+        {
+            std::cout << " " << std::setw(2) << (int)begin[index + i];
+        }
+        std::cout << std::endl;
+        index += bytesPerLine;
+    }
+}
+
+void DPSerial::dumpBuffers()
+{
+    std::cout << "===== HEADER =====" << std::endl;
+    dumpBuffer(s_headerBuffer, c_headerSize);
+    std::cout << "===== PACKET =====" << std::endl;
+    dumpBuffer(s_packetBuffer, s_header.PayloadSize);
+}
+
+void dumpBufferToFile(uint8_t* begin, uint32_t size, std::string file)
+{
+    std::ofstream out;
+    out.open(file, std::ios::out | std::ios::binary);
+    out.write(reinterpret_cast<char *>(begin), size);
+}
+
+void DPSerial::dumpBuffersToFile()
+{
+    dumpBufferToFile(s_headerBuffer, c_headerSize, "dumpheader.bin");
+    dumpBufferToFile(s_packetBuffer, c_packetSize, "dumppacket.bin");
+}
