@@ -11,7 +11,7 @@ class DPSerial : DPProtocol
 private:
     // data storage
     static Header s_header;
-    static const uint8_t c_debugLogBufferSize = 256;
+    static const uint16_t c_debugLogBufferSize = 256;
     static uint8_t s_debugLogBuffer[c_debugLogBufferSize];
 
     // multithreading safety

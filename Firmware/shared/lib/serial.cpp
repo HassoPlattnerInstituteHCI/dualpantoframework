@@ -378,8 +378,9 @@ void DPSerial::sendDebugLog(const char *message, ...)
     sendMagicNumber();
     va_list args;
     va_start(args, message);
-    uint8_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
+    length = constrain(length, 0, c_debugLogBufferSize);
     sendHeader(DEBUG_LOG, length);
     BOARD_DEPENDENT_SERIAL.write(s_debugLogBuffer, length);
     portEXIT_CRITICAL(&s_serialMutex);
