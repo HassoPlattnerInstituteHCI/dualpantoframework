@@ -1,5 +1,7 @@
 # Dependencies (Linux)
 
+__WARNING:__ Currently, voice input is not supported on linux. If possible, use either Windows or MacOS.
+
 ## 1. Learn how to use your terminal
 
 - This is dependent on your distribution.

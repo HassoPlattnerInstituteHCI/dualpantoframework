@@ -10,7 +10,10 @@ class DPProtocol
 {
 protected:
     // revision
-    static const uint32_t c_revision = 1;
+    static const uint32_t c_revision = 2;
+
+    // connection info
+    static const uint32_t c_baudRate = 115200;
 
     // magic number
     static const uint8_t c_magicNumber[];
@@ -20,9 +23,10 @@ protected:
     struct Header
     {
         uint8_t MessageType;
-        uint32_t PayloadSize;
+        uint16_t PayloadSize;
     };
-    static const uint8_t c_headerSize = 5;
+    static const uint8_t c_headerSize = 3;
+    static const uint16_t c_maxPayloadSize = 256;
 
     // message types
     enum MessageType
@@ -36,8 +40,9 @@ protected:
         MOTOR = 0x90,
         PID = 0x91,
         CREATE_OBSTACLE = 0xA0,
-        REMOVE_OBSTACLE = 0xA1,
-        ENABLE_OBSTACLE = 0xA2,
-        DISABLE_OBSTACLE = 0xA3
+        ADD_TO_OBSTACLE = 0xA1,
+        REMOVE_OBSTACLE = 0xA2,
+        ENABLE_OBSTACLE = 0xA3,
+        DISABLE_OBSTACLE = 0xA4
     };
 };

@@ -68,12 +68,23 @@ std::vector<Collision> GodObject::checkObstacleCollisions(Vector2D point)
     return result;
 }
 
-void GodObject::addObstacle(uint16_t id, std::vector<Vector2D> points)
+void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points)
 {
     auto temp = Obstacle(points);
     portENTER_CRITICAL(&m_obstacleMutex);
     m_obstacles.emplace(id, std::move(temp));
     portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
+{
+    auto it = m_obstacles.find(id);
+    if(it != m_obstacles.end())
+    {
+        portENTER_CRITICAL(&m_obstacleMutex);
+        m_obstacles.at(id).add(points);
+        portEXIT_CRITICAL(&m_obstacleMutex);
+    }
 }
 
 void GodObject::removeObstacle(uint16_t id)

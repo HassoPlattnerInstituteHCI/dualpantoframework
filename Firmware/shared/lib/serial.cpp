@@ -20,6 +20,7 @@ std::map<DPProtocol::MessageType, std::function<void()>>
         {MOTOR, DPSerial::receiveMotor},
         {PID, DPSerial::receivePID},
         {CREATE_OBSTACLE, DPSerial::receiveCreateObstacle},
+        {ADD_TO_OBSTACLE, DPSerial::receiveAddToObstacle},
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle}
@@ -76,10 +77,10 @@ void DPSerial::sendMagicNumber()
     }
 };
 
-void DPSerial::sendHeader(MessageType messageType, uint32_t payloadSize)
+void DPSerial::sendHeader(MessageType messageType, uint16_t payloadSize)
 {
     sendMessageType(messageType);
-    sendUInt32(payloadSize);
+    sendUInt16(payloadSize);
 };
 
 // send
@@ -179,7 +180,7 @@ bool DPSerial::receiveHeader()
     }
 
     s_header.MessageType = receiveUInt8();
-    s_header.PayloadSize = receiveUInt32();
+    s_header.PayloadSize = receiveUInt16();
     s_receiveState = FOUND_HEADER;
     return true;
 };
@@ -241,7 +242,33 @@ void DPSerial::receiveCreateObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().addObstacle(id, path);
+            pantoPhysics[i].godObject().createObstacle(id, path);
+        }
+    }
+}
+
+void DPSerial::receiveAddToObstacle()
+{
+    sendDebugLog("receiveAddToObstacle");
+
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
+
+    std::vector<Vector2D> path;
+    path.reserve(vecCount);
+
+    for(auto i = 0; i < vecCount; ++i)
+    {
+        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
+    }
+
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject().addToObstacle(id, path);
         }
     }
 }
@@ -297,6 +324,12 @@ void DPSerial::receiveInvalid()
 
 // setup
 
+void DPSerial::init()
+{
+    BOARD_DEPENDENT_SERIAL.begin(c_baudRate); 
+    BOARD_DEPENDENT_SERIAL.setRxBufferSize(4 * c_maxPayloadSize);
+}
+
 bool DPSerial::ensureConnection()
 {
     if (!s_connected)
@@ -345,8 +378,9 @@ void DPSerial::sendDebugLog(const char *message, ...)
     sendMagicNumber();
     va_list args;
     va_start(args, message);
-    uint8_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
+    length = constrain(length, 0, c_debugLogBufferSize);
     sendHeader(DEBUG_LOG, length);
     BOARD_DEPENDENT_SERIAL.write(s_debugLogBuffer, length);
     portEXIT_CRITICAL(&s_serialMutex);
@@ -387,6 +421,8 @@ void DPSerial::receive()
 
     if (s_receiveState == FOUND_HEADER && !payloadReady())
     {
+        if(s_header.MessageType == ADD_TO_OBSTACLE)
+            sendDebugLog("Only %i of %i bytes available", BOARD_DEPENDENT_SERIAL.available(), s_header.PayloadSize);
         return;
     }
 
