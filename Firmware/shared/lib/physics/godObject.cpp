@@ -1,11 +1,11 @@
 #include "physics/godObject.hpp"
 
 #include "serial.hpp"
-
 #include "config.hpp"
 
-GodObject::GodObject(Vector2D position)
+GodObject::GodObject(Panto* panto, Vector2D position)
 : m_position(position)
+, m_quadtree(panto)
 , m_obstacleMutex{portMUX_FREE_VAL, 0}
 { }
 
@@ -27,7 +27,7 @@ void GodObject::move()
     {
         m_processingObstacleCollision = true;
         targetPoint = 
-            collisions[0].m_obstacle.handleCollision(targetPoint, m_position);
+            collisions[0].m_obstacle->handleCollision(targetPoint, m_position);
         collisions = checkObstacleCollisions(targetPoint);
     }
 
@@ -43,26 +43,12 @@ void GodObject::move()
     m_doneColliding = lastState && !m_processingObstacleCollision;
 }
 
-std::vector<Collision> GodObject::checkObstacleCollisions(Vector2D point)
+std::vector<IndexedEdge> GodObject::checkObstacleCollisions(Vector2D point)
 {
-    std::vector<Collision> result;
-    Edge enteringEdge;
+    std::vector<IndexedEdge> result;
 
     portENTER_CRITICAL(&m_obstacleMutex);
-    for(auto obstacle : m_obstacles)
-    {
-        if(!obstacle.second.enabled())
-        {
-            continue;
-        }
-
-        auto colliding =
-            obstacle.second.getEnteringEdge(point, m_position, &enteringEdge);
-        if(colliding)
-        {
-            result.emplace_back(obstacle.second, enteringEdge);
-        }
-    }
+    result = m_quadtree.getCollisions(Edge(m_position, point));
     portEXIT_CRITICAL(&m_obstacleMutex);
 
     return result;
@@ -96,10 +82,42 @@ void GodObject::removeObstacle(uint16_t id)
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
+    DPSerial::sendDebugLog("enableObstacle");
     auto it = m_obstacles.find(id);
     if(it != m_obstacles.end())
     {
-        m_obstacles.at(id).enable(enable);
+        portENTER_CRITICAL(&m_obstacleMutex);
+        if(enable != it->second.enabled())
+        {
+            DPSerial::sendDebugLog("getAnnotatedEdges+add");
+            auto edges = it->second.getAnnotatedEdges();
+            if(enable)
+            {
+                DPSerial::sendDebugLog("enable");
+                for(auto&& edge : edges)
+                {
+                    m_quadtree.add(
+                        std::get<0>(edge),
+                        std::get<1>(edge),
+                        std::get<2>(edge));
+                }
+            }
+            else
+            {
+                DPSerial::sendDebugLog("!enable");
+                for(auto&& edge : edges)
+                {
+                    m_quadtree.remove(
+                        std::get<0>(edge),
+                        std::get<1>(edge));
+                }
+            }
+            DPSerial::sendDebugLog("getAnnotatedEdges+add done");
+        }
+        
+        it->second.enable(enable);
+        
+        portEXIT_CRITICAL(&m_obstacleMutex);
     }
 }
 

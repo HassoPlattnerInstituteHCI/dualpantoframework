@@ -4,8 +4,10 @@
 #include <map>
 #include <vector>
 
-#include "collision.hpp"
+#include "indexedEdge.hpp"
 #include "obstacle.hpp"
+#include "panto.hpp"
+#include "quadtree/quadtree.hpp"
 #include "utils.hpp"
 
 class GodObject
@@ -15,15 +17,16 @@ private:
     Vector2D m_movementDirection;
     Vector2D m_activeForce;
     std::map<uint16_t, Obstacle> m_obstacles;
+    Quadtree m_quadtree;
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
     bool m_doneColliding;
     Vector2D m_lastError;
 public:
-    GodObject(Vector2D position = Vector2D());
+    GodObject(Panto* panto, Vector2D position = Vector2D());
     void setMovementDirection(Vector2D movementDirection);
     void move();
-    std::vector<Collision> checkObstacleCollisions(Vector2D point);
+    std::vector<IndexedEdge> checkObstacleCollisions(Vector2D point);
     void createObstacle(uint16_t id, std::vector<Vector2D> points);
     void addToObstacle(uint16_t id, std::vector<Vector2D> points);
     void removeObstacle(uint16_t id);

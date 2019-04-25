@@ -1,6 +1,7 @@
 #include "physics/collider.hpp"
 
 #include <cmath>
+#include <numeric>
 
 #include "serial.hpp"
 
@@ -27,6 +28,16 @@ bool Collider::intersect(Edge edgeA, Edge edgeB, Vector2D* intersection, bool co
     }
     *intersection = edgeA.m_first + (dirA * ratio);
     return true;
+}
+
+bool Collider::intersect(
+    uint32_t edgeIndex, 
+    Edge edgeB, 
+    Vector2D* intersection, 
+    bool constrainToSegment)
+{
+    return intersect(
+        getEdge(edgeIndex), edgeB, intersection, constrainToSegment);
 }
 
 bool Collider::contains(Vector2D point)
@@ -58,65 +69,79 @@ bool Collider::contains(Vector2D point)
     return inside;
 }
 
-bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition, Edge* enteringEdge)
+bool Collider::getEnteringEdge(Vector2D handlePosition, Vector2D objectPosition, uint32_t* enteringEdgeIndex)
+{
+    std::vector<uint32_t> indices(m_points.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    return getEnteringEdge(
+        Edge(objectPosition, handlePosition),
+        indices,
+        enteringEdgeIndex);
+}
+
+bool Collider::getEnteringEdge(
+    Edge movement,
+    std::vector<uint32_t> possibleEdges,
+    uint32_t* enteringEdgeIndex)
 {
     // will contain result
     auto minDist = 0.0;
     auto foundAny = false;
     // loop vars
-    auto edgeCount = m_points.size();
-    auto j = edgeCount - 1;
+    auto possibleEdgeCount = possibleEdges.size();
     // pre-allocate
-    Vector2D first, second, intersection;
+    uint32_t index;
+    Edge edge;
+    Vector2D intersection;
     bool intersects;
     double scale, dist;
 
-    for(auto i = 0; i < edgeCount; ++i)
+    for(auto i = 0; i < possibleEdgeCount; ++i)
     {
-        first = m_points[i];
-        second = m_points[j];
+        index = possibleEdges[i];
+        edge = getEdge(index);
 
-        intersects = intersect(
-            Edge(objectPosition, handlePosition), 
-            Edge(first, second),
-            &intersection);
+        intersects = intersect(movement, edge, &intersection);
         if(!intersects)
         {
-            j = i;
             continue;
         }
 
-        if(second.x - first.x == 0)
+        if(edge.m_second.x - edge.m_first.x == 0)
         {
-            scale = (intersection.y - first.y) / (second.y - first.y);
+            scale = 
+                (intersection.y - edge.m_first.y) / 
+                (edge.m_second.y - edge.m_first.y);
         }
         else
         {
-            scale = (intersection.x - first.x) / (second.x - first.x);
+            scale =
+                (intersection.x - edge.m_first.x) /
+                (edge.m_second.x - edge.m_first.x);
         }
         
         if(scale < 0 || scale > 1)
         {
-            j = i;
             continue;
         }
 
-        dist = (intersection - objectPosition).length();
+        dist = (intersection - movement.m_first).length();
         if(!foundAny || dist < minDist)
         {
             minDist = dist;
-            *enteringEdge = Edge(first, second);
+            *enteringEdgeIndex = i;
             foundAny = true;
         }
-        
-        j = i;
     }
 
     return foundAny;
 }
 
-Vector2D Collider::getClosestOutsidePoint(Edge edge, Vector2D handlePosition)
+Vector2D Collider::getClosestOutsidePoint(
+    uint32_t edgeIndex, Vector2D handlePosition)
 {
+    auto edge = getEdge(edgeIndex);
     auto dir = edge.m_first - edge.m_second;
     auto perpendicular = Vector2D(-dir.y, dir.x);
 
@@ -130,4 +155,11 @@ Vector2D Collider::getClosestOutsidePoint(Edge edge, Vector2D handlePosition)
     
     auto collisionVec = intersection - handlePosition;
     return handlePosition + collisionVec * 1.1;
+}
+
+Edge Collider::getEdge(uint32_t index)
+{
+    return Edge(
+        m_points[index % m_points.size()], 
+        m_points[(index + 1) % m_points.size()]);
 }

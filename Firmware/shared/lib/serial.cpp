@@ -242,15 +242,13 @@ void DPSerial::receiveCreateObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().createObstacle(id, path);
+            pantoPhysics[i].godObject()->createObstacle(id, path);
         }
     }
 }
 
 void DPSerial::receiveAddToObstacle()
 {
-    sendDebugLog("receiveAddToObstacle");
-
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 
@@ -268,7 +266,7 @@ void DPSerial::receiveAddToObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().addToObstacle(id, path);
+            pantoPhysics[i].godObject()->addToObstacle(id, path);
         }
     }
 }
@@ -282,7 +280,7 @@ void DPSerial::receiveRemoveObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().removeObstacle(id);
+            pantoPhysics[i].godObject()->removeObstacle(id);
         }
     }
 }
@@ -296,7 +294,7 @@ void DPSerial::receiveEnableObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().enableObstacle(id);
+            pantoPhysics[i].godObject()->enableObstacle(id);
         }
     }
 }
@@ -310,7 +308,7 @@ void DPSerial::receiveDisableObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().enableObstacle(id, false);
+            pantoPhysics[i].godObject()->enableObstacle(id, false);
         }
     }
 }

@@ -14,6 +14,9 @@ struct Vector2D
     Vector2D operator-(const Vector2D &other);
     double operator*(const Vector2D &other);
     Vector2D operator*(const double scale);
+
+    static Vector2D min(Vector2D first, Vector2D second);
+    static Vector2D max(Vector2D first, Vector2D second);
 };
 
 double determinant(Vector2D first, Vector2D second);
