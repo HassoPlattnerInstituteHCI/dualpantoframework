@@ -18,9 +18,11 @@ protected:
     Vector2D m_center;
     Vector2D m_size;
     Node(Branch* parent, uint8_t depth, Vector2D center, Vector2D size);
+    std::string printThis(bool isLeaf);
 public:
     virtual ~Node() = default;
     virtual void add(Obstacle* obstacle, uint32_t index, Edge edge) = 0;
     virtual void remove(Obstacle* obstacle, uint32_t index) = 0;
     virtual std::set<IndexedEdge> getPossibleCollisions(Edge movement) = 0;
+    virtual std::vector<std::string> print() = 0;
 };

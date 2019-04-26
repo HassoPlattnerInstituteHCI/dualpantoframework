@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <map>
 #include <functional>
+#include <queue>
+#include <string>
 
 #include "protocol.hpp"
 
@@ -13,6 +15,7 @@ private:
     static Header s_header;
     static const uint16_t c_debugLogBufferSize = 256;
     static uint8_t s_debugLogBuffer[c_debugLogBufferSize];
+    static std::queue<std::string> s_debugLogQueue;
 
     // multithreading safety
     static portMUX_TYPE s_serialMutex;
@@ -70,6 +73,7 @@ private:
     static void receiveRemoveObstacle();
     static void receiveEnableObstacle();
     static void receiveDisableObstacle();
+    static void receiveDumpQuadtree();
     static void receiveInvalid();
 
     // map of receive handlers
@@ -82,6 +86,7 @@ public:
     // send
     static void sendPosition();
     static void sendDebugLog(const char* message, ...);
+    static void processDebugLogQueue();
     static void sendDebugData();
 
     // receive

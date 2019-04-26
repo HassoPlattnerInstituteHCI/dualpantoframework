@@ -10,7 +10,7 @@ class Leaf : public Node
 {
 private:
     static const uint8_t c_maxDepth = 10;
-    static const uint8_t c_maxChildren = 8;
+    static const uint8_t c_maxChildren = 2;
     std::vector<IndexedEdge> m_children;
     void split();
 public:
@@ -19,4 +19,5 @@ public:
     void add(Obstacle* obstacle, uint32_t index, Edge edge) override;
     void remove(Obstacle* obstacle, uint32_t index) override;
     std::set<IndexedEdge> getPossibleCollisions(Edge movement) override;
+    std::vector<std::string> print() override;
 };

@@ -10,52 +10,29 @@ std::set<Node*> Branch::getChildrenForPoint(
 {
     std::set<Node*> result;
 
-    if(point.x < m_center.x)
+    auto hIndex = -1.0;
+    if(point.x > m_center.x - m_size.x / 2) hIndex++;
+    if(point.x == m_center.x) hIndex += 0.5;
+    if(point.x > m_center.x) hIndex += 0.5;
+    if(point.x > m_center.x + m_size.x / 2) hIndex++;
+
+    auto vIndex = -1.0;
+    if(point.y > m_center.y - m_size.y / 2) vIndex++;
+    if(point.y == m_center.y) vIndex += 0.5;
+    if(point.y > m_center.y) vIndex += 0.5;
+    if(point.y > m_center.y + m_size.y / 2) vIndex++;
+
+    if(hIndex < 0 || hIndex > 1 || vIndex < 0 || vIndex > 1)
     {
-        if(point.y < m_center.y)
-        {
-            return std::set<Node*>{m_children[0]};
-        }
-        else if(point.y > m_center.y)
-        {
-            return std::set<Node*>{m_children[1]};
-        }
-        else
-        {
-            return std::set<Node*>{m_children[0], m_children[1]};
-        }
+        return result;
     }
-    else if(point.x > m_center.x)
-    {
-        if(point.y < m_center.y)
-        {
-            return std::set<Node*>{m_children[2]};
-        }
-        else if(point.y > m_center.y)
-        {
-            return std::set<Node*>{m_children[3]};
-        }
-        else
-        {
-            return std::set<Node*>{m_children[2], m_children[3]};
-        }
-    }
-    else
-    {
-        if(point.y < m_center.y)
-        {
-            return std::set<Node*>{m_children[0], m_children[2]};
-        }
-        else if(point.y > m_center.y)
-        {
-            return std::set<Node*>{m_children[1], m_children[3]};
-        }
-        else
-        {
-            return std::set<Node*>{
-                m_children[0], m_children[1], m_children[2], m_children[3]};
-        }
-    }
+
+    result.insert(m_children[std::floor(hIndex) + 2 * std::floor(vIndex)]);
+    result.insert(m_children[std::ceil(hIndex) + 2 * std::floor(vIndex)]);
+    result.insert(m_children[std::floor(hIndex) + 2 * std::ceil(vIndex)]);
+    result.insert(m_children[std::ceil(hIndex) + 2 * std::ceil(vIndex)]);
+
+    return result;
 }
 
 std::set<Node*> Branch::getChildrenForEdge(Edge edge)
@@ -64,6 +41,7 @@ std::set<Node*> Branch::getChildrenForEdge(Edge edge)
 
     if(diff.x == 0 && diff.y == 0)
     {
+        //DPSerial::sendDebugLog("diff 0");
         return getChildrenForPoint(edge.m_first);
     }
 
@@ -76,17 +54,18 @@ std::set<Node*> Branch::getChildrenForEdge(Edge edge)
 
     if(diff.x > diff.y)
     {
-        // use 0 = mx+n for linear function
+        // use y = mx+n for linear function
+        // try to find location for y = center.y
         auto m = diff.y / diff.x;
-        // n = y1 - m * x1 && zero = -n / m => zero = x1 - y1 / m
-        auto zero = edge.m_first.x - edge.m_first.y / m;
+        // n = y1 - m * x1 && x = (y - n) / m => x = (y - y1) / m + x1
+        auto x = (m_center.y - edge.m_first.y) / m + edge.m_first.x;
 
-        if(zero <= 0)
+        if(x > m_center.x - m_size.x / 2 && x <= m_center.x)
         {
             result.insert(m_children[0]);
             result.insert(m_children[2]);
         }
-        if(zero >= 0)
+        if(x >= m_center.x && x < m_center.x + m_size.x / 2)
         {
             result.insert(m_children[1]);
             result.insert(m_children[3]);
@@ -94,21 +73,23 @@ std::set<Node*> Branch::getChildrenForEdge(Edge edge)
     }
     else
     {
-        auto m = diff.y / diff.x;
-        auto zero = edge.m_first.y - edge.m_first.x / m;
+        auto m = diff.x / diff.y;
+        auto y = (m_center.x - edge.m_first.x) / m + edge.m_first.y;
 
-        if(zero <= 0)
+        if(y > m_center.y - m_size.y / 2 && y <= m_center.y)
         {
             result.insert(m_children[0]);
             result.insert(m_children[1]);
         }
-        if(zero >= 0)
+        if(y >= m_center.y && y < m_center.y + m_size.y / 2)
         {
             result.insert(m_children[2]);
             result.insert(m_children[3]);
         }
     }
     
+    // DPSerial::sendDebugLog("p1 %+08.3f|%+08.3f p2 %+08.3f|%+08.3f c %+08.3f|%+08.3f s %+08.3f|%+08.3f sel %i|%i|%i|%i", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y, m_center.x, m_center.y, m_size.x, m_size.y, result.find(m_children[0]) != result.end(), result.find(m_children[1]) != result.end(), result.find(m_children[2]) != result.end(), result.find(m_children[3]) != result.end());
+    // yield();
     return result;
 }
 
@@ -152,10 +133,14 @@ Branch::~Branch()
 
 void Branch::add(Obstacle* obstacle, uint32_t index, Edge edge)
 {
-    DPSerial::sendDebugLog("adding at lvl %i", m_depth);
-    for(auto&& child : getChildrenForEdge(edge))
+    // DPSerial::sendDebugLog("branch adding at lvl %i", m_depth);
+    auto c = getChildrenForEdge(edge);
+    // DPSerial::sendDebugLog("num of children %i", c.size());
+    for(auto&& child : c)
     {
+        // DPSerial::sendDebugLog("adding to %i", child);
         child->add(obstacle, index, edge);
+        // yield();
     }
 }
 
@@ -163,7 +148,9 @@ void Branch::remove(Obstacle* obstacle, uint32_t index)
 {
     for(auto&& child : getChildrenForEdge(obstacle->getEdge(index)))
     {
+        // DPSerial::sendDebugLog("removing from %i", child);
         child->remove(obstacle, index);
+        // yield();
     }
 }
 
@@ -173,6 +160,8 @@ std::set<IndexedEdge> Branch::getPossibleCollisions(Edge movement)
 
     for(auto&& child : getChildrenForEdge(movement))
     {
+        if(child == nullptr)
+            DPSerial::sendDebugLog("getting collisions from %i", child);
         auto childCollisions = child->getPossibleCollisions(movement);
         result.insert(childCollisions.begin(), childCollisions.end());
     }
@@ -180,8 +169,21 @@ std::set<IndexedEdge> Branch::getPossibleCollisions(Edge movement)
     return result;
 }
 
+std::vector<std::string> Branch::print()
+{
+    std::vector<std::string> result;
+    result.push_back(printThis(false));
+    for(auto&& child : m_children)
+    {
+        auto childResult = child->print();
+        result.insert(result.end(), childResult.begin(), childResult.end());
+    }
+    return result;
+}
+
 void Branch::replace(Node* oldChild, Node* newChild)
 {
+    // DPSerial::sendDebugLog("replacing %i with %i", oldChild, newChild);
     auto child = std::find(m_children.begin(), m_children.end(), oldChild);
     *child = newChild;
 }

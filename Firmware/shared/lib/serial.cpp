@@ -8,6 +8,7 @@
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
+std::queue<std::string> DPSerial::s_debugLogQueue;
 portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
@@ -23,7 +24,8 @@ std::map<DPProtocol::MessageType, std::function<void()>>
         {ADD_TO_OBSTACLE, DPSerial::receiveAddToObstacle},
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
-        {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle}
+        {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
+        {DUMP_QUADTREE, DPSerial::receiveDumpQuadtree}
     };
 
 // === private ===
@@ -313,6 +315,20 @@ void DPSerial::receiveDisableObstacle()
     }
 }
 
+void DPSerial::receiveDumpQuadtree()
+{
+    auto pantoIndex = receiveUInt8();
+    sendDebugLog("dump quadtree %i", pantoIndex);
+
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->dumpQuadtree();
+        }
+    }
+}
+
 void DPSerial::receiveInvalid()
 {
     sendDebugLog("Received invalid message: %02X", s_header.MessageType);
@@ -372,17 +388,30 @@ void DPSerial::sendPosition()
 
 void DPSerial::sendDebugLog(const char *message, ...)
 {
-    portENTER_CRITICAL(&s_serialMutex);
-    sendMagicNumber();
     va_list args;
     va_start(args, message);
     uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
-    sendHeader(DEBUG_LOG, length);
-    BOARD_DEPENDENT_SERIAL.write(s_debugLogBuffer, length);
-    portEXIT_CRITICAL(&s_serialMutex);
+    s_debugLogQueue.emplace(reinterpret_cast<char *>(s_debugLogBuffer), length);
 };
+
+void DPSerial::processDebugLogQueue()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    if(!s_debugLogQueue.empty())
+    {
+        auto msg = s_debugLogQueue.front();
+        s_debugLogQueue.pop();
+        auto length = msg.length();
+        sendMagicNumber();
+        sendHeader(DEBUG_LOG, length);
+        BOARD_DEPENDENT_SERIAL.write(
+            reinterpret_cast<const uint8_t *>(msg.c_str()),
+            length);
+    }
+    portEXIT_CRITICAL(&s_serialMutex);
+}
 
 void DPSerial::sendDebugData()
 {

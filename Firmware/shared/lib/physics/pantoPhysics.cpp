@@ -15,6 +15,8 @@ GodObject* PantoPhysics::godObject()
 
 void PantoPhysics::step()
 {
+    m_godObject->updateQuadtree();
+
     m_currentPosition = m_panto->handle;
 
     auto difference = m_currentPosition - m_godObject->getPosition();

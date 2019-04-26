@@ -14,6 +14,20 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
+void GodObject::updateQuadtree()
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    m_quadtree.processQueues();
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::dumpQuadtree()
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    m_quadtree.print();
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
 void GodObject::move()
 {
     auto lastState = m_processingObstacleCollision;
@@ -87,32 +101,44 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
     if(it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
+        // if(enable != it->second.enabled())
+        // {
+        //     DPSerial::sendDebugLog("getAnnotatedEdges+add");
+        //     auto edges = it->second.getAnnotatedEdges();
+        //     if(enable)
+        //     {
+        //         DPSerial::sendDebugLog("enable");
+        //         for(auto&& edge : edges)
+        //         {
+        //             m_quadtree.add(
+        //                 std::get<0>(edge),
+        //                 std::get<1>(edge),
+        //                 std::get<2>(edge));
+        //         }
+        //     }
+        //     else
+        //     {
+        //         DPSerial::sendDebugLog("!enable");
+        //         for(auto&& edge : edges)
+        //         {
+        //             m_quadtree.remove(
+        //                 std::get<0>(edge),
+        //                 std::get<1>(edge));
+        //         }
+        //     }
+        //     DPSerial::sendDebugLog("getAnnotatedEdges+add done");
+        // }
         if(enable != it->second.enabled())
         {
-            DPSerial::sendDebugLog("getAnnotatedEdges+add");
             auto edges = it->second.getAnnotatedEdges();
             if(enable)
             {
-                DPSerial::sendDebugLog("enable");
-                for(auto&& edge : edges)
-                {
-                    m_quadtree.add(
-                        std::get<0>(edge),
-                        std::get<1>(edge),
-                        std::get<2>(edge));
-                }
+                m_quadtree.add(edges);
             }
             else
             {
-                DPSerial::sendDebugLog("!enable");
-                for(auto&& edge : edges)
-                {
-                    m_quadtree.remove(
-                        std::get<0>(edge),
-                        std::get<1>(edge));
-                }
+                m_quadtree.remove(edges);
             }
-            DPSerial::sendDebugLog("getAnnotatedEdges+add done");
         }
         
         it->second.enable(enable);

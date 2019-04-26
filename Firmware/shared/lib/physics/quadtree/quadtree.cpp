@@ -1,6 +1,9 @@
 #include "physics/quadtree/quadtree.hpp"
 
 #include <map>
+#include <tuple>
+
+#include "serial.hpp"
 
 std::pair<Vector2D, Vector2D> Quadtree::getRangeForPanto(Panto* panto)
 {
@@ -21,12 +24,6 @@ std::pair<Vector2D, Vector2D> Quadtree::getRangeForMotor(uint8_t index)
     return std::make_pair(center - size, center + size);
 }
 
-Quadtree::Quadtree(Panto* panto)
-{
-    auto range = getRangeForPanto(panto);
-    m_base = new Branch(nullptr, 0, range.first, range.second);
-}
-
 void Quadtree::add(Obstacle* obstacle, uint32_t index, Edge edge)
 {
     m_base->add(obstacle, index, edge);
@@ -37,10 +34,47 @@ void Quadtree::remove(Obstacle* obstacle, uint32_t index)
     m_base->remove(obstacle, index);
 }
 
+Quadtree::Quadtree(Panto* panto)
+{
+    auto range = getRangeForPanto(panto);
+    m_base = new Branch(nullptr, 0, range.first, range.second);
+}
+
+void Quadtree::add(
+    const std::vector<std::tuple<Obstacle*, uint32_t, Edge>>& elements)
+{
+    m_addQueue.insert(m_addQueue.end(), elements.begin(), elements.end());
+}
+
+void Quadtree::remove(
+    const std::vector<std::tuple<Obstacle*, uint32_t, Edge>>& elements)
+{
+    m_addQueue.insert(m_removeQueue.end(), elements.begin(), elements.end());
+}
+
+void Quadtree::processQueues()
+{
+    if(!m_addQueue.empty())
+    {
+        // DPSerial::sendDebugLog("Free heap: %i", xPortGetFreeHeapSize());
+        auto edge = m_addQueue.front();
+        m_addQueue.pop_front();
+        add(std::get<0>(edge), std::get<1>(edge), std::get<2>(edge));
+    }
+    if(!m_removeQueue.empty())
+    {
+        auto edge = m_removeQueue.front();
+        m_removeQueue.pop_front();
+        remove(std::get<0>(edge), std::get<1>(edge));
+    }
+}
+
 std::vector<IndexedEdge> Quadtree::getCollisions(Edge movement)
 {
     auto edges = m_base->getPossibleCollisions(movement);
     std::map<Obstacle*, std::vector<uint32_t>> grouped;
+
+    //DPSerial::sendDebugLog("num of posiible collisions: %i", edges.size());
 
     for(auto&& edge : edges)
     {
@@ -59,4 +93,13 @@ std::vector<IndexedEdge> Quadtree::getCollisions(Edge movement)
     }
 
     return result;
+}
+
+void Quadtree::print()
+{
+    auto lines = m_base->print();
+    for(auto&& line : lines)
+    {
+        DPSerial::sendDebugLog(line.c_str());
+    }
 }

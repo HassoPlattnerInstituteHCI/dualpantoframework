@@ -25,6 +25,8 @@ private:
 public:
     GodObject(Panto* panto, Vector2D position = Vector2D());
     void setMovementDirection(Vector2D movementDirection);
+    void updateQuadtree();
+    void dumpQuadtree();
     void move();
     std::vector<IndexedEdge> checkObstacleCollisions(Vector2D point);
     void createObstacle(uint16_t id, std::vector<Vector2D> points);

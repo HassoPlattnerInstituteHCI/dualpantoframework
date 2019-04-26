@@ -32,4 +32,11 @@ void ioLoop()
         DPSerial::sendPosition();
     }
     PERFMON_STOP("[b] Send positions");
+    
+    PERFMON_START("[b] Send debug logs");
+    if (connected)
+    {
+        DPSerial::processDebugLogQueue();
+    }
+    PERFMON_STOP("[b] Send debug logs");
 }

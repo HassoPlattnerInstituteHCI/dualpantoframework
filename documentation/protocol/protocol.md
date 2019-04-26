@@ -1,4 +1,4 @@
-# Serial Communication Protocol - Revision 2
+# Serial Communication Protocol - Revision 3
 
 All messages contain a [header](#header) and an optional [payload](#payload).
 
@@ -47,6 +47,8 @@ The available values for messages from the framework to the hardware are:
   - [0xA2 Remove obstacle](#0xA2-Remove-obstacle) - This message specifies an obstacle to remove.
   - [0xA3 Enable obstacle](#0xA3-Enable-obstacle) - This message specifies an obstacle to enable.
   - [0xA4 Disable obstacle](#0xA4-Disable-obstacle) - This message specifies an obstacle to disable.
+- 0xC0 to 0xCF - Debug tools
+    [0xC0 Dump quadtree](#0xC0-Dump-quadtree) - Request a dump of the physics' quadtree.
 
 ### Payload Size
 
@@ -264,4 +266,18 @@ A4       // message type: Disable obstacle
 0003     // payload lenght: 1 byte for index, 2 for ID
 FF       // pantograph index - both handles
 0023     // obstacle ID
+```
+
+### 0xC0 Dump quadtree
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer.
+
+Setting the pantograph index to 0xFF disables the obstacle for both handles.
+
+Example message for dumping the quadtree for both handles:
+```
+4450     // magic number
+C0       // message type: Dump quadtree
+000q     // payload lenght: 1 byte for index
+FF       // pantograph index - both handles
 ```
