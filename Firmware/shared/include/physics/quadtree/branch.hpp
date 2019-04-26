@@ -22,6 +22,6 @@ public:
     void add(Obstacle* obstacle, uint32_t index, Edge edge) override;
     void remove(Obstacle* obstacle, uint32_t index) override;
     std::set<IndexedEdge> getPossibleCollisions(Edge movement) override;
-    std::vector<std::string> print() override;
+    void print() override;
     void replace(Node* oldChild, Node* newChild);
 };

@@ -157,16 +157,13 @@ std::set<IndexedEdge> Branch::getPossibleCollisions(Edge movement)
     return result;
 }
 
-std::vector<std::string> Branch::print()
+void Branch::print()
 {
-    std::vector<std::string> result;
-    result.push_back(printThis(false));
+    printThis(false);
     for(auto&& child : m_children)
     {
-        auto childResult = child->print();
-        result.insert(result.end(), childResult.begin(), childResult.end());
+        child->print();
     }
-    return result;
 }
 
 void Branch::replace(Node* oldChild, Node* newChild)

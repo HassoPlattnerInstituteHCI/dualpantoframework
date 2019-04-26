@@ -57,17 +57,13 @@ std::set<IndexedEdge> Leaf::getPossibleCollisions(Edge movement)
     return std::set<IndexedEdge>(m_children.begin(), m_children.end());
 }
 
-std::vector<std::string> Leaf::print()
+void Leaf::print()
 {
-    std::vector<std::string> result;
-    result.push_back(printThis(true));
-    char buffer[256];
+    printThis(true);
     for(auto&& child : m_children)
     {
         auto edge = child.m_obstacle->getEdge(child.m_index);
-        snprintf(
-            buffer,
-            256,
+        DPSerial::sendDebugLog(
             "%*c [E] %p->%i 0 %+08.3f|%+08.3f 1 %+08.3f|%+08.3f",
             (m_depth + 1) * 2 + 1,
             ' ',
@@ -77,7 +73,5 @@ std::vector<std::string> Leaf::print()
             edge.m_first.y,
             edge.m_second.x,
             edge.m_second.y);
-        result.emplace_back(buffer);
     }
-    return result;
 }

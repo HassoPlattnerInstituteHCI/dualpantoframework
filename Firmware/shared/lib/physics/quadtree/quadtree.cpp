@@ -94,9 +94,5 @@ std::vector<IndexedEdge> Quadtree::getCollisions(Edge movement)
 
 void Quadtree::print()
 {
-    auto lines = m_base->print();
-    for(auto&& line : lines)
-    {
-        DPSerial::sendDebugLog(line.c_str());
-    }
+    m_base->print();
 }
