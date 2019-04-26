@@ -32,11 +32,6 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
           device.createObstacle(points, 0);
         }
       }, 1000);
-
-      // setTimeout(() => {
-      //   console.log('Dumping quadtree...');
-      //   device.sendDumpQuadtree(0);
-      // }, 3000);
     }
   }
 });

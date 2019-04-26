@@ -96,38 +96,10 @@ void GodObject::removeObstacle(uint16_t id)
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
-    DPSerial::sendDebugLog("enableObstacle");
     auto it = m_obstacles.find(id);
     if(it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
-        // if(enable != it->second.enabled())
-        // {
-        //     DPSerial::sendDebugLog("getAnnotatedEdges+add");
-        //     auto edges = it->second.getAnnotatedEdges();
-        //     if(enable)
-        //     {
-        //         DPSerial::sendDebugLog("enable");
-        //         for(auto&& edge : edges)
-        //         {
-        //             m_quadtree.add(
-        //                 std::get<0>(edge),
-        //                 std::get<1>(edge),
-        //                 std::get<2>(edge));
-        //         }
-        //     }
-        //     else
-        //     {
-        //         DPSerial::sendDebugLog("!enable");
-        //         for(auto&& edge : edges)
-        //         {
-        //             m_quadtree.remove(
-        //                 std::get<0>(edge),
-        //                 std::get<1>(edge));
-        //         }
-        //     }
-        //     DPSerial::sendDebugLog("getAnnotatedEdges+add done");
-        // }
         if(enable != it->second.enabled())
         {
             auto edges = it->second.getAnnotatedEdges();

@@ -56,7 +56,6 @@ void Quadtree::processQueues()
 {
     if(!m_addQueue.empty())
     {
-        // DPSerial::sendDebugLog("Free heap: %i", xPortGetFreeHeapSize());
         auto edge = m_addQueue.front();
         m_addQueue.pop_front();
         add(std::get<0>(edge), std::get<1>(edge), std::get<2>(edge));
@@ -73,8 +72,6 @@ std::vector<IndexedEdge> Quadtree::getCollisions(Edge movement)
 {
     auto edges = m_base->getPossibleCollisions(movement);
     std::map<Obstacle*, std::vector<uint32_t>> grouped;
-
-    //DPSerial::sendDebugLog("num of posiible collisions: %i", edges.size());
 
     for(auto&& edge : edges)
     {

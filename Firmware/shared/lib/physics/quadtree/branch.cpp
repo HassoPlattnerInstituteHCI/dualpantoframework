@@ -41,7 +41,6 @@ std::set<Node*> Branch::getChildrenForEdge(Edge edge)
 
     if(diff.x == 0 && diff.y == 0)
     {
-        //DPSerial::sendDebugLog("diff 0");
         return getChildrenForPoint(edge.m_first);
     }
 
@@ -87,9 +86,7 @@ std::set<Node*> Branch::getChildrenForEdge(Edge edge)
             result.insert(m_children[3]);
         }
     }
-    
-    // DPSerial::sendDebugLog("p1 %+08.3f|%+08.3f p2 %+08.3f|%+08.3f c %+08.3f|%+08.3f s %+08.3f|%+08.3f sel %i|%i|%i|%i", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y, m_center.x, m_center.y, m_size.x, m_size.y, result.find(m_children[0]) != result.end(), result.find(m_children[1]) != result.end(), result.find(m_children[2]) != result.end(), result.find(m_children[3]) != result.end());
-    // yield();
+
     return result;
 }
 
@@ -133,14 +130,9 @@ Branch::~Branch()
 
 void Branch::add(Obstacle* obstacle, uint32_t index, Edge edge)
 {
-    // DPSerial::sendDebugLog("branch adding at lvl %i", m_depth);
-    auto c = getChildrenForEdge(edge);
-    // DPSerial::sendDebugLog("num of children %i", c.size());
-    for(auto&& child : c)
+    for(auto&& child : getChildrenForEdge(edge))
     {
-        // DPSerial::sendDebugLog("adding to %i", child);
         child->add(obstacle, index, edge);
-        // yield();
     }
 }
 
@@ -148,9 +140,7 @@ void Branch::remove(Obstacle* obstacle, uint32_t index)
 {
     for(auto&& child : getChildrenForEdge(obstacle->getEdge(index)))
     {
-        // DPSerial::sendDebugLog("removing from %i", child);
         child->remove(obstacle, index);
-        // yield();
     }
 }
 
@@ -160,8 +150,6 @@ std::set<IndexedEdge> Branch::getPossibleCollisions(Edge movement)
 
     for(auto&& child : getChildrenForEdge(movement))
     {
-        if(child == nullptr)
-            DPSerial::sendDebugLog("getting collisions from %i", child);
         auto childCollisions = child->getPossibleCollisions(movement);
         result.insert(childCollisions.begin(), childCollisions.end());
     }
@@ -183,7 +171,6 @@ std::vector<std::string> Branch::print()
 
 void Branch::replace(Node* oldChild, Node* newChild)
 {
-    // DPSerial::sendDebugLog("replacing %i with %i", oldChild, newChild);
     auto child = std::find(m_children.begin(), m_children.end(), oldChild);
     *child = newChild;
 }

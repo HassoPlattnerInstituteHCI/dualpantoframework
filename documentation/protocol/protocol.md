@@ -278,6 +278,6 @@ Example message for dumping the quadtree for both handles:
 ```
 4450     // magic number
 C0       // message type: Dump quadtree
-000q     // payload lenght: 1 byte for index
+0001     // payload lenght: 1 byte for index
 FF       // pantograph index - both handles
 ```
