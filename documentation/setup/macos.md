@@ -48,6 +48,9 @@ Python is a programming language you've probably heard of before. In this projec
 - Use the App Store to install XCode.
 - Run `xcode-select --install` to install the compilers.
 
+Also check that `xcodebuild` is set as a command. 
+- Run `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
+
 ## 6. Install Visual Studio Code with the Platformio plugin
 
 Visual Studio Code is a lightweight text editor and IDE, and unlike the normal VS it's open source and completely free. But the main point why we use it is the Platformio plugin, which is a godly alternative to the abomination that is the default Arduino "IDE".
