@@ -49,7 +49,7 @@ Python is a programming language you've probably heard of before. In this projec
 - Run `xcode-select --install` to install the compilers.
 
 Also check that `xcodebuild` is set as a command. 
-- Run `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer `
+- Run `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
 
 ## 6. Install Visual Studio Code with the Platformio plugin
 
