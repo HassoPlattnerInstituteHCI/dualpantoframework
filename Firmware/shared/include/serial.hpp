@@ -16,6 +16,7 @@ private:
     static const uint16_t c_debugLogBufferSize = 256;
     static uint8_t s_debugLogBuffer[c_debugLogBufferSize];
     static std::queue<std::string> s_debugLogQueue;
+    static const uint16_t c_processedQueuedMessagesPerFrame = 4;
 
     // multithreading safety
     static portMUX_TYPE s_serialMutex;
@@ -85,7 +86,8 @@ public:
 
     // send
     static void sendPosition();
-    static void sendDebugLog(const char* message, ...);
+    static void sendInstantDebugLog(const char* message, ...);
+    static void sendQueuedDebugLog(const char* message, ...);
     static void processDebugLogQueue();
     static void sendDebugData();
 

@@ -318,7 +318,7 @@ void DPSerial::receiveDisableObstacle()
 void DPSerial::receiveDumpQuadtree()
 {
     auto pantoIndex = receiveUInt8();
-    sendDebugLog("dump quadtree %i", pantoIndex);
+    sendQueuedDebugLog("dump quadtree %i", pantoIndex);
 
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
@@ -331,7 +331,7 @@ void DPSerial::receiveDumpQuadtree()
 
 void DPSerial::receiveInvalid()
 {
-    sendDebugLog("Received invalid message: %02X", s_header.MessageType);
+    sendQueuedDebugLog("Received invalid message: %02X", s_header.MessageType);
 };
 
 // === public ===
@@ -354,7 +354,7 @@ bool DPSerial::ensureConnection()
 
     if (s_unacknowledgedHeartbeats > c_maxUnacklowledgedHeartbeats)
     {
-        sendDebugLog("Disconnected due to too many unacklowledged heartbeats.");
+        sendQueuedDebugLog("Disconnected due to too many unacklowledged heartbeats.");
         s_unacknowledgedHeartbeats = 0;
         s_connected = false;
         return false;
@@ -386,7 +386,21 @@ void DPSerial::sendPosition()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendDebugLog(const char *message, ...)
+void DPSerial::sendInstantDebugLog(const char *message, ...)
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    va_list args;
+    va_start(args, message);
+    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    va_end(args);
+    length = constrain(length, 0, c_debugLogBufferSize);
+    sendMagicNumber();
+    sendHeader(DEBUG_LOG, length);
+    BOARD_DEPENDENT_SERIAL.write(s_debugLogBuffer, length);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendQueuedDebugLog(const char *message, ...)
 {
     va_list args;
     va_start(args, message);
@@ -401,14 +415,17 @@ void DPSerial::processDebugLogQueue()
     portENTER_CRITICAL(&s_serialMutex);
     if(!s_debugLogQueue.empty())
     {
-        auto msg = s_debugLogQueue.front();
-        s_debugLogQueue.pop();
-        auto length = msg.length();
-        sendMagicNumber();
-        sendHeader(DEBUG_LOG, length);
-        BOARD_DEPENDENT_SERIAL.write(
-            reinterpret_cast<const uint8_t *>(msg.c_str()),
-            length);
+        for(auto i = 0; i < c_processedQueuedMessagesPerFrame; ++i)
+        {
+            auto msg = s_debugLogQueue.front();
+            s_debugLogQueue.pop();
+            auto length = msg.length();
+            sendMagicNumber();
+            sendHeader(DEBUG_LOG, length);
+            BOARD_DEPENDENT_SERIAL.write(
+                reinterpret_cast<const uint8_t *>(msg.c_str()),
+                length);
+        }
     }
     portEXIT_CRITICAL(&s_serialMutex);
 }
@@ -416,7 +433,7 @@ void DPSerial::processDebugLogQueue()
 void DPSerial::sendDebugData()
 {
     portENTER_CRITICAL(&s_serialMutex);
-    sendDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
+    sendInstantDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
                  pantos[0].actuationAngle[0],
                  pantos[0].actuationAngle[1], 
                  pantos[0].actuationAngle[2], 
@@ -449,7 +466,7 @@ void DPSerial::receive()
     if (s_receiveState == FOUND_HEADER && !payloadReady())
     {
         if(s_header.MessageType == ADD_TO_OBSTACLE)
-            sendDebugLog("Only %i of %i bytes available", BOARD_DEPENDENT_SERIAL.available(), s_header.PayloadSize);
+            sendQueuedDebugLog("Only %i of %i bytes available", BOARD_DEPENDENT_SERIAL.available(), s_header.PayloadSize);
         return;
     }
 

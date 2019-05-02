@@ -13,7 +13,7 @@ Node::Node(
 
 void Node::printThis(bool isLeaf)
 {
-    DPSerial::sendDebugLog(
+    DPSerial::sendQueuedDebugLog(
         "%*c [%c] %p c %+08.3f|%+08.3f s %+08.3f|%+08.3f",
         m_depth * 2 + 1,
         ' ',

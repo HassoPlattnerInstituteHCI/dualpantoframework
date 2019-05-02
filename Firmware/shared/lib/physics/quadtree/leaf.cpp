@@ -63,7 +63,7 @@ void Leaf::print()
     for(auto&& child : m_children)
     {
         auto edge = child.m_obstacle->getEdge(child.m_index);
-        DPSerial::sendDebugLog(
+        DPSerial::sendQueuedDebugLog(
             "%*c [E] %p->%i 0 %+08.3f|%+08.3f 1 %+08.3f|%+08.3f",
             (m_depth + 1) * 2 + 1,
             ' ',

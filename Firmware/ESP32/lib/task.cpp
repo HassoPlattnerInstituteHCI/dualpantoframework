@@ -51,7 +51,7 @@ inline void Task::checkFps()
         {
             for(const auto& entry : s_fpsMap)
             {
-                DPSerial::sendDebugLog(
+                DPSerial::sendQueuedDebugLog(
                     "Task \"%s\" fps: %i",
                     pcTaskGetTaskName(entry.first),
                     entry.second);
@@ -87,7 +87,7 @@ void Task::run()
         m_priority,
         &m_handle,
         m_core);
-    DPSerial::sendDebugLog("Started task \"%s\" on core %i.", m_name, m_core);
+    DPSerial::sendInstantDebugLog("Started task \"%s\" on core %i.", m_name, m_core);
 };
 
 void Task::setLogFps(bool logFps)

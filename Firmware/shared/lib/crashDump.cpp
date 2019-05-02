@@ -14,6 +14,6 @@ void CrashDump::clear()
 
 void CrashDump::dump()
 {
-    DPSerial::sendDebugLog(m_stream.str().c_str());
+    DPSerial::sendQueuedDebugLog(m_stream.str().c_str());
     clear();
 }
