@@ -74,7 +74,7 @@ private:
     static void receiveRemoveObstacle();
     static void receiveEnableObstacle();
     static void receiveDisableObstacle();
-    static void receiveDumpQuadtree();
+    static void receiveDumpHashtable();
     static void receiveInvalid();
 
     // map of receive handlers

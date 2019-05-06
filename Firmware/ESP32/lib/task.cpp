@@ -57,6 +57,8 @@ inline void Task::checkFps()
                     entry.second);
             }
 
+            DPSerial::sendQueuedDebugLog("Free heap: %i of %i", ESP.getFreeHeap(), ESP.getHeapSize());
+
             #ifdef ENABLE_PERFMON
             for(const auto& entry : PerfMon.getResults())
             {

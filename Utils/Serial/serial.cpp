@@ -694,7 +694,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
         break;
     }
-    case DUMP_QUADTREE:
+    case DUMP_HASHTABLE:
     {
         napi_value propertyName;
         napi_value tempNapiValue;

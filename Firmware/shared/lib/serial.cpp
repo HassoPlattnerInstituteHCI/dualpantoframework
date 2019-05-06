@@ -25,7 +25,7 @@ std::map<DPProtocol::MessageType, std::function<void()>>
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
-        {DUMP_QUADTREE, DPSerial::receiveDumpQuadtree}
+        {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
     };
 
 // === private ===
@@ -315,16 +315,14 @@ void DPSerial::receiveDisableObstacle()
     }
 }
 
-void DPSerial::receiveDumpQuadtree()
+void DPSerial::receiveDumpHashtable()
 {
     auto pantoIndex = receiveUInt8();
-    sendQueuedDebugLog("dump quadtree %i", pantoIndex);
-
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject()->dumpQuadtree();
+            pantoPhysics[i].godObject()->dumpHashtable();
         }
     }
 }
@@ -413,18 +411,22 @@ void DPSerial::sendQueuedDebugLog(const char *message, ...)
 void DPSerial::processDebugLogQueue()
 {
     portENTER_CRITICAL(&s_serialMutex);
+    // quick check to avoid loop if not necessary
     if(!s_debugLogQueue.empty())
     {
         for(auto i = 0; i < c_processedQueuedMessagesPerFrame; ++i)
         {
-            auto msg = s_debugLogQueue.front();
-            s_debugLogQueue.pop();
-            auto length = msg.length();
-            sendMagicNumber();
-            sendHeader(DEBUG_LOG, length);
-            BOARD_DEPENDENT_SERIAL.write(
+            if(!s_debugLogQueue.empty())
+            {
+                auto& msg = s_debugLogQueue.front();
+                auto length = msg.length();
+                sendMagicNumber();
+                sendHeader(DEBUG_LOG, length);
+                BOARD_DEPENDENT_SERIAL.write(
                 reinterpret_cast<const uint8_t *>(msg.c_str()),
                 length);
+                s_debugLogQueue.pop();
+            }
         }
     }
     portEXIT_CRITICAL(&s_serialMutex);

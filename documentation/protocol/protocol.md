@@ -48,7 +48,7 @@ The available values for messages from the framework to the hardware are:
   - [0xA3 Enable obstacle](#0xA3-Enable-obstacle) - This message specifies an obstacle to enable.
   - [0xA4 Disable obstacle](#0xA4-Disable-obstacle) - This message specifies an obstacle to disable.
 - 0xC0 to 0xCF - Debug tools
-    [0xC0 Dump quadtree](#0xC0-Dump-quadtree) - Request a dump of the physics' quadtree.
+    [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' quadtree.
 
 ### Payload Size
 
@@ -268,13 +268,13 @@ FF       // pantograph index - both handles
 0023     // obstacle ID
 ```
 
-### 0xC0 Dump quadtree
+### 0xC0 Dump hashtable
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer.
 
-Setting the pantograph index to 0xFF disables the obstacle for both handles.
+Setting the pantograph index to 0xFF dumps the hashtable for both handles.
 
-Example message for dumping the quadtree for both handles:
+Example message for dumping the hashtable for both handles:
 ```
 4450     // magic number
 C0       // message type: Dump quadtree

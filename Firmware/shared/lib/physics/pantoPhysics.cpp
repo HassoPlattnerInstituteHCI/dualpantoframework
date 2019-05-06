@@ -1,11 +1,23 @@
 #include "physics/pantoPhysics.hpp"
 
+#include "serial.hpp"
+
 std::vector<PantoPhysics> pantoPhysics;
 
 PantoPhysics::PantoPhysics(Panto* panto) : m_panto(panto)
 {
     m_currentPosition = m_panto->handle;
-    m_godObject = new GodObject(panto, m_currentPosition);
+    try
+    {
+        m_godObject = new GodObject(panto, m_currentPosition);
+    }
+    catch(const std::bad_alloc& e)
+    {
+        DPSerial::sendInstantDebugLog("Error while creating god object - the hash table may be too big.");
+        DPSerial::sendInstantDebugLog("Error: %s", e.what());
+        DPSerial::sendInstantDebugLog("Rebooting...");
+        ESP.restart();
+    }
 }
 
 GodObject* PantoPhysics::godObject()
@@ -15,7 +27,7 @@ GodObject* PantoPhysics::godObject()
 
 void PantoPhysics::step()
 {
-    m_godObject->updateQuadtree();
+    m_godObject->updateHashtable();
 
     m_currentPosition = m_panto->handle;
 

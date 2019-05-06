@@ -5,7 +5,6 @@
 
 GodObject::GodObject(Panto* panto, Vector2D position)
 : m_position(position)
-, m_quadtree(panto)
 , m_obstacleMutex{portMUX_FREE_VAL, 0}
 { }
 
@@ -14,17 +13,17 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
-void GodObject::updateQuadtree()
+void GodObject::updateHashtable()
 {
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_quadtree.processQueues();
+    m_hashtable.processQueues();
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
-void GodObject::dumpQuadtree()
+void GodObject::dumpHashtable()
 {
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_quadtree.print();
+    m_hashtable.print();
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
@@ -34,7 +33,11 @@ void GodObject::move()
     m_processingObstacleCollision = false;
 
     auto nextPosition = m_position + m_movementDirection;
-    auto collisions = checkObstacleCollisions(nextPosition);
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto possibleCollisions =
+        m_hashtable.getPossibleCollisions(Edge(m_position, nextPosition));
+    portEXIT_CRITICAL(&m_obstacleMutex);
+    auto collisions = checkObstacleCollisions(nextPosition, possibleCollisions);
     auto targetPoint = nextPosition;
 
     while(collisions.size() > 0)
@@ -42,7 +45,7 @@ void GodObject::move()
         m_processingObstacleCollision = true;
         targetPoint = 
             collisions[0].m_obstacle->handleCollision(targetPoint, m_position);
-        collisions = checkObstacleCollisions(targetPoint);
+        collisions = checkObstacleCollisions(targetPoint, possibleCollisions);
     }
 
     m_position = targetPoint;
@@ -57,13 +60,29 @@ void GodObject::move()
     m_doneColliding = lastState && !m_processingObstacleCollision;
 }
 
-std::vector<IndexedEdge> GodObject::checkObstacleCollisions(Vector2D point)
+std::vector<IndexedEdge> GodObject::checkObstacleCollisions(
+    Vector2D point, std::set<IndexedEdge> possibleCollisions)
 {
-    std::vector<IndexedEdge> result;
+    std::map<Obstacle*, std::vector<uint32_t>> grouped;
 
-    portENTER_CRITICAL(&m_obstacleMutex);
-    result = m_quadtree.getCollisions(Edge(m_position, point));
-    portEXIT_CRITICAL(&m_obstacleMutex);
+    for(auto&& edge : possibleCollisions)
+    {
+        grouped[edge.m_obstacle].push_back(edge.m_index);
+    }
+
+    Edge movement(m_position, point);
+    std::vector<IndexedEdge> result;
+    uint32_t enteringEdgeIndex;
+    for(auto&& obstacle : grouped)
+    {
+        if(obstacle.first->getEnteringEdge(
+            movement, obstacle.second, &enteringEdgeIndex))
+        {
+            result.emplace_back(obstacle.first, enteringEdgeIndex);
+        }
+    }
+
+    return result;
 
     return result;
 }
@@ -105,16 +124,16 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
             auto edges = it->second.getAnnotatedEdges();
             if(enable)
             {
-                m_quadtree.add(edges);
+                m_hashtable.add(edges);
             }
             else
             {
-                m_quadtree.remove(edges);
+                m_hashtable.remove(edges);
             }
         }
-        
+
         it->second.enable(enable);
-        
+
         portEXIT_CRITICAL(&m_obstacleMutex);
     }
 }
