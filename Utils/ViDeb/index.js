@@ -142,6 +142,19 @@ wsServer.on('request', (request) => {
         connection.sendUTF(JSON.stringify(packet));
       }
     });
+    device.on('drawCircle', (p, s, c) =>{
+      console.log('sendingCircle');
+      const packet ={
+        type: 'drawCircle',
+        port: device.port,
+        pos: p,
+        size: s,
+        color: c
+      };
+      for (connetion of connections) {
+        connection.sendUTF(JSON.stringify(packet));
+      }
+    });
   }
   connection.on('message', (message) => {
     const data = JSON.parse(message.utf8Data);

@@ -31,6 +31,10 @@ ws.onmessage = function(event) {
     case 'mapLine':
       drawLine(data.line, data.color);
       break;
+    case 'drawCircle':
+      console.log('oh snap');
+      drawCircle(data.pos, data.size, data.color);
+      break;
     case 'handleMoved':
       if (data.position) {
         if (data.index == 0) {
@@ -94,6 +98,14 @@ const drawLine = function(line, color) {
       .attr('x2', line[1].x + 150)
       .attr('y2', -line[1].y)
       .style('stroke', color);
+};
+
+const drawCircle = function(pos, size, color) {
+  svg.append('circle')
+      .attr('cx', pos.x + 150)
+      .attr('cy', -pos.y)
+      .attr('r', size)
+      .attr('fill', color);
 };
 
 const setup = function() {
