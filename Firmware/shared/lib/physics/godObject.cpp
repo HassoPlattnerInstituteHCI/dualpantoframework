@@ -34,21 +34,8 @@ void GodObject::move()
 
     auto nextPosition = m_position + m_movementDirection;
     portENTER_CRITICAL(&m_obstacleMutex);
-    auto possibleCollisions =
-        m_hashtable.getPossibleCollisions(Edge(m_position, nextPosition));
+    m_position = checkCollisions(nextPosition);
     portEXIT_CRITICAL(&m_obstacleMutex);
-    auto collisions = checkObstacleCollisions(nextPosition, possibleCollisions);
-    auto targetPoint = nextPosition;
-
-    while(collisions.size() > 0)
-    {
-        m_processingObstacleCollision = true;
-        targetPoint = 
-            collisions[0].m_obstacle->handleCollision(targetPoint, m_position);
-        collisions = checkObstacleCollisions(targetPoint, possibleCollisions);
-    }
-
-    m_position = targetPoint;
 
     if(m_processingObstacleCollision)
     {
@@ -60,31 +47,80 @@ void GodObject::move()
     m_doneColliding = lastState && !m_processingObstacleCollision;
 }
 
-std::vector<IndexedEdge> GodObject::checkObstacleCollisions(
-    Vector2D point, std::set<IndexedEdge> possibleCollisions)
+Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 {
-    std::map<Obstacle*, std::vector<uint32_t>> grouped;
-
-    for(auto&& edge : possibleCollisions)
+    auto possibleCollisions =
+        m_hashtable.getPossibleCollisions(Edge(m_position, targetPoint));
+    if(possibleCollisions.empty())
     {
-        grouped[edge.m_obstacle].push_back(edge.m_index);
+        return targetPoint;
     }
 
-    Edge movement(m_position, point);
-    std::vector<IndexedEdge> result;
-    uint32_t enteringEdgeIndex;
-    for(auto&& obstacle : grouped)
+    bool foundCollision;
+
+    do
     {
-        if(obstacle.first->getEnteringEdge(
-            movement, obstacle.second, &enteringEdgeIndex))
+        // result vars
+        foundCollision = false;
+        double shortestMovementRatio = 0;
+        Vector2D closestEdgeFirst;
+        Vector2D closestEdgeFirstMinusSecond;
+
+        // value is constant for loop
+        const auto posMinusTarget = m_position - targetPoint;
+        
+        for(auto&& indexedEdge : possibleCollisions)
         {
-            result.emplace_back(obstacle.first, enteringEdgeIndex);
+            auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
+            auto edgeFirst = edge.m_first;
+            auto firstMinusPos = edgeFirst - m_position;
+            auto firstMinusSecond = edgeFirst - edge.m_second;
+            auto divisor = determinant(firstMinusSecond, posMinusTarget);
+
+            auto movementRatio =
+                -determinant(firstMinusSecond, firstMinusPos) / divisor;
+            if(movementRatio < 0 || movementRatio > 1)
+            {
+                continue;
+            }
+
+            auto edgeRatio =
+                determinant(firstMinusPos, posMinusTarget) / divisor;
+            if(edgeRatio < 0 || edgeRatio > 1)
+            {
+                continue;
+            }
+
+            if(!foundCollision || movementRatio < shortestMovementRatio)
+            {
+                foundCollision = true;
+                shortestMovementRatio = movementRatio;
+                closestEdgeFirst = edgeFirst;
+                closestEdgeFirstMinusSecond = firstMinusSecond;
+            }
         }
-    }
+        
+        if(foundCollision)
+        {
+            m_processingObstacleCollision = true;
 
-    return result;
+            auto perpendicular = Vector2D(
+                -closestEdgeFirstMinusSecond.y,
+                closestEdgeFirstMinusSecond.x);
+            auto resolveRatio =
+                -determinant(
+                    closestEdgeFirstMinusSecond,
+                    closestEdgeFirst - targetPoint)
+                / determinant(
+                    closestEdgeFirstMinusSecond,
+                    perpendicular);
+            auto resolveVec = perpendicular * resolveRatio;
+            auto resolveLength = resolveVec.length();
+            targetPoint = targetPoint - (resolveVec * ((resolveLength + c_resolveDistance) / resolveLength));
+        }
+    } while (foundCollision);
 
-    return result;
+    return targetPoint;
 }
 
 void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points)

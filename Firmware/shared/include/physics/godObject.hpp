@@ -14,6 +14,7 @@
 class GodObject
 {
 private:
+    static constexpr double c_resolveDistance = 0.01;
     Vector2D m_position;
     Vector2D m_movementDirection;
     Vector2D m_activeForce;
@@ -29,8 +30,7 @@ public:
     void updateHashtable();
     void dumpHashtable();
     void move();
-    std::vector<IndexedEdge> checkObstacleCollisions(
-        Vector2D point, std::set<IndexedEdge> possibleCollisions);
+    Vector2D checkCollisions(Vector2D targetPoint);
     void createObstacle(uint16_t id, std::vector<Vector2D> points);
     void addToObstacle(uint16_t id, std::vector<Vector2D> points);
     void removeObstacle(uint16_t id);

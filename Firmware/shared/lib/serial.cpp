@@ -400,12 +400,14 @@ void DPSerial::sendInstantDebugLog(const char *message, ...)
 
 void DPSerial::sendQueuedDebugLog(const char *message, ...)
 {
+    portENTER_CRITICAL(&s_serialMutex);
     va_list args;
     va_start(args, message);
     uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
     s_debugLogQueue.emplace(reinterpret_cast<char *>(s_debugLogBuffer), length);
+    portEXIT_CRITICAL(&s_serialMutex);
 };
 
 void DPSerial::processDebugLogQueue()
@@ -423,8 +425,8 @@ void DPSerial::processDebugLogQueue()
                 sendMagicNumber();
                 sendHeader(DEBUG_LOG, length);
                 BOARD_DEPENDENT_SERIAL.write(
-                reinterpret_cast<const uint8_t *>(msg.c_str()),
-                length);
+                    reinterpret_cast<const uint8_t *>(msg.c_str()),
+                    length);
                 s_debugLogQueue.pop();
             }
         }
