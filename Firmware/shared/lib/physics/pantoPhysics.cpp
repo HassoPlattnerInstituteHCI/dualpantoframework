@@ -1,5 +1,6 @@
 #include "physics/pantoPhysics.hpp"
 
+#include "performanceMonitor.hpp"
 #include "serial.hpp"
 
 std::vector<PantoPhysics> pantoPhysics;
@@ -27,13 +28,19 @@ GodObject* PantoPhysics::godObject()
 
 void PantoPhysics::step()
 {
+    PERFMON_START("[ba] Physics::step");
+    PERFMON_START("[baa] Physics::step::prep");
     m_godObject->updateHashtable();
 
     m_currentPosition = m_panto->handle;
 
     auto difference = m_currentPosition - m_godObject->getPosition();
     m_godObject->setMovementDirection(difference);
+    PERFMON_STOP("[baa] Physics::step::prep");
+    PERFMON_START("[bab] Physics::step::move");
     m_godObject->move();
+    PERFMON_STOP("[bab] Physics::step::move");
+    PERFMON_START("[bac] Physics::step::motor");
     if(m_godObject->getProcessingObstacleCollision())
     {
         m_panto->isforceRendering = true;
@@ -46,4 +53,6 @@ void PantoPhysics::step()
         m_panto->target = Vector2D(NAN, NAN);
         m_panto->inverseKinematics();
     }
+    PERFMON_STOP("[bac] Physics::step::motor");
+    PERFMON_STOP("[ba] Physics::step");
 }

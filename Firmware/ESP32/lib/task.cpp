@@ -62,7 +62,7 @@ inline void Task::checkFps()
             #ifdef ENABLE_PERFMON
             for(const auto& entry : PerfMon.getResults())
             {
-                DPSerial::sendDebugLog(entry.c_str());
+                DPSerial::sendQueuedDebugLog(entry.c_str());
             }
             #endif
         }
