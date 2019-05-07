@@ -2,14 +2,6 @@
 
 Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) { }
 
-// Vector2D Obstacle::handleCollision(Vector2D targetPoint, Vector2D position)
-// {
-//     uint32_t collidingEdgeIndex;
-//     // ignore return value - we already know it's colliding
-//     getEnteringEdge(targetPoint, position, &collidingEdgeIndex);
-//     return getClosestOutsidePoint(collidingEdgeIndex, targetPoint);
-// }
-
 bool Obstacle::enabled()
 {
     return m_enabled;
