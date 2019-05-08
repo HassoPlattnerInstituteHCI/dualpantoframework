@@ -42,13 +42,3 @@ double determinant(Vector2D first, Vector2D second)
 {
     return (first.x * second.y) - (first.y * second.x);
 };
-
-Vector2D Vector2D::min(Vector2D first, Vector2D second)
-{
-    return Vector2D(std::min(first.x, second.x), std::min(first.y, second.y));
-}
-
-Vector2D Vector2D::max(Vector2D first, Vector2D second)
-{
-    return Vector2D(std::max(first.x, second.x), std::max(first.y, second.y));
-}
