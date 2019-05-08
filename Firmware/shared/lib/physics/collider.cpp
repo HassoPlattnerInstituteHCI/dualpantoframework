@@ -1,8 +1,5 @@
 #include "physics/collider.hpp"
 
-#include <cmath>
-#include <numeric>
-
 #include "serial.hpp"
 
 Collider::Collider(std::vector<Vector2D> points) : m_points(points) { }

@@ -10,7 +10,7 @@ PantoPhysics::PantoPhysics(Panto* panto) : m_panto(panto)
     m_currentPosition = m_panto->handle;
     try
     {
-        m_godObject = new GodObject(panto, m_currentPosition);
+        m_godObject = new GodObject(m_currentPosition);
     }
     catch(const std::bad_alloc& e)
     {

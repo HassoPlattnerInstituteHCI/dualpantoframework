@@ -3,7 +3,7 @@
 #include "serial.hpp"
 #include "config.hpp"
 
-GodObject::GodObject(Panto* panto, Vector2D position)
+GodObject::GodObject(Vector2D position)
 : m_position(position)
 , m_obstacleMutex{portMUX_FREE_VAL, 0}
 { }

@@ -1,6 +1,5 @@
 #include "utils.hpp"
 
-#include <algorithm>
 #include <Arduino.h>
 
 Vector2D Vector2D::fromPolar(double angle, double length)

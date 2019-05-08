@@ -25,7 +25,7 @@ private:
     bool m_doneColliding;
     Vector2D m_lastError;
 public:
-    GodObject(Panto* panto, Vector2D position = Vector2D());
+    GodObject(Vector2D position = Vector2D());
     void setMovementDirection(Vector2D movementDirection);
     void updateHashtable();
     void dumpHashtable();
