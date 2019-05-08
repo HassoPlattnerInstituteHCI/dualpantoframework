@@ -1,33 +1,67 @@
 #include "panto.hpp"
+#include <vector>
 
 float Panto::dt = 0;
 Panto pantos[pantoCount];
 
 void Panto::forwardKinematics()
 {
-    inner[0] = base[0] + Vector2D::fromPolar(actuationAngle[0], linkageInnerLength[dofIndex + 0]);
-    inner[1] = base[1] + Vector2D::fromPolar(actuationAngle[1], linkageInnerLength[dofIndex + 1]);
-    Vector2D diagonal = inner[1] - inner[0];
-    innerAngle[0] = diagonal.angle() - acos((diagonal * diagonal + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]));
-    handle = Vector2D::fromPolar(innerAngle[0], linkageOuterLength[dofIndex + 0]) + inner[0];
-    innerAngle[1] = (handle - inner[1]).angle();
-    pointingAngle = actuationAngle[2] + innerAngle[linkageHandleMount[dofIndex + 2]];
-
-    J[0][0] = -linkageInnerLength[dofIndex + 0] * sin(actuationAngle[0]) -
-              (linkageInnerLength[dofIndex + 0] * sin(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[0])) / (sin(innerAngle[0] - innerAngle[1]));
-    J[0][1] = linkageInnerLength[dofIndex + 0] * cos(actuationAngle[0]) +
-              (linkageInnerLength[dofIndex + 0] * cos(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[0])) / (sin(innerAngle[0] - innerAngle[1]));
-    J[1][0] = (linkageInnerLength[dofIndex + 1] * sin(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[1])) / (sin(innerAngle[0] - innerAngle[1]));
-    J[1][1] = -(linkageInnerLength[dofIndex + 1] * cos(innerAngle[0]) * sin(innerAngle[1] - actuationAngle[1])) / (sin(innerAngle[0] - innerAngle[1]));
+    std::vector<Vector2D> innerPoints = getInnerPositions(actuationAngle);
+    handle = getHandlePosition(innerPoints);
+    std::vector<float> angles = getAngles(handle, innerPoints, actuationAngle);
+    innerAngle[0] = angles[0];
+    innerAngle[1] = angles[1];
+    pointingAngle = angles[2];
+    std::vector<std::vector<float>> jacobianMatrix = getJacobianMatrix(actuationAngle, angles);
+    J[0][0] = jacobianMatrix[0][0];
+    J[0][1] = jacobianMatrix[0][1];
+    J[1][0] = jacobianMatrix[1][0];
+    J[1][1] = jacobianMatrix[1][1];
 };
 
-void Panto::inverseKinematicsHelper(float inverted, float diff, float factor, float threshold)
+std::vector<Vector2D> Panto::getInnerPositions(float actuAngles[]){
+    return std::vector<Vector2D>{base[0] + Vector2D::fromPolar(actuAngles[0], linkageInnerLength[dofIndex + 0]), base[1] + Vector2D::fromPolar(actuAngles[1], linkageInnerLength[dofIndex + 1])};
+}
+
+Vector2D Panto::getHandlePosition(std::vector<Vector2D> innerPoints)
+{
+    Vector2D diagonal = innerPoints[1] - innerPoints[0];
+
+    float inAngles[2];
+    inAngles[0] = diagonal.angle() - acos((diagonal.length() * diagonal.length() + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]));
+    Vector2D returnHandle = Vector2D::fromPolar(inAngles[0], linkageOuterLength[dofIndex + 0]) + innerPoints[0];
+
+    return returnHandle;
+}
+
+std::vector<float> Panto::getAngles(Vector2D handle, std::vector<Vector2D> innerPoints, float actuationAngles[])
+{
+    std::vector<float> angles = std::vector<float>{(handle - innerPoints[0]).angle(), (handle - innerPoints[1]).angle()};
+    angles.push_back(actuationAngles[2] + angles[linkageHandleMount[dofIndex + 2]]);
+    return angles;
+}
+
+std::vector<std::vector<float>> Panto::getJacobianMatrix(float actuationAngles[], std::vector<float> angles)
+{  
+    std::vector<float> firstRow = std::vector<float>{-linkageInnerLength[dofIndex + 0] * sin(actuationAngle[0]) -
+              (linkageInnerLength[dofIndex + 0] * sin(angles[0]) * sin(angles[1] - actuationAngle[0])) / (sin(angles[0] - angles[1])),
+              linkageInnerLength[dofIndex + 0] * cos(actuationAngle[0]) +
+              (linkageInnerLength[dofIndex + 0] * cos(angles[0]) * sin(angles[1] - actuationAngle[0])) / (sin(angles[0] - angles[1]))};
+    std::vector<float> secondRow = std::vector<float>{(linkageInnerLength[dofIndex + 1] * sin(angles[0]) * sin(angles[1] - actuationAngle[1])) / (sin(angles[0] - angles[1])), 
+                -(linkageInnerLength[dofIndex + 1] * cos(angles[0]) * sin(angles[1] - actuationAngle[1])) / (sin(angles[0] - angles[1]))};
+
+    return std::vector<std::vector<float>>{firstRow, secondRow};
+}
+
+void Panto::inverseKinematicsHelper(float actuAngles[], float inverted, float diff, float factor, float threshold)
 {
     diff *= factor;
     if (fabs(diff) < threshold)
+    {
         return;
-    actuationAngle[0] += diff;
-    actuationAngle[1] += diff * inverted;
+    }
+    actuAngles[0] += diff;
+    actuAngles[1] += diff * inverted;
 };
 
 void Panto::inverseKinematics()
@@ -45,20 +79,20 @@ void Panto::inverseKinematics()
     }
     else
     {
-        const unsigned int iterations = 10;
-        float nextAngle = constrain(target.angle(), (-PI - opAngle) * 0.5, (-PI + opAngle) * 0.5),
-              nextRadius = constrain(target.length(), opMinDist, opMaxDist),
-              savedActuationAngle[] = {actuationAngle[0], actuationAngle[1]};
+        const unsigned int iterations = 20;
+        float nextAngle = constrain(target.angle(), (-PI - opAngle) * 0.5, (-PI + opAngle) * 0.5);
+        float nextRadius = constrain(target.length(), opMinDist, opMaxDist);
+
+        float actuAngles[] = {actuationAngle[0], actuationAngle[1]};
         for (unsigned int i = 0; i < iterations; ++i)
         {
-            forwardKinematics();
-            inverseKinematicsHelper(+1, nextAngle - handle.angle(), 0.5);
-            inverseKinematicsHelper(-1, nextRadius - handle.length(), 0.002);
+            std::vector<Vector2D> inversePoints = getInnerPositions(actuAngles);
+            Vector2D inverseHandle = getHandlePosition(inversePoints);
+            inverseKinematicsHelper(actuAngles, +1, nextAngle - inverseHandle.angle(), 0.5);
+            inverseKinematicsHelper(actuAngles, -1, nextRadius - inverseHandle.length(), 0.002);
         }
-        targetAngle[0] = actuationAngle[0];
-        targetAngle[1] = actuationAngle[1];
-        actuationAngle[0] = savedActuationAngle[0];
-        actuationAngle[1] = savedActuationAngle[1];
+        targetAngle[0] = actuAngles[0];
+        targetAngle[1] = actuAngles[1];
     }
 };
 
@@ -162,6 +196,15 @@ void Panto::actuateMotors()
         }
         else
         {
+            float border = PI / 2;
+            if (actuationAngle[i] < border && border < targetAngle[i])
+            {
+                actuationAngle[i] += 2 * PI;
+            }
+            else if (actuationAngle[i] > border && border > targetAngle[i])
+            {
+                targetAngle[i] += 2 * PI;
+            }
             float error = targetAngle[i] - actuationAngle[i];
             if (i == 2)
             { // Linkage offsets handle

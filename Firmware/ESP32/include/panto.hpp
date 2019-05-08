@@ -41,7 +41,15 @@ struct Panto
 
     void forwardKinematics();
 
-    void inverseKinematicsHelper(float inverted, float diff, float factor, float threshold = 0.001);
+    std::vector<Vector2D> getInnerPositions(float actuationAngles[]);
+
+    Vector2D getHandlePosition(std::vector<Vector2D> innerPoints);
+
+    std::vector<float> getAngles(Vector2D handle, std::vector<Vector2D> innerPoints, float actuationAngles[]);
+
+    std::vector<std::vector<float>> getJacobianMatrix(float actuationAngles[], std::vector<float> angles);
+
+    void inverseKinematicsHelper(float actuAngles[], float inverted, float diff, float factor, float threshold = 0.001);
 
     void inverseKinematics();
 
