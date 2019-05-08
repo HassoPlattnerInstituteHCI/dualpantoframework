@@ -143,7 +143,6 @@ wsServer.on('request', (request) => {
       }
     });
     device.on('drawCircle', (p, s, c) =>{
-      console.log('sendingCircle');
       const packet ={
         type: 'drawCircle',
         port: device.port,

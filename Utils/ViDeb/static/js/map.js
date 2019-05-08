@@ -32,7 +32,6 @@ ws.onmessage = function(event) {
       drawLine(data.line, data.color);
       break;
     case 'drawCircle':
-      console.log('oh snap');
       drawCircle(data.pos, data.size, data.color);
       break;
     case 'handleMoved':
