@@ -132,7 +132,7 @@ function config(target) {
 }
 
 function platformio(command) {
-  if (command == 'build') {
+  if (command == 'build' || command === undefined) {
     command = '.';
   }
   log(`Running platformio ${command}`, colorGreen);
