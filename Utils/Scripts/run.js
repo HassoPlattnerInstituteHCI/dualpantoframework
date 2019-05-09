@@ -164,4 +164,9 @@ if (process.platform == 'win32') {
   }
 }
 
-handlers[process.argv[2]](process.argv[3]);
+const command = process.argv[2];
+if (!handlers.hasOwnProperty(command)) {
+  log(`Unknown command ${command}`, colorRed);
+  return;
+}
+handlers[command](process.argv[3]);
