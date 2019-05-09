@@ -1,5 +1,5 @@
 /* eslint-disable require-jsdoc */
-const spawnSync = require('child_process').spawnSync;
+const childProcess = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -9,7 +9,7 @@ const colorYellow = '\x1b[33m';
 const colorReset = '\x1b[0m';
 
 function exec(cmd, args) {
-  return spawnSync(
+  return childProcess.spawnSync(
       cmd,
       args,
       {
@@ -127,7 +127,7 @@ function config(target) {
   if (target === undefined) {
     target = 'barbie';
   }
-  log(`Generating config  ${target}`, colorGreen);
+  log(`Generating config ${target}`, colorGreen);
   return exec('node', ['Firmware/GenerateHardwareConfig.js', target]);
 }
 
@@ -152,9 +152,8 @@ if (process.platform == 'win32') {
   platformioExec = '"%userprofile%/.platformio/penv/Scripts/platformio"';
   cppExec = 'cl /Fo:Utils\\Serial\\';
 } else {
-  const whichPlatformio = child_process.execSync('which platformio').toString();
-  if (whichPlatformio.length > 0) {
-    platformioExec = whichPlatformio;
+  if (childProcess.execSync('which platformio').toString().length > 0) {
+    platformioExec = 'platformio';
   } else {
     platformioExec = '~/.platformio/penv/bin/platformio';
   }
