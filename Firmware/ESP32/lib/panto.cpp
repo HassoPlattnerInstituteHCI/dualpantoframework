@@ -1,68 +1,164 @@
 #include "panto.hpp"
 #include <vector>
 
+#include "serial.hpp"
+
 float Panto::dt = 0;
 Panto pantos[pantoCount];
 
 void Panto::forwardKinematics()
 {
-    std::vector<Vector2D> innerPoints = getInnerPositions(actuationAngle);
-    handle = getHandlePosition(innerPoints);
-    std::vector<float> angles = getAngles(handle, innerPoints, actuationAngle);
-    innerAngle[0] = angles[0];
-    innerAngle[1] = angles[1];
-    pointingAngle = angles[2];
-    std::vector<std::vector<float>> jacobianMatrix = getJacobianMatrix(actuationAngle, angles);
-    J[0][0] = jacobianMatrix[0][0];
-    J[0][1] = jacobianMatrix[0][1];
-    J[1][0] = jacobianMatrix[1][0];
-    J[1][1] = jacobianMatrix[1][1];
-};
+    // things that should be const for the panto
+    const auto leftIndex = dofIndex;
+    const auto rightIndex = dofIndex + 1;
+    const auto handleIndex = dofIndex + 2;
+    const auto leftInnerLength = linkageInnerLength[leftIndex];
+    const auto rightInnerLength = linkageInnerLength[rightIndex];
+    const auto leftOuterLength = linkageOuterLength[leftIndex];
+    const auto rightOuterLength = linkageOuterLength[rightIndex];
+    const auto leftOuterLengthSquared = leftOuterLength * leftOuterLength;
+    const auto rightOuterLengthSquared = rightOuterLength * rightOuterLength;
+    const auto handleMount = linkageHandleMount[handleIndex];
 
-std::vector<Vector2D> Panto::getInnerPositions(float actuAngles[]){
-    return std::vector<Vector2D>{base[0] + Vector2D::fromPolar(actuAngles[0], linkageInnerLength[dofIndex + 0]), base[1] + Vector2D::fromPolar(actuAngles[1], linkageInnerLength[dofIndex + 1])};
+    // now begins the actual code
+
+    // base positions
+    const auto leftBase = base[0];
+    const auto rightBase = base[1];
+    const auto leftBaseX = leftBase.x;
+    const auto leftBaseY = leftBase.y;
+    const auto rightBaseX = rightBase.x;
+    const auto rightBaseY = rightBase.y;
+
+    // base angles
+    const auto leftBaseAngle = actuationAngle[0];
+    const auto rightBaseAngle = actuationAngle[1];
+    const auto handleAngle = actuationAngle[2];
+
+    // base angle sin / cos
+    const auto leftBaseAngleSin = std::sin(leftBaseAngle);
+    const auto leftBaseAngleCos = std::cos(leftBaseAngle);
+
+    // calculate inner positions
+    const auto leftInnerX =
+        fma(leftBaseAngleCos, leftInnerLength, leftBaseX);
+    const auto leftInnerY =
+        fma(leftBaseAngleSin, leftInnerLength, leftBaseY);
+    const auto rightInnerX =
+        fma(std::cos(rightBaseAngle), rightInnerLength, rightBaseX);
+    const auto rightInnerY =
+        fma(std::sin(rightBaseAngle), rightInnerLength, rightBaseY);
+    // if(dofIndex == 0)
+    //     DPSerial::sendInstantDebugLog(
+    //         "left (%+08.3f|%+08.3f) right (%+08.3f|%+08.3f)",
+    //         leftInnerX, leftInnerY, rightInnerX, rightInnerY);
+    // return;
+
+    // diagonal between inner positions
+    const auto diagonalX = rightInnerX - leftInnerX;
+    const auto diagonalY = rightInnerY - leftInnerY;
+    const auto diagonalSquared = diagonalX * diagonalX + diagonalY * diagonalY;
+    const auto diagonalLength = std::sqrt(diagonalSquared);
+
+    // left elbow angles 
+    // - inside is between diagonal and linkage
+    // - offset is between zero and diagonal
+    // - total is between zero and linkage
+    const auto leftElbowInsideAngleCos =
+        (diagonalSquared + leftOuterLengthSquared - rightOuterLengthSquared) /
+        (2 * leftOuterLength * diagonalLength);
+    const auto leftElbowInsideAngle = -std::acos(leftElbowInsideAngleCos);
+    const auto leftElbowOffsetAngle = std::atan2(diagonalY, diagonalX);
+    const auto leftElbowTotalAngle =
+        leftElbowInsideAngle + leftElbowOffsetAngle;
+
+    // left elbow angle sin / cos
+    const auto leftElbowInsideAngleSin =
+        std::sin(leftElbowInsideAngle);
+
+    // handle position
+    const auto handleX =
+        fma(std::cos(leftElbowTotalAngle), leftOuterLength, leftInnerX);
+    const auto handleY =
+        fma(std::sin(leftElbowTotalAngle), leftOuterLength, leftInnerY);
+    
+    // if(dofIndex == 0)
+    //     DPSerial::sendInstantDebugLog(
+    //         "%+08.3f %+08.3f %+08.3f %+08.3f %+08.3f %+08.3f handle (%+08.3f|%+08.3f)",
+    //         diagonalX, diagonalY, diagonalLength, degrees(leftElbowInsideAngle), degrees(leftElbowOffsetAngle), degrees(leftElbowTotalAngle), handleX, handleY);
+    // return;
+
+    // store handle
+    handle.x = handleX;
+    handle.y = handleY;
+
+    // right elbow angles
+    const auto rightDiffX = handleX - rightInnerX;
+    const auto rightDiffY = handleY - rightInnerY;
+    const auto rightElbowInsideAngle = std::atan2(rightDiffY, rightDiffX);
+
+    // store angles
+    innerAngle[0] = leftElbowInsideAngle;
+    innerAngle[1] = rightElbowInsideAngle;
+    pointingAngle =
+        handleAngle +
+        (handleMount ? rightElbowInsideAngle : leftElbowInsideAngle);
+
+    // some weird diffs and their sinuses
+    const auto rightElbowInsideAngleMinusLeftBaseAngle =
+        rightElbowInsideAngle - leftBaseAngle;
+    const auto rightElbowInsideAngleMinusLeftBaseAngleSin =
+        std::sin(rightElbowInsideAngleMinusLeftBaseAngle);
+    const auto rightElbowInsideAngleMinusRightBaseAngle =
+        rightElbowInsideAngle - rightBaseAngle;
+    const auto rightElbowInsideAngleMinusRightBaseAngleSin =
+        std::sin(rightElbowInsideAngleMinusRightBaseAngle);
+    const auto leftElbowInsideAngleMinusRightElbowInsideAngle =
+        leftElbowInsideAngle - rightElbowInsideAngle;
+    const auto leftElbowInsideAngleMinusRightElbowInsideAngleSin =
+        std::sin(leftElbowInsideAngleMinusRightElbowInsideAngle);
+
+    // i have given up
+    const auto jacobianTemp1 =
+        leftInnerLength * rightElbowInsideAngleMinusLeftBaseAngleSin;
+    const auto forSomeReasonAllCellsAreDividedByThis =
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+
+    const auto lowerRowSharedFactor =
+        rightInnerLength * rightElbowInsideAngleMinusRightBaseAngleSin;
+    //const auto upperRowSharedFactor =
+
+
+    // jacobian cell 00
+    J[0][0] =
+        (-leftInnerLength *
+        leftBaseAngleSin) -
+        (leftInnerLength *
+        rightElbowInsideAngleMinusLeftBaseAngleSin *
+        leftElbowInsideAngleSin /
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin);
+
+    // jacobian cell 01
+    J[0][1] =
+        (leftInnerLength *
+        leftBaseAngleCos) -
+        (leftInnerLength *
+        rightElbowInsideAngleMinusLeftBaseAngleSin *
+        leftElbowInsideAngleCos /
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin);
+
+    // jacobian cell 10
+    J[1][0] =
+        lowerRowSharedFactor *
+        leftElbowInsideAngleSin /
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+
+    // jacobian cell 11
+    J[1][1] =
+        -lowerRowSharedFactor *
+        leftElbowInsideAngleCos /
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
 }
-
-Vector2D Panto::getHandlePosition(std::vector<Vector2D> innerPoints)
-{
-    Vector2D diagonal = innerPoints[1] - innerPoints[0];
-
-    float inAngles[2];
-    inAngles[0] = diagonal.angle() - acos((diagonal.length() * diagonal.length() + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]));
-    Vector2D returnHandle = Vector2D::fromPolar(inAngles[0], linkageOuterLength[dofIndex + 0]) + innerPoints[0];
-
-    return returnHandle;
-}
-
-std::vector<float> Panto::getAngles(Vector2D handle, std::vector<Vector2D> innerPoints, float actuationAngles[])
-{
-    std::vector<float> angles = std::vector<float>{(handle - innerPoints[0]).angle(), (handle - innerPoints[1]).angle()};
-    angles.push_back(actuationAngles[2] + angles[linkageHandleMount[dofIndex + 2]]);
-    return angles;
-}
-
-std::vector<std::vector<float>> Panto::getJacobianMatrix(float actuationAngles[], std::vector<float> angles)
-{  
-    std::vector<float> firstRow = std::vector<float>{-linkageInnerLength[dofIndex + 0] * sin(actuationAngle[0]) -
-              (linkageInnerLength[dofIndex + 0] * sin(angles[0]) * sin(angles[1] - actuationAngle[0])) / (sin(angles[0] - angles[1])),
-              linkageInnerLength[dofIndex + 0] * cos(actuationAngle[0]) +
-              (linkageInnerLength[dofIndex + 0] * cos(angles[0]) * sin(angles[1] - actuationAngle[0])) / (sin(angles[0] - angles[1]))};
-    std::vector<float> secondRow = std::vector<float>{(linkageInnerLength[dofIndex + 1] * sin(angles[0]) * sin(angles[1] - actuationAngle[1])) / (sin(angles[0] - angles[1])), 
-                -(linkageInnerLength[dofIndex + 1] * cos(angles[0]) * sin(angles[1] - actuationAngle[1])) / (sin(angles[0] - angles[1]))};
-
-    return std::vector<std::vector<float>>{firstRow, secondRow};
-}
-
-void Panto::inverseKinematicsHelper(float actuAngles[], float inverted, float diff, float factor, float threshold)
-{
-    diff *= factor;
-    if (fabs(diff) < threshold)
-    {
-        return;
-    }
-    actuAngles[0] += diff;
-    actuAngles[1] += diff * inverted;
-};
 
 void Panto::inverseKinematics()
 {
@@ -79,20 +175,12 @@ void Panto::inverseKinematics()
     }
     else
     {
-        const unsigned int iterations = 20;
-        float nextAngle = constrain(target.angle(), (-PI - opAngle) * 0.5, (-PI + opAngle) * 0.5);
-        float nextRadius = constrain(target.length(), opMinDist, opMaxDist);
-
-        float actuAngles[] = {actuationAngle[0], actuationAngle[1]};
-        for (unsigned int i = 0; i < iterations; ++i)
-        {
-            std::vector<Vector2D> inversePoints = getInnerPositions(actuAngles);
-            Vector2D inverseHandle = getHandlePosition(inversePoints);
-            inverseKinematicsHelper(actuAngles, +1, nextAngle - inverseHandle.angle(), 0.5);
-            inverseKinematicsHelper(actuAngles, -1, nextRadius - inverseHandle.length(), 0.002);
-        }
-        targetAngle[0] = actuAngles[0];
-        targetAngle[1] = actuAngles[1];
+        const auto factor = 0.01;
+        const auto diffX = (target.x - handle.x) * factor;
+        const auto diffY = (target.y - handle.y) * factor;
+        targetAngle[0] = J[0][0] * diffX + J[0][1] * diffY;
+        targetAngle[1] = J[1][0] * diffX + J[1][1] * diffY;
+        DPSerial::sendInstantDebugLog("curr %+08.3f %+08.3f targ %+08.3f %+08.3f", actuationAngle[0], actuationAngle[1], targetAngle[0], targetAngle[1]);
     }
 };
 
@@ -190,7 +278,7 @@ void Panto::actuateMotors()
             setMotor(i, false, 0);
             continue;
         }
-        if (isforceRendering)
+        if (true || isforceRendering)
         {
             setMotor(i, targetAngle[i] < 0, fabs(targetAngle[i]) * forceFactor);
         }

@@ -14,9 +14,9 @@ class Hashtable
 private:
     static constexpr double c_targetStepSize = 3;
     static const uint32_t c_stepsX =
-        (uint32_t)((rangeMaxX - rangeMinX) / c_targetStepSize) + 1;
+        (uint32_t)((rangeMaxX - rangeMinX) / c_targetStepSize + 0.5);
     static const uint32_t c_stepsY =
-        (uint32_t)((rangeMaxY - rangeMinY) / c_targetStepSize) + 1;
+        (uint32_t)((rangeMaxY - rangeMinY) / c_targetStepSize + 0.5);
     static constexpr double c_stepSizeX =
         (rangeMaxX - rangeMinX) / c_stepsX;
     static constexpr double c_stepSizeY =

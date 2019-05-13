@@ -151,7 +151,7 @@ std::set<IndexedEdge> Hashtable::getPossibleCollisions(Edge movement)
     std::set<IndexedEdge> result;
     if(movement.m_first.x == 0 && movement.m_first.x == 0)
     {
-        DPSerial::sendInstantDebugLog("Skipping god object movement from zero position.");
+        // DPSerial::sendInstantDebugLog("Skipping god object movement from zero position.");
         return result;
     }
     auto startX = get1dIndex(movement.m_first.x, rangeMinX, c_stepSizeX);

@@ -10,15 +10,27 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
   for (const device of devices) {
     if (device) {
       device.on('handleMoved', function(index, position) {
-        // console.log('index: ', index, ' position: ', position);
+        if (index == 0) {
+          // console.log(
+          //     'index:', index,
+          //     'x:', position.x,
+          //     'y:', position.y,
+          //     'r:', position.z);
+        }
       });
+      // setTimeout(() => {
+      //   device.createObstacle([
+      //     new Vector(50, -200, 0),
+      //     new Vector(-50, -200, 0),
+      //     new Vector(-50, -80, 0),
+      //     new Vector(50, -80, 0)]);
+      // }, 6000);
       setTimeout(() => {
-        device.createObstacle([
-          new Vector(50, -200, 0),
-          new Vector(-50, -200, 0),
-          new Vector(-50, -80, 0),
-          new Vector(50, -80, 0)]);
+        device.movePantoTo(0, new Vector(-100, -100));
       }, 3000);
+      setTimeout(() => {
+        device.unblockHandle(0);
+      }, 4000);
     }
   }
 });
