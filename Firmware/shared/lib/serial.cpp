@@ -372,6 +372,21 @@ void DPSerial::sendPosition()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
+void DPSerial::sendGodObject()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(GOD_OBJECT, pantoCount * 2 * 4); // two values per panto, 4 bytes each
+
+    for(auto i = 0; i < pantoCount; ++i)
+    {
+        auto pos = pantoPhysics[i].godObject().getPosition();
+        sendFloat(pos.x);
+        sendFloat(pos.y);
+    }
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
 void DPSerial::sendDebugLog(const char *message, ...)
 {
     portENTER_CRITICAL(&s_serialMutex);

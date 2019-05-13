@@ -473,9 +473,10 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
     // argv[3]: sync cb
     // argv[4]: heartbeat cb
     // argv[5]: position cb
-    // argv[6]: debug log cb
-    size_t argc = 7;
-    napi_value argv[7];
+    // argv[6]: god object cb
+    // argv[7]: debug log cb
+    size_t argc = 8;
+    napi_value argv[8];
     if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
     {
         napi_throw_error(env, NULL, "Failed to parse arguments");
@@ -487,6 +488,8 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
     bool receivedHeartbeat = false;
     bool receivedPosition = false;
     double positionCoords[2 * 3];
+    bool receivedGodObject = false;
+    double godObjectCoords[2 * 2];
 
     while (getAvailableByteCount(s_handle))
     {
@@ -526,10 +529,18 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
                 positionCoords[index] = receiveFloat(offset);
             }
             break;
+        case GOD_OBJECT:
+            receivedGodObject = true;
+            while (offset < s_header.PayloadSize)
+            {
+                uint8_t index = offset / 4;
+                godObjectCoords[index] = receiveFloat(offset);
+            }
+            break;
         case DEBUG_LOG:
             napi_value result;
             napi_create_string_utf8(env, reinterpret_cast<char*>(s_packetBuffer), s_header.PayloadSize, &result);
-            napi_call_function(env, argv[1], argv[6], 1, &result, NULL);
+            napi_call_function(env, argv[1], argv[7], 1, &result, NULL);
             break;
         default:
             break;
@@ -567,6 +578,29 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
         }
 
         NAPI_CHECK(napi_call_function(env, argv[1], argv[5], 1, &result, NULL));
+    }
+
+    if (receivedGodObject)
+    {
+        napi_value result;
+        napi_create_array(env, &result);
+
+        uint32_t ctorArgc = 2;
+        for (auto i = 0u; i < 2; ++i)
+        {
+            napi_value ctorArgv[2];
+
+            for (auto j = 0u; j < ctorArgc; ++j)
+            {
+                napi_create_double(env, godObjectCoords[i * 2 + j], &(ctorArgv[j]));
+            }
+
+            napi_value vector;
+            NAPI_CHECK(napi_new_instance(env, argv[2], ctorArgc, ctorArgv, &vector))
+            NAPI_CHECK(napi_set_element(env, result, i, vector));
+        }
+
+        NAPI_CHECK(napi_call_function(env, argv[1], argv[6], 1, &result, NULL));
     }
 
     return NULL;

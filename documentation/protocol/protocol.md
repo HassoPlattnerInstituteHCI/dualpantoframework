@@ -1,4 +1,4 @@
-# Serial Communication Protocol - Revision 2
+# Serial Communication Protocol - Revision 4
 
 All messages contain a [header](#header) and an optional [payload](#payload).
 
@@ -31,6 +31,7 @@ The available values for messages from the hardware to the framework are:
   - [0x01 Heartbeat](#0x01-Heartbeat) - Need to be send regularly to avoid being disconnected for inactivity.
 - 0x10 to 0x1F - Data messages
   - [0x10 Position](#0x10-Position) - This message contains the current positions of the handles.
+  - [0x11 God object](#0x11-God-object) - This message contains the current positions of the physics' god objects.
 - 0x20 to 0x2F - Auxiliary messages
   - [0x20 Debug log](#0x20-Debug-log) - This message contains a user-defined string that is meant as a debug log.
 
@@ -96,6 +97,21 @@ FFFFFFFF // rotation of first handle
 FFFFFFFF // x position of second handle
 FFFFFFFF // y position of second handle
 FFFFFFFF // rotation of second handle
+```
+
+### 0x11 God object
+
+The message contains - in this order - the x position and the y position of a god object, each encoded as a 32 bit float. This is repeated for each handle.
+
+Example message for two handles:
+```
+4450     // magic number
+11       // message type: god object
+0010     // payload lenght: 2 handles, 2 values each, 4 bytes each - 2*2*4 = 16 = 0x10
+FFFFFFFF // x position of first handle's god object
+FFFFFFFF // y position of first handle's god object
+FFFFFFFF // x position of second handle's god object
+FFFFFFFF // y position of second handle's god object
 ```
 
 ### 0x20 Debug log
