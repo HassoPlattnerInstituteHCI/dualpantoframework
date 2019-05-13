@@ -100,7 +100,7 @@ function getRange() {
 }
 
 let range;
-if (typeof input.range !== 'undefined') {
+if (input.range) {
   range = input.range;
 } else {
   range = getRange();
