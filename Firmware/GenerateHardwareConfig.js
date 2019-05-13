@@ -89,8 +89,8 @@ function getRangeForPanto(panto) {
 }
 
 function getRange() {
-  const upper = getRangeForPanto(input.upper);
-  const lower = getRangeForPanto(input.lower);
+  const upper = getRangeForPanto(input.pantos.upper);
+  const lower = getRangeForPanto(input.pantos.lower);
   return {
     minX: Math.min(upper.min.x, lower.min.x),
     minY: Math.min(upper.min.y, lower.min.y),
