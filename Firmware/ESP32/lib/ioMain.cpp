@@ -30,6 +30,7 @@ void ioLoop()
     if (connected && sendLimiter.step())
     {
         DPSerial::sendPosition();
+        DPSerial::sendGodObject();
     }
     PERFMON_STOP("[b] Send positions");
 }

@@ -34,6 +34,7 @@ protected:
         SYNC = 0x00,
         HEARTBEAT = 0x01,
         POSITION = 0x10,
+        GOD_OBJECT = 0x11,
         DEBUG_LOG = 0x20,
         SYNC_ACK = 0x80,
         HEARTBEAT_ACK = 0x81,
