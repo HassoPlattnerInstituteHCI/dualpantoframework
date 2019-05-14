@@ -26,11 +26,17 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
       //     new Vector(50, -80, 0)]);
       // }, 6000);
       setTimeout(() => {
-        device.movePantoTo(0, new Vector(-100, -100));
+        device.movePantoTo(0, new Vector(-100, -100), 100);
+      }, 1000);
+      setTimeout(() => {
+        device.movePantoTo(0, new Vector(0, -100), 100);
       }, 3000);
       setTimeout(() => {
-        device.unblockHandle(0);
-      }, 4000);
+        device.movePantoTo(0, new Vector(100, -100), 100);
+      }, 5000);
+      // setTimeout(() => {
+      //   device.unblockHandle(0);
+      // }, 4000);
     }
   }
 });

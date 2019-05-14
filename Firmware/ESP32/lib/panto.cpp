@@ -19,16 +19,14 @@ void Panto::forwardKinematics()
     const auto leftOuterLengthSquared = leftOuterLength * leftOuterLength;
     const auto rightOuterLengthSquared = rightOuterLength * rightOuterLength;
     const auto handleMount = linkageHandleMount[handleIndex];
-
-    // now begins the actual code
-
-    // base positions
-    const auto leftBase = base[0];
-    const auto rightBase = base[1];
+    const auto leftBase = base[leftIndex];
+    const auto rightBase = base[rightIndex];
     const auto leftBaseX = leftBase.x;
     const auto leftBaseY = leftBase.y;
     const auto rightBaseX = rightBase.x;
     const auto rightBaseY = rightBase.y;
+
+    // now begins the actual code
 
     // base angles
     const auto leftBaseAngle = actuationAngle[0];
@@ -175,12 +173,66 @@ void Panto::inverseKinematics()
     }
     else
     {
-        const auto factor = 0.01;
-        const auto diffX = (target.x - handle.x) * factor;
-        const auto diffY = (target.y - handle.y) * factor;
-        targetAngle[0] = J[0][0] * diffX + J[0][1] * diffY;
-        targetAngle[1] = J[1][0] * diffX + J[1][1] * diffY;
-        DPSerial::sendInstantDebugLog("curr %+08.3f %+08.3f targ %+08.3f %+08.3f", actuationAngle[0], actuationAngle[1], targetAngle[0], targetAngle[1]);
+        // const for panto
+        const auto leftIndex = dofIndex;
+        const auto rightIndex = dofIndex + 1;
+        const auto leftInnerLength = linkageInnerLength[leftIndex];
+        const auto rightInnerLength = linkageInnerLength[rightIndex];
+        const auto leftInnerLengthDoubled = 2 * linkageInnerLength[leftIndex];
+        const auto rightInnerLengthDoubled = 2 * linkageInnerLength[rightIndex];
+        const auto leftOuterLength = linkageOuterLength[leftIndex];
+        const auto rightOuterLength = linkageOuterLength[rightIndex];
+        const auto leftInnerLengthSquared = leftInnerLength * leftInnerLength;
+        const auto rightInnerLengthSquared = rightInnerLength * rightInnerLength;
+        const auto leftOuterLengthSquared = leftOuterLength * leftOuterLength;
+        const auto rightOuterLengthSquared = rightOuterLength * rightOuterLength;
+        const auto leftInnerLengthSquaredMinusLeftOuterLengthSquared = leftInnerLengthSquared - leftOuterLengthSquared;
+        const auto rightInnerLengthSquaredMinusRightOuterLengthSquared = rightInnerLengthSquared - rightOuterLengthSquared;
+        const auto leftBase = base[leftIndex];
+        const auto rightBase = base[rightIndex];
+        const auto leftBaseX = leftBase.x;
+        const auto leftBaseY = leftBase.y;
+        const auto rightBaseX = rightBase.x;
+        const auto rightBaseY = rightBase.y;
+
+        const auto targetX = target.x;
+        const auto targetY = target.y;
+        // DPSerial::sendInstantDebugLog("lbx %+08.3f lby %+08.3f rbx %+08.3f rby %+08.3f tgx %+08.3f tgy %+08.3f", leftBaseX, leftBaseY, rightBaseX, rightBaseY, targetX, targetY);
+        const auto leftBaseToTargetX = targetX - leftBaseX;
+        const auto leftBaseToTargetY = targetY - leftBaseY;
+        const auto rightBaseToTargetX = targetX - rightBaseX;
+        const auto rightBaseToTargetY = targetY - rightBaseY;
+        const auto leftBaseToTargetSquared = leftBaseToTargetX * leftBaseToTargetX + leftBaseToTargetY * leftBaseToTargetY;
+        const auto rightBaseToTargetSquared = rightBaseToTargetX * rightBaseToTargetX + rightBaseToTargetY * rightBaseToTargetY;
+        const auto leftBaseToTargetLength =
+            std::sqrt(leftBaseToTargetSquared);
+        const auto rightBaseToTargetLength =
+            std::sqrt(rightBaseToTargetSquared);
+
+        const auto leftInnerAngleCos =
+            (leftBaseToTargetSquared +
+            leftInnerLengthSquaredMinusLeftOuterLengthSquared) /
+            (leftInnerLengthDoubled * leftBaseToTargetLength);
+        const auto rightInnerAngleCos =
+            (rightBaseToTargetSquared +
+            rightInnerLengthSquaredMinusRightOuterLengthSquared) /
+            (rightInnerLengthDoubled * rightBaseToTargetLength);
+        const auto leftInnerAngle = std::acos(leftInnerAngleCos);
+        const auto rightInnerAngle = std::acos(rightInnerAngleCos);
+        const auto leftOffsetAngle =
+            std::atan2(leftBaseToTargetY, leftBaseToTargetX);
+        const auto rightOffsetAngle =
+            std::atan2(rightBaseToTargetY, rightBaseToTargetX);
+        // DPSerial::sendInstantDebugLog("lbttx %+08.3f lbtty %+08.3f rbttx %+08.3f rbtty %+08.3f", leftBaseToTargetY, leftBaseToTargetX, rightBaseToTargetY, rightBaseToTargetX);
+        
+        const auto leftAngle = leftOffsetAngle - leftInnerAngle;
+        const auto rightAngle = rightOffsetAngle + rightInnerAngle;
+
+        // DPSerial::sendInstantDebugLog("li %+08.3f lo %+08.3f la %+08.3f ri %+08.3f ro %+08.3f ra %+08.3f", degrees(leftInnerAngle), degrees(leftOffsetAngle), degrees(leftAngle), degrees(rightInnerAngle), degrees(rightOffsetAngle), degrees(rightAngle));
+        // DPSerial::sendInstantDebugLog("target (%+08.3f, %+08.3f) la %+08.3f ra %+08.3f", targetX, targetY, degrees(leftAngle), degrees(rightAngle));
+
+        targetAngle[0] = leftAngle;
+        targetAngle[1] = rightAngle;
     }
 };
 
@@ -278,7 +330,7 @@ void Panto::actuateMotors()
             setMotor(i, false, 0);
             continue;
         }
-        if (true || isforceRendering)
+        if (isforceRendering)
         {
             setMotor(i, targetAngle[i] < 0, fabs(targetAngle[i]) * forceFactor);
         }
