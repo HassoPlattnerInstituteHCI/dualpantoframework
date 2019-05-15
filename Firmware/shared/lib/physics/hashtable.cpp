@@ -12,7 +12,11 @@ int32_t Hashtable::get1dIndex(double value, double min, double step)
 
 std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
 {
-    DPSerial::sendQueuedDebugLog("(%+08.3f|%+08.3f) (%+08.3f|%+08.3f)", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y);
+    //DPSerial::sendInstantDebugLog("(%+08.3f|%+08.3f) (%+08.3f|%+08.3f)", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y);
+    DPSerial::sendQueuedDebugLog("fx %+08.3f", edge.m_first.x);
+    DPSerial::sendQueuedDebugLog("fy %+08.3f", edge.m_first.y);
+    DPSerial::sendQueuedDebugLog("sx %+08.3f", edge.m_second.x);
+    DPSerial::sendQueuedDebugLog("sy %+08.3f", edge.m_second.y);
     std::vector<uint32_t> result;
     return result;
 
