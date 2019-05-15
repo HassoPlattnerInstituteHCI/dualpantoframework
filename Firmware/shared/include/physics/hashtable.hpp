@@ -37,6 +37,6 @@ public:
     void remove(
         const std::vector<std::tuple<Obstacle*, uint32_t, Edge>>& elements);
     void processQueues();
-    std::set<IndexedEdge> getPossibleCollisions(Edge movement);
+    void getPossibleCollisions(Edge movement, std::set<IndexedEdge>& result);
     void print();
 };
