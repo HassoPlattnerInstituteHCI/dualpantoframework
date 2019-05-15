@@ -13,12 +13,12 @@ int32_t Hashtable::get1dIndex(double value, double min, double step)
 std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
 {
     //DPSerial::sendInstantDebugLog("(%+08.3f|%+08.3f) (%+08.3f|%+08.3f)", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y);
-    DPSerial::sendQueuedDebugLog("fx %+08.3f", edge.m_first.x);
-    DPSerial::sendQueuedDebugLog("fy %+08.3f", edge.m_first.y);
-    DPSerial::sendQueuedDebugLog("sx %+08.3f", edge.m_second.x);
-    DPSerial::sendQueuedDebugLog("sy %+08.3f", edge.m_second.y);
+    // DPSerial::sendQueuedDebugLog("fx %+08.3f", constrain(edge.m_first.x, -999, 999));
+    // DPSerial::sendQueuedDebugLog("fy %+08.3f", constrain(edge.m_first.y, -999, 999));
+    // DPSerial::sendQueuedDebugLog("sx %+08.3f", edge.m_second.x);
+    // DPSerial::sendQueuedDebugLog("sy %+08.3f", edge.m_second.y);
     std::vector<uint32_t> result;
-    return result;
+    //return result;
 
     // http://www.cse.yorku.ca/~amana/research/grid.pdf
     const auto startX = edge.m_first.x;
@@ -160,6 +160,10 @@ std::set<IndexedEdge> Hashtable::getPossibleCollisions(Edge movement)
     auto startY = get1dIndex(movement.m_first.y, rangeMinY, c_stepSizeY);
     auto endX = get1dIndex(movement.m_second.x, rangeMinX, c_stepSizeX);
     auto endY = get1dIndex(movement.m_second.y, rangeMinY, c_stepSizeY);
+    // DPSerial::sendQueuedDebugLog("fx %+08.3f", constrain(movement.m_first.x, -999, 999));
+    // DPSerial::sendQueuedDebugLog("fy %+08.3f", constrain(movement.m_first.y, -999, 999));
+    // DPSerial::sendQueuedDebugLog("sx %+08.3f", movement.m_second.x);
+    // DPSerial::sendQueuedDebugLog("sy %+08.3f", movement.m_second.y);
     auto dist = (uint8_t)(startX != endX) + (uint8_t)(startY != endY);
     if(dist == 0)
     {

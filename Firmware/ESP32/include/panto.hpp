@@ -14,13 +14,17 @@ private:
     static const uint16_t c_ledcResolution = 12;
     static const uint16_t PWM_MAX = 4095; // (2^12)-1
     static const uint8_t c_dofCount = 3;
+    const uint8_t c_localLeftIndex = 0;
+    const uint8_t c_localRightIndex = 1;
+    const uint8_t c_localHandleIndex = 2;
 
     static float s_dt;
 
-    const uint8_t c_dofIndex;
-    const uint8_t c_leftIndex;
-    const uint8_t c_rightIndex;
-    const uint8_t c_handleIndex;
+    const uint8_t c_pantoIndex;
+    const uint8_t c_globalIndexOffset;
+    const uint8_t c_globalLeftIndex;
+    const uint8_t c_globalRightIndex;
+    const uint8_t c_globalHandleIndex;
     const float c_leftInnerLength;
     const float c_rightInnerLength;
     const float c_leftOuterLength;
@@ -34,7 +38,6 @@ private:
     const float c_leftInnerLengthSquaredMinusLeftOuterLengthSquared;
     const float c_rightInnerLengthSquaredMinusRightOuterLengthSquared;
     const float c_leftOuterLengthSquaredMinusRightOuterLengthSquared;
-    const uint8_t c_handleMountIndex;
     const bool c_handleMountedOnRightArm;
     const float c_leftBaseX;
     const float c_leftBaseY;
@@ -44,15 +47,16 @@ private:
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::function<uint32_t()> m_angleAccessors[2];
     #endif
-    Encoder *m_encoder[3];
-    float m_actuationAngle[3];
-    float m_targetAngle[3];
-    float m_previousDiff[3];
-    float m_integral[3];
-    unsigned long m_engagedTime[3] = {};
+    Encoder *m_encoder[c_dofCount];
+    float m_actuationAngle[c_dofCount];
+    float m_targetAngle[c_dofCount];
+    float m_previousDiff[c_dofCount];
+    float m_integral[c_dofCount];
+    unsigned long m_engagedTime[c_dofCount] = {};
 
-    float m_innerAngle[2];
-    float m_pointingAngle;
+    float m_leftInnerAngle = 0;
+    float m_rightInnerAngle = 0;
+    float m_pointingAngle = 0;
     Vector2D m_inner[2];
     double m_handleX = 0;
     double m_handleY = 0;
@@ -62,7 +66,7 @@ private:
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
     void inverseKinematics();
-    void setMotor(unsigned char i, bool dir, float power);
+    void setMotor(uint8_t i, bool dir, float power);
     void disengageMotors();
 public:
     Panto(uint8_t pantoIndex);

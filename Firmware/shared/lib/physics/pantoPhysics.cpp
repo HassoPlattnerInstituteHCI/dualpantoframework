@@ -8,6 +8,7 @@ std::vector<PantoPhysics> pantoPhysics;
 PantoPhysics::PantoPhysics(Panto* panto) : m_panto(panto)
 {
     m_currentPosition = m_panto->getPosition();
+    //DPSerial::sendQueuedDebugLog("pos for panto %p is %+08.3f|%+08.3f", panto, constrain(m_currentPosition.x, -999, 999), constrain(m_currentPosition.y, -999, 999));
     try
     {
         m_godObject = new GodObject(m_currentPosition);
