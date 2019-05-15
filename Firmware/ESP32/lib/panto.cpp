@@ -243,28 +243,29 @@ void Panto::actuateMotors()
 {
     for (auto i = 0; i < 3; ++i)
     {
-        const auto targetAngle = m_targetAngle[i];
-        if (isnan(targetAngle))
+        if (isnan(m_targetAngle[i]))
         {
             setMotor(i, false, 0);
         }
         else if (m_isforceRendering)
         {
-            setMotor(i, targetAngle < 0, fabs(targetAngle) * forceFactor);
+            setMotor(
+                i,
+                m_targetAngle[i] < 0,
+                fabs(m_targetAngle[i]) * forceFactor);
         }
         else
         {
             const auto border = HALF_PI;
-            const auto actuationAngle = m_actuationAngle[i];
-            if (actuationAngle < border && border < targetAngle)
+            if (m_actuationAngle[i] < border && border < m_targetAngle[i])
             {
                 m_actuationAngle[i] += TWO_PI;
             }
-            else if (actuationAngle > border && border > targetAngle)
+            else if (m_actuationAngle[i] > border && border > m_targetAngle[i])
             {
                 m_targetAngle[i] += TWO_PI;
             }
-            auto error = targetAngle - m_actuationAngle[i];
+            auto error = m_targetAngle[i] - m_actuationAngle[i];
             if (i == 2)
             { // Linkage offsets handle
                 error -= m_innerAngle[c_handleMountIndex];
@@ -416,5 +417,5 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 
 void Panto::setRotation(const float rotation)
 {
-    m_targetAngle[c_handleIndex] = rotation;
+    m_targetAngle[2] = rotation;
 };
