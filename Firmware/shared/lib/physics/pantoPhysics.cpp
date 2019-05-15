@@ -7,7 +7,7 @@ std::vector<PantoPhysics> pantoPhysics;
 
 PantoPhysics::PantoPhysics(Panto* panto) : m_panto(panto)
 {
-    m_currentPosition = m_panto->handle;
+    m_currentPosition = m_panto->getPosition();
     try
     {
         m_godObject = new GodObject(m_currentPosition);
@@ -32,7 +32,7 @@ void PantoPhysics::step()
     PERFMON_START("[baa] Physics::step::prep");
     m_godObject->updateHashtable();
 
-    m_currentPosition = m_panto->handle;
+    m_currentPosition = m_panto->getPosition();
 
     auto difference = m_currentPosition - m_godObject->getPosition();
     m_godObject->setMovementDirection(difference);
@@ -43,15 +43,11 @@ void PantoPhysics::step()
     PERFMON_START("[bac] Physics::step::motor");
     if(m_godObject->getProcessingObstacleCollision())
     {
-        m_panto->isforceRendering = true;
-        m_panto->target = m_godObject->getActiveForce();
-        m_panto->inverseKinematics();
+        m_panto->setTarget(m_godObject->getActiveForce(), true);
     }
     else if(m_godObject->getDoneColliding())
     {
-        m_panto->isforceRendering = false;
-        m_panto->target = Vector2D(NAN, NAN);
-        m_panto->inverseKinematics();
+        m_panto->setTarget(Vector2D(NAN, NAN), false);
     }
     PERFMON_STOP("[bac] Physics::step::motor");
     PERFMON_STOP("[ba] Physics::step");

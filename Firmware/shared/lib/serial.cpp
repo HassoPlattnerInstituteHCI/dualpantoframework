@@ -206,13 +206,12 @@ void DPSerial::receiveHearbeatAck()
 
 void DPSerial::receiveMotor()
 {
-    auto controlMethod = receiveUInt8();
-    auto pantoIndex = receiveUInt8();
+    const auto controlMethod = receiveUInt8();
+    const auto pantoIndex = receiveUInt8();
 
-    pantos[pantoIndex].isforceRendering = (controlMethod == 1);
-    pantos[pantoIndex].target = Vector2D(receiveFloat(), receiveFloat());
-    pantos[pantoIndex].targetAngle[2] = receiveFloat();
-    pantos[pantoIndex].inverseKinematics();
+    const auto target = Vector2D(receiveFloat(), receiveFloat());
+    pantos[pantoIndex].setRotation(receiveFloat());
+    pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
 
 void DPSerial::receivePID()
@@ -377,9 +376,10 @@ void DPSerial::sendPosition()
 
     for(auto i = 0; i < pantoCount; ++i)
     {
-        sendFloat(pantos[i].handle.x);
-        sendFloat(pantos[i].handle.y);
-        sendFloat(pantos[i].pointingAngle);
+        const auto pos = pantos[i].getPosition();
+        sendFloat(pos.x);
+        sendFloat(pos.y);
+        sendFloat(pantos[i].getRotation());
     }
     portEXIT_CRITICAL(&s_serialMutex);
 };
@@ -436,20 +436,22 @@ void DPSerial::processDebugLogQueue()
 
 void DPSerial::sendDebugData()
 {
+    const auto pos0 = pantos[0].getPosition();
+    const auto pos1 = pantos[1].getPosition();
     portENTER_CRITICAL(&s_serialMutex);
     sendInstantDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
-                 pantos[0].actuationAngle[0],
-                 pantos[0].actuationAngle[1], 
-                 pantos[0].actuationAngle[2], 
-                 pantos[1].actuationAngle[0], 
-                 pantos[1].actuationAngle[1], 
-                 pantos[1].actuationAngle[2],
-                 pantos[0].handle.x,
-                 pantos[0].handle.y,
-                 pantos[0].pointingAngle,
-                 pantos[1].handle.x,
-                 pantos[1].handle.y,
-                 pantos[1].pointingAngle);
+                 pantos[0].getActuationAngle(0),
+                 pantos[0].getActuationAngle(1), 
+                 pantos[0].getActuationAngle(2), 
+                 pantos[1].getActuationAngle(0), 
+                 pantos[1].getActuationAngle(1), 
+                 pantos[1].getActuationAngle(2),
+                 pos0.x,
+                 pos0.y,
+                 pantos[0].getRotation(),
+                 pos1.x,
+                 pos1.y,
+                 pantos[1].getRotation());
     portEXIT_CRITICAL(&s_serialMutex);
 };
 

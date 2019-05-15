@@ -4,6 +4,7 @@
 #include "performanceMonitor.hpp"
 #include "physics/pantoPhysics.hpp"
 #include "spiEncoder.hpp"
+#include "taskRegistry.hpp"
 
 unsigned long prevTime = 0;
 
@@ -16,23 +17,32 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi = new SPIEncoderChain(numberOfSpiEncoders);
     #endif
-
-    ulTaskNotifyTake(true, portMAX_DELAY);
+    
+    for (auto i = 0; i < pantoCount; ++i)
+    {
+        pantos.emplace_back(i);
+    }
+    delay(1000);
+    
+    xTaskNotifyGive(Tasks.at("I/O").getHandle());
 
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
-    for (unsigned char i = 0; i < pantoCount; ++i)
+    for (auto i = 0; i < pantoCount; ++i)
     {
         pantos[i].calibrationEnd();
         #ifdef LINKAGE_ENCODER_USE_SPI
-        for (unsigned char j = 0; j < 3; ++j)
+        for (auto j = 0; j < 3; ++j)
         {
             auto index = encoderSpiIndex[i * 3 + j];
             if(index != 0xffffffff)
             {
-                startPositions[index] = ((uint16_t)(pantos[i].actuationAngle[j] / (2.0 * PI) * encoderSteps[i * 3 + j]) & 0x3fff);
-                pantos[i].angleAccessors[j] = spi->getAngleAccessor(index);
+                startPositions[index] =
+                    ((uint16_t)(pantos[i].getActuationAngle(j) /
+                    (TWO_PI) *
+                    encoderSteps[i * 3 + j]) & 0x3fff);
+                pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
             }
         }
         #endif
@@ -57,7 +67,7 @@ void physicsLoop()
     PERFMON_STOP("[aa] Query SPI");
 
     PERFMON_START("[ab] Calculation loop");
-    for (unsigned char i = 0; i < pantoCount; ++i)
+    for (auto i = 0; i < pantoCount; ++i)
     {
         PERFMON_START("[aba] Actually read");
         pantos[i].readEncoders();
@@ -70,17 +80,19 @@ void physicsLoop()
     PERFMON_STOP("[a] Read encoders");
 
     PERFMON_START("[b] Calculate physics");
-    for (unsigned char i = 0; i < pantoCount; ++i)
+    for (auto i = 0; i < pantoCount; ++i)
     {
         pantoPhysics[i].step();
     }
     PERFMON_STOP("[b] Calculate physics");
 
     PERFMON_START("[c] Actuate motors");
-    unsigned long now = micros();
-    Panto::dt = now - prevTime;
+    auto now = micros();
+    Panto::setDeltaTime(now - prevTime);
     prevTime = now;
-    for (unsigned char i = 0; i < pantoCount; ++i)
+    for (auto i = 0; i < pantoCount; ++i)
+    {
         pantos[i].actuateMotors();
+    }
     PERFMON_STOP("[c] Actuate motors");
 }

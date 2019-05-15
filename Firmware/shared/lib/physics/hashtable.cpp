@@ -12,7 +12,9 @@ int32_t Hashtable::get1dIndex(double value, double min, double step)
 
 std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
 {
+    DPSerial::sendQueuedDebugLog("(%+08.3f|%+08.3f) (%+08.3f|%+08.3f)", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y);
     std::vector<uint32_t> result;
+    return result;
 
     // http://www.cse.yorku.ca/~amana/research/grid.pdf
     const auto startX = edge.m_first.x;
@@ -40,9 +42,6 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     const auto deltaX = hypot(c_stepSizeX, c_stepSizeX * slopeX);
     const auto deltaY = hypot(c_stepSizeY * slopeY, c_stepSizeY);
 
-    // DPSerial::sendInstantDebugLog("edge %+08.3f|%+08.3f %+08.3f|%+08.3f beg/end %i %i %i %i step %i %i %+08.3f %+08.3f next %+08.3f %+08.3f", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y, x, y, lastX, lastY, stepX, stepY, c_stepSizeX, c_stepSizeY, nextX, nextY);
-
-    //DPSerial::sendInstantDebugLog("start loop");
     while(x != lastX || y != lastY)
     {
         // ignore cells outside the physical range
@@ -50,7 +49,6 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
         {
             result.push_back(x * c_stepsY + y);
         }
-        //DPSerial::sendInstantDebugLog("edge %+08.3f|%+08.3f %+08.3f|%+08.3f beg/end %i %i %i %i step %i %i %+08.3f %+08.3f next %+08.3f %+08.3f", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y, x, y, lastX, lastY, stepX, stepY, c_stepSizeX, c_stepSizeY, nextX, nextY);
 
         if(nextX < nextY)
         {
