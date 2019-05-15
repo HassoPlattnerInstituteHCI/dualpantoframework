@@ -1,9 +1,9 @@
-serial
+Utils/Serial/*
+!Utils/Serial/serial.cpp
 !voice-command/build/build-release.js
 build/
 node_modules/
 package-lock.json
-Firmware/*config.h
 config.json
 persistent.json
 

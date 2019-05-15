@@ -1,9 +1,11 @@
 {
+    "firmware": "Arduino",
     "baseDist": 21.5,
     "opMinDist": 15,
     "opMaxDist": 120,
     "opAngle": 2.2,
     "forceFactor": 0.01,
+    "dummyPin": 0,
     "pantos": {
         "upper": {
             "left": {
