@@ -54,10 +54,10 @@ private:
     float m_innerAngle[2];
     float m_pointingAngle;
     Vector2D m_inner[2];
-    double m_handleX;
-    double m_handleY;
-    double m_targetX;
-    double m_targetY;
+    double m_handleX = 0;
+    double m_handleY = 0;
+    double m_targetX = 0;
+    double m_targetY = 0;
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
