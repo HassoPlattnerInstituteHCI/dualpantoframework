@@ -32,7 +32,7 @@ function getArea(position) {
 }
 
 function start(){
-  VoiceInteraction.setCommands(['Hotels']);
+  VoiceInteraction.setCommands(['hotel']);
   device.on('handleMoved', function(index, position){
     if(follow && index == 0){
       if(!(getArea(position) === area)){
@@ -60,7 +60,7 @@ function start(){
   ]);
 
   VoiceInteraction.on('keywordRecognized', function(word){
-    if(word === 'Hotels'){
+    if(word === 'hotel'){
       showHotels();
     }
   });

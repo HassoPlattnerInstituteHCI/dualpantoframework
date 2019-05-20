@@ -39,6 +39,7 @@
     "co": "^4.6.0",
     "if-env": "^1.0.4",
     "node-gyp": "^3.6.2",
+    "node-pid-controller": "^1.0.1",
     "play-sound": "^1.1.2",
     "say-promise": "0.0.2",
     "serialport": "^6.1.1",
