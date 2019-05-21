@@ -29,9 +29,9 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
       setTimeout(() => {
         console.log('Adding ', points.map((x) => `${x.x} | ${x.y}`));
         for (let i = 0; i < obstacleCount; i++) {
-          device.createObstacle(points);
+          device.createObstacle(points, 0);
         }
-      }, 3000);
+      }, 1000);
     }
   }
 });

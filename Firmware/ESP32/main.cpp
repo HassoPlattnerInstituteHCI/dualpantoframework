@@ -11,7 +11,7 @@ void setup()
 {
     DPSerial::init();
 
-    DPSerial::sendDebugLog("========== START ==========");
+    DPSerial::sendInstantDebugLog("========== START ==========");
 
     Tasks.emplace(
         std::piecewise_construct,
@@ -26,14 +26,14 @@ void setup()
     Tasks.at("Physics").run();
     
     TaskHandle_t defaultTask = xTaskGetCurrentTaskHandle();
-    DPSerial::sendDebugLog("default task handle is %i", defaultTask);
+    DPSerial::sendInstantDebugLog("default task handle is %i", defaultTask);
     vTaskSuspend(NULL);
     taskYIELD();
-    DPSerial::sendDebugLog("setup - this should not be printed");
+    DPSerial::sendInstantDebugLog("setup - this should not be printed");
 }
 
 void loop()
 {
-    DPSerial::sendDebugLog("loop - this should not be printed");
+    DPSerial::sendInstantDebugLog("loop - this should not be printed");
     delay(1000);
 }

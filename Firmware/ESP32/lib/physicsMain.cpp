@@ -50,19 +50,23 @@ void physicsSetup()
 void physicsLoop()
 {
     PERFMON_START("[a] Read encoders");
+    PERFMON_START("[aa] Query SPI");
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi->update();
     #endif
+    PERFMON_STOP("[aa] Query SPI");
 
+    PERFMON_START("[ab] Calculation loop");
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
-        PERFMON_START("[aa] Actually read");
+        PERFMON_START("[aba] Actually read");
         pantos[i].readEncoders();
-        PERFMON_STOP("[aa] Actually read");
-        PERFMON_START("[ab] Calc fwd kinematics");
+        PERFMON_STOP("[aba] Actually read");
+        PERFMON_START("[abb] Calc fwd kinematics");
         pantos[i].forwardKinematics();
-        PERFMON_STOP("[ab] Calc fwd kinematics");
+        PERFMON_STOP("[abb] Calc fwd kinematics");
     }
+    PERFMON_STOP("[ab] Calculation loop");
     PERFMON_STOP("[a] Read encoders");
 
     PERFMON_START("[b] Calculate physics");

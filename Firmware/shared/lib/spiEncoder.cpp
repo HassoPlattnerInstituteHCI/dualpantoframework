@@ -141,13 +141,13 @@ void SPIEncoderChain::update()
         }
         else
         {
-            DPSerial::sendDebugLog("Encoder %i received %04x", i, m_encoders[i].m_lastPacket.m_transmission);
+            DPSerial::sendQueuedDebugLog("Encoder %i received %04x", i, m_encoders[i].m_lastPacket.m_transmission);
         }
     }
 
     if(!allValid)
     {
-        DPSerial::sendDebugLog("Transmission error - resetting error register...");
+        DPSerial::sendQueuedDebugLog("Transmission error - resetting error register...");
         clearError();
     }
 }
@@ -171,7 +171,7 @@ void SPIEncoderChain::clearError()
 
         if(parityError || commandInvalidError || framingError)
         {
-            DPSerial::sendDebugLog("Encoder %u reported parity=%u, command=%u, framing=%u", i, parityError, commandInvalidError, framingError);
+            DPSerial::sendQueuedDebugLog("Encoder %u reported parity=%u, command=%u, framing=%u", i, parityError, commandInvalidError, framingError);
         }
     }
 }

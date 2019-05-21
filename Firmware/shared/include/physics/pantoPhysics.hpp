@@ -11,10 +11,10 @@ class PantoPhysics
 private:
     Panto* m_panto;
     Vector2D m_currentPosition;
-    GodObject m_godObject;
+    GodObject* m_godObject;
 public:
     PantoPhysics(Panto* panto);
-    GodObject& godObject();
+    GodObject* godObject();
     void step();
 };
 
