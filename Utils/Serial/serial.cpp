@@ -551,26 +551,26 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
         napi_value result;
         napi_create_array(env, &result);
 
-        uint32_t posArgc = 3;
-        uint32_t goArgc = 2;
+        const uint32_t posArgc = 3;
+        const uint32_t goArgc = 2;
         for (auto i = 0u; i < 2; ++i)
         {
-            napi_value posArgv[3];
+            napi_value posArgv[posArgc];
 
             for (auto j = 0u; j < posArgc; ++j)
             {
-                napi_create_double(env, positionCoords[i * 3 + j], &(posArgv[j]));
+                napi_create_double(env, positionCoords[i * 5 + j], &(posArgv[j]));
             }
 
             napi_value vector;
             NAPI_CHECK(napi_new_instance(env, argv[2], posArgc, posArgv, &vector))
             NAPI_CHECK(napi_set_element(env, result, i * 2, vector));
 
-            napi_value goArgv[2];
+            napi_value goArgv[goArgc];
 
             for (auto j = 0u; j < goArgc; ++j)
             {
-                napi_create_double(env, positionCoords[i * 2 + j], &(goArgv[j]));
+                napi_create_double(env, positionCoords[i * 5 + 3 + j], &(goArgv[j]));
             }
 
             NAPI_CHECK(napi_new_instance(env, argv[2], goArgc, goArgv, &vector))
