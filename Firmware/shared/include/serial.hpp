@@ -81,7 +81,6 @@ public:
 
     // send
     static void sendPosition();
-    static void sendGodObject();
     static void sendDebugLog(const char* message, ...);
     static void sendDebugData();
 
