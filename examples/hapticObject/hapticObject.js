@@ -5,6 +5,7 @@ const {Vector, Components} = Framework;
 const {
   Mesh,
   MeshCollider,
+  BoxCollider,
   BoxForcefield,
   ForcefieldSampleFunctions} = Components;
 
@@ -25,6 +26,8 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
               ForcefieldSampleFunctions
                   .directedForce
                   .bind(undefined, new Vector(0, 1))));
+      const ho2 = device.addHapticObject(new Vector(-50, -100));
+      ho2.addComponent(new BoxCollider(new Vector(50, 50)));
     }
   }
 });
