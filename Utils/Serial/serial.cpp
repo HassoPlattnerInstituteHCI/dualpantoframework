@@ -165,6 +165,7 @@ void DPSerial::receivePacket()
         }
         else
         {
+            std::cout << received;
             index = 0;
         }
     }
@@ -702,6 +703,18 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
         sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
+        break;
+    }
+    case DUMP_HASHTABLE:
+    {
+        napi_value propertyName;
+        napi_value tempNapiValue;
+        uint32_t tempUInt32;
+
+        napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
         break;
     }
     default:

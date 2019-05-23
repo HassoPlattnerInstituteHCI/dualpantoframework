@@ -13,7 +13,7 @@ uint64_t FramerateLimiter::now()
     if(now < s_lastNow)
     {
         ++s_period;
-        DPSerial::sendDebugLog("FramerateLimiter: micros() rolled over.");
+        DPSerial::sendQueuedDebugLog("FramerateLimiter: micros() rolled over.");
     }
     return s_period * c_periodLength + now;
 }

@@ -51,16 +51,18 @@ inline void Task::checkFps()
         {
             for(const auto& entry : s_fpsMap)
             {
-                DPSerial::sendDebugLog(
+                DPSerial::sendQueuedDebugLog(
                     "Task \"%s\" fps: %i",
                     pcTaskGetTaskName(entry.first),
                     entry.second);
             }
 
+            DPSerial::sendQueuedDebugLog("Free heap: %i of %i", ESP.getFreeHeap(), ESP.getHeapSize());
+
             #ifdef ENABLE_PERFMON
             for(const auto& entry : PerfMon.getResults())
             {
-                DPSerial::sendDebugLog(entry.c_str());
+                DPSerial::sendQueuedDebugLog(entry.c_str());
             }
             #endif
         }
@@ -87,7 +89,7 @@ void Task::run()
         m_priority,
         &m_handle,
         m_core);
-    DPSerial::sendDebugLog("Started task \"%s\" on core %i.", m_name, m_core);
+    DPSerial::sendInstantDebugLog("Started task \"%s\" on core %i.", m_name, m_core);
 };
 
 void Task::setLogFps(bool logFps)

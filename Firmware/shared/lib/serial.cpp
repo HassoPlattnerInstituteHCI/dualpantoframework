@@ -8,6 +8,7 @@
 
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
+std::queue<std::string> DPSerial::s_debugLogQueue;
 portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
@@ -23,7 +24,8 @@ std::map<DPProtocol::MessageType, std::function<void()>>
         {ADD_TO_OBSTACLE, DPSerial::receiveAddToObstacle},
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
-        {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle}
+        {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
+        {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
     };
 
 // === private ===
@@ -242,15 +244,13 @@ void DPSerial::receiveCreateObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().createObstacle(id, path);
+            pantoPhysics[i].godObject()->createObstacle(id, path);
         }
     }
 }
 
 void DPSerial::receiveAddToObstacle()
 {
-    sendDebugLog("receiveAddToObstacle");
-
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
 
@@ -268,7 +268,7 @@ void DPSerial::receiveAddToObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().addToObstacle(id, path);
+            pantoPhysics[i].godObject()->addToObstacle(id, path);
         }
     }
 }
@@ -282,7 +282,7 @@ void DPSerial::receiveRemoveObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().removeObstacle(id);
+            pantoPhysics[i].godObject()->removeObstacle(id);
         }
     }
 }
@@ -296,7 +296,7 @@ void DPSerial::receiveEnableObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().enableObstacle(id);
+            pantoPhysics[i].godObject()->enableObstacle(id);
         }
     }
 }
@@ -310,14 +310,26 @@ void DPSerial::receiveDisableObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject().enableObstacle(id, false);
+            pantoPhysics[i].godObject()->enableObstacle(id, false);
+        }
+    }
+}
+
+void DPSerial::receiveDumpHashtable()
+{
+    auto pantoIndex = receiveUInt8();
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->dumpHashtable();
         }
     }
 }
 
 void DPSerial::receiveInvalid()
 {
-    sendDebugLog("Received invalid message: %02X", s_header.MessageType);
+    sendQueuedDebugLog("Received invalid message: %02X", s_header.MessageType);
 };
 
 // === public ===
@@ -340,7 +352,7 @@ bool DPSerial::ensureConnection()
 
     if (s_unacknowledgedHeartbeats > c_maxUnacklowledgedHeartbeats)
     {
-        sendDebugLog("Disconnected due to too many unacklowledged heartbeats.");
+        sendQueuedDebugLog("Disconnected due to too many unacklowledged heartbeats.");
         s_unacknowledgedHeartbeats = 0;
         s_connected = false;
         return false;
@@ -376,24 +388,60 @@ void DPSerial::sendPosition()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendDebugLog(const char *message, ...)
+void DPSerial::sendInstantDebugLog(const char *message, ...)
 {
     portENTER_CRITICAL(&s_serialMutex);
-    sendMagicNumber();
     va_list args;
     va_start(args, message);
     uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
+    sendMagicNumber();
     sendHeader(DEBUG_LOG, length);
     BOARD_DEPENDENT_SERIAL.write(s_debugLogBuffer, length);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
+void DPSerial::sendQueuedDebugLog(const char *message, ...)
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    va_list args;
+    va_start(args, message);
+    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    va_end(args);
+    length = constrain(length, 0, c_debugLogBufferSize);
+    s_debugLogQueue.emplace(reinterpret_cast<char *>(s_debugLogBuffer), length);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::processDebugLogQueue()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    // quick check to avoid loop if not necessary
+    if(!s_debugLogQueue.empty())
+    {
+        for(auto i = 0; i < c_processedQueuedMessagesPerFrame; ++i)
+        {
+            if(!s_debugLogQueue.empty())
+            {
+                auto& msg = s_debugLogQueue.front();
+                auto length = msg.length();
+                sendMagicNumber();
+                sendHeader(DEBUG_LOG, length);
+                BOARD_DEPENDENT_SERIAL.write(
+                    reinterpret_cast<const uint8_t *>(msg.c_str()),
+                    length);
+                s_debugLogQueue.pop();
+            }
+        }
+    }
+    portEXIT_CRITICAL(&s_serialMutex);
+}
+
 void DPSerial::sendDebugData()
 {
     portENTER_CRITICAL(&s_serialMutex);
-    sendDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
+    sendInstantDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
                  pantos[0].actuationAngle[0],
                  pantos[0].actuationAngle[1], 
                  pantos[0].actuationAngle[2], 
@@ -426,7 +474,7 @@ void DPSerial::receive()
     if (s_receiveState == FOUND_HEADER && !payloadReady())
     {
         if(s_header.MessageType == ADD_TO_OBSTACLE)
-            sendDebugLog("Only %i of %i bytes available", BOARD_DEPENDENT_SERIAL.available(), s_header.PayloadSize);
+            sendQueuedDebugLog("Only %i of %i bytes available", BOARD_DEPENDENT_SERIAL.available(), s_header.PayloadSize);
         return;
     }
 
