@@ -8,7 +8,11 @@ class FileCreator {
     '\');\nconst VoiceInteraction = DualPantoFramework.voiceInteraction;\n' +
     'const {Vector, Components} = DualPantoFramework;\nconst {\n  Mesh,\n' +
     '  MeshCollider,\n  BoxCollider,\n  BoxForcefield,\n' +
-    '  ForcefieldSampleFunctions} = Components;\nconst fs = require(\'fs\');' +
+    '  MeshForcefield,\n' +
+    '  MeshTrigger,\n' +
+    '  BoxTrigger,\n' +
+    '  MeshHardStep,\n' +
+    '  BoxHardStep} = Components;\nconst fs = require(\'fs\');' +
     '\nconst open = require(\'opn\');' +
     '\nconst obstacles = [];\n';
     this.loadObstacles = '\nconst rawdata = fs.readFileSync(\'./obstacles.' +
@@ -55,17 +59,19 @@ class FileCreator {
         this.generateBoxVector(hapticObjects[i]) + ', 0));\n');
       }
       if (hapticObjects[i].forcefield) {
-        console.log(hapticObjects[i].data);
+        // console.log(hapticObjects[i].data);
       }
       if (hapticObjects[i].hardStepIn) {
-        console.log('merge Required');
+        outputString = outputString.concat('hapticObject' + i + '.addComponent(new BoxHardStep(' +
+        this.generateBoxVector(hapticObjects[i]) + ', 0, 3));\n');
       }
       if (hapticObjects[i].hardStepOut) {
-        console.log('merge Required');
+        outputString = outputString.concat('hapticObject' + i + '.addComponent(new BoxHardStep(' +
+        this.generateBoxVector(hapticObjects[i]) + ', 3, 0));\n');
       }
       if (hapticObjects[i].triggerEnter) {
         outputString = outputString.concat('const triggerFor' + i + ' = hapticObject' + i + '.add' +
-        'Component(new boxTrigger(' +
+        'Component(new BoxTrigger(' +
         this.generateBoxVector(hapticObjects[i]) + ', 0))\n');
         if (hapticObjects[i].hasOwnProperty('soundfile')) {
           outputString = outputString.concat('triggerFor' + i + '.on(\'enter\', () => {VoiceInteraction.playSound(\'' + hapticObjects[i].soundfile + '\');});\n');
@@ -75,7 +81,7 @@ class FileCreator {
       }
       if (hapticObjects[i].triggerInside) {
         outputString = outputString.concat('const triggerFor' + i + ' = hapticObject' + i + '.add' +
-        'Component(new boxTrigger(' +
+        'Component(new BoxTrigger(' +
         this.generateBoxVector(hapticObjects[i]) + ', 0))\n');
         if (hapticObjects[i].hasOwnProperty('soundfile')) {
           outputString = outputString.concat('let playing' + i + ' = false;\n');
@@ -100,7 +106,7 @@ class FileCreator {
       }
       if (hapticObjects[i].triggerLeave) {
         outputString = outputString.concat('const triggerFor' + i + ' = hapticObject' + i + '.add' +
-        'Component(new boxTrigger(' +
+        'Component(new BoxTrigger(' +
         this.generateBoxVector(hapticObjects[i]) + ', 0))\n');
         if (hapticObjects[i].hasOwnProperty('soundfile')) {
           outputString = outputString.concat('triggerFor' + i + '.on(\'leave\', () => {VoiceInteraction.playSound(\'' + hapticObjects[i].soundfile + '\');});\n');
@@ -110,7 +116,7 @@ class FileCreator {
       }
       if (hapticObjects[i].triggerStartTouch) {
         outputString = outputString.concat('const triggerFor' + i + ' = hapticObject' + i + '.add' +
-        'Component(new boxTrigger(' +
+        'Component(new BoxTrigger(' +
         this.generateBoxVector(hapticObjects[i]) + ', 0))\n');
         if (hapticObjects[i].hasOwnProperty('soundfile')) {
           outputString = outputString.concat('triggerFor' + i + '.on(\'startTouch\', () => {VoiceInteraction.playSound(\'' + hapticObjects[i].soundfile + '\');});\n');
@@ -120,7 +126,7 @@ class FileCreator {
       }
       if (hapticObjects[i].triggerTouch) {
         outputString = outputString.concat('const triggerFor' + i + ' = hapticObject' + i + '.add' +
-        'Component(new boxTrigger(' +
+        'Component(new BoxTrigger(' +
         this.generateBoxVector(hapticObjects[i]) + ', 0))\n');
         if (hapticObjects[i].hasOwnProperty('soundfile')) {
           outputString = outputString.concat('let playing' + i + ' = false;\n');
@@ -143,7 +149,7 @@ class FileCreator {
       }
       if (hapticObjects[i].triggerEndTouch) {
         outputString = outputString.concat('const triggerFor' + i + ' = hapticObject' + i + '.add' +
-        'Component(new boxTrigger(' +
+        'Component(new BoxTrigger(' +
         this.generateBoxVector(hapticObjects[i]) + ', 0))\n');
         if (hapticObjects[i].hasOwnProperty('soundfile')) {
           outputString = outputString.concat('triggerFor' + i + '.on(\'endTouch\', () => {VoiceInteraction.playSound(\'' + hapticObjects[i].soundfile + '\');});\n');

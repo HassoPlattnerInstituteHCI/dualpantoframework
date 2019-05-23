@@ -31,6 +31,12 @@ class svgConverter {
             if (styleValues[i].includes('fill:')) {
               if ('none' !== styleValues[i].split(':')[1]) {
                 newObject.forcefield = true;
+                /* const patternID = styleValues[i].split(':')[1]
+                .split('(')[1].split(')')[0];
+                console.log(patternID);
+                for(let pat = 0; pat < result.svg.defs[0]
+                .pattern.length; pat++){
+                }*/
               }
             }
             if (styleValues[i].includes('stroke-dasharray')) {
@@ -59,6 +65,36 @@ class svgConverter {
             triggerLeave: false, triggerStartTouch: false,
             triggerTouch: false, triggerEndTouch: false,
             data: result.svg.g[0].g[j].rect[0].$};
+
+          const styleValues = result.svg.g[0].g[j].rect[0].$.style.split(';');
+          let strokeIndex;
+          for (let i = 0; i < styleValues.length; i++) {
+            if (styleValues[i].includes('stroke:')) {
+              strokeIndex = i;
+            }
+            if (styleValues[i].includes('fill:')) {
+              if ('none' !== styleValues[i].split(':')[1]) {
+                newTrigger.forcefield = true;
+              }
+            }
+            if (styleValues[i].includes('stroke-dasharray')) {
+              const temp = styleValues[i].split(':');
+              if (temp[1] === 'none') {
+                const stroketype = styleValues[strokeIndex].split(':')[1];
+                if (stroketype !== 'none') {
+                  newTrigger.collider = true;
+                }
+              } else {
+                const strokeColor = styleValues[strokeIndex].split(':')[1];
+                if (strokeColor === '#00ff00') {
+                  newTrigger.hardStepIn = true;
+                } else {
+                  newTrigger.hardStepOut = true;
+                }
+              }
+            }
+          }
+
           const userString = result.svg.g[0].g[j].text[0].tspan[0]._;
           if (userString.includes('|')) {
             const directionValue = userString.split('|')[0];
@@ -86,10 +122,10 @@ class svgConverter {
                 newTrigger.triggerEnter = true;
                 break;
               case '<-[':
-                newTrigger.triggerInside = true;
+                newTrigger.triggerLeave = true;
                 break;
               default:
-                newTrigger.triggerLeave = true;
+                newTrigger.triggerInside = true;
                 break;
             }
             const sound = userString.split(']')[1];
@@ -103,6 +139,8 @@ class svgConverter {
         }
         console.log('founnd ', hapticObjects.length, ' haptic objects');
         fileGenerator.generateFileImproved(hapticObjects);
+        console.log('Generation complete.',
+            'Pls run \'node ./prototype.js\' to test your level.');
       });
     });
   }
