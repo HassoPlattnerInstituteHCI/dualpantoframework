@@ -381,7 +381,7 @@ void DPSerial::sendPosition()
         sendFloat(panto.handle.x);
         sendFloat(panto.handle.y);
         sendFloat(panto.pointingAngle);
-        auto goPos = pantoPhysics[i].godObject().getPosition();
+        auto goPos = pantoPhysics[i].godObject()->getPosition();
         sendFloat(goPos.x);
         sendFloat(goPos.y);
     }
