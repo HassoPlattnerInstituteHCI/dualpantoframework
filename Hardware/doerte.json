@@ -7,6 +7,12 @@
     "dummyPin": 40,
     "usesSpi": true,
     "forcePidFactor": [0.375, 0, 0.8],
+    "range": {
+        "minX": -170,
+        "minY": -200,
+        "maxX": 170,
+        "maxY": 5
+    },
     "pantos": {
         "upper": {
             "left": {
