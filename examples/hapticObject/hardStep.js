@@ -4,16 +4,17 @@ const Framework = require('../..');
 const {Vector, Components} = Framework;
 const {
   Mesh,
-  MeshCollider,
-  BoxCollider} = Components;
+  MeshHardStep,
+  BoxHardStep} = Components;
 
 Framework.on('devicesChanged', function(devices, attached, detached) {
   for (const device of devices) {
     if (device) {
-      // adding a simple box collider around (-100|-100)
+      // adding a box hard step around (-100|-100) keeping the user out
       const leftHapticObject = device.addHapticObject(new Vector(-100, -100));
-      leftHapticObject.addComponent(new BoxCollider(new Vector(100, 100)));
-      // adding a mesh collider around (100|-100) - in this case, also a box
+      leftHapticObject.addComponent(
+          new BoxHardStep(new Vector(100, 100), 3, 0));
+      // adding a mesh hard step around (100|-100) keeping the user in
       const rightHapticObject = device.addHapticObject(new Vector(100, -100));
       const mesh = rightHapticObject.addComponent(
           new Mesh([
@@ -21,7 +22,8 @@ Framework.on('devicesChanged', function(devices, attached, detached) {
             new Vector(-50, 50, 0),
             new Vector(50, 50, 0),
             new Vector(50, -50, 0)]));
-      rightHapticObject.addComponent(new MeshCollider(mesh));
+      rightHapticObject.addComponent(
+          new MeshHardStep(mesh, 0, 3));
     }
   }
 });
