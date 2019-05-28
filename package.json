@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "eslint": "^5.15.1",
+    "eslint-plugin-jsdoc": "^7.0.2",
     "eslint-config-google": "^0.12.0"
   },
   "eslintConfig": {
@@ -59,16 +60,43 @@
       "node": true,
       "es6": true
     },
+    "plugins": [
+      "jsdoc"
+    ],
     "extends": "./node_modules/eslint-config-google/index.js",
     "rules": {
-      "comma-dangle": [
-        "error",
-        "never"
-      ],
-      "linebreak-style": [
-        "off",
-        "unix"
-      ]
+      "comma-dangle": ["error", "never"],
+      "linebreak-style": ["off", "unix"],
+      "valid-jsdoc": ["off"],
+      "jsdoc/check-alignment": "error",
+      "jsdoc/check-indentation": "error",
+      "jsdoc/check-param-names": "error",
+      "jsdoc/check-syntax": "error",
+      "jsdoc/check-tag-names": "error",
+      "jsdoc/check-types": "error",
+      "jsdoc/implements-on-classes": "error",
+      "jsdoc/match-description": "error",
+      "jsdoc/newline-after-description": "error",
+      "jsdoc/no-undefined-types": "error",
+      "jsdoc/require-description": ["error", {"contexts":"ClassDeclaration"}],
+      "jsdoc/require-description-complete-sentence": "error",
+      "jsdoc/require-hyphen-before-param-description": "error",
+      "jsdoc/require-param": "error",
+      "jsdoc/require-param-description": "error",
+      "jsdoc/require-param-name": "error",
+      "jsdoc/require-param-type": "error",
+      "jsdoc/require-returns": "error",
+      "jsdoc/require-returns-check": "error",
+      "jsdoc/require-returns-description": "error",
+      "jsdoc/require-returns-type": "error",
+      "jsdoc/valid-types": "error"
+    },
+    "settings": {
+        "jsdoc": {
+            "tagNamePreference": {
+                "returns": "return"
+            }
+        }
     }
   }
 }
