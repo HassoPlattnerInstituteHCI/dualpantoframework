@@ -24,20 +24,21 @@ class svgConverter {
     return new Vector( xVal, yVal);
   }
 
-  searchForPattern(id, result) {
-    const patternstack = [];
+  searchForForcePattern(id, result) {
     let currentID = id;
     let nextID = id;
     do {
       const pattern = this.getPatternForID(nextID, result);
+      if (!pattern) {
+        return false;
+      }
       nextID = pattern['xlink:href'];
       if (nextID) {
         nextID = nextID.split('#')[1];
       }
       currentID = pattern.id;
-      patternstack.push(pattern);
-    } while (currentID !== 'patternForce');
-    return patternstack;
+    } while (currentID !== 'directedForce');
+    return true;
   }
 
   getPatternForID(id, result) {
@@ -46,6 +47,7 @@ class svgConverter {
         return result.svg.defs[0].pattern[pat].$;
       }
     }
+    return undefined;
   }
 
   loadWorld() {
@@ -70,21 +72,23 @@ class svgConverter {
             if (styleValues[i].includes('fill:')) {
               if ('none' !== styleValues[i]
                   .split(':')[1]) {
-                newObject.forcefield = true;
-                found = true;
-                console.log('forcefield', result.svg.g[0].rect[j].$.id);
                 const patternID = styleValues[i].split(':')[1]
                     .split('(')[1].split(')')[0].split('#')[1];
-                const pattern = this.getPatternForID(patternID, result);
-                const origin = new Vector(0, 0);
-                const pointA = new Vector(0, 1);
-                const transformOrigin = this.applyMatrix(origin,
-                    pattern.patternTransform);
-                const transformPointA = this.applyMatrix(pointA,
-                    pattern.patternTransform);
-                const direction = transformPointA.difference(transformOrigin)
-                    .normalized();
-                newObject.forceDirection = direction;
+                if (this.searchForForcePattern(patternID, result)) {
+                  newObject.forcefield = true;
+                  found = true;
+                  console.log('forcefield', result.svg.g[0].rect[j].$.id);
+                  const pattern = this.getPatternForID(patternID, result);
+                  const origin = new Vector(0, 0);
+                  const pointA = new Vector(0, 1);
+                  const transformOrigin = this.applyMatrix(origin,
+                      pattern.patternTransform);
+                  const transformPointA = this.applyMatrix(pointA,
+                      pattern.patternTransform);
+                  const direction = transformPointA.difference(transformOrigin)
+                      .normalized();
+                  newObject.forceDirection = direction;
+                }
               }
             }
             if (styleValues[i].includes('stroke-dasharray')) {
@@ -223,7 +227,6 @@ class svgConverter {
                 newTrigger.soundfile = sound;
               }
             }
-            hapticObjects.push(newTrigger);
           }
           if (found) {
             hapticObjects.push(newTrigger);
