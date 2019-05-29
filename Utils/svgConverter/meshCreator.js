@@ -1,22 +1,14 @@
 /* eslint-disable require-jsdoc */
 const Vector = require('./../../lib/vector.js');
-class ObstacleCreator {
-  constructor() {
-    this.xOffset = 150.0;
-  }
-
-  parseSvgRect(rectObject) {
-    const rectPoints = [];
-    rectPoints.push(new Vector(rectObject.x - this.xOffset,
-        -rectObject.y, NaN));
-    rectPoints.push(new Vector(rectObject.x - this.xOffset,
-        -1 * (parseFloat(rectObject.y) + parseFloat(rectObject.height)), NaN));
-    rectPoints.push(new Vector(parseFloat(rectObject.x) +
-      parseFloat(rectObject.width) - this.xOffset, -1 *
-      (parseFloat(rectObject.y) + parseFloat(rectObject.height)), NaN));
-    rectPoints.push(new Vector(parseFloat(rectObject.x) +
-      parseFloat(rectObject.width) - this.xOffset, -rectObject.y, NaN));
-    return rectPoints;
+class MeshCreator {
+  constructor(svgTranformxOffset = 0,
+      svgTranformyOffset = 0,
+      pantoxOffset = 170,
+      pantoyOffset = 5) {
+    this.svgTranformxOffset = parseFloat(svgTranformxOffset);
+    this.svgTranformyOffset = parseFloat(svgTranformyOffset);
+    this.pantoxOffset = parseFloat(pantoxOffset);
+    this.pantoyOffset = parseFloat(pantoyOffset);
   }
 
   stringToVec(cordsString) {
@@ -51,15 +43,17 @@ class ObstacleCreator {
           lastMode = 'l';
           i++;
           const mPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector(mPoint.x - this.xOffset, -1
-            * mPoint.y, mPoint.r));
+          points.push(new Vector((mPoint.x + this.svgTranformxOffset) -
+            this.pantoxOffset, (-1 * (mPoint.y + this.svgTranformyOffset)) +
+            this.pantoyOffset, mPoint.r));
           break;
         case 'M':
           lastMode = 'L';
           i++;
           const MPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector(MPoint.x - this.xOffset, -1
-            * MPoint.y, MPoint.r));
+          points.push(new Vector((MPoint.x + this.svgTranformxOffset) -
+            this.pantoxOffset, (-1 * (MPoint.y + this.svgTranformyOffset)) +
+            this.pantoyOffset, MPoint.r));
           break;
         case 'v':
           i++;
@@ -101,16 +95,17 @@ class ObstacleCreator {
             points[points.length - 1].y, NaN);
         break;
       case 'H':
-        return new Vector(parseFloat(dataString) - this.xOffset,
-            points[points.length - 1].y, NaN);
+        return new Vector((parseFloat(dataString) + this.svgTranformxOffset) -
+          this.pantoxOffset, points[points.length - 1].y, NaN);
         break;
       case 'v':
         return new Vector(points[points.length - 1].x,
-            -1 * parseFloat(dataString) + points[points.length - 1].y, NaN);
+            (-1 * parseFloat(dataString)) + points[points.length - 1].y, NaN);
         break;
       case 'V':
         return new Vector(points[points.length - 1].x,
-            -1 * parseFloat(dataString), NaN);
+            (-1 * (parseFloat(dataString) + this.svgTranformyOffset)) +
+          this.pantoyOffset, NaN);
         break;
       case 'l':
         const relativePoint = this.stringToVec(dataString);
@@ -119,10 +114,13 @@ class ObstacleCreator {
         break;
       case 'L':
         const lPoint = this.stringToVec(dataString);
-        return new Vector(lPoint.x - this.xOffset, -1 * lPoint.y, lPoint.r);
+        return new Vector((lPoint.x + this.svgTranformxOffset) -
+          this.pantoxOffset,
+        (-1 * (lPoint.y + this.svgTranformyOffset)) + this.pantoyOffset,
+        lPoint.r);
         break;
     }
   }
 }
 
-module.exports = ObstacleCreator;
+module.exports = MeshCreator;
