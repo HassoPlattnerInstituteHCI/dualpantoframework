@@ -14,7 +14,8 @@ class FileCreator {
     '  BoxHardStep,\n' +
     '  ForcefieldSampleFunctions} = Components;\nconst fs = require(\'fs\');' +
     '\nconst open = require(\'open\');' +
-    '\nconst obstacles = [];\n';
+    '\nconst obstacles = [];\n' +
+    'const {PerformanceObserver, performance} = require(\'perf_hooks\');\n';
     this.loadObstacles = '\nconst rawdata = fs.readFileSync(\'./obstacles.' +
     'json\');\nlet walls = JSON.parse(rawdata);\nfor (let i = 0; i < ' +
     'walls.length; i++) {\n  let obs = [];\n  for (let j = 0; j < ' +
@@ -43,7 +44,7 @@ class FileCreator {
       this.waitForPanto + this.startFunction + this.generateLevelFunction);
   }
 
-  generateFileImproved(hapticObjects, studentDir) {
+  generateFileImproved(hapticObjects, studentDir, offset) {
     let outputString = '';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
@@ -54,7 +55,7 @@ class FileCreator {
       outputString = outputString.concat('const hapticObject' +
         i + ' = device.addHapticObject(');
       outputString = outputString.concat(this.generateHOBoxVectors(
-          hapticObjects[i]));
+          hapticObjects[i], offset));
       outputString = outputString.concat(');\n');
       if (hapticObjects[i].collider) {
         outputString = outputString.concat('hapticObject' + i +
@@ -69,6 +70,33 @@ class FileCreator {
         '      undefined,\n' +
         '      new Vector(' + hapticObjects[i].forceDirection.x + ', ' +
         -hapticObjects[i].forceDirection.y + '))));\n');
+      }
+      if (hapticObjects[i].polarForce) {
+        outputString = outputString.concat('const centerPoint' + i + ' = ' +
+        'new Vector(' + (hapticObjects[i].polarPoint.x - 170) + ', ' +
+        (-(parseFloat(hapticObjects[i].polarPoint.y) + parseFloat(offset.y))
+          + 5)+ ');\n');
+        outputString = outputString.concat('let lastTic' + i + ' = 0;\n' +
+        'let lastError' + i + ' = new Vector(0, 0, 0);\n' +
+        'let p' + i + ' = 0.15;\n' +
+        'let d' + i + ' = 3.5;\n' +
+        'const polar' + i + ' = function(position, lastPosition) {\n' +
+        '  const currentTic = performance.now();\n' +
+        '  const deltaT = currentTic - lastTic' + i + ';\n' +
+        '  let error = centerPoint' + i + '.difference(position);\n' +
+        '  let forceDirection = error.scaled(p).add(error.' +
+        'difference(lastError).scaled(d/deltaT));\n' +
+        '  lastError' + i + ' = error;\n' +
+        '  if(forceDirection.length() > 1){\n' +
+        '    forceDirection = forceDirection.normalized();\n' +
+        '  }\n' +
+        '  lastTic' + i + ' = currentTic;\n' +
+        '  return forceDirection;\n' +
+        '}\n\n');
+        outputString = outputString.concat('hapticObject' + i +
+          '.addComponent(\n' + '  new BoxForcefield(\n' +
+        '    ' + this.generateBoxVector(hapticObjects[i]) + ',\n' +
+        '    polar' + i + ')\n);\n');
       }
       if (hapticObjects[i].hardStepIn) {
         outputString = outputString.concat('hapticObject' + i +
@@ -203,10 +231,11 @@ class FileCreator {
     fs.writeFileSync(studentDir + '/prototype.js', outputString);
   }
 
-  generateHOBoxVectors(hapticObject) {
-    const midX = (hapticObject.data.x + (hapticObject.data.width / 2) - 170);
-    const midY = (-1 * (hapticObject.data.y + (hapticObject.data.height / 2)))
-    + 5;
+  generateHOBoxVectors(hapticObject, offset) {
+    const midX = (parseFloat(hapticObject.data.x) +
+      (hapticObject.data.width / 2) + parseFloat(offset.x) - 170);
+    const midY = (-1 * (parseFloat(hapticObject.data.y) +
+      (hapticObject.data.height / 2) + parseFloat(offset.y))) + 5;
     return 'new Vector(' + midX + ', ' + midY + ')';
   }
 
