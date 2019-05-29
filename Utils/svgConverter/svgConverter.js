@@ -1,13 +1,51 @@
 /* eslint-disable require-jsdoc */
 const FileGenerator = require('./fileCreator.js');
 const fileGenerator = new FileGenerator();
+const Vector = require('../../lib/vector.js');
 const fs = require('fs');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
 
+
 class svgConverter {
-  constructor(svgPath) {
+  constructor(svgPath, studentDir) {
     this.svgPath = svgPath;
+    this.studentDir = studentDir;
+  }
+
+  applyMatrix(vector, MatrixString) {
+    let values = MatrixString.split('(')[1].split(')')[0];
+    values = values.split(',');
+    for (let i = 0; i < values.length; i ++) {
+      values[i] = parseFloat(values[i]);
+    }
+    const xVal = (values[0] * vector.x) + (values[2] * vector.y) + values[4];
+    const yVal = (values[1] * vector.x) + (values[3] * vector.y) + values[5];
+    return new Vector( xVal, yVal);
+  }
+
+  searchForPattern(id, result) {
+    const patternstack = [];
+    let currentID = id;
+    let nextID = id;
+    do {
+      const pattern = this.getPatternForID(nextID, result);
+      nextID = pattern['xlink:href'];
+      if (nextID) {
+        nextID = nextID.split('#')[1];
+      }
+      currentID = pattern.id;
+      patternstack.push(pattern);
+    } while (currentID !== 'patternForce');
+    return patternstack;
+  }
+
+  getPatternForID(id, result) {
+    for (let pat = 0; pat < result.svg.defs[0].pattern.length; pat++) {
+      if (result.svg.defs[0].pattern[pat].$.id === id) {
+        return result.svg.defs[0].pattern[pat].$;
+      }
+    }
   }
 
   loadWorld() {
@@ -30,17 +68,23 @@ class svgConverter {
               strokeIndex = i;
             }
             if (styleValues[i].includes('fill:')) {
-              if ('url(#directedForcePattern)' === styleValues[i]
+              if ('none' !== styleValues[i]
                   .split(':')[1]) {
                 newObject.forcefield = true;
                 found = true;
                 console.log('forcefield', result.svg.g[0].rect[j].$.id);
-                /* const patternID = styleValues[i].split(':')[1]
-                .split('(')[1].split(')')[0];
-                console.log(patternID);
-                for(let pat = 0; pat < result.svg.defs[0]
-                .pattern.length; pat++){
-                }*/
+                const patternID = styleValues[i].split(':')[1]
+                    .split('(')[1].split(')')[0].split('#')[1];
+                const pattern = this.getPatternForID(patternID, result);
+                const origin = new Vector(0, 0);
+                const pointA = new Vector(0, 1);
+                const transformOrigin = this.applyMatrix(origin,
+                    pattern.patternTransform);
+                const transformPointA = this.applyMatrix(pointA,
+                    pattern.patternTransform);
+                const direction = transformPointA.difference(transformOrigin)
+                    .normalized();
+                newObject.forceDirection = direction;
               }
             }
             if (styleValues[i].includes('stroke-dasharray')) {
@@ -179,17 +223,20 @@ class svgConverter {
                 newTrigger.soundfile = sound;
               }
             }
+            hapticObjects.push(newTrigger);
           }
           if (found) {
             hapticObjects.push(newTrigger);
           }
         }
-        console.log('founnd ', hapticObjects.length, ' haptic objects');
-        fileGenerator.generateFileImproved(hapticObjects);
+        console.log('found ', hapticObjects.length, ' haptic objects');
+        fileGenerator.generateFileImproved(hapticObjects, this.studentDir);
         console.log('Generation complete.',
-            'Pls run \'node ./prototype.js\' to test your level.');
-      });
-    });
+            'File can be found at: ' + this.studentDir + '\n',
+            'Run \'node ' + this.studentDir +
+            '/prototype.js\' to test your level.');
+      }.bind(this));
+    }.bind(this));
   }
 }
 
