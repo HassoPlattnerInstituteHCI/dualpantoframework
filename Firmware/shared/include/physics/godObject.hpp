@@ -14,7 +14,7 @@
 class GodObject
 {
 private:
-    static constexpr double c_resolveDistance = 0.01;
+    static constexpr double c_resolveDistance = 0.00001;
     Vector2D m_position;
     Vector2D m_movementDirection;
     Vector2D m_activeForce;

@@ -49,8 +49,9 @@ void GodObject::move()
 
 Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 {
-    auto possibleCollisions =
-        m_hashtable.getPossibleCollisions(Edge(m_position, targetPoint));
+    std::set<IndexedEdge> possibleCollisions;
+    m_hashtable.getPossibleCollisions(
+        Edge(m_position, targetPoint), possibleCollisions);
     if(possibleCollisions.empty())
     {
         return targetPoint;
@@ -117,6 +118,11 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
             auto resolveVec = perpendicular * resolveRatio;
             auto resolveLength = resolveVec.length();
             targetPoint = targetPoint - (resolveVec * ((resolveLength + c_resolveDistance) / resolveLength));
+
+            // update possible collisions
+            possibleCollisions.clear();
+            m_hashtable.getPossibleCollisions(
+                Edge(m_position, targetPoint), possibleCollisions);
         }
     } while (foundCollision);
 
