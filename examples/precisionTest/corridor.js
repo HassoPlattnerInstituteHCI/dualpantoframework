@@ -1,9 +1,9 @@
 'use strict';
 
 const Framework = require('./../../');
-const {Vector} = Framework;
+const {Vector, Broker} = Framework;
 
-Framework.on('devicesChanged', function(devices, attached, detached) {
+Broker.on('devicesChanged', function(devices, attached, detached) {
   // cant break in template string
   // eslint-disable-next-line max-len
   console.log(`devices: ${devices.size}, attached: ${attached.size}, detached: ${detached.size}`);

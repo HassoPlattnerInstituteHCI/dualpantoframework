@@ -65,9 +65,17 @@
     ],
     "extends": "./node_modules/eslint-config-google/index.js",
     "rules": {
-      "comma-dangle": ["error", "never"],
-      "linebreak-style": ["off", "unix"],
-      "valid-jsdoc": ["off"],
+      "comma-dangle": [
+        "error",
+        "never"
+      ],
+      "linebreak-style": [
+        "off",
+        "unix"
+      ],
+      "valid-jsdoc": [
+        "off"
+      ],
       "jsdoc/check-alignment": "error",
       "jsdoc/check-indentation": "error",
       "jsdoc/check-param-names": "error",
@@ -78,7 +86,12 @@
       "jsdoc/match-description": "error",
       "jsdoc/newline-after-description": "error",
       "jsdoc/no-undefined-types": "error",
-      "jsdoc/require-description": ["error", {"contexts":"ClassDeclaration"}],
+      "jsdoc/require-description": [
+        "error",
+        {
+          "contexts": "ClassDeclaration"
+        }
+      ],
       "jsdoc/require-description-complete-sentence": "error",
       "jsdoc/require-hyphen-before-param-description": "error",
       "jsdoc/require-param": "error",
@@ -92,11 +105,11 @@
       "jsdoc/valid-types": "error"
     },
     "settings": {
-        "jsdoc": {
-            "tagNamePreference": {
-                "returns": "return"
-            }
+      "jsdoc": {
+        "tagNamePreference": {
+          "returns": "return"
         }
+      }
     }
   }
 }
