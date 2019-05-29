@@ -1,7 +1,6 @@
 #include "panto.hpp"
 #include <vector>
 
-float Panto::dt = 0;
 Panto pantos[pantoCount];
 
 void Panto::forwardKinematics()
@@ -215,12 +214,18 @@ void Panto::actuateMotors()
                     error += 2 * PI;
             }
             unsigned char dir = error < 0;
+            unsigned long now = micros();
+            float dt = now - prevTime;
+            prevTime = now;
             error = fabs(error);
             // Power: PID
             integral[i] += error * dt;
             float derivative = (error - previousDiff[i]) / dt;
             previousDiff[i] = error;
-            setMotor(i, dir, pidFactor[dofIndex + i][0] * error + pidFactor[dofIndex + i][1] * integral[i] + pidFactor[dofIndex + i][2] * derivative);
+            float pVal = pidFactor[dofIndex + i][0] * error;
+            float dVal = pidFactor[dofIndex + i][2] * derivative;
+            dVal = pVal + dVal > 0 ? dVal : 0;
+            setMotor(i, dir, pVal + pidFactor[dofIndex + i][1] * integral[i] + dVal);
         }
     }
 };

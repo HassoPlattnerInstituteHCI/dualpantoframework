@@ -77,9 +77,6 @@ void physicsLoop()
     PERFMON_STOP("[b] Calculate physics");
 
     PERFMON_START("[c] Actuate motors");
-    unsigned long now = micros();
-    Panto::dt = now - prevTime;
-    prevTime = now;
     for (unsigned char i = 0; i < pantoCount; ++i)
         pantos[i].actuateMotors();
     PERFMON_STOP("[c] Actuate motors");
