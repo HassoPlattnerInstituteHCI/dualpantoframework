@@ -281,7 +281,6 @@ class svgConverter {
                 triggerLeave: false, triggerStartTouch: false,
                 triggerTouch: false, triggerEndTouch: false,
                 data: result.svg.g[0].g[j].path[0].$};
-
               const styleValues = result.svg.g[0].g[j].path[0].$.style
                   .split(';');
               let strokeIndex;
@@ -330,6 +329,7 @@ class svgConverter {
               const userString = result.svg.g[0].g[j].text[0].tspan[0]._;
               if (userString.includes('|')) {
                 const directionValue = userString.split('|')[0];
+                console.log(userString.split('|')[0]);
                 switch (directionValue) {
                   case '->':
                     newTrigger.triggerStartTouch = true;
@@ -387,6 +387,16 @@ class svgConverter {
               }
             }
             if (found) {
+              if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
+                if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
+                  'translate') {
+                  newTrigger.translate = result.svg.g[0].g[j].$.transform
+                      .split('(')[1].split(')')[0];
+                } else if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
+                  'matrix') {
+                  newTrigger.matrix = result.svg.g[0].g[j].$.transform;
+                }
+              }
               if (newTrigger.box) {
                 hapticBoxObjects.push(newTrigger);
               } else if (newTrigger.box) {

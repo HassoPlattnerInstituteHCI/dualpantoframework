@@ -2,13 +2,9 @@
 const Vector = require('./../../lib/vector.js');
 class MeshCreator {
   constructor(svgTranformxOffset = 0,
-      svgTranformyOffset = 0,
-      pantoxOffset = 170,
-      pantoyOffset = 5) {
+      svgTranformyOffset = 0) {
     this.svgTranformxOffset = parseFloat(svgTranformxOffset);
     this.svgTranformyOffset = parseFloat(svgTranformyOffset);
-    this.pantoxOffset = parseFloat(pantoxOffset);
-    this.pantoyOffset = parseFloat(pantoyOffset);
   }
 
   stringToVec(cordsString) {
@@ -43,17 +39,15 @@ class MeshCreator {
           lastMode = 'l';
           i++;
           const mPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector((mPoint.x + this.svgTranformxOffset) -
-            this.pantoxOffset, (-1 * (mPoint.y + this.svgTranformyOffset)) +
-            this.pantoyOffset, mPoint.r));
+          points.push(new Vector(mPoint.x + this.svgTranformxOffset, mPoint.y +
+            this.svgTranformyOffset, mPoint.r));
           break;
         case 'M':
           lastMode = 'L';
           i++;
           const MPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector((MPoint.x + this.svgTranformxOffset) -
-            this.pantoxOffset, (-1 * (MPoint.y + this.svgTranformyOffset)) +
-            this.pantoyOffset, MPoint.r));
+          points.push(new Vector(MPoint.x + this.svgTranformxOffset, MPoint.y +
+            this.svgTranformyOffset, MPoint.r));
           break;
         case 'v':
           i++;
@@ -95,17 +89,16 @@ class MeshCreator {
             points[points.length - 1].y, NaN);
         break;
       case 'H':
-        return new Vector((parseFloat(dataString) + this.svgTranformxOffset) -
-          this.pantoxOffset, points[points.length - 1].y, NaN);
+        return new Vector(parseFloat(dataString) + this.svgTranformxOffset,
+            points[points.length - 1].y, NaN);
         break;
       case 'v':
         return new Vector(points[points.length - 1].x,
-            (-1 * parseFloat(dataString)) + points[points.length - 1].y, NaN);
+            parseFloat(dataString) + points[points.length - 1].y, NaN);
         break;
       case 'V':
         return new Vector(points[points.length - 1].x,
-            (-1 * (parseFloat(dataString) + this.svgTranformyOffset)) +
-          this.pantoyOffset, NaN);
+            parseFloat(dataString) + this.svgTranformyOffset, NaN);
         break;
       case 'l':
         const relativePoint = this.stringToVec(dataString);
@@ -114,10 +107,8 @@ class MeshCreator {
         break;
       case 'L':
         const lPoint = this.stringToVec(dataString);
-        return new Vector((lPoint.x + this.svgTranformxOffset) -
-          this.pantoxOffset,
-        (-1 * (lPoint.y + this.svgTranformyOffset)) + this.pantoyOffset,
-        lPoint.r);
+        return new Vector(lPoint.x + this.svgTranformxOffset,
+            lPoint.y + this.svgTranformyOffset, lPoint.r);
         break;
     }
   }
