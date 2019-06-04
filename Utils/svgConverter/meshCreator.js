@@ -1,18 +1,38 @@
-/* eslint-disable require-jsdoc */
 const Vector = require('./../../lib/vector.js');
+
+/**
+ * @description Class for path translation.
+ */
 class MeshCreator {
+  /**
+   * @description Creates a new instance of FileCreator.
+   * @param {number} [svgTranformxOffset= 0] - X offset if given.
+   * @param {number} [svgTranformyOffset= 0] - Y offset if given.
+   */
   constructor(svgTranformxOffset = 0,
       svgTranformyOffset = 0) {
     this.svgTranformxOffset = parseFloat(svgTranformxOffset);
     this.svgTranformyOffset = parseFloat(svgTranformyOffset);
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Tranlates a String to a Vector.
+   * @param {string} cordsString - String that contains the vector.
+   * @return {Vector} Resulting vector.
+   */
   stringToVec(cordsString) {
     const xCords = cordsString.split(',')[0];
     const yCords = cordsString.split(',')[1];
     return new Vector(parseFloat(xCords), parseFloat(yCords), NaN);
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Parses an path string to multiple vectors.
+   * @param {string} svgString - String that contains the path.
+   * @return {Array} Array containing the vectors.
+   */
   parseSvgPath(svgString) {
     let lastMode;
     const spaceSplit = svgString.split(' ');
@@ -82,6 +102,14 @@ class MeshCreator {
     return points;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Creates a Point for a substring of an svg path string.
+   * @param {string} dataString - Substring ofs the path.
+   * @param {Array} points - Points that have already been generated.
+   * @param {string} mode - Specific mode how to interprete the string data.
+   * @return {Array} Array containing the vectors.
+   */
   createPoint(dataString, points, mode) {
     switch (mode) {
       case 'h':
