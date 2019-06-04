@@ -1,30 +1,38 @@
-/* eslint-disable require-jsdoc */
 const Vector = require('./../../lib/vector.js');
-class ObstacleCreator {
-  constructor() {
-    this.xOffset = 150.0;
+
+/**
+ * @description Class for path translation.
+ */
+class MeshCreator {
+  /**
+   * @description Creates a new instance of FileCreator.
+   * @param {number} [svgTranformxOffset= 0] - X offset if given.
+   * @param {number} [svgTranformyOffset= 0] - Y offset if given.
+   */
+  constructor(svgTranformxOffset = 0,
+      svgTranformyOffset = 0) {
+    this.svgTranformxOffset = parseFloat(svgTranformxOffset);
+    this.svgTranformyOffset = parseFloat(svgTranformyOffset);
   }
 
-  parseSvgRect(rectObject) {
-    const rectPoints = [];
-    rectPoints.push(new Vector(rectObject.x - this.xOffset,
-        -rectObject.y, NaN));
-    rectPoints.push(new Vector(rectObject.x - this.xOffset,
-        -1 * (parseFloat(rectObject.y) + parseFloat(rectObject.height)), NaN));
-    rectPoints.push(new Vector(parseFloat(rectObject.x) +
-      parseFloat(rectObject.width) - this.xOffset, -1 *
-      (parseFloat(rectObject.y) + parseFloat(rectObject.height)), NaN));
-    rectPoints.push(new Vector(parseFloat(rectObject.x) +
-      parseFloat(rectObject.width) - this.xOffset, -rectObject.y, NaN));
-    return rectPoints;
-  }
-
+  /**
+   * @private This is an internal function.
+   * @description Tranlates a String to a Vector.
+   * @param {string} cordsString - String that contains the vector.
+   * @return {Vector} Resulting vector.
+   */
   stringToVec(cordsString) {
     const xCords = cordsString.split(',')[0];
     const yCords = cordsString.split(',')[1];
     return new Vector(parseFloat(xCords), parseFloat(yCords), NaN);
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Parses an path string to multiple vectors.
+   * @param {string} svgString - String that contains the path.
+   * @return {Array} Array containing the vectors.
+   */
   parseSvgPath(svgString) {
     let lastMode;
     const spaceSplit = svgString.split(' ');
@@ -51,15 +59,15 @@ class ObstacleCreator {
           lastMode = 'l';
           i++;
           const mPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector(mPoint.x - this.xOffset, -1
-            * mPoint.y, mPoint.r));
+          points.push(new Vector(mPoint.x + this.svgTranformxOffset, mPoint.y +
+            this.svgTranformyOffset, mPoint.r));
           break;
         case 'M':
           lastMode = 'L';
           i++;
           const MPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector(MPoint.x - this.xOffset, -1
-            * MPoint.y, MPoint.r));
+          points.push(new Vector(MPoint.x + this.svgTranformxOffset, MPoint.y +
+            this.svgTranformyOffset, MPoint.r));
           break;
         case 'v':
           i++;
@@ -94,6 +102,14 @@ class ObstacleCreator {
     return points;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Creates a Point for a substring of an svg path string.
+   * @param {string} dataString - Substring ofs the path.
+   * @param {Array} points - Points that have already been generated.
+   * @param {string} mode - Specific mode how to interprete the string data.
+   * @return {Array} Array containing the vectors.
+   */
   createPoint(dataString, points, mode) {
     switch (mode) {
       case 'h':
@@ -101,16 +117,16 @@ class ObstacleCreator {
             points[points.length - 1].y, NaN);
         break;
       case 'H':
-        return new Vector(parseFloat(dataString) - this.xOffset,
+        return new Vector(parseFloat(dataString) + this.svgTranformxOffset,
             points[points.length - 1].y, NaN);
         break;
       case 'v':
         return new Vector(points[points.length - 1].x,
-            -1 * parseFloat(dataString) + points[points.length - 1].y, NaN);
+            parseFloat(dataString) + points[points.length - 1].y, NaN);
         break;
       case 'V':
         return new Vector(points[points.length - 1].x,
-            -1 * parseFloat(dataString), NaN);
+            parseFloat(dataString) + this.svgTranformyOffset, NaN);
         break;
       case 'l':
         const relativePoint = this.stringToVec(dataString);
@@ -119,10 +135,11 @@ class ObstacleCreator {
         break;
       case 'L':
         const lPoint = this.stringToVec(dataString);
-        return new Vector(lPoint.x - this.xOffset, -1 * lPoint.y, lPoint.r);
+        return new Vector(lPoint.x + this.svgTranformxOffset,
+            lPoint.y + this.svgTranformyOffset, lPoint.r);
         break;
     }
   }
 }
 
-module.exports = ObstacleCreator;
+module.exports = MeshCreator;
