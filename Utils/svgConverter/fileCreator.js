@@ -17,13 +17,7 @@ class FileCreator {
     '  BoxHardStep,\n' +
     '  ForcefieldSampleFunctions} = Components;\nconst fs = require(\'fs\');' +
     '\nconst VoiceInteraction = Broker.voiceInteraction;' +
-    '\nconst obstacles = [];\n' +
     'const {PerformanceObserver, performance} = require(\'perf_hooks\');\n';
-    this.loadObstacles = '\nconst rawdata = fs.readFileSync(\'./obstacles.' +
-    'json\');\nlet walls = JSON.parse(rawdata);\nfor (let i = 0; i < ' +
-    'walls.length; i++) {\n  let obs = [];\n  for (let j = 0; j < ' +
-    'walls[i].length; j++) {\n    obs.push(new Vector(walls[i][j].x,' +
-    ' walls[i][j].y, walls[i][j].r));\n  }\n  obstacles[i] = obs\n}\n\n';
     this.waitForPanto = 'let device;\n\nBroker.on(\'devices' +
     'Changed\', function(devices) {\n  for(const newdevice of devices) {\n' +
     '    if (!device) {\n      device = newdevice\n      start();\n    }' +
@@ -32,6 +26,8 @@ class FileCreator {
     '\n  open(\'http://localhost:8080/map.html\');' +
     '\n setTimeout(generateLevel, 3000);' +
     '\n}\n\n';
+    this.pantoxOffset = 170;
+    this.pantoyOffset = 5;
   }
 
   generateFile(hapticBoxObjects,
