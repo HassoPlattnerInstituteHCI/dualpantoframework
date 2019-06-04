@@ -406,7 +406,7 @@ class svgConverter {
           }
         }
         console.log('found ', hapticBoxObjects.length, ' haptic objects');
-        fileGenerator.generateFileImproved(hapticBoxObjects,
+        fileGenerator.generateFile(hapticBoxObjects,
             hapticMeshObjects,
             this.studentDir, offset);
         console.log('Generation complete.',

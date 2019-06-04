@@ -6,8 +6,9 @@ const Vector = require('../../lib/vector.js');
 class FileCreator {
   constructor() {
     this.imports = 'const DualPantoFramework = require(\'./dualpantoframework' +
-    '\');\nconst VoiceInteraction = DualPantoFramework.voiceInteraction;\n' +
-    'const {Vector, Components} = DualPantoFramework;\nconst {\n  Mesh,\n' +
+    '\');\n' +
+    'const {Vector, Broker, Components, open} = DualPantoFramework;\n' +
+    'const {\n  Mesh,\n' +
     '  MeshCollider,\n  BoxCollider,\n  BoxForcefield,\n' +
     '  MeshForcefield,\n' +
     '  MeshTrigger,\n' +
@@ -15,7 +16,7 @@ class FileCreator {
     '  MeshHardStep,\n' +
     '  BoxHardStep,\n' +
     '  ForcefieldSampleFunctions} = Components;\nconst fs = require(\'fs\');' +
-    '\nconst open = require(\'open\');' +
+    '\nconst VoiceInteraction = Broker.voiceInteraction;' +
     '\nconst obstacles = [];\n' +
     'const {PerformanceObserver, performance} = require(\'perf_hooks\');\n';
     this.loadObstacles = '\nconst rawdata = fs.readFileSync(\'./obstacles.' +
@@ -23,7 +24,7 @@ class FileCreator {
     'walls.length; i++) {\n  let obs = [];\n  for (let j = 0; j < ' +
     'walls[i].length; j++) {\n    obs.push(new Vector(walls[i][j].x,' +
     ' walls[i][j].y, walls[i][j].r));\n  }\n  obstacles[i] = obs\n}\n\n';
-    this.waitForPanto = 'let device;\n\nDualPantoFramework.on(\'devices' +
+    this.waitForPanto = 'let device;\n\nBroker.on(\'devices' +
     'Changed\', function(devices) {\n  for(const newdevice of devices) {\n' +
     '    if (!device) {\n      device = newdevice\n      start();\n    }' +
     '\n  }\n});\n';
@@ -31,24 +32,9 @@ class FileCreator {
     '\n  open(\'http://localhost:8080/map.html\');' +
     '\n setTimeout(generateLevel, 3000);' +
     '\n}\n\n';
-    this.generateLevelFunction = 'const generateLevel = function () {' +
-    '\n  const hapticObject = device.addHapticObject(new Vector(0, -100));' +
-    '\n  const meshes = [];' +
-    '\n  for (let i = 0; i < obstacles.length; i++) {' +
-    '\n    meshes.push(hapticObject.addComponent(new Mesh(obstacles[i])));' +
-    '\n    hapticObject.addComponent(new MeshCollider(meshes[i]));' +
-    '\n  }' +
-    '\n}\n';
-    this.pantoxOffset = 170;
-    this.pantoyOffset = 5;
   }
 
-  generateFile() {
-    fs.writeFileSync('./main.js', this.imports + this.loadObstacles +
-      this.waitForPanto + this.startFunction + this.generateLevelFunction);
-  }
-
-  generateFileImproved(hapticBoxObjects,
+  generateFile(hapticBoxObjects,
       hapticMeshObjects,
       studentDir, offset) {
     const meshCreator = new MeshCreator(offset.x,
@@ -264,36 +250,6 @@ class FileCreator {
       outputString = outputString.concat('\n');
     }
     return outputString;
-  }
-
-
-  generateHOBoxVectors(hapticObject, offset) {
-    if (hapticObject.hasOwnProperty('translate')) {
-      const translateVec = this.parseTranslate(hapticObject.translate);
-      const midX = (parseFloat(hapticObject.data.x) +
-        (hapticObject.data.width / 2) + parseFloat(offset.x) -
-        this.pantoxOffset + translateVec.x);
-      const midY = (-1 * (parseFloat(hapticObject.data.y) +
-        (hapticObject.data.height / 2) + parseFloat(offset.y))) +
-      this.pantoyOffset + translateVec.y;
-      return 'new Vector(' + midX + ', ' + midY + ')';
-    } else if (hapticObject.hasOwnProperty('matrix')) {
-      const midX = (parseFloat(hapticObject.data.x) +
-        (hapticObject.data.width / 2) + parseFloat(offset.x) -
-        this.pantoxOffset);
-      const midY = (-1 * (parseFloat(hapticObject.data.y) +
-        (hapticObject.data.height / 2) + parseFloat(offset.y))) +
-      this.pantoyOffset;
-      return this.parseMatrix(hapticObject.matrix, new Vector(midX, midY));
-    } else {
-      const midX = (parseFloat(hapticObject.data.x) +
-        (hapticObject.data.width / 2) + parseFloat(offset.x) -
-        this.pantoxOffset);
-      const midY = (-1 * (parseFloat(hapticObject.data.y) +
-        (hapticObject.data.height / 2) + parseFloat(offset.y))) +
-      this.pantoyOffset;
-      return 'new Vector(' + midX + ', ' + midY + ')';
-    }
   }
 
   generateVecString(vector) {
