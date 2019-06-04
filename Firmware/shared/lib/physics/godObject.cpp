@@ -6,7 +6,13 @@
 GodObject::GodObject(Vector2D position)
 : m_position(position)
 , m_obstacleMutex{portMUX_FREE_VAL, 0}
+, m_possibleCollisions(new std::set<IndexedEdge>())
 { }
+
+GodObject::~GodObject()
+{
+    delete m_possibleCollisions;
+}
 
 void GodObject::setMovementDirection(Vector2D movementDirection)
 {
@@ -49,10 +55,10 @@ void GodObject::move()
 
 Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 {
-    std::set<IndexedEdge> possibleCollisions;
+    m_possibleCollisions->clear();
     m_hashtable.getPossibleCollisions(
-        Edge(m_position, targetPoint), possibleCollisions);
-    if(possibleCollisions.empty())
+        Edge(m_position, targetPoint), m_possibleCollisions);
+    if(m_possibleCollisions->empty())
     {
         return targetPoint;
     }
@@ -70,7 +76,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
         // value is constant for loop
         const auto posMinusTarget = m_position - targetPoint;
         
-        for(auto&& indexedEdge : possibleCollisions)
+        for(auto&& indexedEdge : *m_possibleCollisions)
         {
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
@@ -120,9 +126,9 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
             targetPoint = targetPoint - (resolveVec * ((resolveLength + c_resolveDistance) / resolveLength));
 
             // update possible collisions
-            possibleCollisions.clear();
+            m_possibleCollisions->clear();
             m_hashtable.getPossibleCollisions(
-                Edge(m_position, targetPoint), possibleCollisions);
+                Edge(m_position, targetPoint), m_possibleCollisions);
         }
     } while (foundCollision);
 

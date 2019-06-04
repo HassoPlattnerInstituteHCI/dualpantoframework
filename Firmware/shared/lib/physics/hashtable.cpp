@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "assert.hpp"
 #include "serial.hpp"
 #include "utils.hpp"
 
@@ -25,10 +26,10 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     const auto startY = edge.m_first.y;
     const auto endX = edge.m_second.x;
     const auto endY = edge.m_second.y;
-    auto x = get1dIndex(startX, rangeMinX, c_stepSizeX);
-    auto y = get1dIndex(startY, rangeMinY, c_stepSizeY);
-    const auto lastX = get1dIndex(endX, rangeMinX, c_stepSizeX);
-    const auto lastY = get1dIndex(endY, rangeMinY, c_stepSizeY);
+    auto x = get1dIndex(startX, rangeMinX, hashtableStepSizeX);
+    auto y = get1dIndex(startY, rangeMinY, hashtableStepSizeY);
+    const auto lastX = get1dIndex(endX, rangeMinX, hashtableStepSizeX);
+    const auto lastY = get1dIndex(endY, rangeMinY, hashtableStepSizeY);
     const auto diffX = endX - startX;
     const auto diffY = endY - startY;
     const auto stepX = sgn(diffX);
@@ -36,22 +37,24 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     const auto slopeX = diffY / diffX;
     const auto slopeY = diffX / diffY;
     auto nextX = stepX < 0
-        ? (edge.m_first.x - (rangeMinX + x * c_stepSizeX))
-        : ((rangeMinX + (x + 1) * c_stepSizeX) - edge.m_first.x);
+        ? (edge.m_first.x - (rangeMinX + x * hashtableStepSizeX))
+        : ((rangeMinX + (x + 1) * hashtableStepSizeX) - edge.m_first.x);
     nextX = hypot(nextX, nextX * slopeX);
     auto nextY = stepY < 0
-        ? (edge.m_first.y - (rangeMinY + y * c_stepSizeY))
-        : ((rangeMinY + (y + 1) * c_stepSizeY) - edge.m_first.y);
+        ? (edge.m_first.y - (rangeMinY + y * hashtableStepSizeY))
+        : ((rangeMinY + (y + 1) * hashtableStepSizeY) - edge.m_first.y);
     nextY = hypot(nextY, nextY * slopeY);
-    const auto deltaX = hypot(c_stepSizeX, c_stepSizeX * slopeX);
-    const auto deltaY = hypot(c_stepSizeY * slopeY, c_stepSizeY);
+    const auto deltaX =
+        hypot(hashtableStepSizeX, hashtableStepSizeX * slopeX);
+    const auto deltaY =
+        hypot(hashtableStepSizeY * slopeY, hashtableStepSizeY);
 
     while(x != lastX || y != lastY)
     {
         // ignore cells outside the physical range
-        if(x >= 0 && x < c_stepsX && y >= 0 && y < c_stepsY)
+        if(x >= 0 && x < hashtableStepsX && y >= 0 && y < hashtableStepsY)
         {
-            result.push_back(x * c_stepsY + y);
+            result.push_back(x * hashtableStepsY + y);
         }
 
         if(nextX < nextY)
@@ -67,9 +70,9 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     }
 
     // add end cell if inside range
-    if(x >= 0 && x < c_stepsX && y >= 0 && y < c_stepsY)
+    if(x >= 0 && x < hashtableStepsX && y >= 0 && y < hashtableStepsY)
     {
-        result.push_back(x * c_stepsY + y);
+        result.push_back(x * hashtableStepsY + y);
     }
 
     return result;
@@ -103,12 +106,28 @@ void Hashtable::remove(Obstacle* obstacle, uint32_t index, Edge edge)
 
 Hashtable::Hashtable()
 {
-    DPSerial::sendQueuedDebugLog("Hashtable settings:");
-    DPSerial::sendQueuedDebugLog("Target step size: %+08.3f", c_targetStepSize);
-    DPSerial::sendQueuedDebugLog("Steps (x): %i", c_stepsX);
-    DPSerial::sendQueuedDebugLog("Steps (y): %i", c_stepsY);
-    DPSerial::sendQueuedDebugLog("Actual step size (x): %+08.3f", c_stepSizeX);
-    DPSerial::sendQueuedDebugLog("Actual step size (y): %+08.3f", c_stepSizeY);
+    DPSerial::sendQueuedDebugLog(
+        "Hashtable settings:");
+    DPSerial::sendQueuedDebugLog(
+        "Avaiable memory of %i bytes can hold %i cells",
+        hashtableMaxMemory,
+        hashtableMaxCells);
+    DPSerial::sendQueuedDebugLog(
+        "Possible range of values is %3f by %3f mm",
+        rangeMaxX - rangeMinX,
+        rangeMaxY - rangeMinY);
+    DPSerial::sendQueuedDebugLog(
+        "Horizontal step size is %5.3f mm, resulting in %i steps",
+        hashtableStepSizeX,
+        hashtableStepsX);
+    DPSerial::sendQueuedDebugLog(
+        "Vertical step size is %5.3f mm, resulting in %i steps",
+        hashtableStepSizeY,
+        hashtableStepsY);
+    DPSerial::sendQueuedDebugLog(
+        "Resulting step count is %i, using %i bytes",
+        hashtableNumCells,
+        hashtableUsedMemory);
 }
 
 void Hashtable::add(
@@ -131,7 +150,7 @@ void Hashtable::processQueues()
         return;
     }
 
-    for(auto i = 0; i < c_processedEntriesPerFrame; ++i)
+    for(auto i = 0; i < hashtableProcessedEntriesPerFrame; ++i)
     {
         if(!m_addQueue.empty())
         {
@@ -149,40 +168,48 @@ void Hashtable::processQueues()
 }
 
 void Hashtable::getPossibleCollisions(
-    Edge movement, std::set<IndexedEdge>& result)
+    Edge movement, std::set<IndexedEdge>* result)
 {
     if(movement.m_first.x == 0 && movement.m_first.x == 0)
     {
-        DPSerial::sendInstantDebugLog("Skipping god object movement from zero position.");
+        DPSerial::sendInstantDebugLog(
+            "Skipping god object movement from zero position.");
         return;
     }
-    auto startX = get1dIndex(movement.m_first.x, rangeMinX, c_stepSizeX);
-    auto startY = get1dIndex(movement.m_first.y, rangeMinY, c_stepSizeY);
-    auto endX = get1dIndex(movement.m_second.x, rangeMinX, c_stepSizeX);
-    auto endY = get1dIndex(movement.m_second.y, rangeMinY, c_stepSizeY);
-    // DPSerial::sendQueuedDebugLog("fx %+08.3f", constrain(movement.m_first.x, -999, 999));
-    // DPSerial::sendQueuedDebugLog("fy %+08.3f", constrain(movement.m_first.y, -999, 999));
-    // DPSerial::sendQueuedDebugLog("sx %+08.3f", movement.m_second.x);
-    // DPSerial::sendQueuedDebugLog("sy %+08.3f", movement.m_second.y);
+    const auto startX =
+        get1dIndex(movement.m_first.x, rangeMinX, hashtableStepSizeX);
+    const auto startY =
+        get1dIndex(movement.m_first.y, rangeMinY, hashtableStepSizeY);
+    const auto startIndex = startX * hashtableStepsY + startY;
+    ASSERT_GE(startIndex, 0);
+    ASSERT_LT(startIndex, hashtableNumCells);
+    const auto endX =
+        get1dIndex(movement.m_second.x, rangeMinX, hashtableStepSizeX);
+    const auto endY =
+        get1dIndex(movement.m_second.y, rangeMinY, hashtableStepSizeY);
+    const auto endIndex = endX * hashtableStepsY + endY;
+    ASSERT_GE(endIndex, 0);
+    ASSERT_LT(endIndex, hashtableNumCells);
     auto dist = (uint8_t)(startX != endX) + (uint8_t)(startY != endY);
+    const auto* begin = &m_cells[0];
     if(dist == 0)
     {
-        auto cell = m_cells[startX * c_stepsY + startY];
-        result.insert(cell.begin(), cell.end());
+        const auto* cell = begin + startIndex;
+        result->insert(cell->begin(), cell->end());
     }
     else if(dist == 1)
     {
-        auto cell = m_cells[startX * c_stepsY + startY];
-        result.insert(cell.begin(), cell.end());
-        cell = m_cells[endX * c_stepsY + endY];
-        result.insert(cell.begin(), cell.end());
+        auto* cell = begin + startIndex;
+        result->insert(cell->begin(), cell->end());
+        cell = begin + endIndex;
+        result->insert(cell->begin(), cell->end());
     }
     else
     {
         for(auto&& cellIndex : getCellIndices(movement))
         {
-            auto cell = m_cells[cellIndex];
-            result.insert(cell.begin(), cell.end());
+            const auto* cell = begin + cellIndex;
+            result->insert(cell->begin(), cell->end());
         }
     }
 }
@@ -191,11 +218,11 @@ void Hashtable::print()
 {
     DPSerial::sendQueuedDebugLog("Printing hashtable...");
     std::ostringstream str;
-    for(auto y = 0; y < c_stepsY; ++y)
+    for(auto y = 0; y < hashtableStepsY; ++y)
     {
-        for(auto x = 0; x < c_stepsX; x++)
+        for(auto x = 0; x < hashtableStepsX; x++)
         {
-            str << (m_cells[x * c_stepsY + y].empty() ? '-' : '#');
+            str << (m_cells[x * hashtableStepsY + y].empty() ? '-' : '#');
         }
         DPSerial::sendQueuedDebugLog(str.str().c_str());
         str.str("");

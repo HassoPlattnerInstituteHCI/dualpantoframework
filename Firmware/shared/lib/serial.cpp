@@ -440,18 +440,18 @@ void DPSerial::sendDebugData()
     const auto pos1 = pantos[1].getPosition();
     portENTER_CRITICAL(&s_serialMutex);
     sendInstantDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
-                 pantos[0].getActuationAngle(0),
-                 pantos[0].getActuationAngle(1), 
-                 pantos[0].getActuationAngle(2), 
-                 pantos[1].getActuationAngle(0), 
-                 pantos[1].getActuationAngle(1), 
-                 pantos[1].getActuationAngle(2),
-                 pos0.x,
-                 pos0.y,
-                 pantos[0].getRotation(),
-                 pos1.x,
-                 pos1.y,
-                 pantos[1].getRotation());
+        degrees(pantos[0].getActuationAngle(0)),
+        degrees(pantos[0].getActuationAngle(1)), 
+        degrees(pantos[0].getActuationAngle(2)), 
+        degrees(pantos[1].getActuationAngle(0)), 
+        degrees(pantos[1].getActuationAngle(1)), 
+        degrees(pantos[1].getActuationAngle(2)),
+        pos0.x,
+        pos0.y,
+        degrees(pantos[0].getRotation()),
+        pos1.x,
+        pos1.y,
+        degrees(pantos[1].getRotation()));
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
