@@ -1,9 +1,14 @@
-/* eslint-disable require-jsdoc */
 const fs = require('fs');
 const MeshCreator = require('./MeshCreator.js');
 const Vector = require('../../lib/vector.js');
 
+/**
+ * @description Class for code generation.
+ */
 class FileCreator {
+  /**
+   * @description Creates a new instance of FileCreator.
+   */
   constructor() {
     this.imports = 'const DualPantoFramework = require(\'./dualpantoframework' +
     '\');\n' +
@@ -30,6 +35,15 @@ class FileCreator {
     this.pantoyOffset = 5;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Generates file out of found objects in .svg files.
+   * @param {Array} hapticBoxObjects - Array containing found boxed objects.
+   * @param {Array} hapticMeshObjects - Array containing found polygon objects.
+   * @param {string} studentDir - String containing the path of student
+   * directory.
+   * @param {Vector} offset - Vector containing the overall ofset of the svg.
+   */
   generateFile(hapticBoxObjects,
       hapticMeshObjects,
       studentDir, offset) {
@@ -69,6 +83,15 @@ class FileCreator {
     fs.writeFileSync(studentDir + '/prototype.js', outputString);
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Creates code for a concrete object.
+   * @param {Array} hapticMeshObjects - Array containing found polygon objects.
+   * @param {number} i - Index of current object inside the Array.
+   * @param {Array} mesh - Array of Vectors defining postions of verticies.
+   * @param {string} outputString - String that contains the created code.
+   * @return {string} String that contains the created code.
+   */
   addMeshToFile(hapticMeshObjects, i, mesh, outputString) {
     outputString = outputString.concat('const hapticMeshObject' +
       i + ' = device.addHapticObject(');
@@ -248,10 +271,22 @@ class FileCreator {
     return outputString;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Returns code as String, that creates a given Vector.
+   * @param {Vector} vector - Vector to be created.
+   * @return {string} String that contains the created code.
+   */
   generateVecString(vector) {
     return 'new Vector(' + vector.x + ', ' + vector.y + ')';
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Creates code for mesh creation.
+   * @param {Array} mesh - Array of Vectors defining postions of verticies.
+   * @return {string} String that contains the created code.
+   */
   generateMeshString(mesh) {
     let meshstring = 'new Mesh([\n';
     for (let i = 0; i < mesh.length; i++) {
@@ -263,11 +298,24 @@ class FileCreator {
     return meshstring;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Creates a tanslate Vector from a translate String.
+   * @param {string} translateString - String that contains the translate.
+   * @return {Vector} Translate vector.
+   */
   parseTranslate(translateString) {
     const splits = translateString.split(',');
     return new Vector(parseFloat(splits[0]), parseFloat(splits[1]));
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Transforms a point based on a given matrix string.
+   * @param {string} matrixString - String that contains the matrix.
+   * @param {Vector} position - Position vector to be transformed.
+   * @return {Vector} Position vector after transformation.
+   */
   parseMatrix(matrixString, position) {
     let values = matrixString.split('(')[1].split(')')[0];
     values = values.split(',');
@@ -280,7 +328,13 @@ class FileCreator {
     + values[5];
     return new Vector(xVal, yVal);
   }
-
+  /**
+   * @private This is an internal function.
+   * @description Applies a matrix to a polygone object.
+   * @param {string} matrixString - String that contains the matrix.
+   * @param {Array} mesh - Array of Vectors defining postions of verticies.
+   * @return {Array} Transformed mesh.
+   */
   applyMatrixToMesh(matrixString, mesh) {
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = this.parseMatrix(matrixString, mesh[i]);
@@ -288,6 +342,13 @@ class FileCreator {
     return mesh;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Applies a tranlate to a polygone object.
+   * @param {string} translateString - String that contains the translate.
+   * @param {Array} mesh - Array of Vectors defining postions of verticies.
+   * @return {Array} Translated mesh.
+   */
   applyTranslateToMesh(translateString, mesh) {
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = mesh[i].sum(this.parseTranslate(translateString));
@@ -295,6 +356,12 @@ class FileCreator {
     return mesh;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Creates a polygone from a box.
+   * @param {object} hapticBoxObject - Object to generate a mesh for.
+   * @return {Array} Generated mesh.
+   */
   generateMeshFromBox(hapticBoxObject) {
     const mesh = [];
     mesh.push(new Vector(parseFloat(hapticBoxObject.data.x),
@@ -312,6 +379,12 @@ class FileCreator {
     return mesh;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description transfrom a mesh to the panto world.
+   * @param {Array} mesh - Array of Vectors defining postions of verticies.
+   * @return {Array} Generated mesh.
+   */
   transformMeshToPanto(mesh) {
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = new Vector(mesh[i].x - this.pantoxOffset, -(mesh[i].y) +
