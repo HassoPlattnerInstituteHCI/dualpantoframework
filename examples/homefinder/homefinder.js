@@ -70,40 +70,40 @@ function start() {
 
 
 function showHotels() {
-  DualPantoFramework.runScript([
+  Broker.runScript([
     () => VoiceInteraction.speakText('Das'),
     () => device.movePantoTo(1, new Vector(50, -50, 0)),
-    () => DualPantoFramework.waitMS(500),
+    () => Broker.waitMS(500),
     () => VoiceInteraction.speakText('ist Hotel Adlon'),
-    () => DualPantoFramework.waitMS(500),
+    () => Broker.waitMS(500),
     () => VoiceInteraction.speakText('Das'),
     () => device.movePantoTo(1, new Vector(50, -75, 0)),
-    () => DualPantoFramework.waitMS(500),
+    () => Broker.waitMS(500),
     () => VoiceInteraction.speakText('ist Hotel Air B&B'),
-    () => DualPantoFramework.waitMS(500)
+    () => Broker.waitMS(500)
   ]);
 }
 
 function nearbyLocation(area) {
   if (area === 'first_Hotel') {
     follow = false;
-    DualPantoFramework.runScript([
+    Broker.runScript([
       () => VoiceInteraction.speakText('Das'),
       () => device.movePantoTo(1, hotels[0]),
-      () => DualPantoFramework.waitMS(500),
+      () => Broker.waitMS(500),
       () => VoiceInteraction.speakText('ist Hotel Adlon'),
-      () => DualPantoFramework.waitMS(500),
+      () => Broker.waitMS(500),
       () => refollow()
     ]);
   }
   if (area === 'second_Hotel') {
     follow = false;
-    DualPantoFramework.runScript([
+    Broker.runScript([
       () => VoiceInteraction.speakText('Das'),
       () => device.movePantoTo(1, hotels[1]),
-      () => DualPantoFramework.waitMS(500),
+      () => Broker.waitMS(500),
       () => VoiceInteraction.speakText('ist Hotel Air B&B'),
-      () => DualPantoFramework.waitMS(500),
+      () => Broker.waitMS(500),
       () => refollow()
     ]);
   }
