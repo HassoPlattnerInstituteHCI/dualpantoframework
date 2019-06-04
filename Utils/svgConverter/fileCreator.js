@@ -1,3 +1,4 @@
+'use strict';
 const fs = require('fs');
 const MeshCreator = require('./MeshCreator.js');
 const Vector = require('../../lib/vector.js');
@@ -49,7 +50,7 @@ class FileCreator {
       studentDir, offset) {
     const meshCreator = new MeshCreator(offset.x,
         offset.y);
-    let outputString = '';
+    let outputString = '\'use strict\';\n';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
     outputString = outputString.concat(this.startFunction);
