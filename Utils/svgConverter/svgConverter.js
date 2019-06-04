@@ -1,4 +1,5 @@
-/* eslint-disable require-jsdoc */
+'use strict';
+
 const FileGenerator = require('./fileCreator.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
@@ -6,15 +7,29 @@ const fs = require('fs');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
 
-
+/**
+ * @description Class for code generation.
+ */
 class svgConverter {
+  /**
+   * @description Creates a new instance of FileCreator.
+   * @param {string} svgPath - Path of the svg.
+   * @param {string} studentDir - Path of the studen directory.
+   */
   constructor(svgPath, studentDir) {
     this.svgPath = svgPath;
     this.studentDir = studentDir;
   }
 
-  applyMatrix(vector, MatrixString) {
-    let values = MatrixString.split('(')[1].split(')')[0];
+  /**
+   * @private This is an internal function.
+   * @description Applies a matrix to a position.
+   * @param {Vector} vector - Vector of the position.
+   * @param {string} matrixString - String that contains the matrix.
+   * @return {Vector} Transformed Vector.
+   */
+  applyMatrix(vector, matrixString) {
+    let values = matrixString.split('(')[1].split(')')[0];
     values = values.split(',');
     for (let i = 0; i < values.length; i ++) {
       values[i] = parseFloat(values[i]);
@@ -24,6 +39,14 @@ class svgConverter {
     return new Vector( xVal, yVal);
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Traces the svg pattern hyrachie for a specifid one.
+   * @param {number} id - Id of the starting Pattern.
+   * @param {object} result - The svg Object.
+   * @param {string} pattern - String that contains the pattern.
+   * @return {boolean} If pattern is in hyrachie or not.
+   */
   searchForForcePattern(id, result, pattern) {
     let currentID = id;
     let nextID = id;
@@ -41,6 +64,13 @@ class svgConverter {
     return true;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Find the pattern for an id.
+   * @param {number} id - Id of the pattern.
+   * @param {object} result - The svg Object.
+   * @return {object} Pattern.
+   */
   getPatternForID(id, result) {
     for (let pat = 0; pat < result.svg.defs[0].pattern.length; pat++) {
       if (result.svg.defs[0].pattern[pat].$.id === id) {
@@ -50,6 +80,10 @@ class svgConverter {
     return undefined;
   }
 
+  /**
+   * @private This is an internal function.
+   * @description Parses the svg
+   */
   loadWorld() {
     console.log('loading ', this.svgPath);
     fs.readFile(this.svgPath, function(err, data) {
