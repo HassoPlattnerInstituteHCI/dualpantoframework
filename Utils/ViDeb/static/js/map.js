@@ -109,11 +109,6 @@ const setup = function() {
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 };
 
-/*  const drawObstacle = function(points, id) {
-  obstacles[id] = svg.append('polygon')
-      .attr('points', points);
-};  */
-
 const removeObstacle = function(id) {
   obstacles[id].remove();
 };
