@@ -62,16 +62,7 @@ ws.onmessage = function(event) {
     case 'createObstacle':
       if (data.pointArray.length == 2) {
         drawLine(data.pointArray, 'black');
-      } else {/*
-        let points = '';
-        for (let i = 0; i < data.pointArray.length; i++) {
-          if (i != 0) {
-            points = points.concat(' ');
-          }
-          points = points.concat((data.pointArray[i].x + 150) + ',' +
-              (-data.pointArray[i].y));
-        }
-        drawObstacle(points, data.id);*/
+      } else {
         let lastPoint = data.pointArray[0];
         for (let i = 1; i < data.pointArray.length; i++) {
           drawLine([lastPoint, data.pointArray[i]], 'black');
