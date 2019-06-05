@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const WebSocketServer = require('websocket').server;
 const DualPantoFramework = require('../..');
+const {Broker} = DualPantoFramework;
 const connections = new Set();
 
 const server = http.createServer((request, response) => {
@@ -64,7 +65,7 @@ wsServer.on('request', (request) => {
   connections.add(connection);
   console.log((new Date()) + ' Connection accepted.');
 
-  for (const device of DualPantoFramework.getDevices()) {
+  for (const device of Broker.getDevices()) {
     bindEventHandler(device);
   }
   function bindEventHandler(device) {
@@ -161,10 +162,10 @@ wsServer.on('request', (request) => {
   }
   connection.on('message', (message) => {
     const data = JSON.parse(message.utf8Data);
-    const device = DualPantoFramework.getDeviceByPort(data.port);
+    const device = Broker.getDeviceByPort(data.port);
     switch (data.type) {
       case 'createVirtualDevice':
-        bindEventHandler(DualPantoFramework.createVirtualDevice());
+        bindEventHandler(Broker.createVirtualDevice());
         break;
       case 'moveHandleTo':
         device.moveHandleTo(data.index, data.position);
@@ -176,7 +177,7 @@ wsServer.on('request', (request) => {
         device.disconnect();
         break;
       case 'inputText':
-        DualPantoFramework.voiceInteraction
+        Broker.voiceInteraction
             .emit('keywordRecognized', data.text);
         break;
       default:
@@ -188,7 +189,7 @@ wsServer.on('request', (request) => {
         connection.remoteAddress + ' disconnected.');
     connections.delete(connection);
   });
-  DualPantoFramework.on('saySpeak', (text) => {
+  Broker.on('saySpeak', (text) => {
     const packet = {
       type: 'saySpeak',
       text: text
