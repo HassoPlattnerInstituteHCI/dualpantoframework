@@ -2,7 +2,8 @@
 const margin = {top: 5, bottom: 20, left: 40, right: 7};
 const height = 600 - margin.top - margin.bottom;
 const width = 1200 - margin.left - margin.right;
-
+const pantoxOffset = 170;
+const pantoyOffset = 5;
 const dualPantos = [];
 let svg;
 const obstacles = [];
@@ -146,25 +147,25 @@ class DualPanto {
     const offset = 2 * index;
     if (!this.token[0 + offset]) {
       this.token.push(svg.append('circle')
-          .attr('cx', positionX + 150)
-          .attr('cy', -positionY)
+          .attr('cx', positionX + pantoxOffset)
+          .attr('cy', -(positionY - pantoyOffset))
           .attr('r', 1)
           .attr('fill', color));
       this.token.push(svg.append('line')
           .attr('class', 'aimline')
           .attr('x1', positionX)
-          .attr('y1', -positionY)
-          .attr('x2', positionX + 150 + directionVec.x)
-          .attr('y2', -positionY + directionVec.y)
+          .attr('y1', -(positionY - pantoyOffset))
+          .attr('x2', positionX + pantoxOffset + directionVec.x)
+          .attr('y2', -(positionY - pantoyOffset) + directionVec.y)
           .style('stroke', 'black'));
     } else {
-      this.token[0 + offset].attr('cx', positionX + 150)
-          .attr('cy', -positionY);
+      this.token[0 + offset].attr('cx', positionX + pantoxOffset)
+          .attr('cy', -(positionY - pantoyOffset));
 
-      this.token[1 + offset].attr('x1', positionX +150)
-          .attr('y1', -positionY)
-          .attr('x2', positionX + 150 + directionVec.x)
-          .attr('y2', -positionY + directionVec.y);
+      this.token[1 + offset].attr('x1', positionX +pantoxOffset)
+          .attr('y1', -(positionY - pantoyOffset))
+          .attr('x2', positionX + pantoxOffset + directionVec.x)
+          .attr('y2', -(positionY - pantoyOffset) + directionVec.y);
     }
   }
 }
