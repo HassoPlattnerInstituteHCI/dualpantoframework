@@ -54,8 +54,10 @@ class Panto {
     return ({
       x: Math.cos(leftElbowTotalAngle) * left.outerLength + leftInnerX,
       y: Math.sin(leftElbowTotalAngle) * left.outerLength + leftInnerY,
-      a1: leftBaseAngle,
-      a2: rightBaseAngle
+      leftAngle: leftBaseAngle * 180 / Math.PI,
+      rightAngle: rightBaseAngle * 180 / Math.PI,
+      leftElbow: {x: leftInnerX, y: leftInnerY},
+      rightElbow: {x: rightInnerX, y: rightInnerY}
     });
   }
 
@@ -64,10 +66,10 @@ class Panto {
   }
 
   generateGrid(stepSize) {
-    const leftStart = Panto.radians(0);
+    const leftStart = Panto.radians(-20);
     const leftEnd = Panto.radians(-225);
     const rightStart = Panto.radians(45);
-    const rightEnd = Panto.radians(-180);
+    const rightEnd = Panto.radians(-160);
 
     const leftDist = Math.abs(leftEnd - leftStart);
     const rightDist = Math.abs(rightEnd - rightStart);
@@ -94,28 +96,28 @@ class Panto {
     const data = [];
 
     for (let leftIndex = 0; leftIndex <= leftSteps; leftIndex++) {
+      const red = leftIndex / leftSteps;
       const results = [];
       const leftAngle = leftActualStart + leftStep * leftIndex;
       for (let rightIndex = 0; rightIndex <= rightSteps; rightIndex++) {
+        const blue = rightIndex / rightSteps;
         const rightAngle = rightActualStart + rightStep * rightIndex;
         try {
-          results.push(this.forwardKinematics(leftAngle, rightAngle));
+          const result = this.forwardKinematics(leftAngle, rightAngle);
+          result.id = leftIndex * rightSteps + rightSteps;
+          result.color = `rgb(${red*255},0,${blue*255})`;
+          results.push(result);
         } catch (error) {
+          results.push(undefined);
         }
       }
       data.push(results);
     }
 
-    return data.map((a, i1) => a.map((p, i2) => {
-      return {
-        x: p.x,
-        y: p.y,
-        n1: i1 > 0 ? data[i1 - 1][i2] : undefined,
-        n2: i2 > 0 ? data[i1][i2 - 1] : undefined,
-        a1: p.a1,
-        a2: p.a2
-      };
-    })).flat();
+    return data
+        .flat()
+        .filter((p) => p !== undefined)
+        .filter((p) => p.leftAngle < p.rightAngle); // TODO: better check
   }
 
   static map(x, inMin, inMax, outMin, outMax) {
@@ -123,15 +125,20 @@ class Panto {
   }
 
   calcScale(width, height, padding) {
+    console.log(width, height);
     const xInputRange = this.range.maxX - this.range.minX;
     const yInputRange = this.range.maxY - this.range.minY;
     const xOutputRange = width - 2 * padding;
     const yOutputRange = height - 2 * padding;
+    console.log(xOutputRange, yOutputRange);
+    console.log(xInputRange, yInputRange);
 
     const xScale = xOutputRange / xInputRange;
     const yScale = yOutputRange / yInputRange;
+    console.log(xScale, yScale);
 
     const scale = Math.min(xScale, yScale);
+    console.log(scale);
 
     const xOffset = Panto.map(
         0,

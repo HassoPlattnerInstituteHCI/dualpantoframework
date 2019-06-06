@@ -9,7 +9,7 @@
     "forcePidFactor": [0.375, 0, 0.8],
     "range": {
         "minX": -175,
-        "minY": -190,
+        "minY": -205,
         "maxX": 175,
         "maxY": 5
     },

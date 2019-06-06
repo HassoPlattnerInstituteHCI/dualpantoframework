@@ -1,0 +1,18 @@
+* {
+    margin:0;
+    padding:0;
+    width:100%;
+    overflow: hidden;
+}
+html,body {
+    height:100%;
+}
+body {
+    display:table;
+}
+div {
+    display:table-row;
+}
+div + div {
+    height:100%;  
+}

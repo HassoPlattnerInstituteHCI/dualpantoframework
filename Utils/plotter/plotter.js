@@ -2,26 +2,31 @@
 
 let panto;
 let chart;
-let context;
-let dataContainer;
 let scale;
-let mousePos = {x: 0, y: 0};
+let linkageLayer;
+let circleLayer;
+let labelLayer;
 
-const width = 800;
-const height = 600;
+let width = '100%';
+let height = '100%';
 
-const axisStyle = 'grey';
-const pointStyle = 'blue';
-const pointHoverStyle = 'red';
-const gridStyle = 'black';
-const motorStyle = 'grey';
-const textPadding = 2;
-const textBackground = 'white';
-const textBackgroundStroke = 'black';
-const textStyle = 'black';
+// const axisStyle = 'grey';
+// const pointStyle = 'blue';
+// const pointHoverStyle = 'red';
+// const gridStyle = 'black';
+// const motorStyle = 'grey';
+// const textPadding = 2;
+// const textBackground = 'white';
+// const textBackgroundStroke = 'black';
+// const textStyle = 'black';
 
-const pointSize = 3;
-const motorSize = 15;
+// const pointSize = 3;
+// const motorSize = 15;
+
+const circleRadius = 5;
+
+const labelOffsetX = 10;
+const labelPadding = 2;
 
 // eslint-disable-next-line no-unused-vars
 function load(file) {
@@ -34,148 +39,107 @@ function setup(event) {
   const config = event.target.result;
   panto = new Panto(JSON.parse(config));
 
-  const base = d3.select('#container');
-  chart = base.append('canvas')
+  chart = d3
+      .select('#container')
+      .append('svg')
       .attr('width', width)
       .attr('height', height);
-  const elem = chart.node();
-  elem.onmousemove = (e) => {
-    const rect = elem.getBoundingClientRect();
-    mousePos = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  };
-  context = elem.getContext('2d');
-  const detachedContainer = document.createElement('custom');
-  dataContainer = d3.select(detachedContainer);
-  d3.timer(drawCanvas);
-  const grid = panto.generateGrid(0.1);
-  drawCustom(grid);
-}
 
-function drawCustom(data) {
+  const bb = chart.node().getBoundingClientRect();
+  width = bb.width;
+  height = bb.height;
+
+  linkageLayer = chart.append('g');
+  circleLayer = chart.append('g');
+  labelLayer = chart.append('g');
+
   scale = panto.calcScale(width, height, 5);
 
-  const dataBinding = dataContainer.selectAll('custom.rect')
-      .data(data, function(d) {
-        return d;
-      });
-
-  dataBinding.enter()
-      .append('custom')
-      .classed('point', true)
-      .attr('x', (d) => scale.x(d.x))
-      .attr('y', (d) => scale.y(d.y))
-      .attr('x1', (d) => d.n1 ? scale.x(d.n1.x) : undefined)
-      .attr('y1', (d) => d.n1 ? scale.y(d.n1.y) : undefined)
-      .attr('x2', (d) => d.n2 ? scale.x(d.n2.x) : undefined)
-      .attr('y2', (d) => d.n2 ? scale.y(d.n2.y) : undefined)
-      .attr('a1', (d) => d.a1)
-      .attr('a2', (d) => d.a2);
-
-  dataBinding.exit().remove();
-
-  drawCanvas();
+  update(panto.generateGrid(0.1));
 }
 
-function drawCanvas() {
-  // clear canvas
-  context.fillStyle = '#fff';
-  context.rect(0, 0, chart.attr('width'), chart.attr('height'));
-  context.fill();
+function format(number) {
+  const sign = number >= 0 ? '+' : '-';
+  const abs = Math.abs(number);
+  const whole = (abs / 1000).toFixed(3).substring(2, 5);
+  const remainder = (abs % 1).toFixed(3).substring(1, 5);
+  return sign + whole + remainder;
+}
 
-  // axis
-  const yAxis = scale.x(0);
-  const xAxis = scale.y(0);
-  context.strokeStyle = axisStyle;
-  context.beginPath();
-  context.moveTo(yAxis, 0);
-  context.lineTo(yAxis, height);
-  context.moveTo(0, xAxis);
-  context.lineTo(width, xAxis);
-  context.stroke();
+function line(x1, y1, x2, y2) {
+  linkageLayer
+      .append('line')
+      .attr('x1', scale.x(x1))
+      .attr('y1', scale.y(y1))
+      .attr('x2', scale.x(x2))
+      .attr('y2', scale.y(y2))
+      .attr('stroke', 'gray');
+}
 
-  // motors
-  context.strokeStyle = motorStyle;
-  context.arc(
-      scale.x(panto.left.baseX),
-      scale.y(panto.left.baseY),
-      motorSize,
-      0,
-      Math.PI * 2);
-  context.stroke();
-  context.beginPath();
-  context.arc(
-      scale.x(panto.right.baseX),
-      scale.y(panto.right.baseY),
-      motorSize,
-      0,
-      Math.PI * 2);
-  context.stroke();
+function mouseOver(d, i, n) {
+  // make circle bigger
+  d3
+      .select(n[i])
+      .attr('r', circleRadius * 2);
+  // draw linkages
+  line(panto.left.baseX, panto.left.baseY, d.leftElbow.x, d.leftElbow.y);
+  line(d.x, d.y, d.leftElbow.x, d.leftElbow.y);
+  line(panto.right.baseX, panto.right.baseY, d.rightElbow.x, d.rightElbow.y);
+  line(d.x, d.y, d.rightElbow.x, d.rightElbow.y);
+  // add label
+  const text = labelLayer
+      .append('text')
+      .attr('x', scale.x(d.x) + labelOffsetX)
+      .attr('y', scale.y(d.y))
+      .attr('alignment-baseline', 'middle')
+      .text(`${format(d.leftAngle)}° / ${format(d.rightAngle)}°`);
+  const bb = text
+      .node()
+      .getBBox();
+  labelLayer
+      .append('rect')
+      .attr('x', bb.x - labelPadding)
+      .attr('y', bb.y - labelPadding)
+      .attr('width', bb.width + labelPadding * 2)
+      .attr('height', bb.height + labelPadding * 2)
+      .attr('fill', 'white')
+      .attr('stroke', 'lightgray')
+      .lower();
+}
 
-  let activeElem;
+function mouseOut(d, i, n) {
+  d3
+      .select(n[i])
+      .attr('r', circleRadius);
+  linkageLayer
+      .selectAll('*')
+      .remove();
+  labelLayer
+      .selectAll('*')
+      .remove();
+}
 
-  context.strokeStyle = gridStyle;
-  const elements = dataContainer.selectAll('custom.point');
-  elements.each(function(d) {
-    const node = d3.select(this);
+function update(data) {
+  const mapped = data.map((d) => d.y);
+  console.log(mapped);
+  console.log(Math.max(...mapped));
+  console.log(Math.min(...mapped));
+  const circles =
+      circleLayer
+          .selectAll('circles')
+          .data(data);
 
-    const x = node.attr('x');
-    const y = node.attr('y');
-    const x1 = node.attr('x1');
-    const y1 = node.attr('y1');
-    const x2 = node.attr('x2');
-    const y2 = node.attr('y2');
+  circles
+      .enter()
+      .append('circle')
+      .attr('cx', (d) => scale.x(d.x))
+      .attr('cy', (d) => scale.y(d.y))
+      .attr('r', circleRadius)
+      .attr('fill', (d) => d.color)
+      .on('mouseover', mouseOver)
+      .on('mouseout', mouseOut);
 
-    context.beginPath();
-    if (!x1 || !y1) {
-      if (!x2 || !y2) {
-        // no neighbours
-      } else {
-        context.moveTo(x, y);
-        context.lineTo(x2, y2);
-      }
-    } else {
-      if (!x2 || !y2) {
-        context.moveTo(x1, y1);
-        context.lineTo(x, y);
-      } else {
-        context.moveTo(x1, y1);
-        context.lineTo(x, y);
-        context.lineTo(x2, y2);
-      }
-    }
-    context.stroke();
-
-    context.beginPath();
-    context.arc(x, y, pointSize, 0, Math.PI * 2);
-
-    const hover = context.isPointInPath(mousePos.x, mousePos.y);
-    if (hover) {
-      const a1 = node.attr('a1');
-      const a2 = node.attr('a2');
-      activeElem = {a1, a2};
-    }
-
-    context.fillStyle = hover ? pointHoverStyle : pointStyle;
-    context.fill();
-  });
-
-  if (activeElem) {
-    const text = activeElem.a1 + '\n' + activeElem.a2;
-    const measure = context.measureText(text);
-    context.fillStyle = textBackground;
-    context.strokeStyle = textBackgroundStroke;
-    context.fillRect(
-        mousePos.x,
-        mousePos.y,
-        measure.width + textPadding * 2,
-        10 + textPadding * 2);
-    context.fillStyle = textStyle;
-    context.fillText(
-        text,
-        mousePos.x + textPadding,
-        mousePos.y + 10 + textPadding);
-  }
+  circles
+      .exit()
+      .remove();
 }
