@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework.svg?style=svg&circle-token=32b766f8a9d2c9a0c612d215322a6dab4aec813d)](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework)
 
-version 0.2
+version 0.3
 
 dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner, Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
