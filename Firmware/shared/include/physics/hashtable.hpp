@@ -12,7 +12,7 @@
 class Hashtable
 {
 private:
-    static constexpr double c_targetStepSize = 3;
+    static constexpr double c_targetStepSize = 5;
     static const uint32_t c_stepsX =
         (uint32_t)((rangeMaxX - rangeMinX) / c_targetStepSize) + 1;
     static const uint32_t c_stepsY =
