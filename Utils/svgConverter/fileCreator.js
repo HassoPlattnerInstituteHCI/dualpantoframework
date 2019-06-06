@@ -167,7 +167,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerInside) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-      'Component(new MeshTrigger(mesh' + i + ')\n  ');
+      'Component(new MeshTrigger(mesh' + i + '))\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('let playing' + i +
           ' = false;\n  ');
