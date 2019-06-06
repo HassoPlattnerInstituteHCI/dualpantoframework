@@ -8,9 +8,9 @@
     "usesSpi": true,
     "forcePidFactor": [0.375, 0, 0.8],
     "range": {
-        "minX": -175,
+        "minX": -180,
         "minY": -205,
-        "maxX": 175,
+        "maxX": 180,
         "maxY": 5
     },
     "pantos": {

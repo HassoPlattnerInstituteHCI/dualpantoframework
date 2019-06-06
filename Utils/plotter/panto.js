@@ -114,10 +114,29 @@ class Panto {
       data.push(results);
     }
 
-    return data
-        .flat()
-        .filter((p) => p !== undefined)
-        .filter((p) => p.leftAngle < p.rightAngle); // TODO: better check
+    // TODO: better filter
+    const filteredData =
+      data.map((a) => a.map((p) => p.leftAngle < p.rightAngle ? p : undefined));
+    const flattenedData = filteredData.flat();
+    const cleanedData = flattenedData.filter((p) => p !== undefined);
+
+    const grid = filteredData.map((a, i1) => a.map((p, i2) => {
+      if (p === undefined) {
+        return [];
+      }
+      const n1 = i1 > 0 ? data[i1 - 1][i2] : undefined;
+      const l1 = n1 !== undefined ? {p1: p, p2: n1} : undefined;
+      const n2 = i2 > 0 ? data[i1][i2 - 1] : undefined;
+      const l2 = n2 !== undefined ? {p1: p, p2: n2} : undefined;
+      return [l1, l2];
+    }));
+    const flattenedGrid = grid.flat(2);
+    const cleanedGrid = flattenedGrid.filter((p) => p !== undefined);
+
+    return {
+      points: cleanedData,
+      grid: cleanedGrid
+    };
   }
 
   static map(x, inMin, inMax, outMin, outMax) {
@@ -125,20 +144,15 @@ class Panto {
   }
 
   calcScale(width, height, padding) {
-    console.log(width, height);
     const xInputRange = this.range.maxX - this.range.minX;
     const yInputRange = this.range.maxY - this.range.minY;
     const xOutputRange = width - 2 * padding;
     const yOutputRange = height - 2 * padding;
-    console.log(xOutputRange, yOutputRange);
-    console.log(xInputRange, yInputRange);
 
     const xScale = xOutputRange / xInputRange;
     const yScale = yOutputRange / yInputRange;
-    console.log(xScale, yScale);
 
     const scale = Math.min(xScale, yScale);
-    console.log(scale);
 
     const xOffset = Panto.map(
         0,
