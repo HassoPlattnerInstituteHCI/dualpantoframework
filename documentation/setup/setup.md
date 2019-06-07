@@ -12,7 +12,7 @@ Note for Windows users: You'll need to run the scripts from an Visual Stutio dev
 
 ## Uploading the Firmware
 
-In order to upload the firmware to the device, connect it and run `npm run platformio-upload`.
+In order to upload the firmware to the device, connect it and run `npm run platformio upload`.
 
 ## Calibration
 
