@@ -187,6 +187,7 @@ class svgConverter {
               polarForce: false};
             let strokeIndex;
             const styleValues = result.svg.g[0].path[j].$.style.split(';');
+            let dashArrayFound = false;
             for (let i = 0; i < styleValues.length; i++) {
               if (styleValues[i].includes('stroke:')) {
                 strokeIndex = i;
@@ -225,6 +226,7 @@ class svgConverter {
                 }
               }
               if (styleValues[i].includes('stroke-dasharray')) {
+                dashArrayFound = true;
                 const temp = styleValues[i].split(':');
                 if (temp[1] === 'none') {
                   const stroketype = styleValues[strokeIndex].split(':')[1];
@@ -245,6 +247,21 @@ class svgConverter {
                     console.log('harstepout', result.svg.g[0].path[j].$.id);
                   }
                 }
+              }
+            }
+            if(!dashArrayFound){
+              if(!strokeIndex){
+                for (let index = 0; index < styleValues.length; index++) {
+                  if (styleValues[index].includes('stroke:')) {
+                    strokeIndex = index;
+                  }
+                }
+              }
+              const stroketype = styleValues[strokeIndex].split(':')[1];
+              if (stroketype === '#000000') {
+                newHapticMeshObject.collider = true;
+                found = true;
+                console.log('collider', result.svg.g[0].path[j].$.id);
               }
             }
             if (found) {
@@ -366,7 +383,6 @@ class svgConverter {
               const userString = result.svg.g[0].g[j].text[0].tspan[0]._;
               if (userString.includes('|')) {
                 const directionValue = userString.split('|')[0];
-                console.log(userString.split('|')[0]);
                 switch (directionValue) {
                   case '->':
                     newTrigger.triggerStartTouch = true;
