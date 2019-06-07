@@ -32,7 +32,7 @@ class FileCreator {
     '\n  open(\'http://localhost:8080/map.html\');' +
     '\n setTimeout(generateLevel, 3000);' +
     '\n}\n\n';
-    this.pantoxOffset = 170;
+    this.pantoxOffset = 175;
     this.pantoyOffset = 5;
   }
 

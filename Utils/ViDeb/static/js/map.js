@@ -2,7 +2,7 @@
 const margin = {top: 5, bottom: 20, left: 40, right: 7};
 const height = 600 - margin.top - margin.bottom;
 const width = 1200 - margin.left - margin.right;
-const pantoxOffset = 170;
+const pantoxOffset = 175;
 const pantoyOffset = 5;
 const dualPantos = [];
 let svg;
