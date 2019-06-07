@@ -89,7 +89,7 @@ class svgConverter {
     fs.readFile(this.svgPath, function(err, data) {
       parser.parseString(data, function(err, result) {
         const hapticBoxObjects = [];
-        const offset = new Vector(0, 0);
+        let offset = new Vector(0, 0);
         if (result.svg.g[0].$.transform) {
           offset = new Vector(result.svg.g[0].$.transform.split('(')[1]
               .split(')')[0].split(',')[0], result.svg.g[0].$.transform
