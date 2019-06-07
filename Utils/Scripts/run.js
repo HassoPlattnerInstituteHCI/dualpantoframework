@@ -139,11 +139,16 @@ function platformio(command) {
   return exec(platformioExec, ['run', '-d Firmware', `-t ${command}`]);
 }
 
+function plotter() {
+  return exec('http-server', ['Utils/plotter/']);
+}
+
 const handlers = {
   'build': build,
   'clean': clean,
   'config': config,
-  'platformio': platformio
+  'platformio': platformio,
+  'plotter': plotter
 };
 
 let platformioExec;

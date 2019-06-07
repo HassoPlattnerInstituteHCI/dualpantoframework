@@ -9,6 +9,7 @@
     "clean": "npm run script clean",
     "platformio": "npm run script platformio",
     "config": "npm run script config",
+    "plotter": "npm run script plotter",
     "script": "node ./Utils/Scripts/run.js",
     "setup-commit-hook": "if-env NODE_ENV=production && echo \" production mode \" || node ./Utils/Scripts/createJsCommitHook.js"
   },
