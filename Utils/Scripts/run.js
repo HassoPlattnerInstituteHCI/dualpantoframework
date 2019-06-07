@@ -125,7 +125,7 @@ function clean(target) {
 
 function config(target) {
   if (target === undefined) {
-    target = 'barbie';
+    target = 'doerte';
   }
   log(`Generating config ${target}`, colorGreen);
   return exec('node', ['Firmware/GenerateHardwareConfig.js', target]);
