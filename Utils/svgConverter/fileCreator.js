@@ -153,7 +153,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerEnter) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-      'Component(new MeshTrigger(mesh' + i + '))\n  ');
+      'Component(new MeshTrigger(mesh' + i + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('meshTriggerFor' + i +
           '.on(\'enter\', () => {VoiceInteraction.playSound(\'' +
@@ -167,7 +167,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerInside) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-      'Component(new MeshTrigger(mesh' + i + '))\n  ');
+      'Component(new MeshTrigger(mesh' + i + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('let playing' + i +
           ' = false;\n  ');
@@ -198,7 +198,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerLeave) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-        'Component(new MeshTrigger(mesh' + i + '))\n  ');
+        'Component(new MeshTrigger(mesh' + i + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('meshTriggerFor' + i +
           '.on(\'leave\', () => {VoiceInteraction.playSound(\'' +
@@ -212,7 +212,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerStartTouch) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-      'Component(new MeshTrigger(mesh' + i + '))\n  ');
+      'Component(new MeshTrigger(mesh' + i + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('meshTriggerFor' + i +
           '.on(\'startTouch\', () => {VoiceInteraction.playSound(\'' +
@@ -226,7 +226,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerTouch) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-        'Component(new MeshTrigger(mesh' + i + '))\n  ');
+        'Component(new MeshTrigger(mesh' + i + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('let playing' + i +
           ' = false;\n  ');
@@ -257,7 +257,7 @@ class FileCreator {
     if (hapticMeshObjects[i].triggerEndTouch) {
       outputString = outputString.concat('const meshTriggerFor' + i +
         ' = hapticMeshObject' + i + '.add' +
-      'Component(new MeshTrigger(mesh' + i + '))\n  ');
+      'Component(new MeshTrigger(mesh' + i + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
         outputString = outputString.concat('meshTriggerFor' + i +
           '.on(\'endTouch\', () => {VoiceInteraction.playSound(\'' +
@@ -293,7 +293,10 @@ class FileCreator {
     for (let i = 0; i < mesh.length; i++) {
       meshstring = meshstring.concat('    ' +
           this.generateVecString(mesh[i].difference(mesh[0])));
-      meshstring = meshstring.concat(',\n');
+      meshstring =
+          i == mesh.length - 1 ?
+          meshstring.concat('\n') :
+          meshstring.concat(',\n');
     }
     meshstring = meshstring.concat('  ])');
     return meshstring;
