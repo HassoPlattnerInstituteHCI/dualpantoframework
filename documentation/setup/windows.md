@@ -35,19 +35,7 @@ Python is a programming language you've probably heard of before. In this projec
 - [Download](https://www.python.org/downloads/) the python 2.7 installer. At the point of writing, the newest version is [2.7.16](https://www.python.org/downloads/release/python-2716/)
 - Run the installer (no settings need to be changed)
 
-## 4. Install `make`
-
-`make` is a build automation tool which can be run to set up and execute different build scripts. It's most notably used in the Unix world, but it can be used on Windows as well.
-
-- Download the installer [here](http://gnuwin32.sourceforge.net/downlinks/make.php)
-- Run the installer (no settings need to be changed)
-- Add the `bin` (should be `C:\Program Files (x86)\GnuWin32\bin`) folder to the `Path` variable
-  - Search for _path_ in the windows search
-  - Select "Edit environment variables for your account" or "Umgebungsvariablen für dieses Konto bearbeiten"
-  - Select "Path" and click edit
-  - Select add and insert the path
-
-## 5. Install the Visual Studio C++ compiler
+## 4. Install the Visual Studio C++ compiler
 
 - Currently, only VS 2017 works properly due to node-gyp having problems with VS 2019. Once [this pull request](https://github.com/nodejs/node-gyp/pull/1715) is merged, both 2017 and 2019 should work.
 - If you have a Visual Studio version installed, run the installer again to make sure the right package (see below) is installed. You should be able to run it by searching for `Visual Studio Installer` in the Windows search.
@@ -55,16 +43,16 @@ Python is a programming language you've probably heard of before. In this projec
 - Run the installer
 - Select at least the workload "Desktopentwicklung mit C++"
 
-## 6. Install Visual Studio Code with the Platformio plugin
+## 5. Install Visual Studio Code with the Platformio plugin
 
 Visual Studio Code is a lightweight text editor and IDE, and unlike the normal VS it's open source and completely free. But the main point why we use it is the Platformio plugin, which is a godly alternative to the abomination that is the default Arduino "IDE".
 
-### 6.1 Install Visual Studio Code
+### 5.1 Install Visual Studio Code
 
 - [Download](https://code.visualstudio.com/) the installer. Hint: There's an x64 version hidden under the arrow to the right of "Download for Windows".
 - Install it. We'd recommend checking the option to add VS Code to the explorers context menu (especially for folders) since that's pretty handy, but it's your call.
 
-### 6.2 Install the required extensions
+### 5.2 Install the required extensions
 
 - VS Code should ask you to install some extensions once you open the dualpantoframework folder with VS Code for the first time. You should allow that. If for some reason that does not happen or you accidentally clicked no (and for general info), here's a list of the recommended extensions:
   - C/C++ and C++ Intellisense: These two extensions are essential to writing C++ code in VS Code.
