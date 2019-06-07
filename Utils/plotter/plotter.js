@@ -2,29 +2,36 @@
 
 let panto;
 let chart;
-let scale;
+let backgroundLayer;
 let gridLayer;
 let linkageLayer;
 let circleLayer;
 let labelLayer;
 
-const degreeResolution = 5;
+const degreeResolution = 10;
 
-let width = '100%';
-let height = '100%';
+const backgoundCircleRadius = 18;
+const backgoundCircleColor = 'none';
+const backgroundStrokeColor = 'black';
+const backgroundStrokeWidth = 0.4;
 
-const gridStrokeColor = 'gray';
-const gridStrokeWidth = 4;
+const gridStrokeColor = 'black';
+const gridStrokeWidth = 0.4;
 
-const linkageStrokeColor = 'darkgray';
-const linkageStrokeWidth = 2;
+const linkageStrokeColor = 'gray';
+const linkageStrokeWidth = 1.0;
 
 const circleRadius = 1;
-const circleUseConstColor = false;
-const circleConstColor = 'blue';
+const circleUseConstColor = true;
+const circleConstColor = 'gray';
 
-const labelOffsetX = 10;
-const labelPadding = 2;
+const labelFontSize = 6;
+const labelOffsetX = 5;
+const labelOffsetY = 5;
+const labelPadding = 1;
+const labelBackgroundColor = 'white';
+const labelBackgroundStrokeColor = 'lightgray';
+const labelBackgroundStrokeWidth = 0.4;
 
 // eslint-disable-next-line no-unused-vars
 function load(file) {
@@ -37,22 +44,54 @@ function setup(event) {
   const config = event.target.result;
   panto = new Panto(JSON.parse(config));
 
+  const bb = panto.getBoundingBox();
+
   chart = d3
       .select('#container')
       .append('svg')
-      .attr('width', width)
-      .attr('height', height);
+      .attr('width', `${bb.width}mm`)
+      .attr('height', `${bb.height}mm`)
+      .attr('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`)
+      .attr('transform', 'scale(1,-1)');
 
-  const bb = chart.node().getBoundingClientRect();
-  width = bb.width;
-  height = bb.height;
-
+  backgroundLayer = chart.append('g');
   gridLayer = chart.append('g');
   linkageLayer = chart.append('g');
   circleLayer = chart.append('g');
   labelLayer = chart.append('g');
 
-  scale = panto.calcScale(width, height, 5);
+  backgroundLayer
+      .append('circle')
+      .attr('cx', panto.left.baseX)
+      .attr('cy', panto.left.baseY)
+      .attr('r', backgoundCircleRadius)
+      .attr('fill', backgoundCircleColor)
+      .attr('stroke', backgroundStrokeColor)
+      .attr('stroke-width', backgroundStrokeWidth);
+  backgroundLayer
+      .append('circle')
+      .attr('cx', panto.right.baseX)
+      .attr('cy', panto.right.baseY)
+      .attr('r', backgoundCircleRadius)
+      .attr('fill', backgoundCircleColor)
+      .attr('stroke', backgroundStrokeColor)
+      .attr('stroke-width', backgroundStrokeWidth);
+  backgroundLayer
+      .append('line')
+      .attr('x1', bb.x)
+      .attr('y1', 0)
+      .attr('x2', bb.x + bb.width)
+      .attr('y2', 0)
+      .attr('stroke', backgroundStrokeColor)
+      .attr('stroke-width', backgroundStrokeWidth);
+  backgroundLayer
+      .append('line')
+      .attr('x1', 0)
+      .attr('y1', bb.y)
+      .attr('x2', 0)
+      .attr('y2', bb.y + bb.height)
+      .attr('stroke', backgroundStrokeColor)
+      .attr('stroke-width', backgroundStrokeWidth);
 
   update(panto.generateGrid(degreeResolution * Math.PI / 180));
 }
@@ -68,10 +107,10 @@ function format(number) {
 function linkage(x1, y1, x2, y2) {
   linkageLayer
       .append('line')
-      .attr('x1', scale.x(x1))
-      .attr('y1', scale.y(y1))
-      .attr('x2', scale.x(x2))
-      .attr('y2', scale.y(y2))
+      .attr('x1', x1)
+      .attr('y1', y1)
+      .attr('x2', x2)
+      .attr('y2', y2)
       .attr('stroke', linkageStrokeColor)
       .attr('stroke-width', linkageStrokeWidth);
 }
@@ -89,21 +128,33 @@ function mouseOver(d, i, n) {
   // add label
   const text = labelLayer
       .append('text')
-      .attr('x', scale.x(d.x) + labelOffsetX)
-      .attr('y', scale.y(d.y))
-      .attr('alignment-baseline', 'middle')
+      .attr('x', d.x + labelOffsetX)
+      .attr('y', d.y - labelOffsetY)
+      .attr('font-size', labelFontSize);
+  text
+      .append('tspan')
+      .attr('x', d.x + labelOffsetX)
+      .attr('dy', '0.6em')
+      .text(`(${format(d.x)}|${format(d.y)})`);
+  text
+      .append('tspan')
+      .attr('x', d.x + labelOffsetX)
+      .attr('dy', '1.2em')
       .text(`${format(d.leftAngle)}° / ${format(d.rightAngle)}°`);
   const bb = text
       .node()
       .getBBox();
+  text
+      .attr('transform', `translate(0,${2 * bb.y + bb.height}) scale(1,-1)`);
   labelLayer
       .append('rect')
       .attr('x', bb.x - labelPadding)
       .attr('y', bb.y - labelPadding)
       .attr('width', bb.width + labelPadding * 2)
       .attr('height', bb.height + labelPadding * 2)
-      .attr('fill', 'white')
-      .attr('stroke', 'lightgray')
+      .attr('fill', labelBackgroundColor)
+      .attr('stroke', labelBackgroundStrokeColor)
+      .attr('stroke-width', labelBackgroundStrokeWidth)
       .lower();
 }
 
@@ -119,6 +170,23 @@ function mouseOut(d, i, n) {
       .remove();
 }
 
+function prepareDownload() {
+  const svg = chart.node();
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svg);
+  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    source = source
+        .replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  if (!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+    source = source
+        .replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+  }
+  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+  const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
+  document.getElementById('download').href = url;
+}
+
 function update(data) {
   const circles =
       circleLayer
@@ -128,8 +196,8 @@ function update(data) {
   circles
       .enter()
       .append('circle')
-      .attr('cx', (d) => scale.x(d.x))
-      .attr('cy', (d) => scale.y(d.y))
+      .attr('cx', (d) => d.x)
+      .attr('cy', (d) => d.y)
       .attr('r', circleRadius)
       .attr('fill', (d) => circleUseConstColor ? circleConstColor : d.color)
       .on('mouseover', mouseOver)
@@ -147,14 +215,16 @@ function update(data) {
   lines
       .enter()
       .append('line')
-      .attr('x1', (d) => scale.x(d.p1.x))
-      .attr('y1', (d) => scale.y(d.p1.y))
-      .attr('x2', (d) => scale.x(d.p2.x))
-      .attr('y2', (d) => scale.y(d.p2.y))
+      .attr('x1', (d) => d.p1.x)
+      .attr('y1', (d) => d.p1.y)
+      .attr('x2', (d) => d.p2.x)
+      .attr('y2', (d) => d.p2.y)
       .attr('stroke', gridStrokeColor)
       .attr('stroke-width', gridStrokeWidth);
 
   lines
       .exit()
       .remove();
+
+  prepareDownload();
 }

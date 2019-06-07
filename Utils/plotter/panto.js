@@ -50,12 +50,21 @@ class Panto {
     const leftElbowTotalAngle =
         leftElbowInsideAngle + leftElbowOffsetAngle;
 
+    const handleX =
+        Math.cos(leftElbowTotalAngle) * left.outerLength + leftInnerX;
+    const handleY =
+        Math.sin(leftElbowTotalAngle) * left.outerLength + leftInnerY;
+
     // handle position
     return ({
-      x: Math.cos(leftElbowTotalAngle) * left.outerLength + leftInnerX,
-      y: Math.sin(leftElbowTotalAngle) * left.outerLength + leftInnerY,
+      x: handleX,
+      y: handleY,
       leftAngle: leftBaseAngle * 180 / Math.PI,
       rightAngle: rightBaseAngle * 180 / Math.PI,
+      leftOuterAngle: leftElbowTotalAngle * 180 / Math.PI,
+      rightOuterAngle:
+          Math.atan2(handleY - rightInnerY, handleX - rightInnerX) *
+          180 / Math.PI,
       leftElbow: {x: leftInnerX, y: leftInnerY},
       rightElbow: {x: rightInnerX, y: rightInnerY}
     });
@@ -63,6 +72,20 @@ class Panto {
 
   static radians(degrees) {
     return degrees * Math.PI / 180;
+  }
+
+  modulo(dividend, divisor = 360) {
+    return (dividend % divisor + divisor) % divisor;
+  }
+
+  checkBend(p) {
+    return this.modulo(p.leftOuterAngle - p.leftAngle) < 180 &&
+        this.modulo(p.rightAngle - p.rightOuterAngle) < 180;
+  }
+
+  checkArea(p) {
+    return this.range.minX < p.x && p.x < this.range.maxX &&
+        this.range.minY < p.y && p.y < this.range.maxY;
   }
 
   generateGrid(stepSize) {
@@ -114,21 +137,26 @@ class Panto {
       data.push(results);
     }
 
-    // TODO: better filter
     const filteredData =
-      data.map((a) => a.map((p) => p.leftAngle < p.rightAngle ? p : undefined));
+        data.map((a) => a.map((p) =>
+            this.checkBend(p) && this.checkArea(p) ? p : undefined));
     const flattenedData = filteredData.flat();
     const cleanedData = flattenedData.filter((p) => p !== undefined);
 
     const grid = filteredData.map((a, i1) => a.map((p, i2) => {
+      const result = [];
       if (p === undefined) {
-        return [];
+        return result;
       }
-      const n1 = i1 > 0 ? data[i1 - 1][i2] : undefined;
-      const l1 = n1 !== undefined ? {p1: p, p2: n1} : undefined;
-      const n2 = i2 > 0 ? data[i1][i2 - 1] : undefined;
-      const l2 = n2 !== undefined ? {p1: p, p2: n2} : undefined;
-      return [l1, l2];
+      const n1 = i1 > 0 ? filteredData[i1 - 1][i2] : undefined;
+      if (n1) {
+        result.push({p1: p, p2: n1});
+      }
+      const n2 = i2 > 0 ? filteredData[i1][i2 - 1] : undefined;
+      if (n2) {
+        result.push({p1: p, p2: n2});
+      }
+      return result;
     }));
     const flattenedGrid = grid.flat(2);
     const cleanedGrid = flattenedGrid.filter((p) => p !== undefined);
@@ -139,37 +167,12 @@ class Panto {
     };
   }
 
-  static map(x, inMin, inMax, outMin, outMax) {
-    return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-  }
-
-  calcScale(width, height, padding) {
-    const xInputRange = this.range.maxX - this.range.minX;
-    const yInputRange = this.range.maxY - this.range.minY;
-    const xOutputRange = width - 2 * padding;
-    const yOutputRange = height - 2 * padding;
-
-    const xScale = xOutputRange / xInputRange;
-    const yScale = yOutputRange / yInputRange;
-
-    const scale = Math.min(xScale, yScale);
-
-    const xOffset = Panto.map(
-        0,
-        this.range.minX,
-        this.range.maxX,
-        padding,
-        width - padding);
-    const yOffset = Panto.map(
-        0,
-        this.range.minY,
-        this.range.maxY,
-        height - padding,
-        padding);
-
+  getBoundingBox() {
     return {
-      x: (x) => xOffset + x * scale,
-      y: (y) => yOffset - y * scale
+      x: this.range.minX,
+      y: this.range.minY,
+      width: this.range.maxX - this.range.minX,
+      height: this.range.maxY - this.range.minY
     };
   };
 }

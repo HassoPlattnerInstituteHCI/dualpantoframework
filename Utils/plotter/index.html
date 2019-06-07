@@ -3,7 +3,6 @@
 <head>
     <meta charset='utf-8'>
     <title>plotter</title>
-    <link rel='stylesheet' type='text/css' href='style.css'>
     <script src='https://d3js.org/d3.v5.min.js'></script>
     <script src='panto.js'></script>
     <script src='plotter.js'></script>
@@ -12,6 +11,9 @@
     <h3>plotter</h3>
     <div id='inputs'>
         <input type='file' onchange='load(this.files[0])'/>
+    </div>
+    <div id='outputs'>
+        <a id='download'>Download</a>
     </div>
     <div id='container'></div>
 </body>
