@@ -51,6 +51,7 @@ private:
     const float c_leftBaseY;
     const float c_rightBaseX;
     const float c_rightBaseY;
+    unsigned long prevTime = 0;
 
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::function<uint32_t()> m_angleAccessors[2];

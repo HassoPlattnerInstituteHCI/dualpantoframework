@@ -279,7 +279,10 @@ void Panto::actuateMotors()
                     error += TWO_PI;
                 }
             }
-            auto dir = error < 0;
+            unsigned char dir = error < 0;
+            unsigned long now = micros();
+            float dt = now - prevTime;
+            prevTime = now;
             error = fabs(error);
             // Power: PID
             m_integral[localIndex] += error * s_dt;
@@ -287,12 +290,15 @@ void Panto::actuateMotors()
             m_previousDiff[localIndex] = error;
             const auto globalIndex = c_globalIndexOffset + localIndex;
             const auto& pid = pidFactor[globalIndex];
+            float pVal = pid[0] * error;
+            float dVal = pid[2] * derivative;
+            dVal = pVal + dVal > 0 ? dVal : 0;
             setMotor(
                 localIndex,
                 dir,
-                pid[0] * error +
+                pVal +
                 pid[1] * m_integral[localIndex] +
-                pid[2] * derivative);
+                dVal);
         }
     }
 };

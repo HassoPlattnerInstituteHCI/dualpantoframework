@@ -7,23 +7,19 @@
     "dummyPin": 40,
     "usesSpi": true,
     "forcePidFactor": [0.375, 0, 0.8],
-    "hashtable": {
-        "memory": 200000,
-        "processedEntriesPerFrame": 1
-    },
     "range": {
-        "minX": -175,
-        "minY": -205,
-        "maxX": 175,
+        "minX": -170,
+        "minY": -200,
+        "maxX": 170,
         "maxY": 5
     },
     "pantos": {
         "upper": {
             "left": {
                 "linkage": {
-                    "innerLength": 80,
-                    "outerLength": 120,
-                    "baseX": -19.5,
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": -22,
                     "baseY": 0
                 },
                 "motor": {
@@ -36,15 +32,15 @@
                 "encoder": {
                     "steps": 16384,
                     "flipped": true,
-                    "setup": -0.44,
+                    "setup": -0.4806,
                     "spiIndex": 3
                 }
             },
             "right": {
                 "linkage": {
-                    "innerLength": 80,
-                    "outerLength": 120,
-                    "baseX": 19.5,
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": 22,
                     "baseY": 0
                 },
                 "motor": {
@@ -57,7 +53,7 @@
                 "encoder": {
                     "steps": 16384,
                     "flipped": true,
-                    "setup": -0.06,
+                    "setup": -0.0194,
                     "spiIndex": 2
                 }
             },
@@ -81,9 +77,9 @@
         "lower": {
             "left": {
                 "linkage": {
-                    "innerLength": 80,
-                    "outerLength": 120,
-                    "baseX": -19.5,
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": -22,
                     "baseY": 0
                 },
                 "motor": {
@@ -96,15 +92,15 @@
                 "encoder": {
                     "steps": 16384,
                     "flipped": true,
-                    "setup": -0.44,
+                    "setup": -0.4806,
                     "spiIndex": 0
                 }
             },
             "right": {
                 "linkage": {
-                    "innerLength": 80,
-                    "outerLength": 120,
-                    "baseX": 19.5,
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": 22,
                     "baseY": 0
                 },
                 "motor": {
@@ -117,7 +113,7 @@
                 "encoder": {
                     "steps": 16384,
                     "flipped": true,
-                    "setup": -0.06,
+                    "setup": -0.0194,
                     "spiIndex": 1
                 }
             },
