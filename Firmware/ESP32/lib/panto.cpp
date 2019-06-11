@@ -83,44 +83,27 @@ void Panto::forwardKinematics()
     const auto leftElbowInsideAngleMinusRightElbowInsideAngleSin =
         std::sin(leftElbowInsideAngleMinusRightElbowInsideAngle);
 
-    // i have given up
-    const auto jacobianTemp1 =
+    // shared factors for rows/columns
+    const auto upperRow =
         c_leftInnerLength * rightElbowInsideAngleMinusLeftBaseAngleSin;
-    const auto forSomeReasonAllCellsAreDividedByThis =
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
-
-    const auto lowerRowSharedFactor =
+    const auto lowerRow =
         c_rightInnerLength * rightElbowInsideAngleMinusRightBaseAngleSin;
+    const auto leftColumn =
+        leftElbowInsideAngleSin /
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+    const auto rightColumn =
+        leftElbowInsideAngleCos /
+        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
 
-    // jacobian cell 00
+    // set jacobian matrix
     m_jacobian[0][0] =
-        (-c_leftInnerLength *
-        leftBaseAngleSin) -
-        (c_leftInnerLength *
-        rightElbowInsideAngleMinusLeftBaseAngleSin *
-        leftElbowInsideAngleSin /
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin);
-
-    // jacobian cell 01
+        (-c_leftInnerLength * leftBaseAngleSin) - (upperRow * leftColumn);
     m_jacobian[0][1] =
-        (c_leftInnerLength *
-        leftBaseAngleCos) -
-        (c_leftInnerLength *
-        rightElbowInsideAngleMinusLeftBaseAngleSin *
-        leftElbowInsideAngleCos /
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin);
-
-    // jacobian cell 10
+        (c_leftInnerLength * leftBaseAngleCos) - (upperRow * rightColumn);
     m_jacobian[1][0] =
-        lowerRowSharedFactor *
-        leftElbowInsideAngleSin /
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
-
-    // jacobian cell 11
+        lowerRow * leftColumn;
     m_jacobian[1][1] =
-        -lowerRowSharedFactor *
-        leftElbowInsideAngleCos /
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+        -lowerRow * rightColumn;
 }
 
 void Panto::inverseKinematics()
