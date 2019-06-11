@@ -3,7 +3,6 @@
 
 #include "serial.hpp"
 
-float Panto::s_dt = 0;
 std::vector<Panto> pantos;
 
 void Panto::forwardKinematics()
@@ -285,8 +284,8 @@ void Panto::actuateMotors()
             prevTime = now;
             error = fabs(error);
             // Power: PID
-            m_integral[localIndex] += error * s_dt;
-            float derivative = (error - m_previousDiff[localIndex]) / s_dt;
+            m_integral[localIndex] += error * dt;
+            float derivative = (error - m_previousDiff[localIndex]) / dt;
             m_previousDiff[localIndex] = error;
             const auto globalIndex = c_globalIndexOffset + localIndex;
             const auto& pid = pidFactor[globalIndex];
@@ -391,11 +390,6 @@ void Panto::calibrationEnd()
         }
     }
 };
-
-void Panto::setDeltaTime(const float dt)
-{
-    s_dt = dt;
-}
 
 float Panto::getActuationAngle(const uint8_t localIndex) const
 {

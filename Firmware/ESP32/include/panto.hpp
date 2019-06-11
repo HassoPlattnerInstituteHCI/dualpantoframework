@@ -26,8 +26,6 @@ private:
     const uint8_t c_localRightIndex = 1;
     const uint8_t c_localHandleIndex = 2;
 
-    static float s_dt;
-
     const uint8_t c_pantoIndex;
     const uint8_t c_globalIndexOffset;
     const uint8_t c_globalLeftIndex;
@@ -51,7 +49,6 @@ private:
     const float c_leftBaseY;
     const float c_rightBaseX;
     const float c_rightBaseY;
-    unsigned long prevTime = 0;
 
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::function<uint32_t()> m_angleAccessors[2];
@@ -61,7 +58,8 @@ private:
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
-    unsigned long m_engagedTime[c_dofCount] = {};
+    uint32_t m_engagedTime[c_dofCount] = {};
+    uint32_t prevTime = 0;
 
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
@@ -79,7 +77,6 @@ private:
     void disengageMotors();
 public:
     Panto(uint8_t pantoIndex);
-    static void setDeltaTime(const float dt);
     float getActuationAngle(const uint8_t index) const;
     Vector2D getPosition() const;
     float getRotation() const;
