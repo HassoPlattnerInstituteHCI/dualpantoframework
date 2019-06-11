@@ -292,12 +292,38 @@ class svgConverter {
                   strokeIndex = i;
                 }
                 if (styleValues[i].includes('fill:')) {
-                  if ('url(#directedForcePattern)' === styleValues[i]
+                  if ('none' !== styleValues[i]
                       .split(':')[1]) {
-                    newTrigger.forcefield = true;
-                    found = true;
-                    console.log('triggerforcefield',
-                        result.svg.g[0].g[j].rect[0].$.id);
+                    const patternID = styleValues[i].split(':')[1]
+                        .split('(')[1].split(')')[0].split('#')[1];
+                    if (this.searchForForcePattern(patternID,
+                        result, 'directedForce')) {
+                      newTrigger.forcefield = true;
+                      found = true;
+                      console.log('triggerforcefield',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                      const pattern = this.getPatternForID(patternID, result);
+                      const origin = new Vector(0, 0);
+                      const pointA = new Vector(0, 1);
+                      const transformOrigin = this.applyMatrix(origin,
+                          pattern.patternTransform);
+                      const transformPointA = this.applyMatrix(pointA,
+                          pattern.patternTransform);
+                      const direction = transformPointA
+                          .difference(transformOrigin).normalized();
+                      newTrigger.forceDirection = direction;
+                    }
+                    if (this.searchForForcePattern(patternID,
+                        result, 'radialForce')) {
+                      newTrigger.polarForce = true;
+                      found = true;
+                      console.log('triggerpolar',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                      const pattern = this.getPatternForID(patternID, result);
+                      const transformMiddel = this.applyMatrix(new Vector(0, 0),
+                          pattern.patternTransform);
+                      newTrigger.polarPoint = transformMiddel;
+                    }
                   }
                 }
                 if (styleValues[i].includes('stroke-dasharray')) {
@@ -343,12 +369,38 @@ class svgConverter {
                   strokeIndex = i;
                 }
                 if (styleValues[i].includes('fill:')) {
-                  if ('url(#directedForcePattern)' === styleValues[i]
+                  if ('none' !== styleValues[i]
                       .split(':')[1]) {
-                    newTrigger.forcefield = true;
-                    found = true;
-                    console.log('triggerforcefield',
-                        result.svg.g[0].g[j].path[0].$.id);
+                    const patternID = styleValues[i].split(':')[1]
+                        .split('(')[1].split(')')[0].split('#')[1];
+                    if (this.searchForForcePattern(patternID,
+                        result, 'directedForce')) {
+                      newTrigger.forcefield = true;
+                      found = true;
+                      console.log('triggerforcefield',
+                          result.svg.g[0].g[j].path[0].$.id);
+                      const pattern = this.getPatternForID(patternID, result);
+                      const origin = new Vector(0, 0);
+                      const pointA = new Vector(0, 1);
+                      const transformOrigin = this.applyMatrix(origin,
+                          pattern.patternTransform);
+                      const transformPointA = this.applyMatrix(pointA,
+                          pattern.patternTransform);
+                      const direction = transformPointA
+                          .difference(transformOrigin).normalized();
+                      newTrigger.forceDirection = direction;
+                    }
+                    if (this.searchForForcePattern(patternID,
+                        result, 'radialForce')) {
+                      newTrigger.polarForce = true;
+                      found = true;
+                      console.log('triggerpolar',
+                          result.svg.g[0].g[j].path[0].$.id);
+                      const pattern = this.getPatternForID(patternID, result);
+                      const transformMiddel = this.applyMatrix(new Vector(0, 0),
+                          pattern.patternTransform);
+                      newTrigger.polarPoint = transformMiddel;
+                    }
                   }
                 }
                 if (styleValues[i].includes('stroke-dasharray')) {
@@ -488,6 +540,8 @@ class svgConverter {
               if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
                 if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
                   'translate') {
+                  console.log('has translate: ', result.svg.g[0].g[j].$
+                      .transform.split('(')[1].split(')')[0]);
                   newTrigger.translate = result.svg.g[0].g[j].$.transform
                       .split('(')[1].split(')')[0];
                 } else if (result.svg.g[0].g[j].$.transform.split('(')[0] ===

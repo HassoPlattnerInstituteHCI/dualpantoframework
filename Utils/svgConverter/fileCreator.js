@@ -104,11 +104,14 @@ class FileCreator {
       ' = hapticMeshObject' + this.objectsGenerated + '.addComponent(' +
     this.generateMeshString(mesh) + ');\n  ');
     if (hapticMeshObjects[i].collider) {
-      outputString = outputString.concat('hapticMeshObject' + this.objectsGenerated +
-        '.addComponent(new MeshCollider(mesh' + this.objectsGenerated + '));\n  ');
+      outputString = outputString.concat('hapticMeshObject' +
+        this.objectsGenerated +
+        '.addComponent(new MeshCollider(mesh' +
+        this.objectsGenerated + '));\n  ');
     }
     if (hapticMeshObjects[i].forcefield) {
-      outputString = outputString.concat('hapticMeshObject' + this.objectsGenerated +
+      outputString = outputString.concat('hapticMeshObject' +
+        this.objectsGenerated +
         '.addComponent(\n  ' + '  new MeshForcefield(\n  ' +
       '    mesh' + this.objectsGenerated + ',\n  ' +
       '    ForcefieldSampleFunctions.directedForce.bind(\n  ' +
@@ -117,19 +120,24 @@ class FileCreator {
       -hapticMeshObjects[i].forceDirection.y + '))));\n  ');
     }
     if (hapticMeshObjects[i].polarForce) {
-      outputString = outputString.concat('const centerPoint' + this.objectsGenerated + ' = ' +
+      outputString = outputString.concat('const centerPoint' +
+        this.objectsGenerated + ' = ' +
       'new Vector(' +
       (hapticMeshObjects[i].polarPoint.x - this.pantoxOffset) + ', ' +
       (-(parseFloat(hapticMeshObjects[i].polarPoint.y) + parseFloat(offset.y))
         + this.pantoyOffset)+ ');\n  ');
-      outputString = outputString.concat('let lastTic' + this.objectsGenerated + ' = 0;\n  ' +
-      'let lastError' + this.objectGenerated + ' = new Vector(0, 0, 0);\n  ' +
+      outputString = outputString.concat('let lastTic'
+        + this.objectsGenerated + ' = 0;\n  ' +
+      'let lastError' + this.objectsGenerated + ' = new Vector(0, 0, 0);\n  ' +
       'let p' + this.objectsGenerated + ' = 0.15;\n  ' +
       'let d' + this.objectsGenerated + ' = 3.5;\n  ' +
-      'const polar' + this.objectsGenerated + ' = function(position, lastPosition) {\n  ' +
+      'const polar' + this.objectsGenerated +
+      ' = function(position, lastPosition) {\n  ' +
       '  const currentTic = performance.now();\n  ' +
-      '  const deltaT = currentTic - lastTic' + this.objectsGenerated + ';\n  ' +
-      '  let error = centerPoint' + this.objectsGenerated + '.difference(position);\n  ' +
+      '  const deltaT = currentTic - lastTic' + this.objectsGenerated +
+      ';\n  ' +
+      '  let error = centerPoint' + this.objectsGenerated +
+      '.difference(position);\n  ' +
       '  let forceDirection = error.scaled(p).add(error.' +
       'difference(lastError).scaled(d/deltaT));\n  ' +
       '  lastError' + this.objectsGenerated + ' = error;\n  ' +
@@ -139,133 +147,166 @@ class FileCreator {
       '  lastTic' + this.objectsGenerated + ' = currentTic;\n  ' +
       '  return forceDirection;\n  ' +
       '}\n  \n  ');
-      outputString = outputString.concat('hapticMeshObject' + this.objectsGenerated +
+      outputString = outputString.concat('hapticMeshObject' +
+        this.objectsGenerated +
         '.addComponent(\n  ' + '  new MeshForcefield(\n  ' +
       '    mesh' + this.objectsGenerated + ',\n  ' +
       '    polar' + this.objectsGenerated + ')\n  );\n  ');
     }
     if (hapticMeshObjects[i].hardStepIn) {
-      outputString = outputString.concat('hapticMeshObject' + this.objectsGenerated +
-        '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated + ', 0, 3));\n  ');
+      outputString = outputString.concat('hapticMeshObject' +
+        this.objectsGenerated +
+        '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated +
+        ', 0, 3));\n  ');
     }
     if (hapticMeshObjects[i].hardStepOut) {
-      outputString = outputString.concat('hapticMeshObject' + this.objectsGenerated +
-        '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated + ', 3, 0));\n  ');
+      outputString = outputString.concat('hapticMeshObject' +
+        this.objectsGenerated +
+        '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated +
+        ', 3, 0));\n  ');
     }
     if (hapticMeshObjects[i].triggerEnter) {
-      outputString = outputString.concat('const meshTriggerFor' + this.objectGenerated +
+      outputString = outputString.concat('const meshTriggerFor' +
+        this.objectsGenerated +
         ' = hapticMeshObject' + this.objectsGenerated + '.add' +
       'Component(new MeshTrigger(mesh' + this.objectsGenerated + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
-        outputString = outputString.concat('meshTriggerFor' + this.objectGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'enter\', () => {VoiceInteraction.playSound(\'' +
           hapticMeshObjects[i].soundfile + '\');});\n  ');
       } else {
-        outputString = outputString.concat('meshTriggerFor' + this.objectGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'enter\', () => {VoiceInteraction.speakText(\'' +
           hapticMeshObjects[i].speech + '\');});\n  ');
       }
     }
     if (hapticMeshObjects[i].triggerInside) {
-      outputString = outputString.concat('const meshTriggerFor' + this.objectsGenerated +
+      outputString = outputString.concat('const meshTriggerFor' +
+        this.objectsGenerated +
         ' = hapticMeshObject' + this.objectsGenerated + '.add' +
       'Component(new MeshTrigger(mesh' + this.objectsGenerated + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
-        outputString = outputString.concat('let playing' + this.objectsGenerated +
+        outputString = outputString.concat('let playing' +
+          this.objectsGenerated +
           ' = false;\n  ');
-        outputString = outputString.concat('let player' + this.objectsGenerated + ';\n  ');
-        outputString = outputString.concat('meshTriggerFor' + this.objectGenerated +
+        outputString = outputString.concat('let player' +
+          this.objectsGenerated + ';\n  ');
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'inside\', () => {\n  ' +
         '  if(!playing' + this.objectsGenerated + ') {\n  ' +
-        '    player' + this.objectsGenerated + ' = VoiceInteraction.playSound(\'' +
+        '    player' + this.objectsGenerated +
+        ' = VoiceInteraction.playSound(\'' +
         hapticMeshObjects[i].soundfile + '\', true);\n  ' +
         '    playing' + this.objectsGenerated + ' = true;\n  ' +
         '  }\n  ' +
         '});\n  '
         );
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'leave\', () => {\n  ' +
-        '  if(playing' + this.objectsGenerated + ' && player' + this.objectGenerated + ') {\n  ' +
+        '  if(playing' + this.objectsGenerated + ' && player' +
+        this.objectsGenerated + ') {\n  ' +
         '    player' + this.objectsGenerated + '.stop();\n  ' +
         '    playing' + this.objectsGenerated + ' = false;\n  ' +
         '  }\n  ' +
         '});\n  '
         );
       } else {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'inside\', () => {VoiceInteraction.speakText(\'' +
           hapticMeshObjects[i].speech + '\');});\n  ');
       }
     }
     if (hapticMeshObjects[i].triggerLeave) {
-      outputString = outputString.concat('const meshTriggerFor' + this.objectsGenerated +
+      outputString = outputString.concat('const meshTriggerFor' +
+        this.objectsGenerated +
         ' = hapticMeshObject' + this.objectsGenerated + '.add' +
         'Component(new MeshTrigger(mesh' + this.objectsGenerated + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'leave\', () => {VoiceInteraction.playSound(\'' +
           hapticMeshObjects[i].soundfile + '\');});\n  ');
       } else {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'leave\', () => {VoiceInteraction.speakText(\'' +
           hapticMeshObjects[i].speech + '\');});\n  ');
       }
     }
     if (hapticMeshObjects[i].triggerStartTouch) {
-      outputString = outputString.concat('const meshTriggerFor' + this.objectsGenerated +
+      outputString = outputString.concat('const meshTriggerFor' +
+        this.objectsGenerated +
         ' = hapticMeshObject' + this.objectsGenerated + '.add' +
-      'Component(new MeshTrigger(mesh' + this.objectGenerated + '));\n  ');
+      'Component(new MeshTrigger(mesh' + this.objectsGenerated + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'startTouch\', () => {VoiceInteraction.playSound(\'' +
           hapticMeshObjects[i].soundfile + '\');});\n  ');
       } else {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'startTouch\', () => {VoiceInteraction.speakText(\'' +
           hapticMeshObjects[i].speech + '\');});\n  ');
       }
     }
     if (hapticMeshObjects[i].triggerTouch) {
-      outputString = outputString.concat('const meshTriggerFor' + this.objectsGenerated +
+      outputString = outputString.concat('const meshTriggerFor' +
+        this.objectsGenerated +
         ' = hapticMeshObject' + this.objectsGenerated + '.add' +
-        'Component(new MeshTrigger(mesh' + this.objectGenerated + '));\n  ');
+        'Component(new MeshTrigger(mesh' + this.objectsGenerated + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
-        outputString = outputString.concat('let playing' + this.objectsGenerated +
+        outputString = outputString.concat('let playing' +
+          this.objectsGenerated +
           ' = false;\n  ');
-        outputString = outputString.concat('let player' + this.objectsGenerated + ';\n  ');
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('let player' +
+          this.objectsGenerated + ';\n  ');
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'touch\', () => {\n  ' +
         '  if(!playing' + this.objectsGenerated + ') {\n  ' +
-        '    player' + this.objectsGenerated + ' = VoiceInteraction.playSound(\'' +
+        '    player' + this.objectsGenerated +
+        ' = VoiceInteraction.playSound(\'' +
         hapticMeshObjects[i].soundfile + '\', true);\n  ' +
         '    playing' + this.objectsGenerated + ' = true;\n  ' +
         '  }\n  ' +
         '});\n  '
         );
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'endTouch\', () => {\n  ' +
-        '  if(playing' + this.objectsGenerated + ' && player' + this.objectsGenerated + ') {\n  ' +
+        '  if(playing' + this.objectsGenerated + ' && player' +
+        this.objectsGenerated + ') {\n  ' +
         '    player' + this.objectsGenerated + '.stop();\n  ' +
         '    playing' + this.objectsGenerated + ' = false;\n  ' +
         '  }\n  ' +
         '});\n  '
         );
       } else {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'touch\', () => {VoiceInteraction.speakText(\'' +
           hapticMeshObjects[i].speech + '\');});\n  ');
       }
     }
     if (hapticMeshObjects[i].triggerEndTouch) {
-      outputString = outputString.concat('const meshTriggerFor' + this.objectsGenerated +
+      outputString = outputString.concat('const meshTriggerFor' +
+        this.objectsGenerated +
         ' = hapticMeshObject' + this.objectsGenerated + '.add' +
       'Component(new MeshTrigger(mesh' + this.objectsGenerated + '));\n  ');
       if (hapticMeshObjects[i].hasOwnProperty('soundfile')) {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'endTouch\', () => {VoiceInteraction.playSound(\'' +
           hapticMeshObjects[i].soundfile + '\');});\n  ');
       } else {
-        outputString = outputString.concat('meshTriggerFor' + this.objectsGenerated +
+        outputString = outputString.concat('meshTriggerFor' +
+          this.objectsGenerated +
           '.on(\'endTouch\', () => {VoiceInteraction.speakText(\'' +
           hapticMeshObjects[i].speech + '\');});\n  ');
       }
@@ -357,9 +398,13 @@ class FileCreator {
    * @return {Array} Translated mesh.
    */
   applyTranslateToMesh(translateString, mesh) {
+    console.log(mesh);
+    console.log(translateString);
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = mesh[i].sum(this.parseTranslate(translateString));
     }
+    console.log(mesh);
+    console.log();
     return mesh;
   }
 

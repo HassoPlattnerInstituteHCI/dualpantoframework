@@ -85,17 +85,17 @@ ws.onerror = function(event) {
 const drawLine = function(line, color) {
   svg.append('line')
       .attr('class', 'wall')
-      .attr('x1', line[0].x + 150)
-      .attr('y1', -line[0].y)
-      .attr('x2', line[1].x + 150)
-      .attr('y2', -line[1].y)
+      .attr('x1', line[0].x + pantoxOffset)
+      .attr('y1', -(line[0].y - pantoyOffset))
+      .attr('x2', line[1].x + pantoxOffset)
+      .attr('y2', -(line[1].y - pantoyOffset))
       .style('stroke', color);
 };
 
 const drawCircle = function(pos, size, color) {
   svg.append('circle')
-      .attr('cx', pos.x + 150)
-      .attr('cy', -pos.y)
+      .attr('cx', pos.x + pantoxOffset)
+      .attr('cy', -(pos.y - pantoyOffset))
       .attr('r', size)
       .attr('fill', color);
 };

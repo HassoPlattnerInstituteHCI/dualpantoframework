@@ -131,7 +131,7 @@ class MeshCreator {
       case 'l':
         const relativePoint = this.stringToVec(dataString);
         return new Vector(relativePoint.x + points[points.length - 1].x,
-            points[points.length - 1].y - relativePoint.y, NaN);
+            points[points.length - 1].y + relativePoint.y, NaN);
         break;
       case 'L':
         const lPoint = this.stringToVec(dataString);
