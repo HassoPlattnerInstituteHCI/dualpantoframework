@@ -7,6 +7,14 @@
 #include "config.hpp"
 #include "utils.hpp"
 
+// make sure results are in range -270° ~ 0° ~ +90°
+#define ensureAngleRange(angle) \
+    angle > HALF_PI ? \
+        angle - TWO_PI : \
+    angle < -(PI + HALF_PI) ? \
+        angle + TWO_PI : \
+        angle
+
 class Panto
 {
 private:

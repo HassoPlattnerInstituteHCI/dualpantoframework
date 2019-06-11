@@ -175,8 +175,8 @@ void Panto::inverseKinematics()
         const auto leftAngle = leftOffsetAngle - leftInnerAngle;
         const auto rightAngle = rightOffsetAngle + rightInnerAngle;
 
-        m_targetAngle[c_localLeftIndex] = leftAngle;
-        m_targetAngle[c_localRightIndex] = rightAngle;
+        m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
+        m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
     }
 };
 
@@ -215,9 +215,10 @@ void Panto::readEncoders()
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
         m_actuationAngle[localIndex] =
-            encoderFlipped[globalIndex] *
-            TWO_PI * m_angleAccessors[localIndex]() /
-            encoderSteps[globalIndex];
+            ensureAngleRange(
+                encoderFlipped[globalIndex] *
+                TWO_PI * m_angleAccessors[localIndex]() /
+                encoderSteps[globalIndex]);
     }
     m_actuationAngle[c_localHandleIndex] =
         (m_encoder[c_localHandleIndex]) ? 
@@ -230,11 +231,12 @@ void Panto::readEncoders()
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
         m_actuationAngle[localIndex] =
-            (m_encoder[localIndex]) ?
-            (encoderFlipped[globalIndex] *
-            TWO_PI * m_encoder[localIndex]->read() /
-            encoderSteps[globalIndex]) :
-            NAN;
+            ensureAngleRange(
+                (m_encoder[localIndex]) ?
+                (encoderFlipped[globalIndex] *
+                TWO_PI * m_encoder[localIndex]->read() /
+                encoderSteps[globalIndex]) :
+                NAN);
     }
     #endif
 
@@ -259,21 +261,11 @@ void Panto::actuateMotors()
         }
         else
         {
-            const auto border = HALF_PI;
-            if (m_actuationAngle[localIndex] < border &&
-                border < m_targetAngle[localIndex])
-            {
-                m_actuationAngle[localIndex] += TWO_PI;
-            }
-            else if (m_actuationAngle[localIndex] > border &&
-                border > m_targetAngle[localIndex])
-            {
-                m_targetAngle[localIndex] += TWO_PI;
-            }
             auto error =
                 m_targetAngle[localIndex] - m_actuationAngle[localIndex];
             if (localIndex == c_localHandleIndex)
-            { // Linkage offsets handle
+            {
+                // Linkage offsets handle
                 error -=
                     c_handleMountedOnRightArm ?
                     m_rightInnerAngle :
