@@ -2,21 +2,27 @@
 #include <vector>
 
 #include "serial.hpp"
+#include "performanceMonitor.hpp"
 
 std::vector<Panto> pantos;
 
 void Panto::forwardKinematics()
 {
     // base angles
+    // PERFMON_START("[abba] base angles");
     const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex];
     const auto rightBaseAngle = m_actuationAngle[c_localRightIndex];
     const auto handleAngle = m_actuationAngle[c_localHandleIndex];
+    // PERFMON_STOP("[abba] base angles");
 
     // base angle sin / cos
+    // PERFMON_START("[abbb] base angle sin / cos");
     const auto leftBaseAngleSin = std::sin(leftBaseAngle);
     const auto leftBaseAngleCos = std::cos(leftBaseAngle);
+    // PERFMON_STOP("[abbb] base angle sin / cos");
 
     // calculate inner positions
+    // PERFMON_START("[abbc] calculate inner positions");
     const auto leftInnerX =
         fma(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
     const auto leftInnerY =
@@ -25,17 +31,21 @@ void Panto::forwardKinematics()
         fma(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
     const auto rightInnerY =
         fma(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
+    // PERFMON_STOP("[abbc] calculate inner positions");
 
     // diagonal between inner positions
+    // PERFMON_START("[abbd] diagonal between inner positions");
     const auto diagonalX = rightInnerX - leftInnerX;
     const auto diagonalY = rightInnerY - leftInnerY;
     const auto diagonalSquared = diagonalX * diagonalX + diagonalY * diagonalY;
     const auto diagonalLength = std::sqrt(diagonalSquared);
+    // PERFMON_STOP("[abbd] diagonal between inner positions");
 
-    // left elbow angles 
+    // left elbow angles
     // - inside is between diagonal and linkage
     // - offset is between zero and diagonal
     // - total is between zero and linkage
+    // PERFMON_START("[abbe] left elbow angles");
     const auto leftElbowInsideAngleCos =
         (diagonalSquared +
         c_leftOuterLengthSquaredMinusRightOuterLengthSquared) /
@@ -44,23 +54,31 @@ void Panto::forwardKinematics()
     const auto leftElbowOffsetAngle = std::atan2(diagonalY, diagonalX);
     const auto leftElbowTotalAngle =
         leftElbowInsideAngle + leftElbowOffsetAngle;
+    // PERFMON_STOP("[abbe] left elbow angles");
 
     // left elbow angle sin / cos
+    // PERFMON_START("[abbf] left elbow angle sin / cos");
     const auto leftElbowInsideAngleSin =
         std::sin(leftElbowInsideAngle);
+    // PERFMON_STOP("[abbf] left elbow angle sin / cos");
 
     // handle position
+    // PERFMON_START("[abbg] handle position");
     m_handleX =
         fma(std::cos(leftElbowTotalAngle), c_leftOuterLength, leftInnerX);
     m_handleY =
         fma(std::sin(leftElbowTotalAngle), c_leftOuterLength, leftInnerY);
+    // PERFMON_STOP("[abbg] handle position");
 
     // right elbow angles
+    // PERFMON_START("[abbh] right elbow angles");
     const auto rightDiffX = m_handleX - rightInnerX;
     const auto rightDiffY = m_handleY - rightInnerY;
     const auto rightElbowInsideAngle = std::atan2(rightDiffY, rightDiffX);
+    // PERFMON_STOP("[abbh] right elbow angles");
 
     // store angles
+    // PERFMON_START("[abbi] store angles");
     m_leftInnerAngle = leftElbowInsideAngle;
     m_rightInnerAngle = rightElbowInsideAngle;
     m_pointingAngle =
@@ -68,8 +86,10 @@ void Panto::forwardKinematics()
         (c_handleMountedOnRightArm ?
         rightElbowInsideAngle :
         leftElbowInsideAngle);
+    // PERFMON_STOP("[abbi] store angles");
 
     // some weird diffs and their sinuses
+    // PERFMON_START("[abbj] some weird diffs and their sinuses");
     const auto rightElbowInsideAngleMinusLeftBaseAngle =
         rightElbowInsideAngle - leftBaseAngle;
     const auto rightElbowInsideAngleMinusLeftBaseAngleSin =
@@ -82,8 +102,10 @@ void Panto::forwardKinematics()
         leftElbowInsideAngle - rightElbowInsideAngle;
     const auto leftElbowInsideAngleMinusRightElbowInsideAngleSin =
         std::sin(leftElbowInsideAngleMinusRightElbowInsideAngle);
+    // PERFMON_STOP("[abbj] some weird diffs and their sinuses");
 
     // shared factors for rows/columns
+    // PERFMON_START("[abbk] shared factors for rows/columns");
     const auto upperRow =
         c_leftInnerLength * rightElbowInsideAngleMinusLeftBaseAngleSin;
     const auto lowerRow =
@@ -94,8 +116,10 @@ void Panto::forwardKinematics()
     const auto rightColumn =
         leftElbowInsideAngleCos /
         leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+    // PERFMON_STOP("[abbk] shared factors for rows/columns");
 
     // set jacobian matrix
+    // PERFMON_START("[abbl] set jacobian matrix");
     m_jacobian[0][0] =
         (-c_leftInnerLength * leftBaseAngleSin) - (upperRow * leftColumn);
     m_jacobian[0][1] =
@@ -104,6 +128,7 @@ void Panto::forwardKinematics()
         lowerRow * leftColumn;
     m_jacobian[1][1] =
         -lowerRow * rightColumn;
+    // PERFMON_STOP("[abbl] set jacobian matrix");
 }
 
 void Panto::inverseKinematics()

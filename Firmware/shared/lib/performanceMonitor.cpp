@@ -24,7 +24,7 @@ void PerformanceMonitor::start(std::string label)
         return;
     }
 
-    entry.m_start = micros();
+    entry.m_start = ESP.getCycleCount();
     entry.m_running = true;
 }
 
@@ -37,21 +37,25 @@ void PerformanceMonitor::stop(std::string label)
         return;
     }
 
-    auto diff = micros() - entry.m_start;
+    uint64_t end = ESP.getCycleCount();
+    uint64_t duration = 
+        entry.m_start < end ?
+        (end - entry.m_start) :
+        (end + UINT32_MAX - entry.m_start);
 
     if(entry.m_values.size() == c_measurementCount)
     {
         auto old = entry.m_values[entry.m_index];
         entry.m_sum -= old;
 
-        entry.m_values[entry.m_index] = diff;
-        entry.m_sum += diff;
+        entry.m_values[entry.m_index] = duration;
+        entry.m_sum += duration;
         entry.m_index = (entry.m_index + 1) % c_measurementCount;
     }
     else
     {
-        entry.m_values.push_back(diff);
-        entry.m_sum += diff;
+        entry.m_values.push_back(duration);
+        entry.m_sum += duration;
     }
 
     entry.m_running = false;
@@ -62,7 +66,7 @@ std::vector<std::string> PerformanceMonitor::getResults()
     std::vector<std::tuple<uint32_t, std::string, double>> temp;
 
     const std::string labelHeader("label");
-    const std::string valueHeader("avg us");
+    const std::string valueHeader("avg cycles");
     uint32_t maxLabelSize = labelHeader.size();
     uint32_t maxValueSize = valueHeader.size();
 
