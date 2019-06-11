@@ -3,8 +3,6 @@
 const Framework = require('./../../');
 const {Vector} = Framework;
 
-const p = 0;
-
 Framework.on('devicesChanged', function(devices, attached, detached) {
   // cant break in template string
   // eslint-disable-next-line max-len
