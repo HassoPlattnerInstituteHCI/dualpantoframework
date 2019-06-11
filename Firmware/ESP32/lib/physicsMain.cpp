@@ -5,8 +5,6 @@
 #include "physics/pantoPhysics.hpp"
 #include "spiEncoder.hpp"
 
-unsigned long prevTime = 0;
-
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
 #endif
