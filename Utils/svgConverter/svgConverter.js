@@ -249,8 +249,8 @@ class svgConverter {
                 }
               }
             }
-            if(!dashArrayFound){
-              if(!strokeIndex){
+            if (!dashArrayFound) {
+              if (!strokeIndex) {
                 for (let index = 0; index < styleValues.length; index++) {
                   if (styleValues[index].includes('stroke:')) {
                     strokeIndex = index;
@@ -380,28 +380,58 @@ class svgConverter {
             }
             // group Text
             if (result.svg.g[0].g[j].text) {
-              const userString = result.svg.g[0].g[j].text[0].tspan[0]._;
-              if (userString.includes('|')) {
+              let userString;
+              for (let i = 0; i < result.svg.g[0].g[j].text.length; i++) {
+                const textStyle = result.svg.g[0].g[j].text[i].$.style
+                    .split(';');
+                let color;
+                for (let k = 0; k < textStyle.length; k++) {
+                  if (textStyle[k].includes('fill')) {
+                    color = textStyle[k].split(':')[1];
+                    break;
+                  }
+                }
+                if (color == '#000000') {
+                  userString = result.svg.g[0].g[j].text[i].tspan[0]._;
+                  break;
+                }
+              }
+              if (userString && userString.includes('|')) {
                 const directionValue = userString.split('|')[0];
                 switch (directionValue) {
                   case '->':
                     newTrigger.triggerStartTouch = true;
                     found = true;
-                    console.log('triggerStartTouch',
-                        result.svg.g[0].g[j].rect[0].$.id);
+                    if (newTrigger.box === true) {
+                      console.log('triggerStartTouch',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                    } else if (newTrigger.box === false) {
+                      console.log('triggerStartTouch',
+                          result.svg.g[0].g[j].path[0].$.id);
+                    }
+
                     break;
                   case '<-':
                     newTrigger.triggerEndTouch = true;
                     found = true;
-                    console.log('triggerEndTouch',
-                        result.svg.g[0].g[j].rect[0].$.id);
+                    if (newTrigger.box === true) {
+                      console.log('triggerEndTouch',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                    } else if (newTrigger.box === false) {
+                      console.log('triggerEndTouch',
+                          result.svg.g[0].g[j].path[0].$.id);
+                    }
                     break;
                   case '':
                     newTrigger.triggerTouch = true;
                     found = true;
-                    console.log('triggerTouch',
-                        result.svg.g[0].g[j].rect[0].$.id);
-                    break;
+                    if (newTrigger.box === true) {
+                      console.log('triggerTouch',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                    } else if (newTrigger.box === false) {
+                      console.log('triggerTouch',
+                          result.svg.g[0].g[j].path[0].$.id);
+                    }
                 }
                 const sound = userString.split('|')[1];
                 if (sound[0] === '"') {
@@ -409,26 +439,41 @@ class svgConverter {
                 } else {
                   newTrigger.soundfile = sound;
                 }
-              } else {
+              } else if (userString) {
                 const directionValue = userString.split(']')[0];
                 switch (directionValue) {
                   case '->[':
                     newTrigger.triggerEnter = true;
                     found = true;
-                    console.log('triggerEnter',
-                        result.svg.g[0].g[j].rect[0].$.id);
+                    if (newTrigger.box === true) {
+                      console.log('triggerEnter',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                    } else if (newTrigger.box === false) {
+                      console.log('triggerEnter',
+                          result.svg.g[0].g[j].path[0].$.id);
+                    }
                     break;
                   case '<-[':
                     newTrigger.triggerLeave = true;
                     found = true;
-                    console.log('triggerLeave',
-                        result.svg.g[0].g[j].rect[0].$.id);
+                    if (newTrigger.box === true) {
+                      console.log('triggerLeave',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                    } else if (newTrigger.box === false) {
+                      console.log('triggerLeave',
+                          result.svg.g[0].g[j].path[0].$.id);
+                    }
                     break;
                   case '[-':
                     newTrigger.triggerInside = true;
                     found = true;
-                    console.log('triggerInside',
-                        result.svg.g[0].g[j].rect[0].$.id);
+                    if (newTrigger.box === true) {
+                      console.log('triggerInside',
+                          result.svg.g[0].g[j].rect[0].$.id);
+                    } else if (newTrigger.box === false) {
+                      console.log('triggerInside',
+                          result.svg.g[0].g[j].path[0].$.id);
+                    }
                     break;
                 }
                 const sound = userString.split(']')[1];
@@ -450,9 +495,10 @@ class svgConverter {
                   newTrigger.matrix = result.svg.g[0].g[j].$.transform;
                 }
               }
-              if (newTrigger.box) {
+              // could be undefined and therefore check for true must happen
+              if (newTrigger.box === true) {
                 hapticBoxObjects.push(newTrigger);
-              } else if (newTrigger.box) {
+              } else if (newTrigger.box === false) {
                 hapticMeshObjects.push(newTrigger);
               }
             }
