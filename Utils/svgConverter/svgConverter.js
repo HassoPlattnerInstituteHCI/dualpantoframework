@@ -82,13 +82,418 @@ class svgConverter {
 
   /**
    * @private This is an internal function.
-   * @description Parses the svg
+   * @description Parses Groups
+   * @param {Array} groupObjects - An array containing the groups.
+   * @param {object} result - The svg as object.
+   * @return {object} - Object containing two Arrays with found objects.
+   */
+  loadGroup(groupObjects, result) {
+    const boxes = [];
+    const meshes = [];
+    for (let j = 0; j < result.svg.g[0].g.length; j++) {
+      let found = false;
+      let newTrigger;
+
+      // group Recs
+      if (result.svg.g[0].g[j].rect) {
+        newTrigger = {box: true, collider: false, forcefield: false,
+          hardStepIn: false, hardStepOut: false,
+          triggerEnter: false, triggerInside: false,
+          triggerLeave: false, triggerStartTouch: false,
+          triggerTouch: false, triggerEndTouch: false,
+          data: result.svg.g[0].g[j].rect[0].$};
+
+        if (newTrigger, this.loadRect(result.svg.g[0].g[j].rect, result)) {
+          found = true;
+        }
+      }
+      // group paths
+      if (result.svg.g[0].g[j].path) {
+        newTrigger = {box: false, collider: false, forcefield: false,
+          hardStepIn: false, hardStepOut: false,
+          triggerEnter: false, triggerInside: false,
+          triggerLeave: false, triggerStartTouch: false,
+          triggerTouch: false, triggerEndTouch: false,
+          data: result.svg.g[0].g[j].path[0].$};
+
+        if (this.loadPath(newTrigger, result.svg.g[0].g[j].path, result)) {
+          found = true;
+        }
+      }
+      // group Text
+      if (found && result.svg.g[0].g[j].text) {
+        let userString;
+        for (let i = 0; i < result.svg.g[0].g[j].text.length; i++) {
+          const textStyle = result.svg.g[0].g[j].text[i].$.style
+              .split(';');
+          let color;
+          for (let k = 0; k < textStyle.length; k++) {
+            if (textStyle[k].includes('fill')) {
+              color = textStyle[k].split(':')[1];
+              break;
+            }
+          }
+          if (color == '#000000') {
+            userString = result.svg.g[0].g[j].text[i].tspan[0]._;
+            break;
+          }
+        }
+        if (userString && userString.includes('|')) {
+          const directionValue = userString.split('|')[0];
+          switch (directionValue) {
+            case '->':
+              newTrigger.triggerStartTouch = true;
+              found = true;
+              if (newTrigger.box === true) {
+                console.log('triggerStartTouch',
+                    result.svg.g[0].g[j].rect[0].$.id);
+              } else if (newTrigger.box === false) {
+                console.log('triggerStartTouch',
+                    result.svg.g[0].g[j].path[0].$.id);
+              }
+
+              break;
+            case '<-':
+              newTrigger.triggerEndTouch = true;
+              found = true;
+              if (newTrigger.box === true) {
+                console.log('triggerEndTouch',
+                    result.svg.g[0].g[j].rect[0].$.id);
+              } else if (newTrigger.box === false) {
+                console.log('triggerEndTouch',
+                    result.svg.g[0].g[j].path[0].$.id);
+              }
+              break;
+            case '':
+              newTrigger.triggerTouch = true;
+              found = true;
+              if (newTrigger.box === true) {
+                console.log('triggerTouch',
+                    result.svg.g[0].g[j].rect[0].$.id);
+              } else if (newTrigger.box === false) {
+                console.log('triggerTouch',
+                    result.svg.g[0].g[j].path[0].$.id);
+              }
+              break;
+          }
+          const sound = userString.split('|')[1];
+          if (sound[0] === '"') {
+            newTrigger.speech = sound.slice(1, -1);
+          } else {
+            newTrigger.soundfile = sound;
+          }
+        } else if (userString) {
+          const directionValue = userString.split(']')[0];
+          switch (directionValue) {
+            case '->[':
+              newTrigger.triggerEnter = true;
+              found = true;
+              if (newTrigger.box === true) {
+                console.log('triggerEnter',
+                    result.svg.g[0].g[j].rect[0].$.id);
+              } else if (newTrigger.box === false) {
+                console.log('triggerEnter',
+                    result.svg.g[0].g[j].path[0].$.id);
+              }
+              break;
+            case '<-[':
+              newTrigger.triggerLeave = true;
+              found = true;
+              if (newTrigger.box === true) {
+                console.log('triggerLeave',
+                    result.svg.g[0].g[j].rect[0].$.id);
+              } else if (newTrigger.box === false) {
+                console.log('triggerLeave',
+                    result.svg.g[0].g[j].path[0].$.id);
+              }
+              break;
+            case '[-':
+              newTrigger.triggerInside = true;
+              found = true;
+              if (newTrigger.box === true) {
+                console.log('triggerInside',
+                    result.svg.g[0].g[j].rect[0].$.id);
+              } else if (newTrigger.box === false) {
+                console.log('triggerInside',
+                    result.svg.g[0].g[j].path[0].$.id);
+              }
+              break;
+          }
+          const sound = userString.split(']')[1];
+          if (sound[0] === '"') {
+            newTrigger.speech = sound.slice(1, -1);
+          } else {
+            newTrigger.soundfile = sound;
+          }
+        }
+      }
+      if (found) {
+        if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
+          if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
+            'translate') {
+            console.log('has translate: ', result.svg.g[0].g[j].$
+                .transform.split('(')[1].split(')')[0]);
+            newTrigger.translate = result.svg.g[0].g[j].$.transform
+                .split('(')[1].split(')')[0];
+          } else if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
+            'matrix') {
+            newTrigger.matrix = result.svg.g[0].g[j].$.transform;
+          }
+        }
+        // could be undefined and therefore check for true must happen
+        if (newTrigger.box === true) {
+          boxes.push(newTrigger);
+        } else if (newTrigger.box === false) {
+          meshes.push(newTrigger);
+        }
+      }
+    }
+    return {hapticBoxes: boxes, hapticMeshes: meshes};
+  }
+
+  /**
+   * @private This is an internal function.
+   * @description Parses a path.
+   * @param {object} hapticObject - The object that is to be generated.
+   * @param {object} pathObject - The path that is to be parsed.
+   * @param {object} result - The svg as object.
+   * @return {boolean} - If an object was found.
+   */
+  loadPath(hapticObject, pathObject, result) {
+    let found = false;
+    let strokeIndex;
+    const styleValues = pathObject.$.style.split(';');
+    let dashArrayFound = false;
+    for (let i = 0; i < styleValues.length; i++) {
+      if (styleValues[i].includes('stroke:')) {
+        strokeIndex = i;
+      }
+      if (styleValues[i].includes('fill:')) {
+        if ('none' !== styleValues[i]
+            .split(':')[1]) {
+          const patternID = styleValues[i].split(':')[1]
+              .split('(')[1].split(')')[0].split('#')[1];
+          if (this.searchForForcePattern(patternID,
+              result, 'directedForce')) {
+            hapticObject.forcefield = true;
+            found = true;
+            console.log('forcefield', pathObject.$.id);
+            const pattern = this.getPatternForID(patternID, result);
+            const origin = new Vector(0, 0);
+            const pointA = new Vector(0, 1);
+            const transformOrigin = this.applyMatrix(origin,
+                pattern.patternTransform);
+            const transformPointA = this.applyMatrix(pointA,
+                pattern.patternTransform);
+            const direction = transformPointA
+                .difference(transformOrigin).normalized();
+            hapticObject.forceDirection = direction;
+          }
+          if (this.searchForForcePattern(patternID,
+              result, 'radialForce')) {
+            hapticObject.polarForce = true;
+            found = true;
+            console.log('polarForce', pathObject.$.id);
+            const pattern = this.getPatternForID(patternID, result);
+            const transformMiddel = this.applyMatrix(new Vector(0, 0),
+                pattern.patternTransform);
+            hapticObject.polarPoint = transformMiddel;
+          }
+        }
+      }
+      if (styleValues[i].includes('stroke-dasharray')) {
+        dashArrayFound = true;
+        const temp = styleValues[i].split(':');
+        if (temp[1] === 'none') {
+          const stroketype = styleValues[strokeIndex].split(':')[1];
+          if (stroketype === '#000000') {
+            hapticObject.collider = true;
+            found = true;
+            console.log('collider', pathObject.$.id);
+          }
+        } else if (temp[1].split(',').length == 2) {
+          const strokeColor = styleValues[strokeIndex].split(':')[1];
+          if (strokeColor === '#00ff00') {
+            hapticObject.hardStepIn = true;
+            found = true;
+            console.log('hardstepin', pathObject.$.id);
+          } else if (strokeColor === '#ff0000') {
+            hapticObject.hardStepOut = true;
+            found = true;
+            console.log('harstepout', pathObject.$.id);
+          }
+        }
+      }
+    }
+    if (!dashArrayFound) {
+      if (!strokeIndex) {
+        for (let index = 0; index < styleValues.length; index++) {
+          if (styleValues[index].includes('stroke:')) {
+            strokeIndex = index;
+          }
+        }
+      }
+      const stroketype = styleValues[strokeIndex].split(':')[1];
+      if (stroketype === '#000000') {
+        hapticObject.collider = true;
+        found = true;
+        console.log('collider', pathObject.$.id);
+      }
+    }
+    return found;
+  }
+
+  /**
+   * @private This is an internal function.
+   * @description Parses paths.
+   * @param {Array} pathObjects - An array containing the paths.
+   * @param {object} result - The svg as object.
+   * @return {Array} - The parsed Objects.
+   */
+  loadPaths(pathObjects, result) {
+    const hapticMeshObjects = [];
+    for (let j = 0; j < pathObjects.length; j++) {
+      const newHapticMeshObject = {collider: false, forcefield: false,
+        hardStepIn: false, hardStepOut: false,
+        triggerEnter: false, triggerInside: false,
+        triggerLeave: false, triggerStartTouch: false,
+        triggerTouch: false, triggerEndTouch: false,
+        data: pathObjects[j].$,
+        polarForce: false};
+
+      if (this.loadPath(newHapticMeshObject, pathObjects[j], result)) {
+        hapticMeshObjects.push(newHapticMeshObject);
+      }
+    }
+    return hapticMeshObjects;
+  }
+
+  /**
+   * @private This is an internal function.
+   * @description Parses a rect.
+   * @param {object} hapticObject - The object that is to be generated.
+   * @param {object} rectObject - The rectangle that is to be parsed.
+   * @param {object} result - The svg as object.
+   * @return {boolean} - If an object was found.
+   */
+  loadRect(hapticObject, rectObject, result) {
+    let found = false;
+    const styleValues = rectObject.$.style.split(';');
+    let strokeIndex;
+    let dashArrayFound = false;
+    for (let i = 0; i < styleValues.length; i++) {
+      if (styleValues[i].includes('stroke:')) {
+        strokeIndex = i;
+      }
+      if (styleValues[i].includes('fill:')) {
+        if ('none' !== styleValues[i]
+            .split(':')[1]) {
+          const patternID = styleValues[i].split(':')[1]
+              .split('(')[1].split(')')[0].split('#')[1];
+          if (this.searchForForcePattern(patternID,
+              result, 'directedForce')) {
+            hapticObject.forcefield = true;
+            found = true;
+            console.log('forcefield', rectObject.$.id);
+            const pattern = this.getPatternForID(patternID, result);
+            const origin = new Vector(0, 0);
+            const pointA = new Vector(0, 1);
+            const transformOrigin = this.applyMatrix(origin,
+                pattern.patternTransform);
+            const transformPointA = this.applyMatrix(pointA,
+                pattern.patternTransform);
+            const direction = transformPointA
+                .difference(transformOrigin).normalized();
+            hapticObject.forceDirection = direction;
+          }
+          if (this.searchForForcePattern(patternID,
+              result, 'radialForce')) {
+            hapticObject.polarForce = true;
+            found = true;
+            console.log('polarForce', rectObject.$.id);
+            const pattern = this.getPatternForID(patternID, result);
+            const transformMiddel = this.applyMatrix(new Vector(0, 0),
+                pattern.patternTransform);
+            hapticObject.polarPoint = transformMiddel;
+          }
+        }
+      }
+      if (styleValues[i].includes('stroke-dasharray')) {
+        dashArrayFound = true;
+        const temp = styleValues[i].split(':');
+        if (temp[1] === 'none') {
+          const stroketype = styleValues[strokeIndex].split(':')[1];
+          if (stroketype === '#000000') {
+            hapticObject.collider = true;
+            found = true;
+            console.log('collider', rectObject.$.id);
+          }
+        } else if (temp[1].split(',').length == 2) {
+          const strokeColor = styleValues[strokeIndex].split(':')[1];
+          if (strokeColor === '#00ff00') {
+            hapticObject.hardStepIn = true;
+            found = true;
+            console.log('hardstepin', rectObject.$.id);
+          } else if (strokeColor === '#ff0000') {
+            hapticObject.hardStepOut = true;
+            found = true;
+            console.log('harstepout', rectObject.$.id);
+          }
+        }
+      }
+    }
+    if (!dashArrayFound) {
+      if (!strokeIndex) {
+        for (let index = 0; index < styleValues.length; index++) {
+          if (styleValues[index].includes('stroke:')) {
+            strokeIndex = index;
+          }
+        }
+      }
+      const stroketype = styleValues[strokeIndex].split(':')[1];
+      if (stroketype === '#000000') {
+        hapticObject.collider = true;
+        found = true;
+        console.log('collider', rectObject.$.id);
+      }
+    }
+    return found;
+  }
+
+  /**
+   * @private This is an internal function.
+   * @description Parses rects.
+   * @param {Array} rectObjects - An array containing the rectangles.
+   * @param {object} result - The svg as object.
+   * @return {Array} - The parsed Objects.
+   */
+  loadRects(rectObjects, result) {
+    const hapticBoxObjects = [];
+    for (let j = 0; j < rectObjects.length; j++) {
+      const newObject = {collider: false, forcefield: false,
+        hardStepIn: false, hardStepOut: false,
+        triggerEnter: false, triggerInside: false,
+        triggerLeave: false, triggerStartTouch: false,
+        triggerTouch: false, triggerEndTouch: false,
+        data: rectObjects[j].$,
+        polarForce: false};
+
+      if (this.loadRect(newObject, rectObjects[j], result)) {
+        hapticBoxObjects.push(newObject);
+      }
+    }
+    return hapticBoxObjects;
+  }
+
+  /**
+   * @private This is an internal function.
+   * @description Parses the svg.
    */
   loadWorld() {
     console.log('loading ', this.svgPath);
     fs.readFile(this.svgPath, function(err, data) {
       parser.parseString(data, function(err, result) {
-        const hapticBoxObjects = [];
+        let hapticBoxObjects = [];
         let offset = new Vector(0, 0);
         if (result.svg.g[0].$.transform) {
           offset = new Vector(result.svg.g[0].$.transform.split('(')[1]
@@ -97,468 +502,21 @@ class svgConverter {
         }
         // first level Recs
         if (result.svg.g[0].rect) {
-          for (let j = 0; j < result.svg.g[0].rect.length; j++) {
-            let found = false;
-            const newObject = {collider: false, forcefield: false,
-              hardStepIn: false, hardStepOut: false,
-              triggerEnter: false, triggerInside: false,
-              triggerLeave: false, triggerStartTouch: false,
-              triggerTouch: false, triggerEndTouch: false,
-              data: result.svg.g[0].rect[j].$,
-              polarForce: false};
-            const styleValues = result.svg.g[0].rect[j].$.style.split(';');
-            let strokeIndex;
-            for (let i = 0; i < styleValues.length; i++) {
-              if (styleValues[i].includes('stroke:')) {
-                strokeIndex = i;
-              }
-              if (styleValues[i].includes('fill:')) {
-                if ('none' !== styleValues[i]
-                    .split(':')[1]) {
-                  const patternID = styleValues[i].split(':')[1]
-                      .split('(')[1].split(')')[0].split('#')[1];
-                  if (this.searchForForcePattern(patternID,
-                      result, 'directedForce')) {
-                    newObject.forcefield = true;
-                    found = true;
-                    console.log('forcefield', result.svg.g[0].rect[j].$.id);
-                    const pattern = this.getPatternForID(patternID, result);
-                    const origin = new Vector(0, 0);
-                    const pointA = new Vector(0, 1);
-                    const transformOrigin = this.applyMatrix(origin,
-                        pattern.patternTransform);
-                    const transformPointA = this.applyMatrix(pointA,
-                        pattern.patternTransform);
-                    const direction = transformPointA
-                        .difference(transformOrigin).normalized();
-                    newObject.forceDirection = direction;
-                  }
-                  if (this.searchForForcePattern(patternID,
-                      result, 'radialForce')) {
-                    newObject.polarForce = true;
-                    found = true;
-                    console.log('polarForce', result.svg.g[0].rect[j].$.id);
-                    const pattern = this.getPatternForID(patternID, result);
-                    const transformMiddel = this.applyMatrix(new Vector(0, 0),
-                        pattern.patternTransform);
-                    newObject.polarPoint = transformMiddel;
-                  }
-                }
-              }
-              if (styleValues[i].includes('stroke-dasharray')) {
-                const temp = styleValues[i].split(':');
-                if (temp[1] === 'none') {
-                  const stroketype = styleValues[strokeIndex].split(':')[1];
-                  if (stroketype === '#000000') {
-                    newObject.collider = true;
-                    found = true;
-                    console.log('collider', result.svg.g[0].rect[j].$.id);
-                  }
-                } else if (temp[1].split(',').length == 2) {
-                  const strokeColor = styleValues[strokeIndex].split(':')[1];
-                  if (strokeColor === '#00ff00') {
-                    newObject.hardStepIn = true;
-                    found = true;
-                    console.log('hardstepin', result.svg.g[0].rect[j].$.id);
-                  } else if (strokeColor === '#ff0000') {
-                    newObject.hardStepOut = true;
-                    found = true;
-                    console.log('harstepout', result.svg.g[0].rect[j].$.id);
-                  }
-                }
-              }
-            }
-            if (found) {
-              hapticBoxObjects.push(newObject);
-            }
-          }
+          hapticBoxObjects = this.loadRects(result.svg.g[0].rect, result);
         }
         // first level Paths
-        const hapticMeshObjects = [];
+        let hapticMeshObjects = [];
         if (result.svg.g[0].path) {
-          for (let j = 0; j < result.svg.g[0].path.length; j++) {
-            let found = false;
-            const newHapticMeshObject = {collider: false, forcefield: false,
-              hardStepIn: false, hardStepOut: false,
-              triggerEnter: false, triggerInside: false,
-              triggerLeave: false, triggerStartTouch: false,
-              triggerTouch: false, triggerEndTouch: false,
-              data: result.svg.g[0].path[j].$,
-              polarForce: false};
-            let strokeIndex;
-            const styleValues = result.svg.g[0].path[j].$.style.split(';');
-            let dashArrayFound = false;
-            for (let i = 0; i < styleValues.length; i++) {
-              if (styleValues[i].includes('stroke:')) {
-                strokeIndex = i;
-              }
-              if (styleValues[i].includes('fill:')) {
-                if ('none' !== styleValues[i]
-                    .split(':')[1]) {
-                  const patternID = styleValues[i].split(':')[1]
-                      .split('(')[1].split(')')[0].split('#')[1];
-                  if (this.searchForForcePattern(patternID,
-                      result, 'directedForce')) {
-                    newHapticMeshObject.forcefield = true;
-                    found = true;
-                    console.log('forcefield', result.svg.g[0].path[j].$.id);
-                    const pattern = this.getPatternForID(patternID, result);
-                    const origin = new Vector(0, 0);
-                    const pointA = new Vector(0, 1);
-                    const transformOrigin = this.applyMatrix(origin,
-                        pattern.patternTransform);
-                    const transformPointA = this.applyMatrix(pointA,
-                        pattern.patternTransform);
-                    const direction = transformPointA
-                        .difference(transformOrigin).normalized();
-                    newHapticMeshObject.forceDirection = direction;
-                  }
-                  if (this.searchForForcePattern(patternID,
-                      result, 'radialForce')) {
-                    newHapticMeshObject.polarForce = true;
-                    found = true;
-                    console.log('polarForce', result.svg.g[0].path[j].$.id);
-                    const pattern = this.getPatternForID(patternID, result);
-                    const transformMiddel = this.applyMatrix(new Vector(0, 0),
-                        pattern.patternTransform);
-                    newHapticMeshObject.polarPoint = transformMiddel;
-                  }
-                }
-              }
-              if (styleValues[i].includes('stroke-dasharray')) {
-                dashArrayFound = true;
-                const temp = styleValues[i].split(':');
-                if (temp[1] === 'none') {
-                  const stroketype = styleValues[strokeIndex].split(':')[1];
-                  if (stroketype === '#000000') {
-                    newHapticMeshObject.collider = true;
-                    found = true;
-                    console.log('collider', result.svg.g[0].path[j].$.id);
-                  }
-                } else if (temp[1].split(',').length == 2) {
-                  const strokeColor = styleValues[strokeIndex].split(':')[1];
-                  if (strokeColor === '#00ff00') {
-                    newHapticMeshObject.hardStepIn = true;
-                    found = true;
-                    console.log('hardstepin', result.svg.g[0].path[j].$.id);
-                  } else if (strokeColor === '#ff0000') {
-                    newHapticMeshObject.hardStepOut = true;
-                    found = true;
-                    console.log('harstepout', result.svg.g[0].path[j].$.id);
-                  }
-                }
-              }
-            }
-            if (!dashArrayFound) {
-              if (!strokeIndex) {
-                for (let index = 0; index < styleValues.length; index++) {
-                  if (styleValues[index].includes('stroke:')) {
-                    strokeIndex = index;
-                  }
-                }
-              }
-              const stroketype = styleValues[strokeIndex].split(':')[1];
-              if (stroketype === '#000000') {
-                newHapticMeshObject.collider = true;
-                found = true;
-                console.log('collider', result.svg.g[0].path[j].$.id);
-              }
-            }
-            if (found) {
-              hapticMeshObjects.push(newHapticMeshObject);
-            }
-          }
+          hapticMeshObjects = this.loadPaths(result.svg.g[0].path, result);
         }
         // first level groups
         if (result.svg.g[0].g) {
-          for (let j = 0; j < result.svg.g[0].g.length; j++) {
-            let found = false;
-            let newTrigger;
-
-            // group Recs
-            if (result.svg.g[0].g[j].rect) {
-              newTrigger = {box: true, collider: false, forcefield: false,
-                hardStepIn: false, hardStepOut: false,
-                triggerEnter: false, triggerInside: false,
-                triggerLeave: false, triggerStartTouch: false,
-                triggerTouch: false, triggerEndTouch: false,
-                data: result.svg.g[0].g[j].rect[0].$};
-
-              const styleValues = result.svg.g[0].g[j].rect[0].$.style
-                  .split(';');
-              let strokeIndex;
-              for (let i = 0; i < styleValues.length; i++) {
-                if (styleValues[i].includes('stroke:')) {
-                  strokeIndex = i;
-                }
-                if (styleValues[i].includes('fill:')) {
-                  if ('none' !== styleValues[i]
-                      .split(':')[1]) {
-                    const patternID = styleValues[i].split(':')[1]
-                        .split('(')[1].split(')')[0].split('#')[1];
-                    if (this.searchForForcePattern(patternID,
-                        result, 'directedForce')) {
-                      newTrigger.forcefield = true;
-                      found = true;
-                      console.log('triggerforcefield',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                      const pattern = this.getPatternForID(patternID, result);
-                      const origin = new Vector(0, 0);
-                      const pointA = new Vector(0, 1);
-                      const transformOrigin = this.applyMatrix(origin,
-                          pattern.patternTransform);
-                      const transformPointA = this.applyMatrix(pointA,
-                          pattern.patternTransform);
-                      const direction = transformPointA
-                          .difference(transformOrigin).normalized();
-                      newTrigger.forceDirection = direction;
-                    }
-                    if (this.searchForForcePattern(patternID,
-                        result, 'radialForce')) {
-                      newTrigger.polarForce = true;
-                      found = true;
-                      console.log('triggerpolar',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                      const pattern = this.getPatternForID(patternID, result);
-                      const transformMiddel = this.applyMatrix(new Vector(0, 0),
-                          pattern.patternTransform);
-                      newTrigger.polarPoint = transformMiddel;
-                    }
-                  }
-                }
-                if (styleValues[i].includes('stroke-dasharray')) {
-                  const temp = styleValues[i].split(':');
-                  if (temp[1] === 'none') {
-                    const stroketype = styleValues[strokeIndex].split(':')[1];
-                    if (stroketype === '#000000') {
-                      newTrigger.collider = true;
-                      found = true;
-                      console.log('triggercollider',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    }
-                  } else if (temp[1].split(',').length == 2) {
-                    const strokeColor = styleValues[strokeIndex].split(':')[1];
-                    if (strokeColor === '#00ff00') {
-                      newTrigger.hardStepIn = true;
-                      found = true;
-                      console.log('triggerhardStepIn',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (strokeColor === '#ff0000') {
-                      newTrigger.hardStepOut = true;
-                      found = true;
-                      console.log('triggerhardStepOut',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    }
-                  }
-                }
-              }
-            }
-            // group paths
-            if (result.svg.g[0].g[j].path) {
-              newTrigger = {box: false, collider: false, forcefield: false,
-                hardStepIn: false, hardStepOut: false,
-                triggerEnter: false, triggerInside: false,
-                triggerLeave: false, triggerStartTouch: false,
-                triggerTouch: false, triggerEndTouch: false,
-                data: result.svg.g[0].g[j].path[0].$};
-              const styleValues = result.svg.g[0].g[j].path[0].$.style
-                  .split(';');
-              let strokeIndex;
-              for (let i = 0; i < styleValues.length; i++) {
-                if (styleValues[i].includes('stroke:')) {
-                  strokeIndex = i;
-                }
-                if (styleValues[i].includes('fill:')) {
-                  if ('none' !== styleValues[i]
-                      .split(':')[1]) {
-                    const patternID = styleValues[i].split(':')[1]
-                        .split('(')[1].split(')')[0].split('#')[1];
-                    if (this.searchForForcePattern(patternID,
-                        result, 'directedForce')) {
-                      newTrigger.forcefield = true;
-                      found = true;
-                      console.log('triggerforcefield',
-                          result.svg.g[0].g[j].path[0].$.id);
-                      const pattern = this.getPatternForID(patternID, result);
-                      const origin = new Vector(0, 0);
-                      const pointA = new Vector(0, 1);
-                      const transformOrigin = this.applyMatrix(origin,
-                          pattern.patternTransform);
-                      const transformPointA = this.applyMatrix(pointA,
-                          pattern.patternTransform);
-                      const direction = transformPointA
-                          .difference(transformOrigin).normalized();
-                      newTrigger.forceDirection = direction;
-                    }
-                    if (this.searchForForcePattern(patternID,
-                        result, 'radialForce')) {
-                      newTrigger.polarForce = true;
-                      found = true;
-                      console.log('triggerpolar',
-                          result.svg.g[0].g[j].path[0].$.id);
-                      const pattern = this.getPatternForID(patternID, result);
-                      const transformMiddel = this.applyMatrix(new Vector(0, 0),
-                          pattern.patternTransform);
-                      newTrigger.polarPoint = transformMiddel;
-                    }
-                  }
-                }
-                if (styleValues[i].includes('stroke-dasharray')) {
-                  const temp = styleValues[i].split(':');
-                  if (temp[1] === 'none') {
-                    const stroketype = styleValues[strokeIndex].split(':')[1];
-                    if (stroketype === '#000000') {
-                      newTrigger.collider = true;
-                      found = true;
-                      console.log('triggercollider',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                  } else if (temp[1].split(',').length == 2) {
-                    const strokeColor = styleValues[strokeIndex].split(':')[1];
-                    if (strokeColor === '#00ff00') {
-                      newTrigger.hardStepIn = true;
-                      found = true;
-                      console.log('triggerhardStepIn',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    } else if (strokeColor === '#ff0000') {
-                      newTrigger.hardStepOut = true;
-                      found = true;
-                      console.log('triggerhardStepOut',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                  }
-                }
-              }
-            }
-            // group Text
-            if (result.svg.g[0].g[j].text) {
-              let userString;
-              for (let i = 0; i < result.svg.g[0].g[j].text.length; i++) {
-                const textStyle = result.svg.g[0].g[j].text[i].$.style
-                    .split(';');
-                let color;
-                for (let k = 0; k < textStyle.length; k++) {
-                  if (textStyle[k].includes('fill')) {
-                    color = textStyle[k].split(':')[1];
-                    break;
-                  }
-                }
-                if (color == '#000000') {
-                  userString = result.svg.g[0].g[j].text[i].tspan[0]._;
-                  break;
-                }
-              }
-              if (userString && userString.includes('|')) {
-                const directionValue = userString.split('|')[0];
-                switch (directionValue) {
-                  case '->':
-                    newTrigger.triggerStartTouch = true;
-                    found = true;
-                    if (newTrigger.box === true) {
-                      console.log('triggerStartTouch',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (newTrigger.box === false) {
-                      console.log('triggerStartTouch',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-
-                    break;
-                  case '<-':
-                    newTrigger.triggerEndTouch = true;
-                    found = true;
-                    if (newTrigger.box === true) {
-                      console.log('triggerEndTouch',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (newTrigger.box === false) {
-                      console.log('triggerEndTouch',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                    break;
-                  case '':
-                    newTrigger.triggerTouch = true;
-                    found = true;
-                    if (newTrigger.box === true) {
-                      console.log('triggerTouch',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (newTrigger.box === false) {
-                      console.log('triggerTouch',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                }
-                const sound = userString.split('|')[1];
-                if (sound[0] === '"') {
-                  newTrigger.speech = sound.slice(1, -1);
-                } else {
-                  newTrigger.soundfile = sound;
-                }
-              } else if (userString) {
-                const directionValue = userString.split(']')[0];
-                switch (directionValue) {
-                  case '->[':
-                    newTrigger.triggerEnter = true;
-                    found = true;
-                    if (newTrigger.box === true) {
-                      console.log('triggerEnter',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (newTrigger.box === false) {
-                      console.log('triggerEnter',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                    break;
-                  case '<-[':
-                    newTrigger.triggerLeave = true;
-                    found = true;
-                    if (newTrigger.box === true) {
-                      console.log('triggerLeave',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (newTrigger.box === false) {
-                      console.log('triggerLeave',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                    break;
-                  case '[-':
-                    newTrigger.triggerInside = true;
-                    found = true;
-                    if (newTrigger.box === true) {
-                      console.log('triggerInside',
-                          result.svg.g[0].g[j].rect[0].$.id);
-                    } else if (newTrigger.box === false) {
-                      console.log('triggerInside',
-                          result.svg.g[0].g[j].path[0].$.id);
-                    }
-                    break;
-                }
-                const sound = userString.split(']')[1];
-                if (sound[0] === '"') {
-                  newTrigger.speech = sound.slice(1, -1);
-                } else {
-                  newTrigger.soundfile = sound;
-                }
-              }
-            }
-            if (found) {
-              if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
-                if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
-                  'translate') {
-                  console.log('has translate: ', result.svg.g[0].g[j].$
-                      .transform.split('(')[1].split(')')[0]);
-                  newTrigger.translate = result.svg.g[0].g[j].$.transform
-                      .split('(')[1].split(')')[0];
-                } else if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
-                  'matrix') {
-                  newTrigger.matrix = result.svg.g[0].g[j].$.transform;
-                }
-              }
-              // could be undefined and therefore check for true must happen
-              if (newTrigger.box === true) {
-                hapticBoxObjects.push(newTrigger);
-              } else if (newTrigger.box === false) {
-                hapticMeshObjects.push(newTrigger);
-              }
-            }
-          }
+          const groupedObjects = this.loadGroups(result.svg.g[0].g, result);
+          hapticBoxObjects.concat(groupedObjects.hapticBoxes);
+          hapticMeshObjects.concat(groupedObjects.hapticMeshObjects);
         }
         console.log('found ', hapticBoxObjects.length, ' haptic objects');
+        console.log(offset);
         fileGenerator.generateFile(hapticBoxObjects,
             hapticMeshObjects,
             this.studentDir, offset);

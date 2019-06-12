@@ -59,13 +59,17 @@ class FileCreator {
       'function () {\n  ');
     // add box objects
     for (let i = 0; i < hapticBoxObjects.length; i ++) {
-      let mesh = this.generateMeshFromBox(hapticBoxObjects[i]);
+      let mesh = this.generateMeshFromBox(hapticBoxObjects[i], offset);
       if (hapticBoxObjects[i].hasOwnProperty('matrix')) {
         mesh = this.applyMatrixToMesh(hapticBoxObjects[i].matrix, mesh);
       } else if (hapticBoxObjects[i].hasOwnProperty('translate')) {
         mesh = this.applyTranslateToMesh(hapticBoxObjects[i].translate, mesh);
       }
+      console.log(mesh);
+      console.log();
       mesh = this.transformMeshToPanto(mesh);
+      console.log(mesh);
+      console.log();
       outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
           outputString);
     }
@@ -412,22 +416,24 @@ class FileCreator {
    * @private This is an internal function.
    * @description Creates a polygone from a box.
    * @param {object} hapticBoxObject - Object to generate a mesh for.
+   * @param {object} offset - Current offset of the layer.
    * @return {Array} Generated mesh.
    */
-  generateMeshFromBox(hapticBoxObject) {
+  generateMeshFromBox(hapticBoxObject, offset) {
+    const floatOffset = new Vector(parseFloat(offset.x), parseFloat(offset.y));
     const mesh = [];
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x),
-        parseFloat(hapticBoxObject.data.y)));
+    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) + floatOffset.x,
+        parseFloat(hapticBoxObject.data.y) + floatOffset.y));
     mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) +
-      parseFloat(hapticBoxObject.data.width),
-    parseFloat(hapticBoxObject.data.y)));
+        parseFloat(hapticBoxObject.data.width) + floatOffset.x,
+    parseFloat(hapticBoxObject.data.y) + floatOffset.y));
     mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) +
-      parseFloat(hapticBoxObject.data.width),
+        parseFloat(hapticBoxObject.data.width) + floatOffset.x,
     parseFloat(hapticBoxObject.data.y) +
-    parseFloat(hapticBoxObject.data.height)));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x),
+        parseFloat(hapticBoxObject.data.height) + floatOffset.y));
+    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) + floatOffset.x,
         parseFloat(hapticBoxObject.data.y) +
-        parseFloat(hapticBoxObject.data.height)));
+        parseFloat(hapticBoxObject.data.height) + floatOffset.y));
     return mesh;
   }
 
