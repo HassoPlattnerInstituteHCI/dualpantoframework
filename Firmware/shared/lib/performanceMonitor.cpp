@@ -24,12 +24,14 @@ void PerformanceMonitor::start(std::string label)
         return;
     }
 
-    entry.m_start = ESP.getCycleCount();
     entry.m_running = true;
+    entry.m_start = ESP.getCycleCount();
 }
 
 void PerformanceMonitor::stop(std::string label)
 {
+    uint64_t end = ESP.getCycleCount();
+
     auto& entry = m_entries[xPortGetCoreID()][label];
 
     if(!entry.m_running)
@@ -37,7 +39,6 @@ void PerformanceMonitor::stop(std::string label)
         return;
     }
 
-    uint64_t end = ESP.getCycleCount();
     uint64_t duration = 
         entry.m_start < end ?
         (end - entry.m_start) :
@@ -63,12 +64,14 @@ void PerformanceMonitor::stop(std::string label)
 
 std::vector<std::string> PerformanceMonitor::getResults()
 {
-    std::vector<std::tuple<uint32_t, std::string, double>> temp;
+    std::vector<std::tuple<uint32_t, std::string, double, double>> temp;
 
     const std::string labelHeader("label");
-    const std::string valueHeader("avg cycles");
+    const std::string cycleHeader("avg cycles");
+    const std::string timeHeader("avg ns");
     uint32_t maxLabelSize = labelHeader.size();
-    uint32_t maxValueSize = valueHeader.size();
+    uint32_t maxCycleSize = cycleHeader.size();
+    uint32_t maxTimeSize = timeHeader.size();
 
     for(const auto& core : m_entries)
     {
@@ -79,22 +82,28 @@ std::vector<std::string> PerformanceMonitor::getResults()
             const auto& label = entry.first;
             const auto& data = entry.second;
 
+            const auto avgCycles = (double)data.m_sum / data.m_values.size();
+            const auto avgTime = avgCycles / ESP.getCpuFreqMHz();
+
             maxLabelSize = std::max(
                 maxLabelSize,
                 label.size() + 4);
-            maxValueSize = std::max(
-                maxValueSize,
-                (uint32_t)std::log10(
-                    (double)data.m_sum / data.m_values.size()) + 1 + 4);
+            maxCycleSize = std::max(
+                maxCycleSize,
+                (uint32_t)std::log10(avgCycles) + 1 + 4);
+            maxTimeSize = std::max(
+                maxTimeSize,
+                (uint32_t)std::log10(avgTime) + 1 + 4);
 
             if(!data.m_values.empty())
             {
-                temp.emplace_back(coreId, label, (double)data.m_sum / data.m_values.size());
+                temp.emplace_back(coreId, label, avgCycles, avgTime);
             }
         }
     }
 
-    maxValueSize = constrain(maxValueSize, valueHeader.size(), 30);
+    maxCycleSize = constrain(maxCycleSize, cycleHeader.size(), 30);
+    maxTimeSize = constrain(maxTimeSize, timeHeader.size(), 30);
 
     std::vector<std::string> results;
     std::ostringstream stream;
@@ -103,10 +112,13 @@ std::vector<std::string> PerformanceMonitor::getResults()
     stream
         << "| "
         << std::setw(maxLabelSize) << std::left
-        << labelHeader 
+        << labelHeader
         << " | "
-        << std::setw(maxValueSize) << std::left
-        << valueHeader 
+        << std::setw(maxCycleSize) << std::left
+        << cycleHeader
+        << " | "
+        << std::setw(maxTimeSize) << std::left
+        << timeHeader
         << " |";
     results.emplace_back(stream.str());
     stream.seekp(0);
@@ -115,7 +127,9 @@ std::vector<std::string> PerformanceMonitor::getResults()
         << "|-"
         << std::string(maxLabelSize, '-')
         << "-|-"
-        << std::string(maxValueSize, '-')
+        << std::string(maxCycleSize, '-')
+        << "-|-"
+        << std::string(maxTimeSize, '-')
         << "-|";
     results.emplace_back(stream.str());
     stream.seekp(0);
@@ -126,10 +140,13 @@ std::vector<std::string> PerformanceMonitor::getResults()
             << "| "
             << "["<< std::get<0>(tuple) << "] "
             << std::setw(maxLabelSize - 4) << std::left
-            << std::get<1>(tuple) 
+            << std::get<1>(tuple)
             << " | "
-            << std::setw(maxValueSize) << std::right << std::setprecision(3) 
-            << std::get<2>(tuple) 
+            << std::setw(maxCycleSize) << std::right << std::setprecision(3) 
+            << std::get<2>(tuple)
+            << " | "
+            << std::setw(maxTimeSize) << std::right << std::setprecision(3) 
+            << std::get<3>(tuple)
             << " |";
         results.emplace_back(stream.str());
         stream.seekp(0);
