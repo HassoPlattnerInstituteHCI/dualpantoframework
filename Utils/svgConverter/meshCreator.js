@@ -118,15 +118,13 @@ class MeshCreator {
           lastMode = 'l';
           i++;
           const mPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector(mPoint.x + this.svgTranformxOffset, mPoint.y +
-            this.svgTranformyOffset, mPoint.r));
+          points.push(new Vector(mPoint.x, mPoint.y, mPoint.r));
           break;
         case 'M':
           lastMode = 'L';
           i++;
           const MPoint = this.stringToVec(spaceSplit[i]);
-          points.push(new Vector(MPoint.x + this.svgTranformxOffset, MPoint.y +
-            this.svgTranformyOffset, MPoint.r));
+          points.push(new Vector(MPoint.x, MPoint.y, MPoint.r));
           break;
         case 'v':
           i++;
@@ -159,6 +157,10 @@ class MeshCreator {
       }
     }
     this.applyMatrix(points, matrix);
+    for (let i = 0; i < points.length; i++) {
+      points[i].x += this.svgTranformxOffset;
+      points[i].y += this.svgTranformyOffset;
+    }
     return points;
   }
 
@@ -177,7 +179,7 @@ class MeshCreator {
             points[points.length - 1].y, NaN);
         break;
       case 'H':
-        return new Vector(parseFloat(dataString) + this.svgTranformxOffset,
+        return new Vector(parseFloat(dataString),
             points[points.length - 1].y, NaN);
         break;
       case 'v':
@@ -186,7 +188,7 @@ class MeshCreator {
         break;
       case 'V':
         return new Vector(points[points.length - 1].x,
-            parseFloat(dataString) + this.svgTranformyOffset, NaN);
+            parseFloat(dataString), NaN);
         break;
       case 'l':
         const relativePoint = this.stringToVec(dataString);
@@ -195,8 +197,8 @@ class MeshCreator {
         break;
       case 'L':
         const lPoint = this.stringToVec(dataString);
-        return new Vector(lPoint.x + this.svgTranformxOffset,
-            lPoint.y + this.svgTranformyOffset, lPoint.r);
+        return new Vector(lPoint.x,
+            lPoint.y, lPoint.r);
         break;
     }
   }

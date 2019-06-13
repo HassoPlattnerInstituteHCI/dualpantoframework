@@ -93,7 +93,6 @@ class svgConverter {
     for (let j = 0; j < result.svg.g[0].g.length; j++) {
       let found = false;
       let newTrigger;
-
       // group Recs
       if (result.svg.g[0].g[j].rect) {
         newTrigger = {box: true, collider: false, forcefield: false,
@@ -512,8 +511,10 @@ class svgConverter {
         // first level groups
         if (result.svg.g[0].g) {
           const groupedObjects = this.loadGroups(result.svg.g[0].g, result);
-          hapticBoxObjects.concat(groupedObjects.hapticBoxes);
-          hapticMeshObjects.concat(groupedObjects.hapticMeshObjects);
+          hapticBoxObjects = hapticBoxObjects
+              .concat(groupedObjects.hapticBoxes);
+          hapticMeshObjects = hapticMeshObjects
+              .concat(groupedObjects.hapticMeshes);
         }
         console.log('found ', hapticBoxObjects.length, ' haptic objects');
         console.log(offset);

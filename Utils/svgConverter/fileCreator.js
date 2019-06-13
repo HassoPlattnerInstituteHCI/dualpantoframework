@@ -102,7 +102,8 @@ class FileCreator {
     outputString = outputString.concat('const mesh' +
       this.objectsGenerated +
       ' = hapticMeshObject' + this.objectsGenerated + '.addComponent(' +
-    this.generateMeshString(mesh) + ');\n  ');
+    this.generateMeshString(mesh) + ');//' + hapticMeshObjects[i].data.id
+        + '\n  ');
     if (hapticMeshObjects[i].collider) {
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
@@ -158,13 +159,13 @@ class FileCreator {
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
         '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated +
-        ', 0, 3));//' + hapticMeshObjects[i].data.id + '\n  ');
+        ', 0, 3));\n  ');
     }
     if (hapticMeshObjects[i].hardStepOut) {
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
         '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated +
-        ', 3, 0));//' + hapticMeshObjects[i].data.id + '\n  ');
+        ', 3, 0));\n  ');
     }
     if (hapticMeshObjects[i].triggerEnter) {
       outputString = outputString.concat('const meshTriggerFor' +
