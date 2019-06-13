@@ -140,8 +140,10 @@ class FileCreator {
       ';\n  ' +
       '  let error = centerPoint' + this.objectsGenerated +
       '.difference(position);\n  ' +
-      '  let forceDirection = error.scaled(p).add(error.' +
-      'difference(lastError).scaled(d/deltaT));\n  ' +
+      '  let forceDirection = error.scaled(p'
+          + this.objectsGenerated + ').add(error.' +
+      'difference(lastError' + this.objectsGenerated + ').scaled(d'
+          + this.objectsGenerated + '/deltaT));\n  ' +
       '  lastError' + this.objectsGenerated + ' = error;\n  ' +
       '  if(forceDirection.length() > 1){\n  ' +
       '    forceDirection = forceDirection.normalized();\n  ' +
