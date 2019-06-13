@@ -65,17 +65,13 @@ class FileCreator {
       } else if (hapticBoxObjects[i].hasOwnProperty('translate')) {
         mesh = this.applyTranslateToMesh(hapticBoxObjects[i].translate, mesh);
       }
-      console.log(mesh);
-      console.log();
       mesh = this.transformMeshToPanto(mesh);
-      console.log(mesh);
-      console.log();
       outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
           outputString);
     }
     // add mesh Objects
     for (let i = 0; i < hapticMeshObjects.length; i++) {
-      let mesh = meshCreator.parseSvgPath(hapticMeshObjects[i].data.d);
+      let mesh = meshCreator.parseSvgPath(hapticMeshObjects[i].data);
       if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
         mesh = this.applyMatrixToMesh(hapticMeshObjects[i].matrix, mesh);
       } else if (hapticMeshObjects[i].hasOwnProperty('translate')) {
@@ -128,7 +124,8 @@ class FileCreator {
         this.objectsGenerated + ' = ' +
       'new Vector(' +
       (hapticMeshObjects[i].polarPoint.x - this.pantoxOffset) + ', ' +
-      (-(parseFloat(hapticMeshObjects[i].polarPoint.y) + parseFloat(offset.y))
+      (-(parseFloat(hapticMeshObjects[i].polarPoint.y)
+        + parseFloat(this.pantoyOffset))
         + this.pantoyOffset)+ ');\n  ');
       outputString = outputString.concat('let lastTic'
         + this.objectsGenerated + ' = 0;\n  ' +
@@ -161,13 +158,13 @@ class FileCreator {
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
         '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated +
-        ', 0, 3));\n  ');
+        ', 0, 3));//' + hapticMeshObjects[i].data.id + '\n  ');
     }
     if (hapticMeshObjects[i].hardStepOut) {
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
         '.addComponent(new MeshHardStep(mesh' + this.objectsGenerated +
-        ', 3, 0));\n  ');
+        ', 3, 0));//' + hapticMeshObjects[i].data.id + '\n  ');
     }
     if (hapticMeshObjects[i].triggerEnter) {
       outputString = outputString.concat('const meshTriggerFor' +
