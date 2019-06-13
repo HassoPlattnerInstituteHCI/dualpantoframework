@@ -121,7 +121,7 @@ class svgConverter {
         }
       }
       // group Text
-      if (found && result.svg.g[0].g[j].text) {
+      if (result.svg.g[0].g[j].text) {
         let userString;
         for (let i = 0; i < result.svg.g[0].g[j].text.length; i++) {
           const textStyle = result.svg.g[0].g[j].text[i].$.style
