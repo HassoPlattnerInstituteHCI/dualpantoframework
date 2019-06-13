@@ -87,7 +87,7 @@ class svgConverter {
    * @param {object} result - The svg as object.
    * @return {object} - Object containing two Arrays with found objects.
    */
-  loadGroup(groupObjects, result) {
+  loadGroups(groupObjects, result) {
     const boxes = [];
     const meshes = [];
     for (let j = 0; j < result.svg.g[0].g.length; j++) {
@@ -103,7 +103,7 @@ class svgConverter {
           triggerTouch: false, triggerEndTouch: false,
           data: result.svg.g[0].g[j].rect[0].$};
 
-        if (newTrigger, this.loadRect(result.svg.g[0].g[j].rect, result)) {
+        if (this.loadRect(newTrigger, result.svg.g[0].g[j].rect[0], result)) {
           found = true;
         }
       }
@@ -115,8 +115,8 @@ class svgConverter {
           triggerLeave: false, triggerStartTouch: false,
           triggerTouch: false, triggerEndTouch: false,
           data: result.svg.g[0].g[j].path[0].$};
-
-        if (this.loadPath(newTrigger, result.svg.g[0].g[j].path, result)) {
+        // TODO: this should handle multiple paths
+        if (this.loadPath(newTrigger, result.svg.g[0].g[j].path[0], result)) {
           found = true;
         }
       }
