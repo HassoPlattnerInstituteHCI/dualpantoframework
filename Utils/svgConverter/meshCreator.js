@@ -73,6 +73,12 @@ class MeshCreator {
         return [1, 0, 0, 1, translates[0], translates[1]];
       }
         break;
+      case 'rotate': {
+        const angle = (parseFloat(values) / 180) * Math.PI;
+        return [Math.cos(angle), Math.sin(angle),
+          -Math.sin(angle), Math.cos(angle), 0, 0];
+      }
+        break;
       case 'matrix': {
         return values.split(',');
       }
