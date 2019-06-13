@@ -19,6 +19,7 @@ class svgConverter {
   constructor(svgPath, studentDir) {
     this.svgPath = svgPath;
     this.studentDir = studentDir;
+    this.offset = new Vector(0, 0);
   }
 
   /**
@@ -294,8 +295,11 @@ class svgConverter {
             found = true;
             console.log('polarForce', pathObject.$.id);
             const pattern = this.getPatternForID(patternID, result);
-            const transformMiddel = this.applyMatrix(new Vector(0, 0),
+            const transformMiddel = this.applyMatrix(this.offset,
                 pattern.patternTransform);
+            transformMiddel.x += this.offset.x;
+            transformMiddel.y += this.offset.y;
+            console.log({pattern, transformMiddel});
             hapticObject.polarPoint = transformMiddel;
           }
         }
@@ -493,11 +497,12 @@ class svgConverter {
     fs.readFile(this.svgPath, function(err, data) {
       parser.parseString(data, function(err, result) {
         let hapticBoxObjects = [];
-        let offset = new Vector(0, 0);
         if (result.svg.g[0].$.transform) {
-          offset = new Vector(result.svg.g[0].$.transform.split('(')[1]
-              .split(')')[0].split(',')[0], result.svg.g[0].$.transform
-              .split('(')[1].split(')')[0].split(',')[1]);
+          this.offset = new Vector(
+              parseFloat(result.svg.g[0].$.transform.split('(')[1]
+                  .split(')')[0].split(',')[0]),
+              parseFloat(result.svg.g[0].$.transform
+                  .split('(')[1].split(')')[0].split(',')[1]));
         }
         // first level Recs
         if (result.svg.g[0].rect) {
@@ -517,10 +522,10 @@ class svgConverter {
               .concat(groupedObjects.hapticMeshes);
         }
         console.log('found ', hapticBoxObjects.length, ' haptic objects');
-        console.log(offset);
+        console.log(this.offset);
         fileGenerator.generateFile(hapticBoxObjects,
             hapticMeshObjects,
-            this.studentDir, offset);
+            this.studentDir, this.offset);
         console.log('Generation complete.',
             'File can be found at: ' + this.studentDir + '\n',
             'Run \'node ' + this.studentDir +
