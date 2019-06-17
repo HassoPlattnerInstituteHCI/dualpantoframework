@@ -1,7 +1,10 @@
 'use strict';
 
 const Framework = require('./../../');
-const {Vector, Broker} = Framework;
+const {Vector, Components, Broker} = Framework;
+const {
+  Mesh,
+  MeshCollider} = Components;
 
 /**
  * @description Generates rooms recursively.
@@ -85,42 +88,15 @@ Broker.on('devicesChanged', function(devices, attached, detached) {
   console.log(`devices: ${devices.size}, attached: ${attached.size}, detached: ${detached.size}`);
   for (const device of devices) {
     if (device) {
-      Broker.runScript([
-        // () => device.movePantoTo(0, new Vector(-20, -100, NaN), 30),
-        () => {
-          return new Promise((resolve) => {
-            setTimeout( () => {
-              const path = [];
-              generateRoom(path, false, -30, -80, 50, 4);
-              let minX = 10000;
-              let maxX = -10000;
-              let minY = 10000;
-              let maxY = -10000;
-              console.log(
-                  '(%s,%s) (%s,%s)',
-                  minX.toFixed(1),
-                  minY.toFixed(1),
-                  maxX.toFixed(1),
-                  maxY.toFixed(1)
-              );
+      const path = [];
+      generateRoom(path, false, -30, -80, 50, 4);
 
-              console.log(path);
-
-              let out = '';
-              for (const p of path) {
-                out += p.x.toFixed(2) + '|' + p.y.toFixed(2) + ' ';
-                minX = Math.min(minX, p.x);
-                maxX = Math.max(maxX, p.x);
-                minY = Math.min(minY, p.y);
-                maxY = Math.max(maxY, p.y);
-              }
-              console.log(out);
-
-              device.createObstacle(path, 0);
-            }, 3000);
-          });
-        }
-      ]);
+      const rightHapticObject = device.addHapticObject(
+          new Vector(0, 0));
+      const mesh = rightHapticObject.addComponent(
+          new Mesh(path));
+      rightHapticObject.addComponent(
+          new MeshCollider(mesh));
     }
   }
 });
