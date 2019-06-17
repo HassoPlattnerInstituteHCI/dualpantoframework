@@ -13,13 +13,7 @@ int32_t Hashtable::get1dIndex(double value, double min, double step)
 
 std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
 {
-    //DPSerial::sendInstantDebugLog("(%+08.3f|%+08.3f) (%+08.3f|%+08.3f)", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y);
-    // DPSerial::sendQueuedDebugLog("fx %+08.3f", constrain(edge.m_first.x, -999, 999));
-    // DPSerial::sendQueuedDebugLog("fy %+08.3f", constrain(edge.m_first.y, -999, 999));
-    // DPSerial::sendQueuedDebugLog("sx %+08.3f", edge.m_second.x);
-    // DPSerial::sendQueuedDebugLog("sy %+08.3f", edge.m_second.y);
     std::vector<uint32_t> result;
-    //return result;
 
     // http://www.cse.yorku.ca/~amana/research/grid.pdf
     const auto startX = edge.m_first.x;
@@ -80,10 +74,8 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
 
 void Hashtable::add(Obstacle* obstacle, uint32_t index, Edge edge)
 {
-    //DPSerial::sendQueuedDebugLog("adding %+08.3f|%+08.3f %+08.3f|%+08.3f to...", edge.m_first.x, edge.m_first.y, edge.m_second.x, edge.m_second.y);
     for(auto&& cellIndex : getCellIndices(edge))
     {
-        //DPSerial::sendQueuedDebugLog("cell %i", cellIndex);
         m_cells[cellIndex].emplace_back(obstacle, index);
     }
 }
