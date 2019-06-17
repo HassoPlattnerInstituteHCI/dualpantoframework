@@ -162,7 +162,7 @@ void Hashtable::processQueues()
 void Hashtable::getPossibleCollisions(
     Edge movement, std::set<IndexedEdge>* result)
 {
-    if(movement.m_first.x == 0 && movement.m_first.x == 0)
+    if(movement.m_first.x == 0 && movement.m_first.y == 0)
     {
         DPSerial::sendInstantDebugLog(
             "Skipping god object movement from zero position.");
