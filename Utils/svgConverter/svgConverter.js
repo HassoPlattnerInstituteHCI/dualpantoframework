@@ -522,7 +522,6 @@ class svgConverter {
               .concat(groupedObjects.hapticMeshes);
         }
         console.log('found ', hapticBoxObjects.length, ' haptic objects');
-        console.log(this.offset);
         fileGenerator.generateFile(hapticBoxObjects,
             hapticMeshObjects,
             this.studentDir, this.offset);

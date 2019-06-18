@@ -338,7 +338,7 @@ class FileCreator {
    */
   generateMeshString(mesh) {
     let meshstring = 'new Mesh([\n';
-    for (let i= 0; i < mesh.length; i++) {
+    for (let i = 0; i < mesh.length; i++) {
       meshstring = meshstring.concat('    ' +
           this.generateVecString(mesh[i].difference(mesh[0])));
       meshstring =
@@ -407,8 +407,6 @@ class FileCreator {
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = mesh[i].sum(this.parseTranslate(translateString));
     }
-    console.log(mesh);
-    console.log();
     return mesh;
   }
 
