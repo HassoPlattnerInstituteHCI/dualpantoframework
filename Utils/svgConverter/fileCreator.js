@@ -402,8 +402,6 @@ class FileCreator {
    * @return {Array} Translated mesh.
    */
   applyTranslateToMesh(translateString, mesh) {
-    console.log(mesh);
-    console.log(translateString);
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = mesh[i].sum(this.parseTranslate(translateString));
     }
