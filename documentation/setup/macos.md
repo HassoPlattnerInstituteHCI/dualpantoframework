@@ -66,3 +66,9 @@ Visual Studio Code is a lightweight text editor and IDE, and unlike the normal V
   - C/C++ and C++ Intellisense: These two extensions are essential to writing C++ code in VS Code.
   - PlatformIO IDE: An actually functional Arduino build system. This also provides command line tools for automatically uploading the firmware.
   - ESLint: For the JS code in this repository, we're enforcing a coherent formatting. Before commiting to the dualpantoframework, an check is run to enforce all changes follow the rules. This extension allows checking these rules while writing code to avoid surprises.
+
+### 6.3 Install the ESP32 driver
+
+- [Download](https://www.silabs.com/documents/public/software/Mac_OSX_VCP_Driver.zip) the Zip file.
+- Unpackt it.
+- Run the installer inside the unpacked folder.
