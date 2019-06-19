@@ -1,47 +1,13 @@
 /* eslint-disable require-jsdoc */
-const childProcess = require('child_process');
-const path = require('path');
-const fs = require('fs');
+'use strict';
 
-const colorRed = '\x1b[31m';
-const colorGreen = '\x1b[32m';
-const colorYellow = '\x1b[33m';
-const colorReset = '\x1b[0m';
+const {exec, remove, color} = require('./tools');
 
-function exec(cmd, args) {
-  return childProcess.spawnSync(
-      cmd,
-      args,
-      {
-        shell: true,
-        stdio: ['ignore', process.stdout, process.stderr]
-      }).status == 0;
-};
-
-function log(message, color) {
-  console.log(`${color}${message}${colorReset}`);
+function log(message, messageColor) {
+  console.log(`${messageColor}${message}${color.reset}`);
 }
 
-function remove(target) {
-  if (!fs.existsSync(target)) {
-    log(`Could not find ${target}`, colorYellow);
-    return;
-  }
-  if (fs.statSync(target).isDirectory()) {
-    const content = fs.readdirSync(target);
-    for (const entry in content) {
-      if (content.hasOwnProperty(entry)) {
-        remove(path.join(target, content[entry]));
-      }
-    }
-    fs.rmdirSync(target);
-  } else {
-    fs.unlinkSync(target);
-  }
-  console.log(`Removed ${target}`);
-}
-
-buildHandlers = {
+const buildHandlers = {
   'framework': () => {
     return build('voice-command')
          & build('serial-plugin')
@@ -71,21 +37,21 @@ function build(target) {
   }
 
   if (!buildHandlers.hasOwnProperty(target)) {
-    log(`Invalid build target ${target}`, colorRed);
+    log(`Invalid build target ${target}`, color.red);
     return false;
   }
 
-  log(`Building ${target}`, colorGreen);
+  log(`Building ${target}`, color.green);
   const result = buildHandlers[target]();
   if (result) {
-    log(`Building ${target} successful`, colorGreen);
+    log(`Building ${target} successful`, color.green);
   } else {
-    log(`Building ${target} failed`, colorRed);
+    log(`Building ${target} failed`, color.red);
   }
   return result;
 }
 
-cleanHandlers = {
+const cleanHandlers = {
   'framework': () => {
     clean('voice-command');
     clean('serial-plugin');
@@ -98,7 +64,7 @@ cleanHandlers = {
     remove('./build');
   },
   'serial-standalone': () => {
-    log('Clean serial-standalone not implemented yet', colorYellow);
+    log('Clean serial-standalone not implemented yet', color.yellow);
   },
   'firmware': () => {
     remove('./Firmware/shared/lib/config.cpp');
@@ -115,11 +81,11 @@ function clean(target) {
   }
 
   if (!cleanHandlers.hasOwnProperty(target)) {
-    log(`Invalid clean target ${target}`, colorRed);
+    log(`Invalid clean target ${target}`, color.red);
     return;
   }
 
-  log(`Clean ${target}`, colorGreen);
+  log(`Clean ${target}`, color.green);
   cleanHandlers[target]();
 }
 
@@ -127,7 +93,7 @@ function config(target) {
   if (target === undefined) {
     target = 'doerte';
   }
-  log(`Generating config ${target}`, colorGreen);
+  log(`Generating config ${target}`, color.green);
   return exec('node', ['Firmware/GenerateHardwareConfig.js', target]);
 }
 
@@ -135,15 +101,21 @@ function platformio(command) {
   if (command == 'build' || command === undefined) {
     command = '.';
   }
-  log(`Running platformio ${command}`, colorGreen);
+  log(`Running platformio ${command}`, color.green);
   return exec(platformioExec, ['run', '-d Firmware', `-t ${command}`]);
+}
+
+function docs() {
+  log(`Building docs`, color.green);
+  return exec('node', ['Utils/Scripts/docs.js']);
 }
 
 const handlers = {
   'build': build,
   'clean': clean,
   'config': config,
-  'platformio': platformio
+  'platformio': platformio,
+  'docs': docs
 };
 
 let platformioExec;
@@ -166,7 +138,13 @@ if (process.platform == 'win32') {
 
 const command = process.argv[2];
 if (!handlers.hasOwnProperty(command)) {
-  log(`Unknown command ${command}`, colorRed);
+  log(`Unknown command ${command}`, color.red);
   return;
 }
-handlers[command](process.argv[3]);
+log(`=== Running ${command} ===`, color.green);
+const result = handlers[command](process.argv[3]);
+if (result) {
+  log(`=== ${command} successful ===`, color.green);
+} else {
+  log(`=== ${command} failed ===`, color.red);
+}

@@ -30,6 +30,7 @@ The `package.json` contains the following scripts which can be run using `npm ru
   - `build` or `.` - builds the firmware. Please note: `build` is not a default PlatformIO command. It is only provided for easier use and is internally converted to `.`.
   - `upload` - builds and uploads the firmware
   - `clean` - cleans the firmware build cache
+- `docs` - builds the documentation
 
 ## Transmission Protocol
 
