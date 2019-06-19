@@ -15,6 +15,80 @@ const ignore = [
   'Index'
 ];
 
+const indexBaseLevel = 1;
+
+const indexOrder = {
+  name: 'Classes',
+  children: [
+    {
+      name: 'Infrastructure',
+      children: [
+        'Broker',
+        'Device'
+      ]
+    },
+    {
+      name: 'Audio',
+      children: [
+        'Player',
+        'VoiceInteraction'
+      ]
+    },
+    {
+      name: 'Haptics',
+      children: [
+        'HapticObject',
+        {
+          name: 'Components',
+          children: [
+            'Component',
+            'Mesh',
+            {
+              name: 'Collider',
+              children: [
+                'Collider',
+                'BoxCollider',
+                'MeshCollider'
+              ]
+            },
+            {
+              name: 'Trigger',
+              children: [
+                'Trigger',
+                'BoxTrigger',
+                'MeshTrigger'
+              ]
+            },
+            {
+              name: 'Forcefield',
+              children: [
+                'Forcefield',
+                'ForcefieldCallback',
+                'ForcefieldSampleFunctions',
+                'BoxForcefield',
+                'MeshForcefield'
+              ]
+            },
+            {
+              name: 'HardStep',
+              children: [
+                'HardStep',
+                'BoxHardStep',
+                'MeshHardStep'
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Helper',
+      children: [
+        'Vector'
+      ]
+    }
+  ]};
+
 function clean() {
   remove(docsPath);
 }
@@ -96,12 +170,47 @@ function buildDocs(file, files) {
       });
 }
 
+function buildIndexRecursive(files, indexObject, level) {
+  const headerPrefix = '#'.repeat(level);
+  if (typeof indexObject == 'string') {
+    const file = files.filter((f) => f.name == indexObject)[0];
+    const link = path.relative(docsPath, file.output);
+    files.splice(files.indexOf(file), 1);
+    return `${headerPrefix} [${file.name}](${link})\n`;
+  } else {
+    let result = `${headerPrefix} ${indexObject.name}\n`;
+    for (const child of indexObject.children) {
+      result += buildIndexRecursive(files, child, level + 1);
+    }
+    return result;
+  }
+}
+
+function buildRemaining(files, level) {
+  if (files.length == 0) {
+    return '';
+  }
+  const headerPrefix = '#'.repeat(level);
+  let result = `${headerPrefix} Unknown\n`;
+  for (const file of files) {
+    result += buildIndexRecursive(files, file.name, level + 1);
+  }
+  return result;
+}
+
+function buildIndex(files) {
+  const copy = [...files];
+  return buildIndexRecursive(copy, indexOrder, indexBaseLevel) +
+    buildRemaining(copy, indexBaseLevel+ 1);
+}
+
 function document() {
   clean();
   const files = findFiles();
   for (const file of files) {
     buildDocs(file, files);
   }
+  store({output: path.join(docsPath, 'index.md')}, buildIndex(files));
 }
 
 document();

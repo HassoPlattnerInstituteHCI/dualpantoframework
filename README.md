@@ -15,6 +15,10 @@ This repository contains the JS framework for controlling the dualpanto, as well
 
 A setup guide can be found [here](documentation/setup/setup.md).
 
+## Documentation
+
+The reference for all classes can be found [here](documentation/classes/index.md).
+
 ## Available Scripts
 
 The `package.json` contains the following scripts which can be run using `npm run [command]`:
