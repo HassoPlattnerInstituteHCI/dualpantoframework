@@ -124,7 +124,7 @@ if (process.platform == 'win32') {
   platformioExec = '"%userprofile%/.platformio/penv/Scripts/platformio"';
   cppExec = 'cl /Fo:Utils\\Serial\\';
 } else {
-  if (childProcess.execSync('which platformio').toString().length > 0) {
+  if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';
   } else {
     platformioExec = '~/.platformio/penv/bin/platformio';
