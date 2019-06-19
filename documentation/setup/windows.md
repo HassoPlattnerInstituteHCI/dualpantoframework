@@ -58,3 +58,10 @@ Visual Studio Code is a lightweight text editor and IDE, and unlike the normal V
   - C/C++ and C++ Intellisense: These two extensions are essential to writing C++ code in VS Code.
   - PlatformIO IDE: An actually functional Arduino build system. This also provides command line tools for automatically uploading the firmware.
   - ESLint: For the JS code in this repository, we're enforcing a coherent formatting. Before commiting to the dualpantoframework, an check is run to enforce all changes follow the rules. This extension allows checking these rules while writing code to avoid surprises.
+
+## 6. Install MPlayer
+
+MPlayer is used as an command line mediaplayer on Windows. You'll need to install it if you want to play audio files.
+
+- Download the [installer](https://github.com/lordmulder/mplayer-setup-win32/releases/tag/2018-12-12) and run it.
+- After installing, add the path to the executable (e.g. `C:\Program Files (x86)\MPlayer for Windows`) to your path variable.
