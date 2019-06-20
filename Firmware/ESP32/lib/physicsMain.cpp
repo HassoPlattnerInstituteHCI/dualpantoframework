@@ -5,8 +5,6 @@
 #include "physics/pantoPhysics.hpp"
 #include "spiEncoder.hpp"
 
-unsigned long prevTime = 0;
-
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
 #endif
@@ -77,9 +75,6 @@ void physicsLoop()
     PERFMON_STOP("[b] Calculate physics");
 
     PERFMON_START("[c] Actuate motors");
-    unsigned long now = micros();
-    Panto::dt = now - prevTime;
-    prevTime = now;
     for (unsigned char i = 0; i < pantoCount; ++i)
         pantos[i].actuateMotors();
     PERFMON_STOP("[c] Actuate motors");

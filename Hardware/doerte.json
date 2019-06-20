@@ -27,7 +27,7 @@
                     "dirAPin": 22,
                     "flipped": true,
                     "powerLimit": 1.0,
-                    "pidFactor": [0.99, 0.0, 6.5]
+                    "pidFactor": [7, 0.0, 600]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -48,7 +48,7 @@
                     "dirAPin": 19,
                     "flipped": true,
                     "powerLimit": 1.0,
-                    "pidFactor": [0.99, 0.0, 6.5]
+                    "pidFactor": [7, 0.0, 600]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -87,7 +87,7 @@
                     "dirAPin": 16,
                     "flipped": true,
                     "powerLimit": 1.0,
-                    "pidFactor": [0.99, 0.0, 6.5]
+                    "pidFactor": [7, 0.0, 600]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -108,7 +108,7 @@
                     "dirAPin": 5,
                     "flipped": true,
                     "powerLimit": 1.0,
-                    "pidFactor": [0.99, 0.0, 6.5]
+                    "pidFactor": [7, 0.0, 600]
                 },
                 "encoder": {
                     "steps": 16384,
