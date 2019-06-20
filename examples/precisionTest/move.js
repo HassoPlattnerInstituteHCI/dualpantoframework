@@ -1,30 +1,34 @@
 'use strict';
 
 const Framework = require('./../../');
-const {Vector} = Framework;
+const {Vector, Broker} = Framework;
 
-const p = 0;
+const positions = [new Vector(-50, -120, NaN), new Vector(50, -120, NaN)];
+let nextPosition = 0;
+const handle = 0;
+const threshold = 10;
+let wait = false;
 
-Framework.on('devicesChanged', function(devices, attached, detached) {
+
+Broker.on('devicesChanged', function(devices, attached, detached) {
   // cant break in template string
   // eslint-disable-next-line max-len
   console.log(`devices: ${devices.size}, attached: ${attached.size}, detached: ${detached.size}`);
   for (const device of devices) {
     if (device) {
-      const script = [];
-      for (let i = 0; i < 100; i++) {
-        script.push(() => device.movePantoTo(0, new Vector(-20, -100, 0), 60));
-        script.push(() => device.movePantoTo(1, new Vector(-20, -100, 0), 60));
-        script.push(() => Framework.waitMS(5000));
-        script.push(
-            () => device.movePantoTo(0, new Vector(20, -100, Math.PI*1), 60)
-        );
-        script.push(
-            () => device.movePantoTo(1, new Vector(20, -100, Math.PI*1), 60)
-        );
-        script.push(() => Framework.waitMS(5000));
-      }
-      Framework.run_script(script);
+      device.movePantoTo(handle, positions[nextPosition]);
+      device.on('handleMoved', function(index, position) {
+        const difference =
+            position.difference(positions[nextPosition]).length();
+        if (!wait && difference < threshold) {
+          wait = true;
+          setTimeout(() => {
+            nextPosition = (nextPosition + 1) % positions.length;
+            device.movePantoTo(handle, positions[nextPosition]);
+            wait = false;
+          }, 3000);
+        }
+      });
     }
   }
 });
