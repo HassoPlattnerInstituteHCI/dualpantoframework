@@ -1,17 +1,20 @@
 'use strict';
 
 const Framework = require('./../../');
-const {Vector} = Framework;
+const {Vector, Components, Broker} = Framework;
+const {
+  Mesh,
+  MeshCollider} = Components;
 
 /**
- *
- * @param {Vector[]} path - array where the points will be added
- * @param {boolean} leftToBottom - true if the room should have a door at the
- * left and bottom; false if the doors should be at the top and right
- * @param {number} startX - x-position to start the room generation with
- * @param {number} startY - y-position to start the room generation with
- * @param {number} wallLength - width and height of the room
- * @param {number} steps - how many rooms should be generated recursively
+ * @description Generates rooms recursively.
+ * @param {Vector[]} path - Array where the points will be added.
+ * @param {boolean} leftToBottom - True if the room should have a door at the
+ * left and bottom; false if the doors should be at the top and right.
+ * @param {number} startX - X-position to start the room generation with.
+ * @param {number} startY - Y-position to start the room generation with.
+ * @param {number} wallLength - Width and height of the room.
+ * @param {number} steps - How many rooms should be generated recursively.
  */
 function generateRoom(
     path,
@@ -79,48 +82,21 @@ function generateRoom(
   }
 }
 
-Framework.on('devicesChanged', function(devices, attached, detached) {
+Broker.on('devicesChanged', function(devices, attached, detached) {
   // cant break in template string
   // eslint-disable-next-line max-len
   console.log(`devices: ${devices.size}, attached: ${attached.size}, detached: ${detached.size}`);
   for (const device of devices) {
     if (device) {
-      Framework.run_script([
-        // () => device.movePantoTo(0, new Vector(-20, -100, NaN), 30),
-        () => {
-          return new Promise((resolve) => {
-            setTimeout( () => {
-              const path = [];
-              generateRoom(path, false, -30, -80, 50, 4);
-              let minX = 10000;
-              let maxX = -10000;
-              let minY = 10000;
-              let maxY = -10000;
-              console.log(
-                  '(%s,%s) (%s,%s)',
-                  minX.toFixed(1),
-                  minY.toFixed(1),
-                  maxX.toFixed(1),
-                  maxY.toFixed(1)
-              );
+      const path = [];
+      generateRoom(path, false, -30, -80, 50, 4);
 
-              console.log(path);
-
-              let out = '';
-              for (const p of path) {
-                out += p.x.toFixed(2) + '|' + p.y.toFixed(2) + ' ';
-                minX = Math.min(minX, p.x);
-                maxX = Math.max(maxX, p.x);
-                minY = Math.min(minY, p.y);
-                maxY = Math.max(maxY, p.y);
-              }
-              console.log(out);
-
-              device.createObstacle(path, 0);
-            }, 3000);
-          });
-        }
-      ]);
+      const rightHapticObject = device.addHapticObject(
+          new Vector(0, 0));
+      const mesh = rightHapticObject.addComponent(
+          new Mesh(path));
+      rightHapticObject.addComponent(
+          new MeshCollider(mesh));
     }
   }
 });

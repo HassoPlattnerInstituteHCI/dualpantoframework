@@ -156,6 +156,7 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 
 void GodObject::removeObstacle(uint16_t id)
 {
+    enableObstacle(id, false);
     portENTER_CRITICAL(&m_obstacleMutex);
     m_obstacles.erase(id);
     portEXIT_CRITICAL(&m_obstacleMutex);

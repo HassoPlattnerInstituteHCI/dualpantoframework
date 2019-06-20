@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework.svg?style=svg&circle-token=32b766f8a9d2c9a0c612d215322a6dab4aec813d)](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework)
 
-version 0.2
+version 0.3
 
 dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner, Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
@@ -14,6 +14,10 @@ This repository contains the JS framework for controlling the dualpanto, as well
 ## Installation & Setup
 
 A setup guide can be found [here](documentation/setup/setup.md).
+
+## Documentation
+
+The reference for all classes can be found [here](documentation/classes/index.md).
 
 ## Available Scripts
 
@@ -30,6 +34,7 @@ The `package.json` contains the following scripts which can be run using `npm ru
   - `build` or `.` - builds the firmware. Please note: `build` is not a default PlatformIO command. It is only provided for easier use and is internally converted to `.`.
   - `upload` - builds and uploads the firmware
   - `clean` - cleans the firmware build cache
+- `docs` - builds the documentation
 
 ## Transmission Protocol
 
