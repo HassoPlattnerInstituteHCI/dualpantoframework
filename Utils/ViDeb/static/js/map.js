@@ -2,18 +2,16 @@
 const margin = {top: 5, bottom: 20, left: 40, right: 7};
 const height = 600 - margin.top - margin.bottom;
 const width = 1200 - margin.left - margin.right;
-
+const pantoxOffset = 175;
+const pantoyOffset = 5;
 const dualPantos = [];
 let svg;
+const obstacles = [];
 
 const ws = new WebSocket('ws://' + window.location.hostname + ':' + window.location.port + window.location.pathname + window.location.search);
 ws.onopen = function(event) {
   console.log('Connection open');
   setup();
-  const packet = {
-    type: 'createVirtualDevice'
-  };
-  ws.send(JSON.stringify(packet));
 };
 
 ws.onmessage = function(event) {
@@ -24,8 +22,6 @@ ws.onmessage = function(event) {
   if (!panto) {
     panto = new DualPanto(data.port);
     dualPantos.push(panto);
-  }
-  if (!data.port.match('virtual')) {
   }
   switch (data.type) {
     case 'mapLine':
@@ -68,15 +64,12 @@ ws.onmessage = function(event) {
       if (data.pointArray.length == 2) {
         drawLine(data.pointArray, 'black');
       } else {
-        let points = '';
-        for (let i = 0; i < data.pointArray.length; i++) {
-          if (i != 0) {
-            points = points.concat(' ');
-          }
-          points = points.concat((data.pointArray[i].x + 150) + ',' +
-              (-data.pointArray[i].y));
+        let lastPoint = data.pointArray[0];
+        for (let i = 1; i < data.pointArray.length; i++) {
+          drawLine([lastPoint, data.pointArray[i]], 'black');
+          lastPoint = data.pointArray[i];
         }
-        drawObstacle(points, data.id);
+        drawLine([lastPoint, data.pointArray[0]], 'black');
       }
       break;
     case 'removeObstacle':
@@ -92,17 +85,17 @@ ws.onerror = function(event) {
 const drawLine = function(line, color) {
   svg.append('line')
       .attr('class', 'wall')
-      .attr('x1', line[0].x + 150)
-      .attr('y1', -line[0].y)
-      .attr('x2', line[1].x + 150)
-      .attr('y2', -line[1].y)
+      .attr('x1', line[0].x + pantoxOffset)
+      .attr('y1', -(line[0].y - pantoyOffset))
+      .attr('x2', line[1].x + pantoxOffset)
+      .attr('y2', -(line[1].y - pantoyOffset))
       .style('stroke', color);
 };
 
 const drawCircle = function(pos, size, color) {
   svg.append('circle')
-      .attr('cx', pos.x + 150)
-      .attr('cy', -pos.y)
+      .attr('cx', pos.x + pantoxOffset)
+      .attr('cy', -(pos.y - pantoyOffset))
       .attr('r', size)
       .attr('fill', color);
 };
@@ -115,11 +108,6 @@ const setup = function() {
       .attr('width', width + margin.left + margin.right)
       .append('g')
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-};
-
-const drawObstacle = function(points, id) {
-  obstacles[id] = svg.append('polygon')
-      .attr('points', points);
 };
 
 const removeObstacle = function(id) {
@@ -149,6 +137,9 @@ class DualPanto {
   drawHandle(positionX, positionY, angle, index) {
     const xDirection = Math.cos(angle);
     const yDirection = Math.sin(angle);
+    const directionVec = new Vector(xDirection, -yDirection, NaN)
+        .normalized()
+        .scaled(50);
     let color = 'blue';
     if (index == 1) {
       color = 'green';
@@ -156,25 +147,25 @@ class DualPanto {
     const offset = 2 * index;
     if (!this.token[0 + offset]) {
       this.token.push(svg.append('circle')
-          .attr('cx', positionX + 150)
-          .attr('cy', -positionY)
+          .attr('cx', positionX + pantoxOffset)
+          .attr('cy', -(positionY - pantoyOffset))
           .attr('r', 1)
           .attr('fill', color));
       this.token.push(svg.append('line')
           .attr('class', 'aimline')
           .attr('x1', positionX)
-          .attr('y1', positionY)
-          .attr('x2', positionX + 25 * xDirection)
-          .attr('y2', positionY + 25 * -yDirection)
+          .attr('y1', -(positionY - pantoyOffset))
+          .attr('x2', positionX + pantoxOffset + directionVec.x)
+          .attr('y2', -(positionY - pantoyOffset) + directionVec.y)
           .style('stroke', 'black'));
     } else {
-      this.token[0 + offset].attr('cx', positionX + 150)
-          .attr('cy', -positionY);
+      this.token[0 + offset].attr('cx', positionX + pantoxOffset)
+          .attr('cy', -(positionY - pantoyOffset));
 
-      this.token[1 + offset].attr('x1', positionX +150)
-          .attr('y1', -positionY)
-          .attr('x2', positionX + 175 * xDirection)
-          .attr('y2', -positionY + 25 * -yDirection);
+      this.token[1 + offset].attr('x1', positionX +pantoxOffset)
+          .attr('y1', -(positionY - pantoyOffset))
+          .attr('x2', positionX + pantoxOffset + directionVec.x)
+          .attr('y2', -(positionY - pantoyOffset) + directionVec.y);
     }
   }
 }
