@@ -15,7 +15,7 @@ struct Panto
 
     const unsigned char dofCount = pantoCount * 3;
 
-    static float dt;
+    unsigned long prevTime = 0;
 
     unsigned char dofIndex;
 

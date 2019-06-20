@@ -10,6 +10,11 @@ There are a couple useful scripts defined in `package.json`. The most important 
 
 Note for Windows users: You'll need to run the scripts from an Visual Stutio developer command line, otherwise the compiler won't be accessable. E.g. when using Visual Studio 2017, search for `x64 Native Tools Command Prompt for VS 2017` or `x64 Native Tools-Eingabeaufforderung für VS 2017` (depending on your OS's language) using the Windows search and navigate to the dualpantoframework directory afterwards.
 
+## Install the ESP32 driver
+
+- [Download](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers) the installer for your OS-Version.
+- Run the installer.
+
 ## Uploading the Firmware
 
 In order to upload the firmware to the device, connect it and run `npm run platformio upload`.
