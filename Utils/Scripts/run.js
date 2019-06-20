@@ -56,7 +56,7 @@ buildHandlers = {
   },
   'serial-standalone': () => {
     // eslint-disable-next-line max-len
-    return exec(cppExec, ['Utils/Serial/serial.cpp', 'Protocol/lib/protocol.cpp', '-IProtocol/include', '-o Utils/Serial/serial']);
+    return exec(cppExec, cppArgs.concat(['Utils/Serial/serial.cpp', 'Protocol/lib/protocol.cpp', '-IProtocol/include', '-o Utils/Serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -148,9 +148,11 @@ const handlers = {
 
 let platformioExec;
 let cppExec;
+let cppArgs;
 if (process.platform == 'win32') {
   platformioExec = '"%userprofile%/.platformio/penv/Scripts/platformio"';
-  cppExec = 'cl /Fo:Utils\\Serial\\';
+  cppExec = 'cl';
+  cppArgs = ['/Fo:Utils\\Serial\\'];
 } else {
   if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';
@@ -159,8 +161,10 @@ if (process.platform == 'win32') {
   }
   if (process.platform == 'linux') {
     cppExec = 'g++';
+    cppArgs = ['-std=c++11'];
   } else {
     cppExec = 'clang++';
+    cppArgs = ['-std=c++11'];
   }
 }
 
