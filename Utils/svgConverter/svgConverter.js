@@ -1,6 +1,7 @@
 'use strict';
 
 const FileGenerator = require('./fileCreator.js');
+const MeshCreator = require('./meshCreator.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
 const fs = require('fs');
@@ -229,16 +230,8 @@ class svgConverter {
       }
       if (found) {
         if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
-          if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
-            'translate') {
-            console.log('has translate: ', result.svg.g[0].g[j].$
-                .transform.split('(')[1].split(')')[0]);
-            newTrigger.translate = result.svg.g[0].g[j].$.transform
-                .split('(')[1].split(')')[0];
-          } else if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
-            'matrix') {
-            newTrigger.matrix = result.svg.g[0].g[j].$.transform;
-          }
+          newTrigger.matrix = MeshCreator.parseTransform(
+              result.svg.g[0].g[j].$.transform);
         }
         // could be undefined and therefore check for true must happen
         if (newTrigger.box === true) {

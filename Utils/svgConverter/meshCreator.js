@@ -5,7 +5,7 @@ const Vector = require('./../../lib/vector.js');
  */
 class MeshCreator {
   /**
-   * @description Creates a new instance of FileCreator.
+   * @description Creates a new instance of MeshCreator.
    * @param {number} [svgTranformxOffset= 0] - X offset if given.
    * @param {number} [svgTranformyOffset= 0] - Y offset if given.
    */
@@ -33,7 +33,7 @@ class MeshCreator {
    * @param {Array} path - Array that contains 2D points.
    * @param {number[]} matrix - Array that contains the matrix.
    */
-  applyMatrix(path, matrix) {
+  static applyMatrix(path, matrix) {
     for (let j = 0; j < path.length; j++) {
       const position = path[j];
       for (let i = 0; i < matrix.length; i ++) {
@@ -54,7 +54,7 @@ class MeshCreator {
    * @param {string} transform - String that contains the transform.
    * @return {number[]} Array that contains the matrix.
    */
-  parseTransform(transform) {
+  static parseTransform(transform) {
     console.log(transform);
     if (!transform || !transform.includes('(')) {
       return [1, 0, 0, 1, 0, 0];
@@ -74,9 +74,15 @@ class MeshCreator {
       }
         break;
       case 'rotate': {
-        const angle = (parseFloat(values) / 180) * Math.PI;
-        return [Math.cos(angle), Math.sin(angle),
-          -Math.sin(angle), Math.cos(angle), 0, 0];
+        const angleAndPivot = values.split(',');
+        const angle = (parseFloat(angleAndPivot[0]) / 180) * Math.PI;
+        const pivotX = parseFloat(angleAndPivot[1] || 0);
+        const pivotY = parseFloat(angleAndPivot[2] || 0);
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        return [cosA, sinA, -sinA, cosA,
+          -pivotX * cosA + pivotY * sinA + pivotX,
+          -pivotX * sinA - pivotY * cosA + pivotY];
       }
         break;
       case 'matrix': {
@@ -98,7 +104,7 @@ class MeshCreator {
   parseSvgPath(data) {
     const svgString = data.d;
     const transform = data.transform;
-    const matrix = this.parseTransform(transform);
+    const matrix = MeshCreator.parseTransform(transform);
     let lastMode;
     const spaceSplit = svgString.split(' ');
     const points = [];
@@ -162,11 +168,7 @@ class MeshCreator {
           break;
       }
     }
-    this.applyMatrix(points, matrix);
-    for (let i = 0; i < points.length; i++) {
-      points[i].x += this.svgTranformxOffset;
-      points[i].y += this.svgTranformyOffset;
-    }
+    MeshCreator.applyMatrix(points, matrix);
     return points;
   }
 
