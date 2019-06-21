@@ -1,9 +1,8 @@
 'use strict';
 
-const Framework = require('../..');
-const {Vector} = Framework;
+const {Broker, Vector} = require('../..');
 
-Framework.on('devicesChanged', function(devices, attached, detached) {
+Broker.on('devicesChanged', function(devices, attached, detached) {
   for (const device of devices) {
     if (device) {
       const pos = [new Vector(), new Vector()];
