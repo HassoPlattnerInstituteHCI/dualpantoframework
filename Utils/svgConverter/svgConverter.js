@@ -1,7 +1,7 @@
 'use strict';
 
 const FileGenerator = require('./fileCreator.js');
-const MeshCreator = require('./meshCreator.js');
+const {parseTransform} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
 const fs = require('fs');
@@ -230,8 +230,7 @@ class svgConverter {
       }
       if (found) {
         if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
-          newTrigger.matrix = MeshCreator.parseTransform(
-              result.svg.g[0].g[j].$.transform);
+          newTrigger.matrix = parseTransform(result.svg.g[0].g[j].$.transform);
         }
         // could be undefined and therefore check for true must happen
         if (newTrigger.box === true) {

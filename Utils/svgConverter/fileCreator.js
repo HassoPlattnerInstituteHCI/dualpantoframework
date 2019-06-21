@@ -2,6 +2,7 @@
 const fs = require('fs');
 const MeshCreator = require('./MeshCreator.js');
 const Vector = require('../../lib/vector.js');
+const {applyMatrix} = require('./utils.js');
 
 /**
  * @description Class for code generation.
@@ -73,7 +74,7 @@ class FileCreator {
     for (let i = 0; i < hapticMeshObjects.length; i++) {
       let mesh = meshCreator.parseSvgPath(hapticMeshObjects[i].data);
       if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
-        MeshCreator.applyMatrix(mesh, hapticMeshObjects[i].matrix);
+        applyMatrix(mesh, hapticMeshObjects[i].matrix);
         for (let i = 0; i < mesh.length; i++) {
           mesh[i].x += offset.x;
           mesh[i].y += offset.y;
