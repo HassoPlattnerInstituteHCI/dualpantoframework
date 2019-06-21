@@ -26,13 +26,11 @@ const applyMatrix = function(path, matrix) {
  * @return {number[]} Array that contains the matrix.
  */
 const parseTransform = function(transform) {
-  console.log(transform);
   if (!transform || !transform.includes('(')) {
     return [1, 0, 0, 1, 0, 0];
   }
   const type = transform.split('(')[0];
   const values = transform.split('(')[1].split(')')[0];
-  console.log(values);
   switch (type) {
     case 'scale': {
       const scales = values.split(',');

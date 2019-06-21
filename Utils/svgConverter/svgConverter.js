@@ -291,7 +291,6 @@ class svgConverter {
                 pattern.patternTransform);
             transformMiddel.x += this.offset.x;
             transformMiddel.y += this.offset.y;
-            console.log({pattern, transformMiddel});
             hapticObject.polarPoint = transformMiddel;
           }
         }
@@ -513,7 +512,8 @@ class svgConverter {
           hapticMeshObjects = hapticMeshObjects
               .concat(groupedObjects.hapticMeshes);
         }
-        console.log('found ', hapticBoxObjects.length, ' haptic objects');
+        console.log('found ', hapticBoxObjects.length +
+          hapticMeshObjects.length, ' haptic objects');
         fileGenerator.generateFile(hapticBoxObjects,
             hapticMeshObjects,
             this.studentDir, this.offset);
