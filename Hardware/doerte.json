@@ -6,7 +6,7 @@
     "forceFactor": 0.01,
     "dummyPin": 40,
     "usesSpi": true,
-    "forcePidFactor": [0.375, 0, 0.8],
+    "forcePidFactor": [0.375, 0, 0],
     "hashtable": {
         "memory": 200000,
         "processedEntriesPerFrame": 1
