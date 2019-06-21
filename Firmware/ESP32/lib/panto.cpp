@@ -123,7 +123,7 @@ void Panto::forwardKinematics()
     m_jacobian[0][0] =
         (-c_leftInnerLength * leftBaseAngleSin) - (upperRow * leftColumn);
     m_jacobian[0][1] =
-        (c_leftInnerLength * leftBaseAngleCos) - (upperRow * rightColumn);
+        (c_leftInnerLength * leftBaseAngleCos) + (upperRow * rightColumn);
     m_jacobian[1][0] =
         lowerRow * leftColumn;
     m_jacobian[1][1] =
