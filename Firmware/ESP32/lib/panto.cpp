@@ -58,64 +58,66 @@ void Panto::forwardKinematics()
 
     // left elbow angle sin / cos
     // PERFMON_START("[abbf] left elbow angle sin / cos");
-    const auto leftElbowInsideAngleSin =
-        std::sin(leftElbowInsideAngle);
+    const auto leftElbowTotalAngleSin =
+        std::sin(leftElbowTotalAngle);
+    const auto leftElbowTotalAngleCos =
+        std::cos(leftElbowTotalAngle);
     // PERFMON_STOP("[abbf] left elbow angle sin / cos");
 
     // handle position
     // PERFMON_START("[abbg] handle position");
     m_handleX =
-        fma(std::cos(leftElbowTotalAngle), c_leftOuterLength, leftInnerX);
+        fma(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
     m_handleY =
-        fma(std::sin(leftElbowTotalAngle), c_leftOuterLength, leftInnerY);
+        fma(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
     // PERFMON_STOP("[abbg] handle position");
 
     // right elbow angles
     // PERFMON_START("[abbh] right elbow angles");
     const auto rightDiffX = m_handleX - rightInnerX;
     const auto rightDiffY = m_handleY - rightInnerY;
-    const auto rightElbowInsideAngle = std::atan2(rightDiffY, rightDiffX);
+    const auto rightElbowTotalAngle = std::atan2(rightDiffY, rightDiffX);
     // PERFMON_STOP("[abbh] right elbow angles");
 
     // store angles
     // PERFMON_START("[abbi] store angles");
-    m_leftInnerAngle = leftElbowInsideAngle;
-    m_rightInnerAngle = rightElbowInsideAngle;
+    m_leftInnerAngle = leftElbowTotalAngle;
+    m_rightInnerAngle = rightElbowTotalAngle;
     m_pointingAngle =
         handleAngle +
         (c_handleMountedOnRightArm ?
-        rightElbowInsideAngle :
-        leftElbowInsideAngle);
+        rightElbowTotalAngle :
+        leftElbowTotalAngle);
     // PERFMON_STOP("[abbi] store angles");
 
     // some weird diffs and their sinuses
     // PERFMON_START("[abbj] some weird diffs and their sinuses");
-    const auto rightElbowInsideAngleMinusLeftBaseAngle =
-        rightElbowInsideAngle - leftBaseAngle;
-    const auto rightElbowInsideAngleMinusLeftBaseAngleSin =
-        std::sin(rightElbowInsideAngleMinusLeftBaseAngle);
-    const auto rightElbowInsideAngleMinusRightBaseAngle =
-        rightElbowInsideAngle - rightBaseAngle;
-    const auto rightElbowInsideAngleMinusRightBaseAngleSin =
-        std::sin(rightElbowInsideAngleMinusRightBaseAngle);
-    const auto leftElbowInsideAngleMinusRightElbowInsideAngle =
-        leftElbowInsideAngle - rightElbowInsideAngle;
-    const auto leftElbowInsideAngleMinusRightElbowInsideAngleSin =
-        std::sin(leftElbowInsideAngleMinusRightElbowInsideAngle);
+    const auto rightElbowTotalAngleMinusLeftBaseAngle =
+        rightElbowTotalAngle - leftBaseAngle;
+    const auto rightElbowTotalAngleMinusLeftBaseAngleSin =
+        std::sin(rightElbowTotalAngleMinusLeftBaseAngle);
+    const auto rightElbowTotalAngleMinusRightBaseAngle =
+        rightElbowTotalAngle - rightBaseAngle;
+    const auto rightElbowTotalAngleMinusRightBaseAngleSin =
+        std::sin(rightElbowTotalAngleMinusRightBaseAngle);
+    const auto leftElbowTotalAngleMinusRightElbowTotalAngle =
+        leftElbowTotalAngle - rightElbowTotalAngle;
+    const auto leftElbowTotalAngleMinusRightElbowTotalAngleSin =
+        std::sin(leftElbowTotalAngleMinusRightElbowTotalAngle);
     // PERFMON_STOP("[abbj] some weird diffs and their sinuses");
 
     // shared factors for rows/columns
     // PERFMON_START("[abbk] shared factors for rows/columns");
     const auto upperRow =
-        c_leftInnerLength * rightElbowInsideAngleMinusLeftBaseAngleSin;
+        c_leftInnerLength * rightElbowTotalAngleMinusLeftBaseAngleSin;
     const auto lowerRow =
-        c_rightInnerLength * rightElbowInsideAngleMinusRightBaseAngleSin;
+        c_rightInnerLength * rightElbowTotalAngleMinusRightBaseAngleSin;
     const auto leftColumn =
-        leftElbowInsideAngleSin /
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+        leftElbowTotalAngleSin /
+        leftElbowTotalAngleMinusRightElbowTotalAngleSin;
     const auto rightColumn =
-        leftElbowInsideAngleCos /
-        leftElbowInsideAngleMinusRightElbowInsideAngleSin;
+        leftElbowTotalAngleCos /
+        leftElbowTotalAngleMinusRightElbowTotalAngleSin;
     // PERFMON_STOP("[abbk] shared factors for rows/columns");
 
     // set jacobian matrix
