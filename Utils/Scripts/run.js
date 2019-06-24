@@ -67,8 +67,8 @@ const cleanHandlers = {
     log('Clean serial-standalone not implemented yet', color.yellow);
   },
   'firmware': () => {
-    remove('./Firmware/shared/lib/config.cpp');
-    remove('./Firmware/shared/include/config.hpp');
+    remove('./Firmware/src/config/config.cpp');
+    remove('./Firmware/include/config/config.hpp');
     platformio('clean');
   }
 };
