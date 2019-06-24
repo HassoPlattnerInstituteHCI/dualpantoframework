@@ -4,12 +4,20 @@
 
 **Extends EventEmitter**
 
-Abstract base class for all [HapticObject](..\hapticObject.md) components.
+Abstract base class for all [HapticObject](../hapticObject.md) components.
 
 ### Parameters
 
 -   `handles` **([number][1] \| [Array][2]&lt;[number][1]>)** The handle or handles which this
     component should apply to. Defaults to neither. (optional, default `[]`)
+
+### enable
+
+Enables the component
+
+### disable
+
+Disables the component
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 

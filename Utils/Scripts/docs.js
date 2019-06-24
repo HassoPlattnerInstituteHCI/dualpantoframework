@@ -24,7 +24,8 @@ const indexOrder = {
       name: 'Infrastructure',
       children: [
         'Broker',
-        'Device'
+        'Device',
+        'PositionListener'
       ]
     },
     {
@@ -109,7 +110,7 @@ function readDirRecursive(dir) {
       const child = path.join(dir, content[entry]);
       if (fs.statSync(child).isDirectory()) {
         results.push(...readDirRecursive(child));
-      } else {
+      } else if (child !== 'lib/.DS_Store') {
         results.push({
           name: fixName(child),
           path: fs.realpathSync(child),

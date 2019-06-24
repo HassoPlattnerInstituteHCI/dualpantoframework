@@ -17,6 +17,14 @@ This also sets this HapticObject as the component's HapticObject.
 
 #### Parameters
 
--   `component` **[Component](components\component.md)** The component to be added.
+-   `component` **[Component](components/component.md)** The component to be added.
 
-Returns **[Component](components\component.md)** The added component.
+Returns **[Component](components/component.md)** The added component.
+
+### removeComponent
+
+Removes a component from the HapticObject.
+
+#### Parameters
+
+-   `component` **[Component](components/component.md)** The component to be removed.

@@ -7,17 +7,17 @@ this force before creating the forcefield.
 
 ### Parameters
 
--   `direction` **[Vector](..\vector.md)** The force direction.
--   `position` **[Vector](..\vector.md)** The new god object position.
--   `lastPosition` **[Vector](..\vector.md)** The old god object position.
+-   `direction` **[Vector](../vector.md)** The force direction.
+-   `position` **[Vector](../vector.md)** The new god object position.
+-   `lastPosition` **[Vector](../vector.md)** The old god object position.
 
 ### Examples
 
 ```javascript
-ForcefieldSampleFunctions.directedForce.bind(undefined, new [Vector](..\vector.md)(1, 0));
+ForcefieldSampleFunctions.directedForce.bind(undefined, new [Vector](../vector.md)(1, 0));
 ```
 
-Returns **[Vector](..\vector.md)** The resulting force.
+Returns **[Vector](../vector.md)** The resulting force.
 
 ## funnel
 
@@ -26,17 +26,17 @@ use bind to set this point before creating the forcefield.
 
 ### Parameters
 
--   `centerPoint` **[Vector](..\vector.md)** The force target.
--   `position` **[Vector](..\vector.md)** The new god object position.
--   `lastPosition` **[Vector](..\vector.md)** The old god object position.
+-   `centerPoint` **[Vector](../vector.md)** The force target.
+-   `position` **[Vector](../vector.md)** The new god object position.
+-   `lastPosition` **[Vector](../vector.md)** The old god object position.
 
 ### Examples
 
 ```javascript
-ForcefieldSampleFunctions.directedForce.bind(undefined, new [Vector](..\vector.md)(10, 10));
+ForcefieldSampleFunctions.directedForce.bind(undefined, new [Vector](../vector.md)(10, 10));
 ```
 
-Returns **[Vector](..\vector.md)** The resulting force.
+Returns **[Vector](../vector.md)** The resulting force.
 
 ## noise
 
@@ -44,10 +44,10 @@ Applies a noisy force to the handle.
 
 ### Parameters
 
--   `position` **[Vector](..\vector.md)** The new god object position.
--   `lastPosition` **[Vector](..\vector.md)** The old god object position.
+-   `position` **[Vector](../vector.md)** The new god object position.
+-   `lastPosition` **[Vector](../vector.md)** The old god object position.
 
-Returns **[Vector](..\vector.md)** The resulting force.
+Returns **[Vector](../vector.md)** The resulting force.
 
 ## damping
 
@@ -55,7 +55,7 @@ Dampens the user's movement by applying an opposite force.
 
 ### Parameters
 
--   `position` **[Vector](..\vector.md)** The new god object position.
--   `lastPosition` **[Vector](..\vector.md)** The old god object position.
+-   `position` **[Vector](../vector.md)** The new god object position.
+-   `lastPosition` **[Vector](../vector.md)** The old god object position.
 
-Returns **[Vector](..\vector.md)** The resulting force.
+Returns **[Vector](../vector.md)** The resulting force.
