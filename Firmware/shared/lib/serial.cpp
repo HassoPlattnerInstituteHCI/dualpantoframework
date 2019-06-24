@@ -379,13 +379,17 @@ void DPSerial::sendPosition()
 {
     portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
-    sendHeader(POSITION, pantoCount * 3 * 4); // three values per panto, 4 bytes each
+    sendHeader(POSITION, pantoCount * 5 * 4); // five values per panto, 4 bytes each
 
     for(auto i = 0; i < pantoCount; ++i)
     {
-        sendFloat(pantos[i].handle.x);
-        sendFloat(pantos[i].handle.y);
-        sendFloat(pantos[i].pointingAngle);
+        auto panto = pantos[i];
+        sendFloat(panto.handle.x);
+        sendFloat(panto.handle.y);
+        sendFloat(panto.pointingAngle);
+        auto goPos = pantoPhysics[i].godObject()->getPosition();
+        sendFloat(goPos.x);
+        sendFloat(goPos.y);
     }
     portEXIT_CRITICAL(&s_serialMutex);
 };
