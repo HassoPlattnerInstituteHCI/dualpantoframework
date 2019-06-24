@@ -233,7 +233,7 @@ constexpr double hashtableStepSizeY = ${hashtable.stepSizeY};
 constexpr double hashtableProcessedEntriesPerFrame = ${hashtable.entries};`;
 
 console.log(headerOutput);
-fs.writeFileSync('Firmware/shared/include/config.hpp', headerOutput);
+fs.writeFileSync('Firmware/include/config/config.hpp', headerOutput);
 
 const sourceOutput =
 `/*
@@ -242,7 +242,7 @@ const sourceOutput =
  * config.cpp contains the initial values for the non-const global variables, since defining those in the header leads to linker errors.
  */
 
-#include "config.hpp"
+#include "config/config.hpp"
 
 float forceFactor = ${input.forceFactor};
 float pidFactor[${pantoCount*3}][3] = {
@@ -250,4 +250,4 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-fs.writeFileSync('Firmware/shared/lib/config.cpp', sourceOutput);
+fs.writeFileSync('Firmware/src/config/config.cpp', sourceOutput);
