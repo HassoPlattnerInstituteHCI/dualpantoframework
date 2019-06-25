@@ -7,6 +7,10 @@
     "dummyPin": 40,
     "usesSpi": true,
     "forcePidFactor": [0.375, 0, 0.8],
+    "hashtable": {
+        "memory": 200000,
+        "processedEntriesPerFrame": 1
+    },
     "range": {
         "minX": -180,
         "minY": -205,
