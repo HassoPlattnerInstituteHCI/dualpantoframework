@@ -18,24 +18,24 @@ Class for listening for reaching a position.
 
 Starts the listen process.
 
-### listenForMe
+### listenForHandle
 
-Starts the listen process for the me handle.
-
-#### Parameters
-
--   `index` **[number][1]** The index of the handle for the provided position.
--   `position` **[Vector](vector.md)** The provided position of a handle.
-
-### listenForIt
-
-Starts the listen process for the it handle.
+Starts the listen process for the handles.
 
 #### Parameters
 
 -   `index` **[number][1]** The index of the handle for the provided position.
 -   `position` **[Vector](vector.md)** The provided position of a handle.
+
+### arrived
+
+Creates promise for waiting until the
+handle reached its target position.
+
+Returns **[Promise][3]** The Promise executing the wait operation.
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 [2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
