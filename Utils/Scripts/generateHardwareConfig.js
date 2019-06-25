@@ -233,8 +233,11 @@ constexpr double hashtableStepSizeY = ${hashtable.stepSizeY};
 constexpr double hashtableProcessedEntriesPerFrame = ${hashtable.entries};`;
 
 console.log(headerOutput);
-fs.mkdirSync('Firmware/include/config/', {recursive: true});
-fs.writeFileSync('Firmware/include/config/config.hpp', headerOutput);
+const headerDir = 'Firmware/include/config/';
+if (!fs.existsSync(headerDir)) {
+  fs.mkdirSync(headerDir, {recursive: true});
+}
+fs.writeFileSync(headerDir + 'config.hpp', headerOutput);
 
 const sourceOutput =
 `/*
@@ -251,5 +254,8 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-fs.mkdirSync('Firmware/src/config/', {recursive: true});
-fs.writeFileSync('Firmware/src/config/config.cpp', sourceOutput);
+const sourceDir = 'Firmware/src/config/';
+if (!fs.existsSync(sourceDir)) {
+  fs.mkdirSync(sourceDir, {recursive: true});
+}
+fs.writeFileSync(sourceDir + 'config.cpp', sourceOutput);
