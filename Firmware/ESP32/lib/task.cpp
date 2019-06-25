@@ -14,7 +14,7 @@ void Task::taskLoop(void *parameters)
 {
     Task *task = reinterpret_cast<Task *>(parameters);
 
-#if LOG_TASK_FPS
+#ifdef ENABLE_FPS
     task->initFps();
 #endif
 
@@ -23,7 +23,7 @@ void Task::taskLoop(void *parameters)
 loopLabel:
     task->m_loopFunc();
 
-#if LOG_TASK_FPS
+#ifdef ENABLE_FPS
     task->checkFps();
 #endif
 

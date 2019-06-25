@@ -11,11 +11,11 @@ private:
     static const uint32_t c_measurementCount = 1000;
     struct PerformanceEntry
     {
-        std::vector<uint32_t> m_values;
+        std::vector<uint64_t> m_values;
         uint32_t m_index = 0;
         uint64_t m_sum = 0;
         bool m_running = false;
-        uint32_t m_start = 0;
+        uint64_t m_start = 0;
         PerformanceEntry();
     };
     std::map<uint32_t, std::map<std::string, PerformanceEntry>> m_entries;
