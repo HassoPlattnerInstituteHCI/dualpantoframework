@@ -1,217 +1,292 @@
 #include "panto.hpp"
 #include <vector>
 
-Panto pantos[pantoCount];
+#include "serial.hpp"
+#include "performanceMonitor.hpp"
+
+std::vector<Panto> pantos;
 
 void Panto::forwardKinematics()
 {
-    std::vector<Vector2D> innerPoints = getInnerPositions(actuationAngle);
-    handle = getHandlePosition(innerPoints);
-    std::vector<float> angles = getAngles(handle, innerPoints, actuationAngle);
-    innerAngle[0] = angles[0];
-    innerAngle[1] = angles[1];
-    pointingAngle = angles[2];
-    std::vector<std::vector<float>> jacobianMatrix = getJacobianMatrix(actuationAngle, angles);
-    J[0][0] = jacobianMatrix[0][0];
-    J[0][1] = jacobianMatrix[0][1];
-    J[1][0] = jacobianMatrix[1][0];
-    J[1][1] = jacobianMatrix[1][1];
-};
+    // base angles
+    // PERFMON_START("[abba] base angles");
+    const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex];
+    const auto rightBaseAngle = m_actuationAngle[c_localRightIndex];
+    const auto handleAngle = m_actuationAngle[c_localHandleIndex];
+    // PERFMON_STOP("[abba] base angles");
 
-std::vector<Vector2D> Panto::getInnerPositions(float actuAngles[]){
-    return std::vector<Vector2D>{base[0] + Vector2D::fromPolar(actuAngles[0], linkageInnerLength[dofIndex + 0]), base[1] + Vector2D::fromPolar(actuAngles[1], linkageInnerLength[dofIndex + 1])};
+    // base angle sin / cos
+    // PERFMON_START("[abbb] base angle sin / cos");
+    const auto leftBaseAngleSin = std::sin(leftBaseAngle);
+    const auto leftBaseAngleCos = std::cos(leftBaseAngle);
+    // PERFMON_STOP("[abbb] base angle sin / cos");
+
+    // calculate inner positions
+    // PERFMON_START("[abbc] calculate inner positions");
+    const auto leftInnerX =
+        fma(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
+    const auto leftInnerY =
+        fma(leftBaseAngleSin, c_leftInnerLength, c_leftBaseY);
+    const auto rightInnerX =
+        fma(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
+    const auto rightInnerY =
+        fma(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
+    // PERFMON_STOP("[abbc] calculate inner positions");
+
+    // diagonal between inner positions
+    // PERFMON_START("[abbd] diagonal between inner positions");
+    const auto diagonalX = rightInnerX - leftInnerX;
+    const auto diagonalY = rightInnerY - leftInnerY;
+    const auto diagonalSquared = diagonalX * diagonalX + diagonalY * diagonalY;
+    const auto diagonalLength = std::sqrt(diagonalSquared);
+    // PERFMON_STOP("[abbd] diagonal between inner positions");
+
+    // left elbow angles
+    // - inside is between diagonal and linkage
+    // - offset is between zero and diagonal
+    // - total is between zero and linkage
+    // PERFMON_START("[abbe] left elbow angles");
+    const auto leftElbowInsideAngleCos =
+        (diagonalSquared +
+        c_leftOuterLengthSquaredMinusRightOuterLengthSquared) /
+        (2 * diagonalLength * c_leftOuterLength);
+    const auto leftElbowInsideAngle = -std::acos(leftElbowInsideAngleCos);
+    const auto leftElbowOffsetAngle = std::atan2(diagonalY, diagonalX);
+    const auto leftElbowTotalAngle =
+        leftElbowInsideAngle + leftElbowOffsetAngle;
+    // PERFMON_STOP("[abbe] left elbow angles");
+
+    // left elbow angle sin / cos
+    // PERFMON_START("[abbf] left elbow angle sin / cos");
+    const auto leftElbowTotalAngleSin =
+        std::sin(leftElbowTotalAngle);
+    const auto leftElbowTotalAngleCos =
+        std::cos(leftElbowTotalAngle);
+    // PERFMON_STOP("[abbf] left elbow angle sin / cos");
+
+    // handle position
+    // PERFMON_START("[abbg] handle position");
+    m_handleX =
+        fma(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
+    m_handleY =
+        fma(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
+    // PERFMON_STOP("[abbg] handle position");
+
+    // right elbow angles
+    // PERFMON_START("[abbh] right elbow angles");
+    const auto rightDiffX = m_handleX - rightInnerX;
+    const auto rightDiffY = m_handleY - rightInnerY;
+    const auto rightElbowTotalAngle = std::atan2(rightDiffY, rightDiffX);
+    // PERFMON_STOP("[abbh] right elbow angles");
+
+    // store angles
+    // PERFMON_START("[abbi] store angles");
+    m_leftInnerAngle = leftElbowTotalAngle;
+    m_rightInnerAngle = rightElbowTotalAngle;
+    m_pointingAngle =
+        handleAngle +
+        (c_handleMountedOnRightArm ?
+        rightElbowTotalAngle :
+        leftElbowTotalAngle);
+    // PERFMON_STOP("[abbi] store angles");
+
+    // some weird diffs and their sinuses
+    // PERFMON_START("[abbj] some weird diffs and their sinuses");
+    const auto rightElbowTotalAngleMinusLeftBaseAngle =
+        rightElbowTotalAngle - leftBaseAngle;
+    const auto rightElbowTotalAngleMinusLeftBaseAngleSin =
+        std::sin(rightElbowTotalAngleMinusLeftBaseAngle);
+    const auto rightElbowTotalAngleMinusRightBaseAngle =
+        rightElbowTotalAngle - rightBaseAngle;
+    const auto rightElbowTotalAngleMinusRightBaseAngleSin =
+        std::sin(rightElbowTotalAngleMinusRightBaseAngle);
+    const auto leftElbowTotalAngleMinusRightElbowTotalAngle =
+        leftElbowTotalAngle - rightElbowTotalAngle;
+    const auto leftElbowTotalAngleMinusRightElbowTotalAngleSin =
+        std::sin(leftElbowTotalAngleMinusRightElbowTotalAngle);
+    // PERFMON_STOP("[abbj] some weird diffs and their sinuses");
+
+    // shared factors for rows/columns
+    // PERFMON_START("[abbk] shared factors for rows/columns");
+    const auto upperRow =
+        c_leftInnerLength * rightElbowTotalAngleMinusLeftBaseAngleSin;
+    const auto lowerRow =
+        c_rightInnerLength * rightElbowTotalAngleMinusRightBaseAngleSin;
+    const auto leftColumn =
+        leftElbowTotalAngleSin /
+        leftElbowTotalAngleMinusRightElbowTotalAngleSin;
+    const auto rightColumn =
+        leftElbowTotalAngleCos /
+        leftElbowTotalAngleMinusRightElbowTotalAngleSin;
+    // PERFMON_STOP("[abbk] shared factors for rows/columns");
+
+    // set jacobian matrix
+    // PERFMON_START("[abbl] set jacobian matrix");
+    m_jacobian[0][0] =
+        (-c_leftInnerLength * leftBaseAngleSin) - (upperRow * leftColumn);
+    m_jacobian[0][1] =
+        (c_leftInnerLength * leftBaseAngleCos) + (upperRow * rightColumn);
+    m_jacobian[1][0] =
+        lowerRow * leftColumn;
+    m_jacobian[1][1] =
+        -lowerRow * rightColumn;
+    // PERFMON_STOP("[abbl] set jacobian matrix");
 }
-
-Vector2D Panto::getHandlePosition(std::vector<Vector2D> innerPoints)
-{
-    Vector2D diagonal = innerPoints[1] - innerPoints[0];
-
-    float inAngles[2];
-    inAngles[0] = diagonal.angle() - acos((diagonal.length() * diagonal.length() + linkageOuterLength[dofIndex + 0] * linkageOuterLength[dofIndex + 0] - linkageOuterLength[dofIndex + 1] * linkageOuterLength[dofIndex + 1]) / (2 * diagonal.length() * linkageOuterLength[dofIndex + 0]));
-    Vector2D returnHandle = Vector2D::fromPolar(inAngles[0], linkageOuterLength[dofIndex + 0]) + innerPoints[0];
-
-    return returnHandle;
-}
-
-std::vector<float> Panto::getAngles(Vector2D handle, std::vector<Vector2D> innerPoints, float actuationAngles[])
-{
-    std::vector<float> angles = std::vector<float>{(handle - innerPoints[0]).angle(), (handle - innerPoints[1]).angle()};
-    angles.push_back(actuationAngles[2] + angles[linkageHandleMount[dofIndex + 2]]);
-    return angles;
-}
-
-std::vector<std::vector<float>> Panto::getJacobianMatrix(float actuationAngles[], std::vector<float> angles)
-{  
-    std::vector<float> firstRow = std::vector<float>{-linkageInnerLength[dofIndex + 0] * sin(actuationAngle[0]) -
-              (linkageInnerLength[dofIndex + 0] * sin(angles[0]) * sin(angles[1] - actuationAngle[0])) / (sin(angles[0] - angles[1])),
-              linkageInnerLength[dofIndex + 0] * cos(actuationAngle[0]) +
-              (linkageInnerLength[dofIndex + 0] * cos(angles[0]) * sin(angles[1] - actuationAngle[0])) / (sin(angles[0] - angles[1]))};
-    std::vector<float> secondRow = std::vector<float>{(linkageInnerLength[dofIndex + 1] * sin(angles[0]) * sin(angles[1] - actuationAngle[1])) / (sin(angles[0] - angles[1])), 
-                -(linkageInnerLength[dofIndex + 1] * cos(angles[0]) * sin(angles[1] - actuationAngle[1])) / (sin(angles[0] - angles[1]))};
-
-    return std::vector<std::vector<float>>{firstRow, secondRow};
-}
-
-void Panto::inverseKinematicsHelper(float actuAngles[], float inverted, float diff, float factor, float threshold)
-{
-    diff *= factor;
-    if (fabs(diff) < threshold)
-    {
-        return;
-    }
-    actuAngles[0] += diff;
-    actuAngles[1] += diff * inverted;
-};
 
 void Panto::inverseKinematics()
 {
-    if (isnan(target.x) || isnan(target.y))
+    if (isnan(m_targetX) || isnan(m_targetY))
     {
-        targetAngle[0] = NAN;
-        targetAngle[1] = NAN;
-        return;
+        m_targetAngle[c_localLeftIndex] = NAN;
+        m_targetAngle[c_localRightIndex] = NAN;
     }
-    if (isforceRendering)
+    else if (m_isforceRendering)
     {
-        targetAngle[0] = J[0][0] * target.x + J[0][1] * target.y;
-        targetAngle[1] = J[1][0] * target.x + J[1][1] * target.y;
+        m_targetAngle[c_localLeftIndex] =
+            m_jacobian[0][0] * m_targetX +
+            m_jacobian[0][1] * m_targetY;
+        m_targetAngle[c_localRightIndex] =
+            m_jacobian[1][0] * m_targetX +
+            m_jacobian[1][1] * m_targetY;
     }
     else
     {
-        const unsigned int iterations = 20;
-        float nextAngle = constrain(target.angle(), (-PI - opAngle) * 0.5, (-PI + opAngle) * 0.5);
-        float nextRadius = constrain(target.length(), opMinDist, opMaxDist);
+        const auto leftBaseToTargetX = m_targetX - c_leftBaseX;
+        const auto leftBaseToTargetY = m_targetY - c_leftBaseY;
+        const auto rightBaseToTargetX = m_targetX - c_rightBaseX;
+        const auto rightBaseToTargetY = m_targetY - c_rightBaseY;
+        const auto leftBaseToTargetSquared =
+            leftBaseToTargetX * leftBaseToTargetX +
+            leftBaseToTargetY * leftBaseToTargetY;
+        const auto rightBaseToTargetSquared =
+            rightBaseToTargetX * rightBaseToTargetX +
+            rightBaseToTargetY * rightBaseToTargetY;
+        const auto leftBaseToTargetLength =
+            std::sqrt(leftBaseToTargetSquared);
+        const auto rightBaseToTargetLength =
+            std::sqrt(rightBaseToTargetSquared);
 
-        float actuAngles[] = {actuationAngle[0], actuationAngle[1]};
-        for (unsigned int i = 0; i < iterations; ++i)
-        {
-            std::vector<Vector2D> inversePoints = getInnerPositions(actuAngles);
-            Vector2D inverseHandle = getHandlePosition(inversePoints);
-            inverseKinematicsHelper(actuAngles, +1, nextAngle - inverseHandle.angle(), 0.5);
-            inverseKinematicsHelper(actuAngles, -1, nextRadius - inverseHandle.length(), 0.002);
-        }
-        targetAngle[0] = actuAngles[0];
-        targetAngle[1] = actuAngles[1];
+        const auto leftInnerAngleCos =
+            (leftBaseToTargetSquared +
+            c_leftInnerLengthSquaredMinusLeftOuterLengthSquared) /
+            (c_leftInnerLengthDoubled * leftBaseToTargetLength);
+        const auto rightInnerAngleCos =
+            (rightBaseToTargetSquared +
+            c_rightInnerLengthSquaredMinusRightOuterLengthSquared) /
+            (c_rightInnerLengthDoubled * rightBaseToTargetLength);
+        const auto leftInnerAngle = std::acos(leftInnerAngleCos);
+        const auto rightInnerAngle = std::acos(rightInnerAngleCos);
+        const auto leftOffsetAngle =
+            std::atan2(leftBaseToTargetY, leftBaseToTargetX);
+        const auto rightOffsetAngle =
+            std::atan2(rightBaseToTargetY, rightBaseToTargetX);
+
+        const auto leftAngle = leftOffsetAngle - leftInnerAngle;
+        const auto rightAngle = rightOffsetAngle + rightInnerAngle;
+
+        m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
+        m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
     }
 };
 
-void Panto::setMotor(unsigned char i, bool dir, float power)
+void Panto::setMotor(uint8_t localIndex, bool dir, float power)
 {
-    if (motorFlipped[dofIndex + i])
-        dir = !dir;
-
-    digitalWrite(motorDirAPin[dofIndex + i], dir);
-    digitalWrite(motorDirBPin[dofIndex + i], !dir);
-    if (motorPwmPin[dofIndex + i] != dummyPin)
+    const auto globalIndex = c_globalIndexOffset + localIndex;
+    if (motorFlipped[globalIndex])
     {
-        power = min(power, motorPowerLimit[dofIndex + i]);
-        if (power < motorPowerLimit[dofIndex + i])
-            engagedTime[i] = 0;
-        else if (++engagedTime[i] >= 36000)
+        dir = !dir;
+    }
+
+    digitalWrite(motorDirAPin[globalIndex], dir);
+    digitalWrite(motorDirBPin[globalIndex], !dir);
+    if (motorPwmPin[globalIndex] != dummyPin)
+    {
+        power = min(power, motorPowerLimit[globalIndex]);
+        if (power < motorPowerLimit[globalIndex])
+        {
+            m_engagedTime[localIndex] = 0;
+        }
+        else if (++m_engagedTime[localIndex] >= 36000)
         {
             disengageMotors();
-            while (1)
-                ;
+            while (true)
+            {
+            }
         }
-        ledcWrite(dofIndex + i, power * PWM_MAX);
-    }
-};
-
-void Panto::setup(unsigned char _dofIndex)
-{
-    dofIndex = _dofIndex * 3;
-    base[0] = Vector2D(linkageBaseX[dofIndex + 0], linkageBaseY[dofIndex + 0]);
-    base[1] = Vector2D(linkageBaseX[dofIndex + 1], linkageBaseY[dofIndex + 1]);
-    target = Vector2D(NAN, NAN);
-    for (unsigned char i = 0; i < 3; ++i)
-    {
-        actuationAngle[i] = setupAngle[dofIndex + i] * 2.0 * PI;
-        targetAngle[i] = NAN;
-        previousDiff[i] = 0.0;
-        integral[i] = 0.0;
-        if (encoderAPin[dofIndex + i] != dummyPin && encoderBPin[dofIndex + i] != dummyPin)
-            encoder[i] = new Encoder(encoderAPin[dofIndex + i], encoderBPin[dofIndex + i]);
-        else
-            encoder[i] = NULL;
-
-        // we don't need additional checks aroud these - if the dummyPin is set properly, the ESP lib will check this anyway
-        pinMode(encoderIndexPin[dofIndex + i], INPUT);
-        pinMode(motorDirAPin[dofIndex + i], OUTPUT);
-        pinMode(motorDirBPin[dofIndex + i], OUTPUT);
-        pinMode(motorPwmPin[dofIndex + i], OUTPUT);
-
-        ledcSetup(dofIndex + i, ledcFrequency, ledcResolution);
-        ledcAttachPin(motorPwmPin[dofIndex + i], dofIndex + i);
-
-        // TODO: Calibration
-        // Use encoder index pin and actuate the motors to reach it
-        setMotor(i, false, 0);
-    }
-};
-
-void Panto::calibrationEnd()
-{
-    for (unsigned char i = 0; i < 3; ++i)
-    {
-        // setMotor(i, false, 0);
-        if (encoder[i])
-            encoder[i]->write(actuationAngle[i] / (2.0 * PI) * encoderSteps[dofIndex + i]);
+        ledcWrite(globalIndex, power * PWM_MAX);
     }
 };
 
 void Panto::readEncoders()
 {
     #ifdef LINKAGE_ENCODER_USE_SPI
-    for (unsigned char i = 0; i < 2; ++i)
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
-        actuationAngle[i] =
-            encoderFlipped[dofIndex + i] * 2 * PI * angleAccessors[i]() / encoderSteps[dofIndex + i];
+        const auto globalIndex = c_globalIndexOffset + localIndex;
+        m_actuationAngle[localIndex] =
+            ensureAngleRange(
+                encoderFlipped[globalIndex] *
+                TWO_PI * m_angleAccessors[localIndex]() /
+                encoderSteps[globalIndex]);
     }
-    actuationAngle[2] = (encoder[2]) ? 
-        (encoderFlipped[dofIndex + 2] * 2 * PI * encoder[2]->read() / encoderSteps[dofIndex + 2]) : NAN;
-    #else
-    for (unsigned char i = 0; i < 3; ++i)
-    actuationAngle[i] = 
-        (encoder[i]) ? 
-        (encoderFlipped[dofIndex + i] * 2 * PI * encoder[i]->read() / encoderSteps[dofIndex + i]) :
+    m_actuationAngle[c_localHandleIndex] =
+        (m_encoder[c_localHandleIndex]) ? 
+        (encoderFlipped[c_globalHandleIndex] *
+        TWO_PI * m_encoder[c_localHandleIndex]->read() /
+        encoderSteps[c_globalHandleIndex]) :
         NAN;
+    #else
+    for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
+    {
+        const auto globalIndex = c_globalIndexOffset + localIndex;
+        m_actuationAngle[localIndex] =
+            ensureAngleRange(
+                (m_encoder[localIndex]) ?
+                (encoderFlipped[globalIndex] *
+                TWO_PI * m_encoder[localIndex]->read() /
+                encoderSteps[globalIndex]) :
+                NAN);
+    }
     #endif
-    
-    actuationAngle[2] = fmod(actuationAngle[2], 2 * PI);
+
+    m_actuationAngle[c_localHandleIndex] =
+        fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
 };
 
 void Panto::actuateMotors()
 {
-    for (unsigned char i = 0; i < 3; ++i)
+    for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
-        if (isnan(targetAngle[i]))
+        if (isnan(m_targetAngle[localIndex]))
         {
-            setMotor(i, false, 0);
-            continue;
+            setMotor(localIndex, false, 0);
         }
-        if (isforceRendering)
+        else if (m_isforceRendering)
         {
-            setMotor(i, targetAngle[i] < 0, fabs(targetAngle[i]) * forceFactor);
+            setMotor(
+                localIndex,
+                m_targetAngle[localIndex] < 0,
+                fabs(m_targetAngle[localIndex]) * forceFactor);
         }
         else
         {
-            float border = PI / 2;
-            if (actuationAngle[i] < border && border < targetAngle[i])
+            auto error =
+                m_targetAngle[localIndex] - m_actuationAngle[localIndex];
+            if (localIndex == c_localHandleIndex)
             {
-                actuationAngle[i] += 2 * PI;
-            }
-            else if (actuationAngle[i] > border && border > targetAngle[i])
-            {
-                targetAngle[i] += 2 * PI;
-            }
-            float error = targetAngle[i] - actuationAngle[i];
-            if (i == 2)
-            { // Linkage offsets handle
-                error -= innerAngle[linkageHandleMount[dofIndex + 2]];
+                // Linkage offsets handle
+                error -=
+                    c_handleMountedOnRightArm ?
+                    m_rightInnerAngle :
+                    m_leftInnerAngle;
                 if (error > PI)
-                    error -= 2 * PI;
+                {
+                    error -= TWO_PI;
+                }
                 else if (error < -PI)
-                    error += 2 * PI;
+                {
+                    error += TWO_PI;
+                }
             }
             unsigned char dir = error < 0;
             unsigned long now = micros();
@@ -219,23 +294,144 @@ void Panto::actuateMotors()
             prevTime = now;
             error = fabs(error);
             // Power: PID
-            integral[i] += error * dt;
-            float derivative = (error - previousDiff[i]) / dt;
-            previousDiff[i] = error;
-            float pVal = pidFactor[dofIndex + i][0] * error;
-            float dVal = pidFactor[dofIndex + i][2] * derivative;
+            m_integral[localIndex] += error * dt;
+            float derivative = (error - m_previousDiff[localIndex]) / dt;
+            m_previousDiff[localIndex] = error;
+            const auto globalIndex = c_globalIndexOffset + localIndex;
+            const auto& pid = pidFactor[globalIndex];
+            float pVal = pid[0] * error;
+            float dVal = pid[2] * derivative;
             dVal = pVal + dVal > 0 ? dVal : 0;
-            setMotor(i, dir, pVal + pidFactor[dofIndex + i][1] * integral[i] + dVal);
+            setMotor(
+                localIndex,
+                dir,
+                pVal +
+                pid[1] * m_integral[localIndex] +
+                dVal);
         }
     }
 };
 
 void Panto::disengageMotors()
 {
-    for (unsigned char i = 0; i < dofCount; ++i)
+    for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
-        targetAngle[i] = NAN;
-        setMotor(i, false, 0);
+        m_targetAngle[localIndex] = NAN;
+        setMotor(localIndex, false, 0);
     }
-    target = Vector2D(NAN, NAN);
+    m_targetX = NAN;
+    m_targetY = NAN;
+};
+
+Panto::Panto(uint8_t pantoIndex)
+: c_pantoIndex(pantoIndex)
+, c_globalIndexOffset(c_pantoIndex * c_dofCount)
+, c_globalLeftIndex(c_globalIndexOffset + c_localLeftIndex)
+, c_globalRightIndex(c_globalIndexOffset + c_localRightIndex)
+, c_globalHandleIndex(c_globalIndexOffset + c_localHandleIndex)
+, c_leftInnerLength(linkageInnerLength[c_globalLeftIndex])
+, c_rightInnerLength(linkageInnerLength[c_globalRightIndex])
+, c_leftOuterLength(linkageOuterLength[c_globalLeftIndex])
+, c_rightOuterLength(linkageOuterLength[c_globalRightIndex])
+, c_leftInnerLengthDoubled(2 * c_leftInnerLength)
+, c_rightInnerLengthDoubled(2 * c_rightInnerLength)
+, c_leftInnerLengthSquared(c_leftInnerLength * c_leftInnerLength)
+, c_rightInnerLengthSquared(c_rightInnerLength * c_rightInnerLength)
+, c_leftOuterLengthSquared(c_leftOuterLength * c_leftOuterLength)
+, c_rightOuterLengthSquared(c_rightOuterLength * c_rightOuterLength)
+, c_leftInnerLengthSquaredMinusLeftOuterLengthSquared(
+    c_leftInnerLengthSquared - c_leftOuterLengthSquared)
+, c_rightInnerLengthSquaredMinusRightOuterLengthSquared(
+    c_rightInnerLengthSquared - c_rightOuterLengthSquared)
+, c_leftOuterLengthSquaredMinusRightOuterLengthSquared(
+    c_leftOuterLengthSquared - c_rightOuterLengthSquared)
+, c_handleMountedOnRightArm(linkageHandleMount[c_globalHandleIndex] == 1)
+, c_leftBaseX(linkageBaseX[c_globalLeftIndex])
+, c_leftBaseY(linkageBaseY[c_globalLeftIndex])
+, c_rightBaseX(linkageBaseX[c_globalRightIndex])
+, c_rightBaseY(linkageBaseY[c_globalRightIndex])
+{
+    m_targetX = NAN;
+    m_targetY = NAN;
+    for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
+    {
+        const auto globalIndex = c_globalIndexOffset + localIndex;
+        m_actuationAngle[localIndex] = setupAngle[globalIndex] * TWO_PI;
+        m_targetAngle[localIndex] = NAN;
+        m_previousDiff[localIndex] = 0.0;
+        m_integral[localIndex] = 0.0;
+        if (encoderAPin[globalIndex] != dummyPin &&
+            encoderBPin[globalIndex] != dummyPin)
+        {
+            m_encoder[localIndex] = new Encoder(
+                encoderAPin[globalIndex], encoderBPin[globalIndex]);
+        }
+        else
+        {
+            m_encoder[localIndex] = NULL;
+        }
+
+        // we don't need additional checks aroud these - if the dummyPin is set properly, the ESP lib will check this anyway
+        pinMode(encoderIndexPin[globalIndex], INPUT);
+        pinMode(motorDirAPin[globalIndex], OUTPUT);
+        pinMode(motorDirBPin[globalIndex], OUTPUT);
+        pinMode(motorPwmPin[globalIndex], OUTPUT);
+
+        ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
+        ledcAttachPin(motorPwmPin[globalIndex], globalIndex);
+
+        // TODO: Calibration
+        // Use encoder index pin and actuate the motors to reach it
+        setMotor(localIndex, false, 0);
+    }
+};
+
+void Panto::calibrationEnd()
+{
+    for (auto localIndex = 0; localIndex < 3; ++localIndex)
+    {
+        if (m_encoder[localIndex])
+        {
+            const auto globalIndex = c_globalIndexOffset + localIndex;
+            m_encoder[localIndex]->write(
+                m_actuationAngle[localIndex] /
+                (TWO_PI) *
+                encoderSteps[globalIndex]);
+        }
+    }
+};
+
+float Panto::getActuationAngle(const uint8_t localIndex) const
+{
+    return m_actuationAngle[localIndex];
+};
+
+Vector2D Panto::getPosition() const
+{
+    return Vector2D(m_handleX, m_handleY);
+};
+
+float Panto::getRotation() const
+{
+    return m_pointingAngle;
+};
+
+void Panto::setAngleAccessor(
+    const uint8_t localIndex,
+    const std::function<uint32_t()> accessor)
+{
+    m_angleAccessors[localIndex] = accessor;
+};
+
+void Panto::setTarget(const Vector2D target, const bool isForceRendering)
+{
+    m_isforceRendering = isForceRendering;
+    m_targetX = target.x;
+    m_targetY = target.y;
+    inverseKinematics();
+};
+
+void Panto::setRotation(const float rotation)
+{
+    m_targetAngle[c_localHandleIndex] = rotation;
 };

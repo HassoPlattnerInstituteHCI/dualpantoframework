@@ -1,0 +1,75 @@
+# left base
+LeftBase=(-19.5,0)
+LeftBaseInput=InputBox(LeftBase)
+SetCoords(LeftBaseInput, 10, 40)
+SetCaption(LeftBaseInput, "Left Base")
+# left inner length
+LeftInnerLength=80
+LeftInnerLengthInput=InputBox(LeftInnerLength)
+SetCoords(LeftInnerLengthInput, 10, 100)
+SetCaption(LeftInnerLengthInput, "Left Inner Length")
+# left angle
+LeftAngle=Slider(-360,360,0.1)
+SetValue(LeftAngle,-135)
+SetCoords(LeftAngle, 10, 265)
+ShowLabel(LeftAngle,false)
+LeftAngleInput=InputBox(LeftAngle)
+SetCoords(LeftAngleInput, 10, 220)
+SetCaption(LeftAngleInput, "Left Angle")
+# left elbow
+LeftElbow=LeftBase+Rotate(Vector((LeftInnerLength,0)),LeftAngle*pi/180)
+SetLabelMode(LeftElbow,1)
+# left inner linkage
+LeftInnerLinkage=Segment(LeftBase,LeftElbow)
+ShowLabel(LeftInnerLinkage,false)
+# right base
+RightBase=(19.5,0)
+RightBaseInput=InputBox(RightBase)
+SetCoords(RightBaseInput, 10, 70)
+SetCaption(RightBaseInput, "Right Base")
+# right inner length
+RightInnerLength=80
+RightInnerLengthInput=InputBox(RightInnerLength)
+SetCoords(RightInnerLengthInput, 10, 130)
+SetCaption(RightInnerLengthInput, "Right Inner Length")
+# right angle
+RightAngle=Slider(-360,360,0.1)
+SetValue(RightAngle,-45)
+SetCoords(RightAngle, 10, 325)
+ShowLabel(RightAngle,false)
+RightAngleInput=InputBox(RightAngle)
+SetCoords(RightAngleInput, 10, 280)
+SetCaption(RightAngleInput, "Right Angle")
+# right elbow
+RightElbow=RightBase+Rotate(Vector((RightInnerLength,0)),RightAngle*pi/180)
+SetLabelMode(RightElbow,1)
+# right inner handle
+RightInnerLinkage=Segment(RightBase,RightElbow)
+ShowLabel(RightInnerLinkage,false)
+# left outer length
+LeftOuterLength=120
+LeftOuterLengthInput=InputBox(LeftOuterLength)
+SetCoords(LeftOuterLengthInput, 10, 160)
+SetCaption(LeftOuterLengthInput, "Left Outer Length")
+# left outer range
+LeftOuterRange=Circle(LeftElbow,LeftOuterLength)
+SetVisibleInView(LeftOuterRange,1,false)
+# right outer length
+RightOuterLength=120
+RightOuterLengthInput=InputBox(RightOuterLength)
+SetCoords(RightOuterLengthInput, 10, 190)
+SetCaption(RightOuterLengthInput, "Right Outer Length")
+# right outer range
+RightOuterRange=Circle(RightElbow,RightOuterLength)
+SetVisibleInView(RightOuterRange,1,false)
+# handle
+Handle=Intersect(LeftOuterRange,RightOuterRange,2)
+SetLabelMode(Handle,1)
+# left outer linkage
+LeftOuterLinkage=Segment(LeftElbow,Handle)
+ShowLabel(LeftOuterLinkage,false)
+# right outer linkage
+RightOuterLinkage=Segment(RightElbow,Handle)
+ShowLabel(RightOuterLinkage,false)
+# remove the button
+Delete(ScriptButton)
