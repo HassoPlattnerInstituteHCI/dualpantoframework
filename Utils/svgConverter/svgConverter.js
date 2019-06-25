@@ -1,6 +1,7 @@
 'use strict';
 
 const FileGenerator = require('./fileCreator.js');
+const {parseTransform} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
 const fs = require('fs');
@@ -229,16 +230,7 @@ class svgConverter {
       }
       if (found) {
         if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
-          if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
-            'translate') {
-            console.log('has translate: ', result.svg.g[0].g[j].$
-                .transform.split('(')[1].split(')')[0]);
-            newTrigger.translate = result.svg.g[0].g[j].$.transform
-                .split('(')[1].split(')')[0];
-          } else if (result.svg.g[0].g[j].$.transform.split('(')[0] ===
-            'matrix') {
-            newTrigger.matrix = result.svg.g[0].g[j].$.transform;
-          }
+          newTrigger.matrix = parseTransform(result.svg.g[0].g[j].$.transform);
         }
         // could be undefined and therefore check for true must happen
         if (newTrigger.box === true) {
@@ -299,7 +291,6 @@ class svgConverter {
                 pattern.patternTransform);
             transformMiddel.x += this.offset.x;
             transformMiddel.y += this.offset.y;
-            console.log({pattern, transformMiddel});
             hapticObject.polarPoint = transformMiddel;
           }
         }
@@ -521,7 +512,8 @@ class svgConverter {
           hapticMeshObjects = hapticMeshObjects
               .concat(groupedObjects.hapticMeshes);
         }
-        console.log('found ', hapticBoxObjects.length, ' haptic objects');
+        console.log('found ', hapticBoxObjects.length +
+          hapticMeshObjects.length, ' haptic objects');
         fileGenerator.generateFile(hapticBoxObjects,
             hapticMeshObjects,
             this.studentDir, this.offset);

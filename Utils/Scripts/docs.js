@@ -10,9 +10,10 @@ const sourcePath = './lib';
 const docsPath = './documentation/classes';
 
 const ignore = [
-  'Dualpantoframework',
-  'HandleMovement',
-  'Index'
+  /.*.DS_Store/,
+  /.*dualpantoframework.*/,
+  /.*handleMovement.*/,
+  /.*index.*/
 ];
 
 const indexBaseLevel = 1;
@@ -102,6 +103,15 @@ function fixName(file) {
   return first + remainder;
 }
 
+function ignored(file) {
+  for (const regex of ignore) {
+    if (file.match(regex)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function readDirRecursive(dir) {
   const results = [];
   const content = fs.readdirSync(dir);
@@ -110,7 +120,7 @@ function readDirRecursive(dir) {
       const child = path.join(dir, content[entry]);
       if (fs.statSync(child).isDirectory()) {
         results.push(...readDirRecursive(child));
-      } else if (child !== 'lib/.DS_Store') {
+      } else if (!ignored(child)) {
         results.push({
           name: fixName(child),
           path: fs.realpathSync(child),
@@ -122,7 +132,7 @@ function readDirRecursive(dir) {
       }
     }
   }
-  return results.filter((f) => !ignore.includes(f.name));
+  return results;
 }
 
 function findFiles() {
@@ -138,9 +148,12 @@ function replaceLinks(file, content, files) {
     if (file == other) {
       continue;
     }
+    const relative =
+        path.relative(path.parse(file.output).dir, other.output)
+            .replace('\\', '/');
     replaced = replaced.replace(
         new RegExp(`\\b${other.name}\\b`, 'g'),
-        `[$&](${path.relative(path.parse(file.output).dir, other.output)})`);
+        `[$&](${relative})`);
   }
   return replaced;
 }
@@ -175,7 +188,7 @@ function buildIndexRecursive(files, indexObject, level) {
   const headerPrefix = '#'.repeat(level);
   if (typeof indexObject == 'string') {
     const file = files.filter((f) => f.name == indexObject)[0];
-    const link = path.relative(docsPath, file.output);
+    const link = path.relative(docsPath, file.output).replace('\\', '/');
     files.splice(files.indexOf(file), 1);
     return `${headerPrefix} [${file.name}](${link})\n`;
   } else {

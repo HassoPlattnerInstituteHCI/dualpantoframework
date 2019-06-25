@@ -36,6 +36,7 @@ The `package.json` contains the following scripts which can be run using `npm ru
   - `clean` - cleans the firmware build cache
 - `plotter` - start hosting webpage for plotting the available space
 - `docs` - builds the documentation
+- `svgToJs` - converts a given svg into a script, which will be stored as `prototype.js` one level above the framework
 
 ## Transmission Protocol
 
