@@ -53,40 +53,46 @@ function build(target) {
 
 const cleanHandlers = {
   'framework': () => {
-    clean('voice-command');
-    clean('serial-plugin');
-    clean('serial-standalone');
+    return clean('voice-command')
+         & clean('serial-plugin')
+         & clean('serial-standalone');
   },
   'voice-command': () => {
-    remove('./voice-command/.bin');
+    return remove('./voice-command/.bin');
   },
   'serial-plugin': () => {
-    remove('./build');
+    return remove('./build');
   },
   'serial-standalone': () => {
     log('Clean serial-standalone not implemented yet', color.yellow);
+    return true;
   },
   'firmware': () => {
-    remove('./Firmware/shared/lib/config.cpp');
-    remove('./Firmware/shared/include/config.hpp');
-    platformio('clean');
+    return remove('./Firmware/shared/lib/config.cpp')
+         & remove('./Firmware/shared/include/config.hpp')
+         & platformio('clean');
   }
 };
 
 function clean(target) {
   if (target === undefined) {
-    clean('framework');
-    clean('firmware');
-    return;
+    return clean('framework')
+         & clean('firmware');
   }
 
   if (!cleanHandlers.hasOwnProperty(target)) {
     log(`Invalid clean target ${target}`, color.red);
-    return;
+    return false;
   }
 
-  log(`Clean ${target}`, color.green);
-  cleanHandlers[target]();
+  log(`Cleaning ${target}`, color.green);
+  const result = cleanHandlers[target]();
+  if (result) {
+    log(`Cleaning ${target} successful`, color.green);
+  } else {
+    log(`Cleaning ${target} failed`, color.red);
+  }
+  return result;
 }
 
 function config(target) {
