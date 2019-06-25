@@ -4,7 +4,7 @@
 /* eslint-disable require-jsdoc */
 // the template strings can't ne broken into multiple lines
 /* eslint-disable max-len */
-const input = require('../Hardware/'+process.argv[2]+'.json');
+const input = require('../../Hardware/'+process.argv[2]+'.json');
 const fs = require('fs');
 const crypto = require('crypto');
 const hash = crypto.createHash('md5').update(JSON.stringify(input)).digest();
