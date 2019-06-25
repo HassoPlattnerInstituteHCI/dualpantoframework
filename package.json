@@ -11,6 +11,7 @@
     "config": "npm run script config",
     "docs": "npm run script docs",
     "script": "node ./Utils/Scripts/run.js",
+    "svgToJs": "node ./Utils/svgConverter/svgToJs.js",
     "setup-commit-hook": "if-env NODE_ENV=production && echo \" production mode \" || node ./Utils/Scripts/createJsCommitHook.js"
   },
   "repository": {
