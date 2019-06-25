@@ -4,11 +4,11 @@
 
 **Extends [Forcefield](forcefield.md)**
 
-Rectangular forcefield, centered at the [HapticObject](..\hapticObject.md)'s position.
+Rectangular forcefield, centered at the [HapticObject](../hapticObject.md)'s position.
 
 ### Parameters
 
--   `size` **[Vector](..\vector.md)** The size of the created box.
+-   `size` **[Vector](../vector.md)** The size of the created box.
 -   `callback` **[ForcefieldCallback](forcefieldCallback.md)** The function calculating the force
     applied inside the forcefield. Parameters are the current and previous
     god object positions.
