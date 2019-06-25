@@ -11,8 +11,8 @@ Class for listening for reaching a position.
 -   `device` **[Device](device.md)** The device that has to be listened for.
 -   `index` **[number][1]** The index of the handle to be listened for.
 -   `target` **[Vector](vector.md)** The position to be checked for.
--   `active`   (optional, default `true`)
--   `radius`   (optional, default `2`)
+-   `active` **[boolean][2]** If the Listener is active or not. (optional, default `true`)
+-   `radius` **[number][1]** The radius that is considered as reached. (optional, default `2`)
 
 ### startListening
 
@@ -37,3 +37,5 @@ Starts the listen process for the it handle.
 -   `position` **[Vector](vector.md)** The provided position of a handle.
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
