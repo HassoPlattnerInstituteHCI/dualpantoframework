@@ -199,7 +199,7 @@ class FileCreator {
           this.objectsGenerated + ';\n  ');
         outputString = outputString.concat('meshTriggerFor' +
           this.objectsGenerated +
-          '.on(\'inside\', () => {\n  ' +
+          '.on(\'enter\', () => {\n  ' +
         '  if(!playing' + this.objectsGenerated + ') {\n  ' +
         '    player' + this.objectsGenerated +
         ' = VoiceInteraction.playSound(\'' +

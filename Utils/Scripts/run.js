@@ -94,7 +94,7 @@ function config(target) {
     target = 'doerte';
   }
   log(`Generating config ${target}`, color.green);
-  return exec('node', ['Firmware/GenerateHardwareConfig.js', target]);
+  return exec('node', ['Utils/Scripts/generateHardwareConfig.js', target]);
 }
 
 function platformio(command) {
