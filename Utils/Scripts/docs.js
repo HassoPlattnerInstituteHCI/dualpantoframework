@@ -10,9 +10,10 @@ const sourcePath = './lib';
 const docsPath = './documentation/classes';
 
 const ignore = [
-  'Dualpantoframework',
-  'HandleMovement',
-  'Index'
+  /.*.DS_Store/,
+  /.*dualpantoframework.*/,
+  /.*handleMovement.*/,
+  /.*index.*/
 ];
 
 const indexBaseLevel = 1;
@@ -101,6 +102,15 @@ function fixName(file) {
   return first + remainder;
 }
 
+function ignored(file) {
+  for (const regex of ignore) {
+    if (file.match(regex)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function readDirRecursive(dir) {
   const results = [];
   const content = fs.readdirSync(dir);
@@ -109,7 +119,8 @@ function readDirRecursive(dir) {
       const child = path.join(dir, content[entry]);
       if (fs.statSync(child).isDirectory()) {
         results.push(...readDirRecursive(child));
-      } else {
+      } else if (!ignored(child)) {
+        console.log(child);
         results.push({
           name: fixName(child),
           path: fs.realpathSync(child),
@@ -121,7 +132,7 @@ function readDirRecursive(dir) {
       }
     }
   }
-  return results.filter((f) => !ignore.includes(f.name));
+  return results;
 }
 
 function findFiles() {
