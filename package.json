@@ -9,8 +9,10 @@
     "clean": "npm run script clean",
     "platformio": "npm run script platformio",
     "config": "npm run script config",
+    "plotter": "npm run script plotter",
     "docs": "npm run script docs",
     "script": "node ./Utils/Scripts/run.js",
+    "svgToJs": "node ./Utils/svgConverter/svgToJs.js",
     "setup-commit-hook": "if-env NODE_ENV=production && echo \" production mode \" || node ./Utils/Scripts/createJsCommitHook.js"
   },
   "repository": {
@@ -27,6 +29,8 @@
   "dependencies": {
     "@tweenjs/tween.js": "^17.2.0",
     "co": "^4.6.0",
+    "ecstatic": "^3.3.1",
+    "http-server": "^0.11.1",
     "if-env": "^1.0.4",
     "keypress": "^0.2.1",
     "node-gyp": "^3.6.2",
