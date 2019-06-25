@@ -4,19 +4,12 @@
 #include "panto.hpp"
 #include "performanceMonitor.hpp"
 #include "serial.hpp"
-#include "taskRegistry.hpp"
 
 FramerateLimiter sendLimiter = FramerateLimiter::fromFPS(60);
 
 void ioSetup()
 {
-    for (unsigned char i = 0; i < pantoCount; ++i)
-    {
-        pantos[i].setup(i);
-    }
-    delay(1000);
-
-    xTaskNotifyGive(Tasks.at("Physics").getHandle());
+    ulTaskNotifyTake(true, portMAX_DELAY);
 }
 
 void ioLoop()

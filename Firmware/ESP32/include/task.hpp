@@ -5,9 +5,6 @@
 
 #include "framerateLimiter.hpp"
 
-// enable/disable debug logging here
-#define LOG_TASK_FPS true
-
 class Task
 {
 private:

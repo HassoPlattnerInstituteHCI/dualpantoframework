@@ -9,7 +9,6 @@ const handle = 0;
 const threshold = 10;
 let wait = false;
 
-
 Broker.on('devicesChanged', function(devices, attached, detached) {
   // cant break in template string
   // eslint-disable-next-line max-len
