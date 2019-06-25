@@ -105,6 +105,10 @@ function platformio(command) {
   return exec(platformioExec, ['run', '-d Firmware', `-t ${command}`]);
 }
 
+function plotter() {
+  return exec('http-server', ['Utils/plotter/']);
+}
+
 function docs() {
   log(`Building docs`, color.green);
   return exec('node', ['Utils/Scripts/docs.js']);
@@ -115,6 +119,7 @@ const handlers = {
   'clean': clean,
   'config': config,
   'platformio': platformio,
+  'plotter': plotter,
   'docs': docs
 };
 
