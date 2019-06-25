@@ -94,7 +94,7 @@ function config(target) {
     target = 'doerte';
   }
   log(`Generating config ${target}`, color.green);
-  return exec('node', ['Firmware/GenerateHardwareConfig.js', target]);
+  return exec('node', ['Utils/Scripts/generateHardwareConfig.js', target]);
 }
 
 function platformio(command) {
@@ -103,6 +103,10 @@ function platformio(command) {
   }
   log(`Running platformio ${command}`, color.green);
   return exec(platformioExec, ['run', '-d Firmware', `-t ${command}`]);
+}
+
+function plotter() {
+  return exec('http-server', ['Utils/plotter/']);
 }
 
 function docs() {
@@ -115,6 +119,7 @@ const handlers = {
   'clean': clean,
   'config': config,
   'platformio': platformio,
+  'plotter': plotter,
   'docs': docs
 };
 
