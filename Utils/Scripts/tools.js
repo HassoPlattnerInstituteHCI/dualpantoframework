@@ -25,7 +25,7 @@ function exec(cmd, args) {
 function remove(target) {
   if (!fs.existsSync(target)) {
     console.log(`Could not find ${target}`, color.yellow);
-    return;
+    return true;
   }
   if (fs.statSync(target).isDirectory()) {
     const content = fs.readdirSync(target);
@@ -39,6 +39,7 @@ function remove(target) {
     fs.unlinkSync(target);
   }
   console.log(`Removed ${target}`);
+  return true;
 }
 
 module.exports = {
