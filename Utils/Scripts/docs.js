@@ -177,7 +177,7 @@ function buildIndexRecursive(files, indexObject, level) {
   const headerPrefix = '#'.repeat(level);
   if (typeof indexObject == 'string') {
     const file = files.filter((f) => f.name == indexObject)[0];
-    const link = path.relative(docsPath, file.output);
+    const link = path.relative(docsPath, file.output).replace('\\', '/');
     files.splice(files.indexOf(file), 1);
     return `${headerPrefix} [${file.name}](${link})\n`;
   } else {
