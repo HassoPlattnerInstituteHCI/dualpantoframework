@@ -4,14 +4,14 @@
 
 **Extends [Trigger](trigger.md)**
 
-Rectangular trigger, centered at the [HapticObject](..\hapticObject.md)'s position.
+Rectangular trigger, centered at the [HapticObject](../hapticObject.md)'s position.
 May either be used with or without a box collider. If used with a collider,
 startTouch/touch/endTouch events are emitted, otherwise enter/inside/leave
 events are emitted.
 
 ### Parameters
 
--   `size` **[Vector](..\vector.md)** The size of the created box.
+-   `size` **[Vector](../vector.md)** The size of the created box.
 -   `handles` **([number][1] \| [Array][2]&lt;[number][1]>)** The handle or handles which this
     component should apply to. Defaults to 0 (default defined in [Trigger](trigger.md)). (optional, default `0`)
 

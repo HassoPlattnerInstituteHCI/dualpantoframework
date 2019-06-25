@@ -137,9 +137,12 @@ function replaceLinks(file, content, files) {
     if (file == other) {
       continue;
     }
+    const relative =
+        path.relative(path.parse(file.output).dir, other.output)
+            .replace('\\', '/');
     replaced = replaced.replace(
         new RegExp(`\\b${other.name}\\b`, 'g'),
-        `[$&](${path.relative(path.parse(file.output).dir, other.output)})`);
+        `[$&](${relative})`);
   }
   return replaced;
 }

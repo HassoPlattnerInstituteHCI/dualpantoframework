@@ -4,11 +4,11 @@
 
 **Extends [MeshCollider](meshCollider.md)**
 
-Rectangular collider, centered at the [HapticObject](..\hapticObject.md)'s position.
+Rectangular collider, centered at the [HapticObject](../hapticObject.md)'s position.
 
 ### Parameters
 
--   `size` **[Vector](..\vector.md)** The size of the created box.
+-   `size` **[Vector](../vector.md)** The size of the created box.
 -   `handles` **([number][1] \| [Array][2]&lt;[number][1]>)** The handle or handles which this
     component should apply to. Defaults to 0 (default defined in [Collider](collider.md)). (optional, default `0`)
 
