@@ -5,7 +5,7 @@
 
 #include "utils/assert.hpp"
 #include "utils/serial.hpp"
-#include "utils/vector.hpp"
+#include "utils/utils.hpp"
 
 int32_t Hashtable::get1dIndex(double value, double min, double step)
 {
