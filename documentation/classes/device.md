@@ -181,7 +181,8 @@ Moves a handle with tween movement behaviour.
 #### Parameters
 
 -   `index` **[number][4]** Index of handle to move.
--   `target` **[Vector](vector.md)** Position the handle should be moved to.
+-   `target` **[Vector](vector.md)** Position the handle should be moved to.+
+-   `listener` **Listener** Position listener for the target.
 -   `duration` **[number][4]** Time in ms that the movement shall take. (optional, default `500`)
 -   `interpolation_method` **[object][3]** Tween
     function that is used to generate the movement. (optional, default `TWEEN.Easing.Quadratic.InOut`)

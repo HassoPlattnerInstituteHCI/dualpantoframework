@@ -11,6 +11,8 @@ Class for listening for reaching a position.
 -   `device` **[Device](device.md)** The device that has to be listened for.
 -   `index` **[number][1]** The index of the handle to be listened for.
 -   `target` **[Vector](vector.md)** The position to be checked for.
+-   `active`   (optional, default `true`)
+-   `radius`   (optional, default `2`)
 
 ### startListening
 
