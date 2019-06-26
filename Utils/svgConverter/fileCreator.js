@@ -1,6 +1,5 @@
 'use strict';
 const fs = require('fs');
-const MeshCreator = require('./MeshCreator.js');
 const Vector = require('../../lib/vector.js');
 const {applyMatrix} = require('./utils.js');
 
