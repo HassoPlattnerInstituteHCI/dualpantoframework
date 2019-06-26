@@ -233,7 +233,11 @@ constexpr double hashtableStepSizeY = ${hashtable.stepSizeY};
 constexpr double hashtableProcessedEntriesPerFrame = ${hashtable.entries};`;
 
 console.log(headerOutput);
-fs.writeFileSync('Firmware/shared/include/config.hpp', headerOutput);
+const headerDir = 'Firmware/include/config/';
+if (!fs.existsSync(headerDir)) {
+  fs.mkdirSync(headerDir, {recursive: true});
+}
+fs.writeFileSync(headerDir + 'config.hpp', headerOutput);
 
 const sourceOutput =
 `/*
@@ -242,7 +246,7 @@ const sourceOutput =
  * config.cpp contains the initial values for the non-const global variables, since defining those in the header leads to linker errors.
  */
 
-#include "config.hpp"
+#include "config/config.hpp"
 
 float forceFactor = ${input.forceFactor};
 float pidFactor[${pantoCount*3}][3] = {
@@ -250,4 +254,8 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-fs.writeFileSync('Firmware/shared/lib/config.cpp', sourceOutput);
+const sourceDir = 'Firmware/src/config/';
+if (!fs.existsSync(sourceDir)) {
+  fs.mkdirSync(sourceDir, {recursive: true});
+}
+fs.writeFileSync(sourceDir + 'config.cpp', sourceOutput);

@@ -22,7 +22,7 @@ const buildHandlers = {
   },
   'serial-standalone': () => {
     // eslint-disable-next-line max-len
-    return exec(cppExec, cppArgs.concat(['Utils/Serial/serial.cpp', 'Protocol/lib/protocol.cpp', '-IProtocol/include', '-o Utils/Serial/serial']));
+    return exec(cppExec, cppArgs.concat(['Utils/Serial/serial.cpp', 'Protocol/src/protocol.cpp', '-IProtocol/include', '-o Utils/Serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -68,8 +68,8 @@ const cleanHandlers = {
     return true;
   },
   'firmware': () => {
-    return remove('./Firmware/shared/lib/config.cpp')
-         & remove('./Firmware/shared/include/config.hpp')
+    return remove('./Firmware/src/config/config.cpp')
+         & remove('./Firmware/include/config/config.hpp')
          & platformio('clean');
   }
 };
