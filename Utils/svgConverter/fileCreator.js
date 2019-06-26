@@ -61,10 +61,12 @@ class FileCreator {
     // add box objects
     for (let i = 0; i < hapticBoxObjects.length; i ++) {
       let mesh = this.generateMeshFromBox(hapticBoxObjects[i], offset);
-      if (hapticBoxObjects[i].hasOwnProperty('matrix')) {
-        mesh = this.applyMatrixToMesh(hapticBoxObjects[i].matrix, mesh);
-      } else if (hapticBoxObjects[i].hasOwnProperty('translate')) {
-        mesh = this.applyTranslateToMesh(hapticBoxObjects[i].translate, mesh);
+      if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
+        applyMatrix(mesh, hapticMeshObjects[i].matrix);
+        for (let i = 0; i < mesh.length; i++) {
+          mesh[i].x += offset.x;
+          mesh[i].y += offset.y;
+        }
       }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
