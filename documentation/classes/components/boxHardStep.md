@@ -5,11 +5,11 @@
 **Extends [MeshHardStep](meshHardStep.md)**
 
 Rectangular step shape with hard edge, centered at the
-[HapticObject](..\hapticObject.md)'s position.
+[HapticObject](../hapticObject.md)'s position.
 
 ### Parameters
 
--   `size` **[Vector](..\vector.md)** The size of the created box.
+-   `size` **[Vector](../vector.md)** The size of the created box.
 -   `enterStrength` **[number][1]** The strength needed to get into the box.
     Useful values are from 0 to 5.
 -   `leaveStrength` **[number][1]** The strength needed to get into the box.

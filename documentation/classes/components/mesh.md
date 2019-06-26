@@ -8,7 +8,7 @@ Simple 2D mesh class for use with mesh-based components.
 
 ### Parameters
 
--   `path` **[Array][1]&lt;[Vector](..\vector.md)>** The vertices from which the mesh is
+-   `path` **[Array][1]&lt;[Vector](../vector.md)>** The vertices from which the mesh is
     created. The first point should not be repeated at the end.
 -   `handles` **([number][2] \| [Array][1]&lt;[number][2]>)** The handle or handles which this
     component should apply to. Defaults to neither (default defined

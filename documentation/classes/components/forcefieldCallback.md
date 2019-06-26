@@ -8,9 +8,9 @@ Type: [Function][1]
 
 ### Parameters
 
--   `position` **[Vector](..\vector.md)** The current god object position.
--   `lastPosition` **[Vector](..\vector.md)** The last god object position.
+-   `position` **[Vector](../vector.md)** The current god object position.
+-   `lastPosition` **[Vector](../vector.md)** The last god object position.
 
-Returns **[Vector](..\vector.md)** The force to apply
+Returns **[Vector](../vector.md)** The force to apply
 
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function
