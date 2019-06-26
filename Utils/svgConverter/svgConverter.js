@@ -2,8 +2,7 @@
 
 const FileGenerator = require('./fileCreator.js');
 const {
-  parseRect, parseRects,
-  parsePath, parsePaths,
+  parseStyle, parseRects, parsePaths,
   parseTransform} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
@@ -107,7 +106,8 @@ class svgConverter {
           triggerTouch: false, triggerEndTouch: false,
           data: result.svg.g[0].g[j].rect[0].$};
 
-        if (parseRect(newTrigger, result.svg.g[0].g[j].rect[0], result.svg)) {
+        if (parseStyle(
+            newTrigger, result.svg.g[0].g[j].rect[0].$.style, result.svg)) {
           found = true;
         }
       }
@@ -120,7 +120,8 @@ class svgConverter {
           triggerTouch: false, triggerEndTouch: false,
           data: result.svg.g[0].g[j].path[0].$};
         // TODO: this should handle multiple paths
-        if (parsePath(newTrigger, result.svg.g[0].g[j].path[0], result.svg)) {
+        if (parseStyle(
+            newTrigger, result.svg.g[0].g[j].path[0].$.style, result.svg)) {
           found = true;
         }
       }

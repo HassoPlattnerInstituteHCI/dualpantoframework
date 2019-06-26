@@ -115,14 +115,6 @@ const parseStyle = function(hapticObject, style, svg) {
   return found;
 };
 
-const parseRect = function(hapticObject, rect, svg) {
-  return parseStyle(hapticObject, rect.$.style, svg);
-};
-
-const parsePath = function(hapticObject, path, svg) {
-  return parseStyle(hapticObject, path.$.style, svg);
-};
-
 /**
  * @description parses rects
  * @param {Array} rects - Array that contains the rectangles.
@@ -130,8 +122,6 @@ const parsePath = function(hapticObject, path, svg) {
  * @return {object} - Habtic object.
  */
 const parseRects = function(rects, svg) {
-  // console.log('parseRects');
-  // console.log({rects, svg});
   const hapticObjects = [];
   for (let i = 0; i < rects.length; i++) {
     const newObject = {collider: false, forcefield: false,
@@ -142,7 +132,7 @@ const parseRects = function(rects, svg) {
       data: rects[i].$,
       polarForce: false};
 
-    if (parseRect(newObject, rects[i], svg)) {
+    if (parseStyle(newObject, rects[i].$.style, svg)) {
       hapticObjects.push(newObject);
     }
   }
@@ -166,7 +156,7 @@ const parsePaths = function(paths, svg) {
       data: paths[i].$,
       polarForce: false};
 
-    if (parsePath(newObject, paths[i], svg)) {
+    if (parseStyle(newObject, paths[i].$.style, svg)) {
       hapticObjects.push(newObject);
     }
   }
@@ -240,4 +230,4 @@ const parseTransform = function(transform) {
 };
 
 module.exports = {
-  parseRect, parseRects, parsePath, parsePaths, applyMatrix, parseTransform};
+  parseStyle, parseRects, parsePaths, applyMatrix, parseTransform};
