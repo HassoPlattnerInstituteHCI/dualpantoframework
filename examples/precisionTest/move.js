@@ -6,8 +6,6 @@ const {Vector, Broker} = Framework;
 const positions = [new Vector(-50, -120, NaN), new Vector(50, -120, NaN)];
 let nextPosition = 0;
 const handle = 0;
-const threshold = 10;
-let wait = false;
 const VoiceInteraction = Broker.voiceInteraction;
 
 Broker.on('devicesChanged', function(devices, attached, detached) {
@@ -24,6 +22,6 @@ Broker.on('devicesChanged', function(devices, attached, detached) {
 const invokeMovement = (device) => {
   nextPosition = (nextPosition + 1) % positions.length;
   device.movePantoTo(handle, positions[nextPosition]).then(
-  () => VoiceInteraction.speakText('Position ' + nextPosition)).then(
-  () => invokeMovement(device));
-}
+      () => VoiceInteraction.speakText('Position ' + nextPosition)).then(
+      () => invokeMovement(device));
+};
