@@ -99,31 +99,28 @@ class svgConverter {
       let newTrigger;
       // group Recs
       if (result.svg.g[0].g[j].rect) {
-        newTrigger = {box: true, collider: false, forcefield: false,
-          hardStepIn: false, hardStepOut: false,
-          triggerEnter: false, triggerInside: false,
-          triggerLeave: false, triggerStartTouch: false,
-          triggerTouch: false, triggerEndTouch: false,
-          data: result.svg.g[0].g[j].rect[0].$};
-
-        if (parseStyle(
-            newTrigger, result.svg.g[0].g[j].rect[0].$.style, result.svg)) {
+        const hapticObjects = parseRects(result.svg.g[0].g[j].rect, result.svg);
+        if (hapticObjects.length > 0) {
           found = true;
         }
+        newTrigger = hapticObjects[0];
+        // TODO: this should handle multiple rects
       }
       // group paths
       if (result.svg.g[0].g[j].path) {
-        newTrigger = {box: false, collider: false, forcefield: false,
-          hardStepIn: false, hardStepOut: false,
-          triggerEnter: false, triggerInside: false,
-          triggerLeave: false, triggerStartTouch: false,
-          triggerTouch: false, triggerEndTouch: false,
-          data: result.svg.g[0].g[j].path[0].$};
+        const hapticObjects = parsePaths(result.svg.g[0].g[j].path, result.svg);
+        if (hapticObjects.length > 0) {
+          found = true;
+        }
+        newTrigger = hapticObjects[0];
         // TODO: this should handle multiple paths
         if (parseStyle(
             newTrigger, result.svg.g[0].g[j].path[0].$.style, result.svg)) {
           found = true;
         }
+      }
+      if (!found) {
+        continue;
       }
       // group Text
       if (result.svg.g[0].g[j].text) {

@@ -1,3 +1,5 @@
+const Vector = require('./../../lib/vector.js');
+
 /**
  * @private This is an internal function.
  * @description Find the pattern for an id.
@@ -130,6 +132,7 @@ const parseRects = function(rects, svg) {
       triggerLeave: false, triggerStartTouch: false,
       triggerTouch: false, triggerEndTouch: false,
       data: rects[i].$,
+      points: parseRectData(rects[i].$),
       polarForce: false};
 
     if (parseStyle(newObject, rects[i].$.style, svg)) {
@@ -154,6 +157,7 @@ const parsePaths = function(paths, svg) {
       triggerLeave: false, triggerStartTouch: false,
       triggerTouch: false, triggerEndTouch: false,
       data: paths[i].$,
+      points: parsePathData(paths[i].$),
       polarForce: false};
 
     if (parseStyle(newObject, paths[i].$.style, svg)) {
@@ -227,6 +231,159 @@ const parseTransform = function(transform) {
       break;
   }
   return [1, 0, 0, 1, 0, 0];
+};
+
+/**
+ * @private This is an internal function.
+ * @description Creates a Point for a substring of an svg path string.
+ * @param {string} dataString - Substring ofs the path.
+ * @param {Array} points - Points that have already been generated.
+ * @param {string} mode - Specific mode how to interprete the string data.
+ * @return {Array} Array containing the vectors.
+ */
+const createPoint = function(dataString, points, mode) {
+  switch (mode) {
+    case 'h':
+      return new Vector(parseFloat(dataString) + points[points.length - 1].x,
+          points[points.length - 1].y, NaN);
+      break;
+    case 'H':
+      return new Vector(parseFloat(dataString),
+          points[points.length - 1].y, NaN);
+      break;
+    case 'v':
+      return new Vector(points[points.length - 1].x,
+          parseFloat(dataString) + points[points.length - 1].y, NaN);
+      break;
+    case 'V':
+      return new Vector(points[points.length - 1].x,
+          parseFloat(dataString), NaN);
+      break;
+    case 'l':
+      const relativePoint = stringToVec(dataString);
+      return new Vector(relativePoint.x + points[points.length - 1].x,
+          points[points.length - 1].y + relativePoint.y, NaN);
+      break;
+    case 'L':
+      const lPoint = stringToVec(dataString);
+      return new Vector(lPoint.x,
+          lPoint.y, lPoint.r);
+      break;
+  }
+};
+
+/**
+ * @private This is an internal function.
+ * @description Tranlates a String to a Vector.
+ * @param {string} cordsString - String that contains the vector.
+ * @return {Vector} Resulting vector.
+ */
+const stringToVec = function(cordsString) {
+  const xCords = cordsString.split(',')[0];
+  const yCords = cordsString.split(',')[1];
+  return new Vector(parseFloat(xCords), parseFloat(yCords), NaN);
+};
+
+/**
+ * @private This is an internal function.
+ * @description Parses an path string to multiple vectors.
+ * @param {string} data - String that contains the path.
+ * @return {Array} Array containing the vectors.
+ */
+const parsePathData = function(data) {
+  const svgString = data.d;
+  const transform = data.transform;
+  const matrix = parseTransform(transform);
+  let lastMode;
+  const spaceSplit = svgString.split(' ');
+  const points = [];
+  for (let i = 0; i < spaceSplit.length; i++) {
+    switch (spaceSplit[i]) {
+      case 'h':
+        i++;
+        points.push(createPoint(spaceSplit[i], points,
+            spaceSplit[i -1]));
+        lastMode = 'h';
+        break;
+      case 'H':
+        i++;
+        points.push(createPoint(spaceSplit[i], points,
+            spaceSplit[i -1]));
+        lastMode = 'H';
+        break;
+      case 'z':
+      case 'Z':
+        // points.push(points[0]);
+        break;
+      case 'm':
+        lastMode = 'l';
+        i++;
+        const mPoint = stringToVec(spaceSplit[i]);
+        points.push(new Vector(mPoint.x, mPoint.y, mPoint.r));
+        break;
+      case 'M':
+        lastMode = 'L';
+        i++;
+        const MPoint = stringToVec(spaceSplit[i]);
+        points.push(new Vector(MPoint.x, MPoint.y, MPoint.r));
+        break;
+      case 'v':
+        i++;
+        points.push(createPoint(spaceSplit[i], points,
+            spaceSplit[i -1]));
+        lastMode = 'v';
+        break;
+      case 'V':
+        i++;
+        points.push(createPoint(spaceSplit[i], points,
+            spaceSplit[i -1]));
+        lastMode = 'V';
+        break;
+      case 'l':
+        i++;
+        points.push(createPoint(spaceSplit[i], points,
+            spaceSplit[i -1]));
+        lastMode = 'l';
+        break;
+      case 'L':
+        i++;
+        points.push(createPoint(spaceSplit[i], points,
+            spaceSplit[i -1]));
+        lastMode = 'L';
+        break;
+      default:
+        points.push(createPoint(spaceSplit[i], points,
+            lastMode));
+        break;
+    }
+  }
+  applyMatrix(points, matrix);
+  return points;
+};
+
+/**
+ * @private This is an internal function.
+ * @description Parses an path string to multiple vectors.
+ * @param {string} data - String that contains the path.
+ * @return {Array} Array containing the vectors.
+ */
+const parseRectData = function(data) {
+  console.log(data);
+  const transform = data.transform;
+  const matrix = parseTransform(transform);
+  const x = parseFloat(data.x);
+  const y = parseFloat(data.y);
+  const width = parseFloat(data.width);
+  const height = parseFloat(data.height);
+  const points = [
+    new Vector(x, y),
+    new Vector(x, y + height),
+    new Vector(x + width, y + height),
+    new Vector(x + width, y)
+  ];
+  console.log(points);
+  applyMatrix(points, matrix);
+  return points;
 };
 
 module.exports = {

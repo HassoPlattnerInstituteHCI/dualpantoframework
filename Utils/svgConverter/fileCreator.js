@@ -50,8 +50,6 @@ class FileCreator {
   generateFile(hapticBoxObjects,
       hapticMeshObjects,
       studentDir, offset) {
-    const meshCreator = new MeshCreator(offset.x,
-        offset.y);
     let outputString = '\'use strict\';\n';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
@@ -60,13 +58,13 @@ class FileCreator {
       'function () {\n  ');
     // add box objects
     for (let i = 0; i < hapticBoxObjects.length; i ++) {
-      let mesh = this.generateMeshFromBox(hapticBoxObjects[i], offset);
+      let mesh = hapticBoxObjects[i].points;
       if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
         applyMatrix(mesh, hapticMeshObjects[i].matrix);
-        for (let i = 0; i < mesh.length; i++) {
-          mesh[i].x += offset.x;
-          mesh[i].y += offset.y;
-        }
+      }
+      for (let i = 0; i < mesh.length; i++) {
+        mesh[i].x += offset.x;
+        mesh[i].y += offset.y;
       }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
@@ -74,13 +72,13 @@ class FileCreator {
     }
     // add mesh Objects
     for (let i = 0; i < hapticMeshObjects.length; i++) {
-      let mesh = meshCreator.parseSvgPath(hapticMeshObjects[i].data);
+      let mesh = hapticMeshObjects[i].points;
       if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
         applyMatrix(mesh, hapticMeshObjects[i].matrix);
-        for (let i = 0; i < mesh.length; i++) {
-          mesh[i].x += offset.x;
-          mesh[i].y += offset.y;
-        }
+      }
+      for (let i = 0; i < mesh.length; i++) {
+        mesh[i].x += offset.x;
+        mesh[i].y += offset.y;
       }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticMeshObjects, i, mesh,
