@@ -19,6 +19,18 @@ Enables the component
 
 Disables the component
 
+### trace
+
+Traces the shape of the component.
+
+#### Parameters
+
+-   `index` **[number][1]** Index of the handle to trace the shape. (optional, default `1`)
+
+Returns **[Promise][3]** The promise that runs the trace of the mesh.
+
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 [2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise

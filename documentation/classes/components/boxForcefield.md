@@ -15,6 +15,18 @@ Rectangular forcefield, centered at the [HapticObject](../hapticObject.md)'s pos
 -   `handles` **([number][1] \| [Array][2]&lt;[number][1]>)** The handle or handles which this
     component should apply to. Defaults to 0 (default defined in [Forcefield](forcefield.md)). (optional, default `0`)
 
+### trace
+
+Traces the shape of the box forcefield.
+
+#### Parameters
+
+-   `index` **[number][1]** Index of the handle to trace the shape. (optional, default `1`)
+
+Returns **[Promise][3]** The promise that runs the trace script.
+
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 [2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
