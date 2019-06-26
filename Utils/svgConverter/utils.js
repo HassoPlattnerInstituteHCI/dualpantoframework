@@ -115,11 +115,13 @@ const parseStyle = function(hapticObject, style, svg) {
   return found;
 };
 
-
 const parseRect = function(hapticObject, rect, svg) {
   return parseStyle(hapticObject, rect.$.style, svg);
 };
 
+const parsePath = function(hapticObject, path, svg) {
+  return parseStyle(hapticObject, path.$.style, svg);
+};
 
 /**
  * @description parses rects
@@ -141,6 +143,30 @@ const parseRects = function(rects, svg) {
       polarForce: false};
 
     if (parseRect(newObject, rects[i], svg)) {
+      hapticObjects.push(newObject);
+    }
+  }
+  return hapticObjects;
+};
+
+/**
+ * @description parses paths
+ * @param {Array} paths - Array that contains the rectangles.
+ * @param {object} svg - Object that contains the svg data.
+ * @return {object} - Habtic object.
+ */
+const parsePaths = function(paths, svg) {
+  const hapticObjects = [];
+  for (let i = 0; i < paths.length; i++) {
+    const newObject = {collider: false, forcefield: false,
+      hardStepIn: false, hardStepOut: false,
+      triggerEnter: false, triggerInside: false,
+      triggerLeave: false, triggerStartTouch: false,
+      triggerTouch: false, triggerEndTouch: false,
+      data: paths[i].$,
+      polarForce: false};
+
+    if (parsePath(newObject, paths[i], svg)) {
       hapticObjects.push(newObject);
     }
   }
@@ -213,4 +239,5 @@ const parseTransform = function(transform) {
   return [1, 0, 0, 1, 0, 0];
 };
 
-module.exports = {parseRect, parseRects, applyMatrix, parseTransform};
+module.exports = {
+  parseRect, parseRects, parsePath, parsePaths, applyMatrix, parseTransform};

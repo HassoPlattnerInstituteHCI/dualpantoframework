@@ -1,7 +1,10 @@
 'use strict';
 
 const FileGenerator = require('./fileCreator.js');
-const {parseRect, parseRects, parseTransform} = require('./utils.js');
+const {
+  parseRect, parseRects,
+  parsePath, parsePaths,
+  parseTransform} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
 const fs = require('fs');
@@ -117,7 +120,7 @@ class svgConverter {
           triggerTouch: false, triggerEndTouch: false,
           data: result.svg.g[0].g[j].path[0].$};
         // TODO: this should handle multiple paths
-        if (this.loadPath(newTrigger, result.svg.g[0].g[j].path[0], result)) {
+        if (parsePath(newTrigger, result.svg.g[0].g[j].path[0], result.svg)) {
           found = true;
         }
       }
@@ -245,125 +248,6 @@ class svgConverter {
 
   /**
    * @private This is an internal function.
-   * @description Parses a path.
-   * @param {object} hapticObject - The object that is to be generated.
-   * @param {object} pathObject - The path that is to be parsed.
-   * @param {object} result - The svg as object.
-   * @return {boolean} - If an object was found.
-   */
-  loadPath(hapticObject, pathObject, result) {
-    let found = false;
-    let strokeIndex;
-    const styleValues = pathObject.$.style.split(';');
-    let dashArrayFound = false;
-    for (let i = 0; i < styleValues.length; i++) {
-      if (styleValues[i].includes('stroke:')) {
-        strokeIndex = i;
-      }
-      if (styleValues[i].includes('fill:')) {
-        if ('none' !== styleValues[i]
-            .split(':')[1]) {
-          const patternID = styleValues[i].split(':')[1]
-              .split('(')[1].split(')')[0].split('#')[1];
-          if (this.searchForForcePattern(patternID,
-              result, 'directedForce')) {
-            hapticObject.forcefield = true;
-            found = true;
-            console.log('forcefield', pathObject.$.id);
-            const pattern = this.getPatternForID(patternID, result);
-            const origin = new Vector(0, 0);
-            const pointA = new Vector(0, 1);
-            const transformOrigin = this.applyMatrix(origin,
-                pattern.patternTransform);
-            const transformPointA = this.applyMatrix(pointA,
-                pattern.patternTransform);
-            const direction = transformPointA
-                .difference(transformOrigin).normalized();
-            hapticObject.forceDirection = direction;
-          }
-          if (this.searchForForcePattern(patternID,
-              result, 'radialForce')) {
-            hapticObject.polarForce = true;
-            found = true;
-            console.log('polarForce', pathObject.$.id);
-            const pattern = this.getPatternForID(patternID, result);
-            const transformMiddel = this.applyMatrix(this.offset,
-                pattern.patternTransform);
-            transformMiddel.x += this.offset.x;
-            transformMiddel.y += this.offset.y;
-            hapticObject.polarPoint = transformMiddel;
-          }
-        }
-      }
-      if (styleValues[i].includes('stroke-dasharray')) {
-        dashArrayFound = true;
-        const temp = styleValues[i].split(':');
-        if (temp[1] === 'none') {
-          const stroketype = styleValues[strokeIndex].split(':')[1];
-          if (stroketype === '#000000') {
-            hapticObject.collider = true;
-            found = true;
-            console.log('collider', pathObject.$.id);
-          }
-        } else if (temp[1].split(',').length == 2) {
-          const strokeColor = styleValues[strokeIndex].split(':')[1];
-          if (strokeColor === '#00ff00') {
-            hapticObject.hardStepIn = true;
-            found = true;
-            console.log('hardstepin', pathObject.$.id);
-          } else if (strokeColor === '#ff0000') {
-            hapticObject.hardStepOut = true;
-            found = true;
-            console.log('harstepout', pathObject.$.id);
-          }
-        }
-      }
-    }
-    if (!dashArrayFound) {
-      if (!strokeIndex) {
-        for (let index = 0; index < styleValues.length; index++) {
-          if (styleValues[index].includes('stroke:')) {
-            strokeIndex = index;
-          }
-        }
-      }
-      const stroketype = styleValues[strokeIndex].split(':')[1];
-      if (stroketype === '#000000') {
-        hapticObject.collider = true;
-        found = true;
-        console.log('collider', pathObject.$.id);
-      }
-    }
-    return found;
-  }
-
-  /**
-   * @private This is an internal function.
-   * @description Parses paths.
-   * @param {Array} pathObjects - An array containing the paths.
-   * @param {object} result - The svg as object.
-   * @return {Array} - The parsed Objects.
-   */
-  loadPaths(pathObjects, result) {
-    const hapticMeshObjects = [];
-    for (let j = 0; j < pathObjects.length; j++) {
-      const newHapticMeshObject = {collider: false, forcefield: false,
-        hardStepIn: false, hardStepOut: false,
-        triggerEnter: false, triggerInside: false,
-        triggerLeave: false, triggerStartTouch: false,
-        triggerTouch: false, triggerEndTouch: false,
-        data: pathObjects[j].$,
-        polarForce: false};
-
-      if (this.loadPath(newHapticMeshObject, pathObjects[j], result)) {
-        hapticMeshObjects.push(newHapticMeshObject);
-      }
-    }
-    return hapticMeshObjects;
-  }
-
-  /**
-   * @private This is an internal function.
    * @description Parses the svg.
    */
   loadWorld() {
@@ -386,7 +270,7 @@ class svgConverter {
         // first level Paths
         let hapticMeshObjects = [];
         if (result.svg.g[0].path) {
-          hapticMeshObjects = this.loadPaths(result.svg.g[0].path, result);
+          hapticMeshObjects = parsePaths(result.svg.g[0].path, svg);
         }
         // first level groups
         if (result.svg.g[0].g) {
