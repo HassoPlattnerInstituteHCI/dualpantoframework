@@ -28,11 +28,10 @@ class svgConverter {
   /**
    * @private This is an internal function.
    * @description Parses Groups
-   * @param {Array} groupObjects - An array containing the groups.
    * @param {object} svg - The svg as object.
    * @return {object} - Object containing two Arrays with found objects.
    */
-  loadGroups(groupObjects, svg) {
+  loadGroups(svg) {
     const objects = [];
     for (let j = 0; j < svg.g[0].g.length; j++) {
       let found = false;
