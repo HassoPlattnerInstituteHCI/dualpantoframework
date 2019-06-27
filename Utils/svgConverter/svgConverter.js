@@ -27,47 +27,6 @@ class svgConverter {
 
   /**
    * @private This is an internal function.
-   * @description Traces the svg pattern hyrachie for a specifid one.
-   * @param {number} id - Id of the starting Pattern.
-   * @param {object} result - The svg Object.
-   * @param {string} pattern - String that contains the pattern.
-   * @return {boolean} If pattern is in hyrachie or not.
-   */
-  searchForForcePattern(id, result, pattern) {
-    let currentID = id;
-    let nextID = id;
-    do {
-      const pattern = this.getPatternForID(nextID, result);
-      if (!pattern) {
-        return false;
-      }
-      nextID = pattern['xlink:href'];
-      if (nextID) {
-        nextID = nextID.split('#')[1];
-      }
-      currentID = pattern.id;
-    } while (currentID !== pattern);
-    return true;
-  }
-
-  /**
-   * @private This is an internal function.
-   * @description Find the pattern for an id.
-   * @param {number} id - Id of the pattern.
-   * @param {object} result - The svg Object.
-   * @return {object} Pattern.
-   */
-  getPatternForID(id, result) {
-    for (let pat = 0; pat < result.svg.defs[0].pattern.length; pat++) {
-      if (result.svg.defs[0].pattern[pat].$.id === id) {
-        return result.svg.defs[0].pattern[pat].$;
-      }
-    }
-    return undefined;
-  }
-
-  /**
-   * @private This is an internal function.
    * @description Parses Groups
    * @param {Array} groupObjects - An array containing the groups.
    * @param {object} svg - The svg as object.
