@@ -2,8 +2,8 @@
 
 const FileGenerator = require('./fileCreator.js');
 const {
-  parseStyle, parseRects, parsePaths,
-  parseTransform} = require('./utils.js');
+  parseRects, parsePaths,
+  parseTransform, applyMatrix} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
 const fs = require('fs');
@@ -114,10 +114,6 @@ class svgConverter {
         }
         newTrigger = hapticObjects[0];
         // TODO: this should handle multiple paths
-        if (parseStyle(
-            newTrigger, result.svg.g[0].g[j].path[0].$.style, result.svg)) {
-          found = true;
-        }
       }
       if (!found) {
         continue;
@@ -230,15 +226,9 @@ class svgConverter {
         }
       }
       if (found) {
-        if (result.svg.g[0].g[j].$.hasOwnProperty('transform')) {
-          newTrigger.matrix = parseTransform(result.svg.g[0].g[j].$.transform);
-        }
-        // could be undefined and therefore check for true must happen
-        if (newTrigger.box === true) {
-          boxes.push(newTrigger);
-        } else if (newTrigger.box === false) {
-          meshes.push(newTrigger);
-        }
+        const matrix = parseTransform(result.svg.g[0].g[j].$.transform);
+        applyMatrix(newTrigger.points, matrix);
+        meshes.push(newTrigger);
       }
     }
     return {hapticBoxes: boxes, hapticMeshes: meshes};

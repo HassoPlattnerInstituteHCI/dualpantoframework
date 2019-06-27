@@ -1,7 +1,6 @@
 'use strict';
 const fs = require('fs');
 const Vector = require('../../lib/vector.js');
-const {applyMatrix} = require('./utils.js');
 
 /**
  * @description Class for code generation.
@@ -58,9 +57,6 @@ class FileCreator {
     // add box objects
     for (let i = 0; i < hapticBoxObjects.length; i ++) {
       let mesh = hapticBoxObjects[i].points;
-      if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
-        applyMatrix(mesh, hapticMeshObjects[i].matrix);
-      }
       for (let i = 0; i < mesh.length; i++) {
         mesh[i].x += offset.x;
         mesh[i].y += offset.y;
@@ -72,9 +68,6 @@ class FileCreator {
     // add mesh Objects
     for (let i = 0; i < hapticMeshObjects.length; i++) {
       let mesh = hapticMeshObjects[i].points;
-      if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
-        applyMatrix(mesh, hapticMeshObjects[i].matrix);
-      }
       for (let i = 0; i < mesh.length; i++) {
         mesh[i].x += offset.x;
         mesh[i].y += offset.y;

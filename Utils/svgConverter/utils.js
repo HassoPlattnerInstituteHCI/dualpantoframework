@@ -368,7 +368,6 @@ const parsePathData = function(data) {
  * @return {Array} Array containing the vectors.
  */
 const parseRectData = function(data) {
-  console.log(data);
   const transform = data.transform;
   const matrix = parseTransform(transform);
   const x = parseFloat(data.x);
@@ -381,10 +380,9 @@ const parseRectData = function(data) {
     new Vector(x + width, y + height),
     new Vector(x + width, y)
   ];
-  console.log(points);
   applyMatrix(points, matrix);
   return points;
 };
 
 module.exports = {
-  parseStyle, parseRects, parsePaths, applyMatrix, parseTransform};
+  parseRects, parsePaths, applyMatrix, parseTransform};
