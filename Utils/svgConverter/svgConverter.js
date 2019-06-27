@@ -70,18 +70,17 @@ class svgConverter {
    * @private This is an internal function.
    * @description Parses Groups
    * @param {Array} groupObjects - An array containing the groups.
-   * @param {object} result - The svg as object.
+   * @param {object} svg - The svg as object.
    * @return {object} - Object containing two Arrays with found objects.
    */
-  loadGroups(groupObjects, result) {
-    const boxes = [];
-    const meshes = [];
-    for (let j = 0; j < result.svg.g[0].g.length; j++) {
+  loadGroups(groupObjects, svg) {
+    const objects = [];
+    for (let j = 0; j < svg.g[0].g.length; j++) {
       let found = false;
       let newTrigger;
       // group Recs
-      if (result.svg.g[0].g[j].rect) {
-        const hapticObjects = parseRects(result.svg.g[0].g[j].rect, result.svg);
+      if (svg.g[0].g[j].rect) {
+        const hapticObjects = parseRects(svg.g[0].g[j].rect, svg);
         if (hapticObjects.length > 0) {
           found = true;
         }
@@ -89,8 +88,8 @@ class svgConverter {
         // TODO: this should handle multiple rects
       }
       // group paths
-      if (result.svg.g[0].g[j].path) {
-        const hapticObjects = parsePaths(result.svg.g[0].g[j].path, result.svg);
+      if (svg.g[0].g[j].path) {
+        const hapticObjects = parsePaths(svg.g[0].g[j].path, svg);
         if (hapticObjects.length > 0) {
           found = true;
         }
@@ -101,10 +100,10 @@ class svgConverter {
         continue;
       }
       // group Text
-      if (result.svg.g[0].g[j].text) {
+      if (svg.g[0].g[j].text) {
         let userString;
-        for (let i = 0; i < result.svg.g[0].g[j].text.length; i++) {
-          const textStyle = result.svg.g[0].g[j].text[i].$.style
+        for (let i = 0; i < svg.g[0].g[j].text.length; i++) {
+          const textStyle = svg.g[0].g[j].text[i].$.style
               .split(';');
           let color;
           for (let k = 0; k < textStyle.length; k++) {
@@ -114,7 +113,7 @@ class svgConverter {
             }
           }
           if (color == '#000000') {
-            userString = result.svg.g[0].g[j].text[i].tspan[0]._;
+            userString = svg.g[0].g[j].text[i].tspan[0]._;
             break;
           }
         }
@@ -126,10 +125,10 @@ class svgConverter {
               found = true;
               if (newTrigger.box === true) {
                 console.log('triggerStartTouch',
-                    result.svg.g[0].g[j].rect[0].$.id);
+                    svg.g[0].g[j].rect[0].$.id);
               } else if (newTrigger.box === false) {
                 console.log('triggerStartTouch',
-                    result.svg.g[0].g[j].path[0].$.id);
+                    svg.g[0].g[j].path[0].$.id);
               }
 
               break;
@@ -138,10 +137,10 @@ class svgConverter {
               found = true;
               if (newTrigger.box === true) {
                 console.log('triggerEndTouch',
-                    result.svg.g[0].g[j].rect[0].$.id);
+                    svg.g[0].g[j].rect[0].$.id);
               } else if (newTrigger.box === false) {
                 console.log('triggerEndTouch',
-                    result.svg.g[0].g[j].path[0].$.id);
+                    svg.g[0].g[j].path[0].$.id);
               }
               break;
             case '':
@@ -149,10 +148,10 @@ class svgConverter {
               found = true;
               if (newTrigger.box === true) {
                 console.log('triggerTouch',
-                    result.svg.g[0].g[j].rect[0].$.id);
+                    svg.g[0].g[j].rect[0].$.id);
               } else if (newTrigger.box === false) {
                 console.log('triggerTouch',
-                    result.svg.g[0].g[j].path[0].$.id);
+                    svg.g[0].g[j].path[0].$.id);
               }
               break;
           }
@@ -170,10 +169,10 @@ class svgConverter {
               found = true;
               if (newTrigger.box === true) {
                 console.log('triggerEnter',
-                    result.svg.g[0].g[j].rect[0].$.id);
+                    svg.g[0].g[j].rect[0].$.id);
               } else if (newTrigger.box === false) {
                 console.log('triggerEnter',
-                    result.svg.g[0].g[j].path[0].$.id);
+                    svg.g[0].g[j].path[0].$.id);
               }
               break;
             case '<-[':
@@ -181,10 +180,10 @@ class svgConverter {
               found = true;
               if (newTrigger.box === true) {
                 console.log('triggerLeave',
-                    result.svg.g[0].g[j].rect[0].$.id);
+                    svg.g[0].g[j].rect[0].$.id);
               } else if (newTrigger.box === false) {
                 console.log('triggerLeave',
-                    result.svg.g[0].g[j].path[0].$.id);
+                    svg.g[0].g[j].path[0].$.id);
               }
               break;
             case '[-':
@@ -192,10 +191,10 @@ class svgConverter {
               found = true;
               if (newTrigger.box === true) {
                 console.log('triggerInside',
-                    result.svg.g[0].g[j].rect[0].$.id);
+                    svg.g[0].g[j].rect[0].$.id);
               } else if (newTrigger.box === false) {
                 console.log('triggerInside',
-                    result.svg.g[0].g[j].path[0].$.id);
+                    svg.g[0].g[j].path[0].$.id);
               }
               break;
           }
@@ -208,15 +207,15 @@ class svgConverter {
         }
       }
       if (found) {
-        const matrix = parseTransform(result.svg.g[0].g[j].$.transform);
+        const matrix = parseTransform(svg.g[0].g[j].$.transform);
         applyMatrix(newTrigger.points, matrix);
         if (newTrigger.polarPoint) {
           applyMatrix([newTrigger.polarPoint], matrix);
         }
-        meshes.push(newTrigger);
+        objects.push(newTrigger);
       }
     }
-    return {hapticBoxes: boxes, hapticMeshes: meshes};
+    return objects;
   }
 
   /**
@@ -247,11 +246,9 @@ class svgConverter {
         }
         // first level groups
         if (result.svg.g[0].g) {
-          const groupedObjects = this.loadGroups(result.svg.g[0].g, result);
-          hapticBoxObjects = hapticBoxObjects
-              .concat(groupedObjects.hapticBoxes);
+          const groupedObjects = this.loadGroups(result.svg.g[0].g, svg);
           hapticMeshObjects = hapticMeshObjects
-              .concat(groupedObjects.hapticMeshes);
+              .concat(groupedObjects);
         }
         console.log('found ', hapticBoxObjects.length +
           hapticMeshObjects.length, ' haptic objects');
