@@ -27,24 +27,6 @@ class svgConverter {
 
   /**
    * @private This is an internal function.
-   * @description Applies a matrix to a position.
-   * @param {Vector} vector - Vector of the position.
-   * @param {string} matrixString - String that contains the matrix.
-   * @return {Vector} Transformed Vector.
-   */
-  applyMatrix(vector, matrixString) {
-    let values = matrixString.split('(')[1].split(')')[0];
-    values = values.split(',');
-    for (let i = 0; i < values.length; i ++) {
-      values[i] = parseFloat(values[i]);
-    }
-    const xVal = (values[0] * vector.x) + (values[2] * vector.y) + values[4];
-    const yVal = (values[1] * vector.x) + (values[3] * vector.y) + values[5];
-    return new Vector( xVal, yVal);
-  }
-
-  /**
-   * @private This is an internal function.
    * @description Traces the svg pattern hyrachie for a specifid one.
    * @param {number} id - Id of the starting Pattern.
    * @param {object} result - The svg Object.
