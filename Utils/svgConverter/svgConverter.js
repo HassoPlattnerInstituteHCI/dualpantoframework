@@ -210,6 +210,9 @@ class svgConverter {
       if (found) {
         const matrix = parseTransform(result.svg.g[0].g[j].$.transform);
         applyMatrix(newTrigger.points, matrix);
+        if (newTrigger.polarPoint) {
+          applyMatrix([newTrigger.polarPoint], matrix);
+        }
         meshes.push(newTrigger);
       }
     }
