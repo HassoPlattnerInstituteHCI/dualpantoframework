@@ -413,31 +413,6 @@ class FileCreator {
 
   /**
    * @private This is an internal function.
-   * @description Creates a polygone from a box.
-   * @param {object} hapticBoxObject - Object to generate a mesh for.
-   * @param {object} offset - Current offset of the layer.
-   * @return {Array} Generated mesh.
-   */
-  generateMeshFromBox(hapticBoxObject, offset) {
-    const floatOffset = new Vector(parseFloat(offset.x), parseFloat(offset.y));
-    const mesh = [];
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) + floatOffset.x,
-        parseFloat(hapticBoxObject.data.y) + floatOffset.y));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) +
-        parseFloat(hapticBoxObject.data.width) + floatOffset.x,
-    parseFloat(hapticBoxObject.data.y) + floatOffset.y));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) +
-        parseFloat(hapticBoxObject.data.width) + floatOffset.x,
-    parseFloat(hapticBoxObject.data.y) +
-        parseFloat(hapticBoxObject.data.height) + floatOffset.y));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) + floatOffset.x,
-        parseFloat(hapticBoxObject.data.y) +
-        parseFloat(hapticBoxObject.data.height) + floatOffset.y));
-    return mesh;
-  }
-
-  /**
-   * @private This is an internal function.
    * @description transfrom a mesh to the panto world.
    * @param {Array} mesh - Array of Vectors defining postions of verticies.
    * @return {Array} Generated mesh.
