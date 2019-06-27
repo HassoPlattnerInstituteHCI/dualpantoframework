@@ -63,13 +63,12 @@ const parseStyle = function(hapticObject, style, svg) {
           found = true;
           const pattern = getPatternForID(patternID, svg);
           const origin = new Vector(0, 0);
-          const pointA = new Vector(0, 1);
+          const up = new Vector(0, 1);
           applyMatrixToPoints(
               [origin], parseTransform(pattern.patternTransform));
           applyMatrixToPoints(
-              [pointA], parseTransform(pattern.patternTransform));
-          const direction = pointA.difference(origin).normalized();
-          hapticObject.forceDirection = direction;
+              [up], parseTransform(pattern.patternTransform));
+          hapticObject.directedForce = {origin, up};
         }
         if (searchForForcePattern(patternID,
             svg, 'radialForce')) {
@@ -182,6 +181,10 @@ const applyMatrixToObject = function(object, matrix) {
   applyMatrixToPoints(object.points, matrix);
   if (object.polarPoint) {
     applyMatrixToPoints([object.polarPoint], matrix);
+  }
+  if (object.directedForce) {
+    applyMatrixToPoints([object.directedForce.origin], matrix);
+    applyMatrixToPoints([object.directedForce.up], matrix);
   }
 };
 

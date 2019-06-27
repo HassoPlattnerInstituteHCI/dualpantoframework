@@ -114,14 +114,17 @@ class FileCreator {
         this.objectsGenerated + '));\n  ');
     }
     if (hapticMeshObjects[i].forcefield) {
+      const origin = hapticMeshObjects[i].directedForce.origin;
+      const up = hapticMeshObjects[i].directedForce.up;
+      const direction = up.difference(origin).normalized();
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
         '.addComponent(\n  ' + '  new MeshForcefield(\n  ' +
       '    mesh' + this.objectsGenerated + ',\n  ' +
       '    ForcefieldSampleFunctions.directedForce.bind(\n  ' +
       '      undefined,\n  ' +
-      '      new Vector(' + hapticMeshObjects[i].forceDirection.x + ', ' +
-      -hapticMeshObjects[i].forceDirection.y + '))));\n  ');
+      '      new Vector(' + direction.x + ', ' +
+      -direction.y + '))));\n  ');
     }
     if (hapticMeshObjects[i].polarForce) {
       outputString = outputString.concat('const centerPoint' +
