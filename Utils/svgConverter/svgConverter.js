@@ -228,25 +228,25 @@ class svgConverter {
       parser.parseString(data, function(err, result) {
         const svg = result.svg;
         let hapticBoxObjects = [];
-        if (result.svg.g[0].$.transform) {
+        if (svg.g[0].$.transform) {
           this.offset = new Vector(
-              parseFloat(result.svg.g[0].$.transform.split('(')[1]
+              parseFloat(svg.g[0].$.transform.split('(')[1]
                   .split(')')[0].split(',')[0]),
-              parseFloat(result.svg.g[0].$.transform
+              parseFloat(svg.g[0].$.transform
                   .split('(')[1].split(')')[0].split(',')[1]));
         }
         // first level Recs
-        if (result.svg.g[0].rect) {
-          hapticBoxObjects = parseRects(result.svg.g[0].rect, svg);
+        if (svg.g[0].rect) {
+          hapticBoxObjects = parseRects(svg.g[0].rect, svg);
         }
         // first level Paths
         let hapticMeshObjects = [];
-        if (result.svg.g[0].path) {
-          hapticMeshObjects = parsePaths(result.svg.g[0].path, svg);
+        if (svg.g[0].path) {
+          hapticMeshObjects = parsePaths(svg.g[0].path, svg);
         }
         // first level groups
-        if (result.svg.g[0].g) {
-          const groupedObjects = this.loadGroups(result.svg.g[0].g, svg);
+        if (svg.g[0].g) {
+          const groupedObjects = this.loadGroups(svg.g[0].g, svg);
           hapticMeshObjects = hapticMeshObjects
               .concat(groupedObjects);
         }
