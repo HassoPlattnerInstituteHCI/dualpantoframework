@@ -61,6 +61,10 @@ class FileCreator {
         mesh[i].x += offset.x;
         mesh[i].y += offset.y;
       }
+      if (hapticBoxObjects[i].polarPoint) {
+        hapticBoxObjects[i].polarPoint.x += offset.x;
+        hapticBoxObjects[i].polarPoint.y += offset.y;
+      }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
           outputString);

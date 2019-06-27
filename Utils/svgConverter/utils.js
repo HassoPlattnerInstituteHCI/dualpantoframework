@@ -73,9 +73,9 @@ const parseStyle = function(hapticObject, style, svg) {
           hapticObject.polarForce = true;
           found = true;
           const pattern = getPatternForID(patternID, svg);
-          const middel = new Vector(0, 0);
-          applyMatrix([middel], parseTransform(pattern.patternTransform));
-          hapticObject.polarPoint = transformMiddel;
+          const middle = new Vector(0, 0);
+          applyMatrix([middle], parseTransform(pattern.patternTransform));
+          hapticObject.polarPoint = middle;
         }
       }
     }
