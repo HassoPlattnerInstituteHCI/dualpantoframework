@@ -3,7 +3,7 @@
 const FileGenerator = require('./fileCreator.js');
 const {
   ObjectTypeEnum, parseObjects,
-  parseTransform, applyMatrix} = require('./utils.js');
+  parseTransform, applyMatrixToObject} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
 const fs = require('fs');
@@ -168,10 +168,7 @@ class svgConverter {
       }
       if (found) {
         const matrix = parseTransform(svg.g[0].g[j].$.transform);
-        applyMatrix(newTrigger.points, matrix);
-        if (newTrigger.polarPoint) {
-          applyMatrix([newTrigger.polarPoint], matrix);
-        }
+        applyMatrixToObject(newTrigger, matrix);
         objects.push(newTrigger);
       }
     }

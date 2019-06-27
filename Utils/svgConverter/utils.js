@@ -43,7 +43,6 @@ const searchForForcePattern = function(id, svg, pattern) {
   return true;
 };
 
-
 const parseStyle = function(hapticObject, style, svg) {
   let found = false;
   const styleValues = style.split(';');
@@ -65,8 +64,10 @@ const parseStyle = function(hapticObject, style, svg) {
           const pattern = getPatternForID(patternID, svg);
           const origin = new Vector(0, 0);
           const pointA = new Vector(0, 1);
-          applyMatrix([origin], parseTransform(pattern.patternTransform));
-          applyMatrix([pointA], parseTransform(pattern.patternTransform));
+          applyMatrixToPoints(
+              [origin], parseTransform(pattern.patternTransform));
+          applyMatrixToPoints(
+              [pointA], parseTransform(pattern.patternTransform));
           const direction = pointA.difference(origin).normalized();
           hapticObject.forceDirection = direction;
         }
@@ -76,7 +77,8 @@ const parseStyle = function(hapticObject, style, svg) {
           found = true;
           const pattern = getPatternForID(patternID, svg);
           const middle = new Vector(0, 0);
-          applyMatrix([middle], parseTransform(pattern.patternTransform));
+          applyMatrixToPoints(
+              [middle], parseTransform(pattern.patternTransform));
           hapticObject.polarPoint = middle;
         }
       }
@@ -147,6 +149,8 @@ const parseObjects = function(type, objects, svg) {
         newObject.points = [];
     }
     if (parseStyle(newObject, objects[i].$.style, svg)) {
+      const matrix = parseTransform(objects[i].$.transform);
+      applyMatrixToObject(newObject, matrix);
       hapticObjects.push(newObject);
     }
   }
@@ -159,7 +163,7 @@ const parseObjects = function(type, objects, svg) {
  * @param {Array} path - Array that contains 2D points.
  * @param {number[]} matrix - Array that contains the matrix.
  */
-const applyMatrix = function(path, matrix) {
+const applyMatrixToPoints = function(path, matrix) {
   for (let j = 0; j < path.length; j++) {
     const position = path[j];
     for (let i = 0; i < matrix.length; i ++) {
@@ -171,6 +175,13 @@ const applyMatrix = function(path, matrix) {
     + matrix[5];
     position.x = xVal;
     position.y = yVal;
+  }
+};
+
+const applyMatrixToObject = function(object, matrix) {
+  applyMatrixToPoints(object.points, matrix);
+  if (object.polarPoint) {
+    applyMatrixToPoints([object.polarPoint], matrix);
   }
 };
 
@@ -278,8 +289,6 @@ const stringToVec = function(cordsString) {
  */
 const parsePathData = function(data) {
   const svgString = data.d;
-  const transform = data.transform;
-  const matrix = parseTransform(transform);
   let lastMode;
   const spaceSplit = svgString.split(' ');
   const points = [];
@@ -343,7 +352,6 @@ const parsePathData = function(data) {
         break;
     }
   }
-  applyMatrix(points, matrix);
   return points;
 };
 
@@ -354,8 +362,6 @@ const parsePathData = function(data) {
  * @return {Array} Array containing the vectors.
  */
 const parseRectData = function(data) {
-  const transform = data.transform;
-  const matrix = parseTransform(transform);
   const x = parseFloat(data.x);
   const y = parseFloat(data.y);
   const width = parseFloat(data.width);
@@ -366,9 +372,8 @@ const parseRectData = function(data) {
     new Vector(x + width, y + height),
     new Vector(x + width, y)
   ];
-  applyMatrix(points, matrix);
   return points;
 };
 
 module.exports = {
-  ObjectTypeEnum, parseObjects, applyMatrix, parseTransform};
+  ObjectTypeEnum, parseObjects, applyMatrixToObject, parseTransform};
