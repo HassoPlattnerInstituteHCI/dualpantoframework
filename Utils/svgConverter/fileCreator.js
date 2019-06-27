@@ -105,7 +105,7 @@ class FileCreator {
     outputString = outputString.concat('const mesh' +
       this.objectsGenerated +
       ' = hapticMeshObject' + this.objectsGenerated + '.addComponent(' +
-    this.generateMeshString(mesh) + ');//' + hapticMeshObjects[i].data.id
+    this.generateMeshString(mesh) + ');//' + hapticMeshObjects[i].id
         + '\n  ');
     if (hapticMeshObjects[i].collider) {
       outputString = outputString.concat('hapticMeshObject' +

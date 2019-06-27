@@ -1,5 +1,7 @@
 const Vector = require('./../../lib/vector.js');
 
+const ObjectTypeEnum = Object.freeze({'path': 1, 'rect': 2});
+
 /**
  * @private This is an internal function.
  * @description Find the pattern for an id.
@@ -118,49 +120,33 @@ const parseStyle = function(hapticObject, style, svg) {
 };
 
 /**
- * @description parses rects
- * @param {Array} rects - Array that contains the rectangles.
- * @param {object} svg - Object that contains the svg data.
- * @return {object} - Habtic object.
- */
-const parseRects = function(rects, svg) {
-  const hapticObjects = [];
-  for (let i = 0; i < rects.length; i++) {
-    const newObject = {collider: false, forcefield: false,
-      hardStepIn: false, hardStepOut: false,
-      triggerEnter: false, triggerInside: false,
-      triggerLeave: false, triggerStartTouch: false,
-      triggerTouch: false, triggerEndTouch: false,
-      data: rects[i].$,
-      points: parseRectData(rects[i].$),
-      polarForce: false};
-
-    if (parseStyle(newObject, rects[i].$.style, svg)) {
-      hapticObjects.push(newObject);
-    }
-  }
-  return hapticObjects;
-};
-
-/**
  * @description parses paths
- * @param {Array} paths - Array that contains the rectangles.
+ * @param {ObjectTypeEnum} type - Type of the objects.
+ * @param {Array} objects - Array that contains the objects.
  * @param {object} svg - Object that contains the svg data.
  * @return {object} - Habtic object.
  */
-const parsePaths = function(paths, svg) {
+const parseObjects = function(type, objects, svg) {
   const hapticObjects = [];
-  for (let i = 0; i < paths.length; i++) {
+  for (let i = 0; i < objects.length; i++) {
     const newObject = {collider: false, forcefield: false,
       hardStepIn: false, hardStepOut: false,
       triggerEnter: false, triggerInside: false,
       triggerLeave: false, triggerStartTouch: false,
       triggerTouch: false, triggerEndTouch: false,
-      data: paths[i].$,
-      points: parsePathData(paths[i].$),
+      id: objects[i].$.id,
       polarForce: false};
-
-    if (parseStyle(newObject, paths[i].$.style, svg)) {
+    switch (type) {
+      case ObjectTypeEnum.path:
+        newObject.points = parsePathData(objects[i].$);
+        break;
+      case ObjectTypeEnum.rect:
+        newObject.points = parseRectData(objects[i].$);
+        break;
+      default:
+        newObject.points = [];
+    }
+    if (parseStyle(newObject, objects[i].$.style, svg)) {
       hapticObjects.push(newObject);
     }
   }
@@ -385,4 +371,4 @@ const parseRectData = function(data) {
 };
 
 module.exports = {
-  parseRects, parsePaths, applyMatrix, parseTransform};
+  ObjectTypeEnum, parseObjects, applyMatrix, parseTransform};

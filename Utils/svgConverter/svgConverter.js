@@ -2,7 +2,7 @@
 
 const FileGenerator = require('./fileCreator.js');
 const {
-  parseRects, parsePaths,
+  ObjectTypeEnum, parseObjects,
   parseTransform, applyMatrix} = require('./utils.js');
 const fileGenerator = new FileGenerator();
 const Vector = require('../../lib/vector.js');
@@ -39,7 +39,8 @@ class svgConverter {
       let newTrigger;
       // group Recs
       if (svg.g[0].g[j].rect) {
-        const hapticObjects = parseRects(svg.g[0].g[j].rect, svg);
+        const hapticObjects = parseObjects(
+            ObjectTypeEnum.rect, svg.g[0].g[j].rect, svg);
         if (hapticObjects.length > 0) {
           found = true;
         }
@@ -48,7 +49,8 @@ class svgConverter {
       }
       // group paths
       if (svg.g[0].g[j].path) {
-        const hapticObjects = parsePaths(svg.g[0].g[j].path, svg);
+        const hapticObjects = parseObjects(
+            ObjectTypeEnum.path, svg.g[0].g[j].path, svg);
         if (hapticObjects.length > 0) {
           found = true;
         }
@@ -196,12 +198,14 @@ class svgConverter {
         }
         // first level Recs
         if (svg.g[0].rect) {
-          hapticBoxObjects = parseRects(svg.g[0].rect, svg);
+          hapticBoxObjects = parseObjects(
+              ObjectTypeEnum.rect, svg.g[0].rect, svg);
         }
         // first level Paths
         let hapticMeshObjects = [];
         if (svg.g[0].path) {
-          hapticMeshObjects = parsePaths(svg.g[0].path, svg);
+          hapticMeshObjects = parseObjects(
+              ObjectTypeEnum.path, svg.g[0].path, svg);
         }
         // first level groups
         if (svg.g[0].g) {
