@@ -57,10 +57,10 @@ const parseStyle = function(hapticObject, style, svg) {
         const patternID = styleValues[i].split(':')[1]
             .split('(')[1].split(')')[0].split('#')[1];
         if (searchForForcePattern(patternID,
-            result, 'directedForce')) {
+            svg, 'directedForce')) {
           hapticObject.forcefield = true;
           found = true;
-          const pattern = getPatternForID(patternID, result);
+          const pattern = getPatternForID(patternID, svg);
           const origin = new Vector(0, 0);
           const pointA = new Vector(0, 1);
           applyMatrix([origin], parseTransform(pattern.patternTransform));
@@ -69,10 +69,10 @@ const parseStyle = function(hapticObject, style, svg) {
           hapticObject.forceDirection = direction;
         }
         if (searchForForcePattern(patternID,
-            result, 'radialForce')) {
+            svg, 'radialForce')) {
           hapticObject.polarForce = true;
           found = true;
-          const pattern = getPatternForID(patternID, result);
+          const pattern = getPatternForID(patternID, svg);
           const middel = new Vector(0, 0);
           applyMatrix([middel], parseTransform(pattern.patternTransform));
           hapticObject.polarPoint = transformMiddel;
