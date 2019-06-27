@@ -208,7 +208,7 @@ class svgConverter {
         }
         // first level groups
         if (svg.g[0].g) {
-          const groupedObjects = this.loadGroups(svg.g[0].g, svg);
+          const groupedObjects = this.loadGroups(svg);
           hapticMeshObjects = hapticMeshObjects
               .concat(groupedObjects);
         }
