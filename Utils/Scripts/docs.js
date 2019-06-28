@@ -25,7 +25,8 @@ const indexOrder = {
       name: 'Infrastructure',
       children: [
         'Broker',
-        'Device'
+        'Device',
+        'PositionListener'
       ]
     },
     {
@@ -120,7 +121,6 @@ function readDirRecursive(dir) {
       if (fs.statSync(child).isDirectory()) {
         results.push(...readDirRecursive(child));
       } else if (!ignored(child)) {
-        console.log(child);
         results.push({
           name: fixName(child),
           path: fs.realpathSync(child),

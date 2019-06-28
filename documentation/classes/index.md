@@ -2,6 +2,7 @@
 ## Infrastructure
 ### [Broker](broker.md)
 ### [Device](device.md)
+### [PositionListener](positionListener.md)
 ## Audio
 ### [Player](player.md)
 ### [VoiceInteraction](voice-interaction.md)
