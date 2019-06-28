@@ -34,31 +34,30 @@ class svgConverter {
   loadGroups(svg) {
     const objects = [];
     for (let j = 0; j < svg.g[0].g.length; j++) {
-      let found = false;
       let newTrigger;
       // group Recs
       if (svg.g[0].g[j].rect) {
         const hapticObjects = parseObjects(
-            ObjectTypeEnum.rect, svg.g[0].g[j].rect, svg);
+            ObjectTypeEnum.rect, svg.g[0].g[j].rect, svg, true);
         if (hapticObjects.length > 0) {
-          found = true;
+          newTrigger = hapticObjects[0];
         }
-        newTrigger = hapticObjects[0];
         // TODO: this should handle multiple rects
       }
       // group paths
       if (svg.g[0].g[j].path) {
         const hapticObjects = parseObjects(
-            ObjectTypeEnum.path, svg.g[0].g[j].path, svg);
+            ObjectTypeEnum.path, svg.g[0].g[j].path, svg, true);
         if (hapticObjects.length > 0) {
-          found = true;
+          newTrigger = hapticObjects[0];
         }
-        newTrigger = hapticObjects[0];
         // TODO: this should handle multiple paths
       }
-      if (!found) {
-        continue;
+      if (!newTrigger) {
+        return;
       }
+      const matrix = parseTransform(svg.g[0].g[j].$.transform);
+      applyMatrixToObject(newTrigger, matrix);
       // group Text
       if (svg.g[0].g[j].text) {
         let userString;
@@ -82,37 +81,15 @@ class svgConverter {
           switch (directionValue) {
             case '->':
               newTrigger.triggerStartTouch = true;
-              found = true;
-              if (newTrigger.box === true) {
-                console.log('triggerStartTouch',
-                    svg.g[0].g[j].rect[0].$.id);
-              } else if (newTrigger.box === false) {
-                console.log('triggerStartTouch',
-                    svg.g[0].g[j].path[0].$.id);
-              }
-
+              newTrigger.commentOnly = false;
               break;
             case '<-':
               newTrigger.triggerEndTouch = true;
-              found = true;
-              if (newTrigger.box === true) {
-                console.log('triggerEndTouch',
-                    svg.g[0].g[j].rect[0].$.id);
-              } else if (newTrigger.box === false) {
-                console.log('triggerEndTouch',
-                    svg.g[0].g[j].path[0].$.id);
-              }
+              newTrigger.commentOnly = false;
               break;
             case '':
               newTrigger.triggerTouch = true;
-              found = true;
-              if (newTrigger.box === true) {
-                console.log('triggerTouch',
-                    svg.g[0].g[j].rect[0].$.id);
-              } else if (newTrigger.box === false) {
-                console.log('triggerTouch',
-                    svg.g[0].g[j].path[0].$.id);
-              }
+              newTrigger.commentOnly = false;
               break;
           }
           const sound = userString.split('|')[1];
@@ -126,36 +103,15 @@ class svgConverter {
           switch (directionValue) {
             case '->[':
               newTrigger.triggerEnter = true;
-              found = true;
-              if (newTrigger.box === true) {
-                console.log('triggerEnter',
-                    svg.g[0].g[j].rect[0].$.id);
-              } else if (newTrigger.box === false) {
-                console.log('triggerEnter',
-                    svg.g[0].g[j].path[0].$.id);
-              }
+              newTrigger.commentOnly = false;
               break;
             case '<-[':
               newTrigger.triggerLeave = true;
-              found = true;
-              if (newTrigger.box === true) {
-                console.log('triggerLeave',
-                    svg.g[0].g[j].rect[0].$.id);
-              } else if (newTrigger.box === false) {
-                console.log('triggerLeave',
-                    svg.g[0].g[j].path[0].$.id);
-              }
+              newTrigger.commentOnly = false;
               break;
             case '[-':
               newTrigger.triggerInside = true;
-              found = true;
-              if (newTrigger.box === true) {
-                console.log('triggerInside',
-                    svg.g[0].g[j].rect[0].$.id);
-              } else if (newTrigger.box === false) {
-                console.log('triggerInside',
-                    svg.g[0].g[j].path[0].$.id);
-              }
+              newTrigger.commentOnly = false;
               break;
           }
           const sound = userString.split(']')[1];
@@ -166,9 +122,7 @@ class svgConverter {
           }
         }
       }
-      if (found) {
-        const matrix = parseTransform(svg.g[0].g[j].$.transform);
-        applyMatrixToObject(newTrigger, matrix);
+      if (!newTrigger.commentOnly) {
         objects.push(newTrigger);
       }
     }

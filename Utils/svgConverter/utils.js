@@ -44,7 +44,7 @@ const searchForForcePattern = function(id, svg, pattern) {
 };
 
 const parseStyle = function(hapticObject, style, svg) {
-  let found = false;
+  // console.log({func: 'parseStyle', hapticObject, style});
   const styleValues = style.split(';');
   let strokeIndex;
   let dashArrayFound = false;
@@ -60,7 +60,7 @@ const parseStyle = function(hapticObject, style, svg) {
         if (searchForForcePattern(patternID,
             svg, 'directedForce')) {
           hapticObject.forcefield = true;
-          found = true;
+          hapticObject.commentOnly = false;
           const pattern = getPatternForID(patternID, svg);
           const origin = new Vector(0, 0);
           const up = new Vector(0, 1);
@@ -73,7 +73,7 @@ const parseStyle = function(hapticObject, style, svg) {
         if (searchForForcePattern(patternID,
             svg, 'radialForce')) {
           hapticObject.polarForce = true;
-          found = true;
+          hapticObject.commentOnly = false;
           const pattern = getPatternForID(patternID, svg);
           const middle = new Vector(0, 0);
           applyMatrixToPoints(
@@ -89,16 +89,16 @@ const parseStyle = function(hapticObject, style, svg) {
         const stroketype = styleValues[strokeIndex].split(':')[1];
         if (stroketype === '#000000') {
           hapticObject.collider = true;
-          found = true;
+          hapticObject.commentOnly = false;
         }
       } else if (temp[1].split(',').length == 2) {
         const strokeColor = styleValues[strokeIndex].split(':')[1];
         if (strokeColor === '#00ff00') {
           hapticObject.hardStepIn = true;
-          found = true;
+          hapticObject.commentOnly = false;
         } else if (strokeColor === '#ff0000') {
           hapticObject.hardStepOut = true;
-          found = true;
+          hapticObject.commentOnly = false;
         }
       }
     }
@@ -114,20 +114,12 @@ const parseStyle = function(hapticObject, style, svg) {
     const stroketype = styleValues[strokeIndex].split(':')[1];
     if (stroketype === '#000000') {
       hapticObject.collider = true;
-      found = true;
+      hapticObject.commentOnly = false;
     }
   }
-  return found;
 };
 
-/**
- * @description parses paths
- * @param {ObjectTypeEnum} type - Type of the objects.
- * @param {Array} objects - Array that contains the objects.
- * @param {object} svg - Object that contains the svg data.
- * @return {object} - Habtic object.
- */
-const parseObjects = function(type, objects, svg) {
+const parseObjects = function(type, objects, svg, includeComments = false) {
   const hapticObjects = [];
   for (let i = 0; i < objects.length; i++) {
     const newObject = {collider: false, forcefield: false,
@@ -135,6 +127,7 @@ const parseObjects = function(type, objects, svg) {
       triggerEnter: false, triggerInside: false,
       triggerLeave: false, triggerStartTouch: false,
       triggerTouch: false, triggerEndTouch: false,
+      commentOnly: true,
       id: objects[i].$.id,
       polarForce: false};
     switch (type) {
@@ -147,9 +140,10 @@ const parseObjects = function(type, objects, svg) {
       default:
         newObject.points = [];
     }
-    if (parseStyle(newObject, objects[i].$.style, svg)) {
-      const matrix = parseTransform(objects[i].$.transform);
-      applyMatrixToObject(newObject, matrix);
+    parseStyle(newObject, objects[i].$.style, svg);
+    const matrix = parseTransform(objects[i].$.transform);
+    applyMatrixToObject(newObject, matrix);
+    if (includeComments || !newObject.commentOnly) {
       hapticObjects.push(newObject);
     }
   }
