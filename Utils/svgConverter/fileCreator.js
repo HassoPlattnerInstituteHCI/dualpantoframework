@@ -1,8 +1,6 @@
 'use strict';
 const fs = require('fs');
-const MeshCreator = require('./MeshCreator.js');
 const Vector = require('../../lib/vector.js');
-const {applyMatrix} = require('./utils.js');
 
 /**
  * @description Class for code generation.
@@ -50,8 +48,6 @@ class FileCreator {
   generateFile(hapticBoxObjects,
       hapticMeshObjects,
       studentDir, offset) {
-    const meshCreator = new MeshCreator(offset.x,
-        offset.y);
     let outputString = '\'use strict\';\n';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
@@ -60,11 +56,14 @@ class FileCreator {
       'function () {\n  ');
     // add box objects
     for (let i = 0; i < hapticBoxObjects.length; i ++) {
-      let mesh = this.generateMeshFromBox(hapticBoxObjects[i], offset);
-      if (hapticBoxObjects[i].hasOwnProperty('matrix')) {
-        mesh = this.applyMatrixToMesh(hapticBoxObjects[i].matrix, mesh);
-      } else if (hapticBoxObjects[i].hasOwnProperty('translate')) {
-        mesh = this.applyTranslateToMesh(hapticBoxObjects[i].translate, mesh);
+      let mesh = hapticBoxObjects[i].points;
+      for (let i = 0; i < mesh.length; i++) {
+        mesh[i].x += offset.x;
+        mesh[i].y += offset.y;
+      }
+      if (hapticBoxObjects[i].polarPoint) {
+        hapticBoxObjects[i].polarPoint.x += offset.x;
+        hapticBoxObjects[i].polarPoint.y += offset.y;
       }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
@@ -72,13 +71,14 @@ class FileCreator {
     }
     // add mesh Objects
     for (let i = 0; i < hapticMeshObjects.length; i++) {
-      let mesh = meshCreator.parseSvgPath(hapticMeshObjects[i].data);
-      if (hapticMeshObjects[i].hasOwnProperty('matrix')) {
-        applyMatrix(mesh, hapticMeshObjects[i].matrix);
-        for (let i = 0; i < mesh.length; i++) {
-          mesh[i].x += offset.x;
-          mesh[i].y += offset.y;
-        }
+      let mesh = hapticMeshObjects[i].points;
+      for (let i = 0; i < mesh.length; i++) {
+        mesh[i].x += offset.x;
+        mesh[i].y += offset.y;
+      }
+      if (hapticMeshObjects[i].polarPoint) {
+        hapticMeshObjects[i].polarPoint.x += offset.x;
+        hapticMeshObjects[i].polarPoint.y += offset.y;
       }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticMeshObjects, i, mesh,
@@ -105,7 +105,7 @@ class FileCreator {
     outputString = outputString.concat('const mesh' +
       this.objectsGenerated +
       ' = hapticMeshObject' + this.objectsGenerated + '.addComponent(' +
-    this.generateMeshString(mesh) + ');//' + hapticMeshObjects[i].data.id
+    this.generateMeshString(mesh) + ');//' + hapticMeshObjects[i].id
         + '\n  ');
     if (hapticMeshObjects[i].collider) {
       outputString = outputString.concat('hapticMeshObject' +
@@ -114,14 +114,17 @@ class FileCreator {
         this.objectsGenerated + '));\n  ');
     }
     if (hapticMeshObjects[i].forcefield) {
+      const origin = hapticMeshObjects[i].directedForce.origin;
+      const up = hapticMeshObjects[i].directedForce.up;
+      const direction = up.difference(origin).normalized();
       outputString = outputString.concat('hapticMeshObject' +
         this.objectsGenerated +
         '.addComponent(\n  ' + '  new MeshForcefield(\n  ' +
       '    mesh' + this.objectsGenerated + ',\n  ' +
       '    ForcefieldSampleFunctions.directedForce.bind(\n  ' +
       '      undefined,\n  ' +
-      '      new Vector(' + hapticMeshObjects[i].forceDirection.x + ', ' +
-      -hapticMeshObjects[i].forceDirection.y + '))));\n  ');
+      '      new Vector(' + direction.x + ', ' +
+      -direction.y + '))));\n  ');
     }
     if (hapticMeshObjects[i].polarForce) {
       outputString = outputString.concat('const centerPoint' +
@@ -408,31 +411,6 @@ class FileCreator {
     for (let i = 0; i < mesh.length; i++) {
       mesh[i] = mesh[i].sum(this.parseTranslate(translateString));
     }
-    return mesh;
-  }
-
-  /**
-   * @private This is an internal function.
-   * @description Creates a polygone from a box.
-   * @param {object} hapticBoxObject - Object to generate a mesh for.
-   * @param {object} offset - Current offset of the layer.
-   * @return {Array} Generated mesh.
-   */
-  generateMeshFromBox(hapticBoxObject, offset) {
-    const floatOffset = new Vector(parseFloat(offset.x), parseFloat(offset.y));
-    const mesh = [];
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) + floatOffset.x,
-        parseFloat(hapticBoxObject.data.y) + floatOffset.y));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) +
-        parseFloat(hapticBoxObject.data.width) + floatOffset.x,
-    parseFloat(hapticBoxObject.data.y) + floatOffset.y));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) +
-        parseFloat(hapticBoxObject.data.width) + floatOffset.x,
-    parseFloat(hapticBoxObject.data.y) +
-        parseFloat(hapticBoxObject.data.height) + floatOffset.y));
-    mesh.push(new Vector(parseFloat(hapticBoxObject.data.x) + floatOffset.x,
-        parseFloat(hapticBoxObject.data.y) +
-        parseFloat(hapticBoxObject.data.height) + floatOffset.y));
     return mesh;
   }
 
