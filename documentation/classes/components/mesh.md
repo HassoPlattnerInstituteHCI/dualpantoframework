@@ -2,7 +2,7 @@
 
 ## Mesh
 
-**Extends [Component](component.md)**
+**Extends [TraceableObject](traceableObject.md)**
 
 Simple 2D mesh class for use with mesh-based components.
 

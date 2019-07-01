@@ -15,6 +15,8 @@ Speaks a text.
 -   `txt` **[string][1]** The text to speak.
 -   `language` **[string][1]** The language to speak. (optional, default `DE`)
 -   `speed` **[number][2]** The speed that is spoken with. (optional, default `1.4`)
+-   `voice` **[string][1]** The voice that is spoken with.
+    When this parameter specified, the language parameter is ignored.
 
 Returns **[Promise][3]** Returns a promise for the speech output.
 
