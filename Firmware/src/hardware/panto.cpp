@@ -190,32 +190,34 @@ void Panto::inverseKinematics()
     }
 };
 
-void Panto::setMotor(uint8_t localIndex, bool dir, float power)
+void Panto::setMotor(
+    const uint8_t& localIndex, const bool& dir, const float& power)
 {
     const auto globalIndex = c_globalIndexOffset + localIndex;
-    if (motorFlipped[globalIndex])
+
+    if(motorPwmPin[globalIndex] == dummyPin)
     {
-        dir = !dir;
+        return;
     }
 
-    digitalWrite(motorDirAPin[globalIndex], dir);
-    digitalWrite(motorDirBPin[globalIndex], !dir);
-    if (motorPwmPin[globalIndex] != dummyPin)
+    const auto flippedDir = dir ^ motorFlipped[globalIndex];
+
+    digitalWrite(motorDirAPin[globalIndex], flippedDir);
+    digitalWrite(motorDirBPin[globalIndex], !flippedDir);
+
+    if (power < motorPowerLimit[globalIndex])
     {
-        power = min(power, motorPowerLimit[globalIndex]);
-        if (power < motorPowerLimit[globalIndex])
-        {
-            m_engagedTime[localIndex] = 0;
-        }
-        else if (++m_engagedTime[localIndex] >= 36000)
-        {
-            disengageMotors();
-            while (true)
-            {
-            }
-        }
-        ledcWrite(globalIndex, power * PWM_MAX);
+        m_engagedTime[localIndex] = 0;
     }
+    else if (++m_engagedTime[localIndex] >= 36000)
+    {
+        disengageMotors();
+        while (true)
+        {
+        }
+    }
+
+    ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
 };
 
 void Panto::readEncoders()

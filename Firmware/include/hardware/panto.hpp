@@ -72,7 +72,8 @@ private:
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
     void inverseKinematics();
-    void setMotor(uint8_t i, bool dir, float power);
+    void setMotor(
+        const uint8_t& localIndex, const bool& dir, const float& power);
     void disengageMotors();
 public:
     Panto(uint8_t pantoIndex);
