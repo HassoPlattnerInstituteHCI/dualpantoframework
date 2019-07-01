@@ -96,7 +96,7 @@ class DPSerial : DPProtocol
 };
 
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
-DPSerial::Header DPSerial::s_header = DPSerial::Header();
+Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_packetBuffer[c_packetSize];
 FILEHANDLE DPSerial::s_handle;
 

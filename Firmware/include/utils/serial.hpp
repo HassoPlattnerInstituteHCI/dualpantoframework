@@ -7,6 +7,13 @@
 
 #include <protocol.hpp>
 
+enum ReceiveState
+{
+    NONE = 0,
+    FOUND_MAGIC = 1,
+    FOUND_HEADER = 2
+};
+
 class DPSerial : DPProtocol
 {
 private:
@@ -19,14 +26,7 @@ private:
 
     // multithreading safety
     static portMUX_TYPE s_serialMutex;
-     
-    // receive state
-    enum ReceiveState
-    {
-        NONE = 0,
-        FOUND_MAGIC = 1,
-        FOUND_HEADER = 2
-    };
+    
     static ReceiveState s_receiveState;
 
     // connection
@@ -77,7 +77,7 @@ private:
     static void receiveInvalid();
 
     // map of receive handlers
-    static std::map<DPProtocol::MessageType, std::function<void()>> s_receiveHandlers;
+    static std::map<MessageType, std::function<void()>> s_receiveHandlers;
 public:
     // setup
     static void init();
