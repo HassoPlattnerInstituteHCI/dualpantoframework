@@ -79,6 +79,9 @@ private:
     // map of receive handlers
     static std::map<MessageType, std::function<void()>> s_receiveHandlers;
 public:
+    // delete contructor - this class only contains static members
+    DPSerial() = delete;
+
     // setup
     static void init();
     static bool ensureConnection();
