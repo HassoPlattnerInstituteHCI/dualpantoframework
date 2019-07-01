@@ -255,13 +255,32 @@ const sampleCurveSegment = function(points, pos) {
   return p[0];
 };
 
+const divideCurve = function(points, startPos, endPos,
+    maxError = .1, minLength = .5) {
+  const start = sampleCurveSegment(points, startPos);
+  const end = sampleCurveSegment(points, endPos);
+  const pos = startPos + (endPos - startPos) / 2;
+  const distance = end.difference(start).length();
+  const interpolatedMiddle = start.sum(end.difference(start).scaled(0.5));
+  const sampledMiddle = sampleCurveSegment(points, pos);
+  const absError = interpolatedMiddle.difference(sampledMiddle).length();
+  const relError = absError/distance;
+
+  if (relError <= maxError || distance < minLength) {
+    return [];
+  }
+  let curve = [];
+  curve = curve.concat(divideCurve(points, startPos, pos, maxError));
+  curve.push(sampledMiddle);
+  curve = curve.concat(divideCurve(points, pos, endPos, maxError));
+  return curve;
+};
+
 const sampleCubicCurve = function(
     start, startControl, endControl, end, maxSegmentLength = 1000) {
-  const step = 0.2;
-  const curve = [start];
-  for (let i = step; i < 1; i += step) {
-    curve.push(sampleCurveSegment([start, startControl, endControl, end], i));
-  }
+  let curve = [start];
+  curve = curve.concat(divideCurve(
+      [start, startControl, endControl, end], 0, 1));
   curve.push(end);
   return curve;
 };
