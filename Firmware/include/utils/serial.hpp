@@ -31,10 +31,10 @@ private:
 
     // connection
     static bool s_connected;
-    static const int c_heartbeatIntervalMs = 1000;
+    static const uint16_t c_heartbeatIntervalMs = 1000;
     static unsigned long s_lastHeartbeatTime;
-    static const int c_maxUnacklowledgedHeartbeats = 5;
-    static int s_unacknowledgedHeartbeats;
+    static const uint16_t c_maxUnacklowledgedHeartbeats = 5;
+    static uint16_t s_unacknowledgedHeartbeats;
 
     // send helper
     static void sendUInt8(uint8_t data);

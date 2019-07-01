@@ -13,7 +13,7 @@ portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
 DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
-int DPSerial::s_unacknowledgedHeartbeats = 0;
+uint16_t DPSerial::s_unacknowledgedHeartbeats = 0;
 std::map<DPProtocol::MessageType, std::function<void()>> 
     DPSerial::s_receiveHandlers = {
         {SYNC_ACK, DPSerial::receiveSyncAck},
