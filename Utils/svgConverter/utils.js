@@ -229,45 +229,6 @@ const parseTransform = function(transform) {
 
 /**
  * @private This is an internal function.
- * @description Creates a Point for a substring of an svg path string.
- * @param {string} dataString - Substring ofs the path.
- * @param {Array} points - Points that have already been generated.
- * @param {string} mode - Specific mode how to interprete the string data.
- * @return {Array} Array containing the vectors.
- */
-const createPoint = function(dataString, points, mode) {
-  switch (mode) {
-    case 'h':
-      return new Vector(parseFloat(dataString) + points[points.length - 1].x,
-          points[points.length - 1].y, NaN);
-      break;
-    case 'H':
-      return new Vector(parseFloat(dataString),
-          points[points.length - 1].y, NaN);
-      break;
-    case 'v':
-      return new Vector(points[points.length - 1].x,
-          parseFloat(dataString) + points[points.length - 1].y, NaN);
-      break;
-    case 'V':
-      return new Vector(points[points.length - 1].x,
-          parseFloat(dataString), NaN);
-      break;
-    case 'l':
-      const relativePoint = stringToVec(dataString);
-      return new Vector(relativePoint.x + points[points.length - 1].x,
-          points[points.length - 1].y + relativePoint.y, NaN);
-      break;
-    case 'L':
-      const lPoint = stringToVec(dataString);
-      return new Vector(lPoint.x,
-          lPoint.y, lPoint.r);
-      break;
-  }
-};
-
-/**
- * @private This is an internal function.
  * @description Tranlates a String to a Vector.
  * @param {string} cordsString - String that contains the vector.
  * @return {Vector} Resulting vector.
@@ -278,6 +239,72 @@ const stringToVec = function(cordsString) {
   return new Vector(parseFloat(xCords), parseFloat(yCords), NaN);
 };
 
+const sampleCubicCurve = function(
+    start, startControl, endControl, end, maxSegmentLength = 1000) {
+  // TODO sampling
+  return [start, end];
+};
+
+const addPoints = function(data, startPos, points, mode) {
+  let pos = startPos;
+  switch (mode) {
+    case 'h':
+      points.push(new Vector(
+          parseFloat(data[pos++]) + points[points.length - 1].x,
+          points[points.length - 1].y));
+      break;
+    case 'H':
+      points.push(new Vector(
+          parseFloat(data[pos++]),
+          points[points.length - 1].y));
+      break;
+    case 'v':
+      points.push(new Vector(
+          points[points.length - 1].x,
+          parseFloat(data[pos++]) + points[points.length - 1].y));
+      break;
+    case 'V':
+      points.push(new Vector(
+          points[points.length - 1].x,
+          parseFloat(data[pos++])));
+      break;
+    case 'l':
+      const relativePoint = stringToVec(data[pos++]);
+      points.push(points[points.length - 1].sum(relativePoint));
+      break;
+    case 'L':
+      points.push(stringToVec(data[pos++]));
+      break;
+    case 'c': {
+      const start = points[points.length - 1];
+      const path = sampleCubicCurve(
+          start,
+          start.sum(stringToVec(data[pos++])),
+          start.sum(stringToVec(data[pos++])),
+          start.sum(stringToVec(data[pos++]))
+      );
+      for (let i = 1; i < path.length; i++) {
+        points.push(path[i]);
+      }
+      break;
+    }
+    case 'C': {
+      const start = points[points.length - 1];
+      const path = sampleCubicCurve(
+          start,
+          stringToVec(data[pos++]),
+          stringToVec(data[pos++]),
+          stringToVec(data[pos++])
+      );
+      for (let i = 1; i < path.length; i++) {
+        points.push(path[i]);
+      }
+      break;
+    }
+  }
+  return pos;
+};
+
 /**
  * @private This is an internal function.
  * @description Parses an path string to multiple vectors.
@@ -285,67 +312,44 @@ const stringToVec = function(cordsString) {
  * @return {Array} Array containing the vectors.
  */
 const parsePathData = function(data) {
-  const svgString = data.d;
   let lastMode;
-  const spaceSplit = svgString.split(' ');
+  const spaceSplit = data.d.split(' ');
   const points = [];
-  for (let i = 0; i < spaceSplit.length; i++) {
-    switch (spaceSplit[i]) {
+  for (let i = 0; i < spaceSplit.length; ) {
+    const mode = spaceSplit[i];
+    switch (mode) {
       case 'h':
-        i++;
-        points.push(createPoint(spaceSplit[i], points,
-            spaceSplit[i -1]));
-        lastMode = 'h';
-        break;
       case 'H':
+      case 'v':
+      case 'V':
+      case 'l':
+      case 'L':
+      case 'c':
+      case 'C':
         i++;
-        points.push(createPoint(spaceSplit[i], points,
-            spaceSplit[i -1]));
-        lastMode = 'H';
+        i = addPoints(spaceSplit, i, points, mode);
+        lastMode = mode;
         break;
       case 'z':
       case 'Z':
-        // points.push(points[0]);
+        i++;
         break;
       case 'm':
-        lastMode = 'l';
         i++;
         const mPoint = stringToVec(spaceSplit[i]);
         points.push(new Vector(mPoint.x, mPoint.y, mPoint.r));
+        i++;
+        lastMode = 'l';
         break;
       case 'M':
-        lastMode = 'L';
         i++;
         const MPoint = stringToVec(spaceSplit[i]);
         points.push(new Vector(MPoint.x, MPoint.y, MPoint.r));
-        break;
-      case 'v':
         i++;
-        points.push(createPoint(spaceSplit[i], points,
-            spaceSplit[i -1]));
-        lastMode = 'v';
-        break;
-      case 'V':
-        i++;
-        points.push(createPoint(spaceSplit[i], points,
-            spaceSplit[i -1]));
-        lastMode = 'V';
-        break;
-      case 'l':
-        i++;
-        points.push(createPoint(spaceSplit[i], points,
-            spaceSplit[i -1]));
-        lastMode = 'l';
-        break;
-      case 'L':
-        i++;
-        points.push(createPoint(spaceSplit[i], points,
-            spaceSplit[i -1]));
         lastMode = 'L';
         break;
       default:
-        points.push(createPoint(spaceSplit[i], points,
-            lastMode));
+        i = addPoints(spaceSplit, i, points, lastMode);
         break;
     }
   }
