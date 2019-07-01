@@ -10,7 +10,10 @@
 ### [HapticObject](hapticObject.md)
 ### Components
 #### [Component](components/component.md)
-#### [Mesh](components/mesh.md)
+#### TraceableObject
+##### [TraceableObject](components/traceableObject.md)
+##### [Mesh](components/mesh.md)
+##### [Box](components/box.md)
 #### Collider
 ##### [Collider](components/collider.md)
 ##### [BoxCollider](components/boxCollider.md)
@@ -31,5 +34,3 @@
 ##### [MeshHardStep](components/meshHardStep.md)
 ## Helper
 ### [Vector](vector.md)
-## Unknown
-### [Box](components/box.md)
