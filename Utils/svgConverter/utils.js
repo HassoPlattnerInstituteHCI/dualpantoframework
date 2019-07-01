@@ -239,10 +239,31 @@ const stringToVec = function(cordsString) {
   return new Vector(parseFloat(xCords), parseFloat(yCords), NaN);
 };
 
+const sampleCurveSegment = function(points, pos) {
+  let p = points;
+  while (p.length > 1) {
+    const newPoints = [];
+    for (let i = 0; i < p.length - 1; i++) {
+      const p1 = p[i];
+      const p2 = p[i+1];
+      const difference = p2.difference(p1).scaled(pos);
+      const newP = p1.sum(difference);
+      newPoints.push(newP);
+    }
+    p = newPoints;
+  }
+  return p[0];
+};
+
 const sampleCubicCurve = function(
     start, startControl, endControl, end, maxSegmentLength = 1000) {
-  // TODO sampling
-  return [start, end];
+  const step = 0.2;
+  const curve = [start];
+  for (let i = step; i < 1; i += step) {
+    curve.push(sampleCurveSegment([start, startControl, endControl, end], i));
+  }
+  curve.push(end);
+  return curve;
 };
 
 const addPoints = function(data, startPos, points, mode) {
