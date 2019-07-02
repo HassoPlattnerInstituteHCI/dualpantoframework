@@ -25,13 +25,13 @@ void Panto::forwardKinematics()
     // calculate inner positions
     // PERFMON_START("[abbc] calculate inner positions");
     const auto leftInnerX =
-        fma(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
+        fmaf(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
     const auto leftInnerY =
-        fma(leftBaseAngleSin, c_leftInnerLength, c_leftBaseY);
+        fmaf(leftBaseAngleSin, c_leftInnerLength, c_leftBaseY);
     const auto rightInnerX =
-        fma(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
+        fmaf(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
     const auto rightInnerY =
-        fma(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
+        fmaf(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
     // PERFMON_STOP("[abbc] calculate inner positions");
 
     // diagonal between inner positions
@@ -68,9 +68,9 @@ void Panto::forwardKinematics()
     // handle position
     // PERFMON_START("[abbg] handle position");
     m_handleX =
-        fma(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
+        fmaf(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
     m_handleY =
-        fma(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
+        fmaf(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
     // PERFMON_STOP("[abbg] handle position");
 
     // right elbow angles
