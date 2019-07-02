@@ -204,19 +204,6 @@ void Panto::setMotor(
 
     digitalWrite(motorDirAPin[globalIndex], flippedDir);
     digitalWrite(motorDirBPin[globalIndex], !flippedDir);
-
-    if (power < motorPowerLimit[globalIndex])
-    {
-        m_engagedTime[localIndex] = 0;
-    }
-    else if (++m_engagedTime[localIndex] >= 36000)
-    {
-        disengageMotors();
-        while (true)
-        {
-        }
-    }
-
     ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
 };
 

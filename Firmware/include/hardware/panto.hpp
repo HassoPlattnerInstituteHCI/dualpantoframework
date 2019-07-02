@@ -57,7 +57,6 @@ private:
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
-    uint32_t m_engagedTime[c_dofCount] = {};
     uint32_t m_prevTime = 0;
 
     float m_leftInnerAngle = 0;
