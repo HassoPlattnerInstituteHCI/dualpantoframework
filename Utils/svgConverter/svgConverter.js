@@ -132,6 +132,33 @@ class svgConverter {
   /**
    * @private This is an internal function.
    * @description Parses the svg.
+   * @param {object} svg - Svg to get the viewbox from.
+   * @return {object} The viewbox of the svg.
+   */
+  getViewBox(svg) {
+    let viewBox;
+    if (svg.$.viewBox) {
+      viewBox = svg.$.viewBox.split(' ');
+      viewBox = {
+        minX: viewBox[0],
+        minY: viewBox[1],
+        maxX: viewBox[0] + viewBox[2],
+        maxY: viewBox[1] + viewBox[3]
+      };
+    } else {
+      viewBox = {
+        minX: 0,
+        minY: 0,
+        maxX: svg.$.width.replace(/\D/g, ''),
+        maxY: svg.$.height.replace(/\D/g, '')
+      };
+    }
+    return viewBox;
+  }
+
+  /**
+   * @private This is an internal function.
+   * @description Parses the svg.
    */
   loadWorld() {
     console.log('loading ', this.svgPath);
@@ -174,13 +201,7 @@ class svgConverter {
             hapticObjects[i].polarPoint.y += this.offset.y;
           }
         }
-        let viewBox = svg.$.viewBox.split(' ');
-        viewBox = {
-          minX: viewBox[0],
-          minY: viewBox[1],
-          maxX: viewBox[0] + viewBox[2],
-          maxY: viewBox[1] + viewBox[3]
-        };
+        const viewBox = this.getViewBox(svg);
         hapticObjects = hapticObjects.filter((hapticObject) => {
           let inside = false;
           for (let i = 0; i < hapticObject.points.length; i++) {
