@@ -393,6 +393,9 @@ const parsePathData = function(data) {
         break;
     }
   }
+  if (points[0].difference(points[points.length-1]).length() < 0.01) {
+    points.pop();
+  }
   return points;
 };
 
