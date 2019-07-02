@@ -28,26 +28,27 @@ class svgConverter {
   /**
    * @private This is an internal function.
    * @description Parses Groups
+   * @param {object} group - The group as object.
    * @param {object} svg - The svg as object.
-   * @return {object} - Object containing two Arrays with found objects.
+   * @return {object} - Object containing the found objects.
    */
-  loadGroups(svg) {
+  loadGroup(group, svg) {
     const objects = [];
-    for (let j = 0; j < svg.g[0].g.length; j++) {
+    for (let j = 0; j < group.length; j++) {
       let newTrigger;
       // group Recs
-      if (svg.g[0].g[j].rect) {
+      if (group[j].rect) {
         const hapticObjects = parseObjects(
-            ObjectTypeEnum.rect, svg.g[0].g[j].rect, svg, true);
+            ObjectTypeEnum.rect, group[j].rect, svg, true);
         if (hapticObjects.length > 0) {
           newTrigger = hapticObjects[0];
         }
         // TODO: this should handle multiple rects
       }
       // group paths
-      if (svg.g[0].g[j].path) {
+      if (group[j].path) {
         const hapticObjects = parseObjects(
-            ObjectTypeEnum.path, svg.g[0].g[j].path, svg, true);
+            ObjectTypeEnum.path, group[j].path, svg, true);
         if (hapticObjects.length > 0) {
           newTrigger = hapticObjects[0];
         }
@@ -56,13 +57,13 @@ class svgConverter {
       if (!newTrigger) {
         return;
       }
-      const matrix = parseTransform(svg.g[0].g[j].$.transform);
+      const matrix = parseTransform(group[j].$.transform);
       applyMatrixToObject(newTrigger, matrix);
       // group Text
-      if (svg.g[0].g[j].text) {
+      if (group[j].text) {
         let userString;
-        for (let i = 0; i < svg.g[0].g[j].text.length; i++) {
-          const textStyle = svg.g[0].g[j].text[i].$.style
+        for (let i = 0; i < group[j].text.length; i++) {
+          const textStyle = group[j].text[i].$.style
               .split(';');
           let color;
           for (let k = 0; k < textStyle.length; k++) {
@@ -72,7 +73,7 @@ class svgConverter {
             }
           }
           if (color == '#000000') {
-            userString = svg.g[0].g[j].text[i].tspan[0]._;
+            userString = group[j].text[i].tspan[0]._;
             break;
           }
         }
@@ -158,7 +159,7 @@ class svgConverter {
         }
         // first level groups
         if (svg.g[0].g) {
-          const groupedObjects = this.loadGroups(svg);
+          const groupedObjects = this.loadGroup(svg.g[0].g, svg);
           hapticObjects = hapticObjects
               .concat(groupedObjects);
         }
