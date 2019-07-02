@@ -44,7 +44,14 @@ const indexOrder = {
           name: 'Components',
           children: [
             'Component',
-            'Mesh',
+            {
+              name: 'TraceableObject',
+              children: [
+                'TraceableObject',
+                'Mesh',
+                'Box'
+              ]
+            },
             {
               name: 'Collider',
               children: [

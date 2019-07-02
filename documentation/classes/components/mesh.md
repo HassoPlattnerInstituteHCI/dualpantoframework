@@ -2,7 +2,7 @@
 
 ## Mesh
 
-**Extends [Component](component.md)**
+**Extends [TraceableObject](traceableObject.md)**
 
 Simple 2D mesh class for use with mesh-based components.
 
@@ -15,6 +15,18 @@ Simple 2D mesh class for use with mesh-based components.
     in [Component](component.md)). It is recommended to leave this value set to neither,
     as the mesh itself doesn't have any behaviour anyway. (optional, default `[]`)
 
+### trace
+
+Traces the shape of the mesh.
+
+#### Parameters
+
+-   `index` **[number][2]** Index of the handle to trace the shape. (optional, default `1`)
+
+Returns **[Promise][3]** The promise that runs the trace script.
+
 [1]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 [2]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[3]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
