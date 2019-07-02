@@ -285,64 +285,112 @@ const sampleCubicCurve = function(
   return curve;
 };
 
-const addPoints = function(data, startPos, points, mode) {
+const addPoints = function(data, startPos, points, mode, lastControl) {
   let pos = startPos;
   switch (mode) {
     case 'h':
       points.push(new Vector(
           parseFloat(data[pos++]) + points[points.length - 1].x,
           points[points.length - 1].y));
+      lastControl = points[points.length-1];
       break;
     case 'H':
       points.push(new Vector(
           parseFloat(data[pos++]),
           points[points.length - 1].y));
+      lastControl = points[points.length-1];
       break;
     case 'v':
       points.push(new Vector(
           points[points.length - 1].x,
           parseFloat(data[pos++]) + points[points.length - 1].y));
+      lastControl = points[points.length-1];
       break;
     case 'V':
       points.push(new Vector(
           points[points.length - 1].x,
           parseFloat(data[pos++])));
+      lastControl = points[points.length-1];
       break;
     case 'l':
       const relativePoint = stringToVec(data[pos++]);
       points.push(points[points.length - 1].sum(relativePoint));
+      lastControl = points[points.length-1];
       break;
     case 'L':
       points.push(stringToVec(data[pos++]));
+      lastControl = points[points.length-1];
       break;
     case 'c': {
       const start = points[points.length - 1];
+      const startControl = start.sum(stringToVec(data[pos++]));
+      const endControl = start.sum(stringToVec(data[pos++]));
+      const end = start.sum(stringToVec(data[pos++]));
       const path = sampleCubicCurve(
           start,
-          start.sum(stringToVec(data[pos++])),
-          start.sum(stringToVec(data[pos++])),
-          start.sum(stringToVec(data[pos++]))
+          startControl,
+          endControl,
+          end
       );
       for (let i = 1; i < path.length; i++) {
         points.push(path[i]);
       }
+      lastControl = endControl;
       break;
     }
     case 'C': {
       const start = points[points.length - 1];
+      const startControl = stringToVec(data[pos++]);
+      const endControl = stringToVec(data[pos++]);
+      const end = stringToVec(data[pos++]);
       const path = sampleCubicCurve(
           start,
-          stringToVec(data[pos++]),
-          stringToVec(data[pos++]),
-          stringToVec(data[pos++])
+          startControl,
+          endControl,
+          end
       );
       for (let i = 1; i < path.length; i++) {
         points.push(path[i]);
       }
+      lastControl = endControl;
+      break;
+    }
+    case 's': {
+      const start = points[points.length - 1];
+      const startControl = lastControl;
+      const endControl = start.sum(stringToVec(data[pos++]));
+      const end = start.sum(stringToVec(data[pos++]));
+      const path = sampleCubicCurve(
+          start,
+          startControl,
+          endControl,
+          end
+      );
+      for (let i = 1; i < path.length; i++) {
+        points.push(path[i]);
+      }
+      lastControl = endControl;
+      break;
+    }
+    case 'S': {
+      const start = points[points.length - 1];
+      const startControl = lastControl;
+      const endControl = stringToVec(data[pos++]);
+      const end = stringToVec(data[pos++]);
+      const path = sampleCubicCurve(
+          start,
+          startControl,
+          endControl,
+          end
+      );
+      for (let i = 1; i < path.length; i++) {
+        points.push(path[i]);
+      }
+      lastControl = endControl;
       break;
     }
   }
-  return pos;
+  return {pos, lastControl};// pos;
 };
 
 /**
@@ -355,6 +403,7 @@ const parsePathData = function(data) {
   let lastMode;
   const spaceSplit = data.d.split(' ');
   const points = [];
+  let lastControl;
   for (let i = 0; i < spaceSplit.length; ) {
     const mode = spaceSplit[i];
     switch (mode) {
@@ -366,10 +415,16 @@ const parsePathData = function(data) {
       case 'L':
       case 'c':
       case 'C':
+      case 's':
+      case 'S': {
         i++;
-        i = addPoints(spaceSplit, i, points, mode);
+        const posAndLastControl = addPoints(
+            spaceSplit, i, points, mode, lastControl);
+        i = posAndLastControl.pos;
+        lastControl = posAndLastControl.lastControl;
         lastMode = mode;
         break;
+      }
       case 'z':
       case 'Z':
         i++;
@@ -377,6 +432,7 @@ const parsePathData = function(data) {
       case 'm':
         i++;
         const mPoint = stringToVec(spaceSplit[i]);
+        lastControl = mPoint;
         points.push(new Vector(mPoint.x, mPoint.y, mPoint.r));
         i++;
         lastMode = 'l';
@@ -384,13 +440,18 @@ const parsePathData = function(data) {
       case 'M':
         i++;
         const MPoint = stringToVec(spaceSplit[i]);
+        lastControl = mPoint;
         points.push(new Vector(MPoint.x, MPoint.y, MPoint.r));
         i++;
         lastMode = 'L';
         break;
-      default:
-        i = addPoints(spaceSplit, i, points, lastMode);
+      default: {
+        const posAndLastControl = addPoints(
+            spaceSplit, i, points, lastMode, lastControl);
+        i = posAndLastControl.pos;
+        lastControl = posAndLastControl.lastControl;
         break;
+      }
     }
   }
   if (points[0].difference(points[points.length-1]).length() < 0.01) {
