@@ -162,6 +162,35 @@ class svgConverter {
           hapticObjects = hapticObjects
               .concat(groupedObjects);
         }
+
+        for (let i = 0; i < hapticObjects.length; i++) {
+          const mesh = hapticObjects[i].points;
+          for (let i = 0; i < mesh.length; i++) {
+            mesh[i].x += this.offset.x;
+            mesh[i].y += this.offset.y;
+          }
+          if (hapticObjects[i].polarPoint) {
+            hapticObjects[i].polarPoint.x += this.offset.x;
+            hapticObjects[i].polarPoint.y += this.offset.y;
+          }
+        }
+        let viewBox = svg.$.viewBox.split(' ');
+        viewBox = {
+          minX: viewBox[0],
+          minY: viewBox[1],
+          maxX: viewBox[0] + viewBox[2],
+          maxY: viewBox[1] + viewBox[3]
+        };
+        hapticObjects = hapticObjects.filter((hapticObject) => {
+          let inside = false;
+          for (let i = 0; i < hapticObject.points.length; i++) {
+            const point = hapticObject.points[i];
+            inside = (viewBox.minX <= point.x && point.x <= viewBox.maxX
+                && viewBox.minY <= point.y && point.y <= viewBox.maxY)
+                || inside;
+          }
+          return inside;
+        });
         console.log('found ', hapticObjects.length, ' haptic objects');
         fileGenerator.generateFile(
             hapticObjects, this.studentDir, this.offset);
