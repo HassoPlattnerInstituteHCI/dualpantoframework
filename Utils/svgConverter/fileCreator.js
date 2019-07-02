@@ -39,49 +39,30 @@ class FileCreator {
   /**
    * @private This is an internal function.
    * @description Generates file out of found objects in .svg files.
-   * @param {Array} hapticBoxObjects - Array containing found boxed objects.
-   * @param {Array} hapticMeshObjects - Array containing found polygon objects.
+   * @param {Array} hapticObjects - Array containing found hapic objects.
    * @param {string} studentDir - String containing the path of student
    * directory.
    * @param {Vector} offset - Vector containing the overall ofset of the svg.
    */
-  generateFile(hapticBoxObjects,
-      hapticMeshObjects,
-      studentDir, offset) {
+  generateFile(hapticObjects, studentDir, offset) {
     let outputString = '\'use strict\';\n';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
     outputString = outputString.concat(this.startFunction);
     outputString = outputString.concat('const generateLevel = ' +
       'function () {\n  ');
-    // add box objects
-    for (let i = 0; i < hapticBoxObjects.length; i ++) {
-      let mesh = hapticBoxObjects[i].points;
+    for (let i = 0; i < hapticObjects.length; i++) {
+      let mesh = hapticObjects[i].points;
       for (let i = 0; i < mesh.length; i++) {
         mesh[i].x += offset.x;
         mesh[i].y += offset.y;
       }
-      if (hapticBoxObjects[i].polarPoint) {
-        hapticBoxObjects[i].polarPoint.x += offset.x;
-        hapticBoxObjects[i].polarPoint.y += offset.y;
+      if (hapticObjects[i].polarPoint) {
+        hapticObjects[i].polarPoint.x += offset.x;
+        hapticObjects[i].polarPoint.y += offset.y;
       }
       mesh = this.transformMeshToPanto(mesh);
-      outputString = this.addMeshToFile(hapticBoxObjects, i, mesh,
-          outputString);
-    }
-    // add mesh Objects
-    for (let i = 0; i < hapticMeshObjects.length; i++) {
-      let mesh = hapticMeshObjects[i].points;
-      for (let i = 0; i < mesh.length; i++) {
-        mesh[i].x += offset.x;
-        mesh[i].y += offset.y;
-      }
-      if (hapticMeshObjects[i].polarPoint) {
-        hapticMeshObjects[i].polarPoint.x += offset.x;
-        hapticMeshObjects[i].polarPoint.y += offset.y;
-      }
-      mesh = this.transformMeshToPanto(mesh);
-      outputString = this.addMeshToFile(hapticMeshObjects, i, mesh,
+      outputString = this.addMeshToFile(hapticObjects, i, mesh,
           outputString);
     }
     outputString = outputString.concat('}\n');
