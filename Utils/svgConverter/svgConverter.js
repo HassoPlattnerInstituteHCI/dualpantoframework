@@ -120,9 +120,11 @@ class svgConverter {
               hapticObject.soundfile = sound;
             }
           }
-          if (!hapticObject.commentOnly) {
-            objects.push(hapticObject);
-          }
+        }
+      }
+      for (let i = 0; i < hapticObjects.length; i++) {
+        if (!hapticObjects[i].commentOnly) {
+          objects.push(hapticObjects[i]);
         }
       }
     }
