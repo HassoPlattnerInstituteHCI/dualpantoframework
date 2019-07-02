@@ -229,13 +229,13 @@ const parseTransform = function(transform) {
 
 /**
  * @private This is an internal function.
- * @description Tranlates a String to a Vector.
- * @param {string} cordsString - String that contains the vector.
+ * @description Translates a String to a Vector.
+ * @param {string} coordsString - String that contains the vector.
  * @return {Vector} Resulting vector.
  */
-const stringToVec = function(cordsString) {
-  const xCords = cordsString.split(',')[0];
-  const yCords = cordsString.split(',')[1];
+const stringToVec = function(coordsString) {
+  const xCords = coordsString.split(',')[0];
+  const yCords = coordsString.split(',')[1];
   return new Vector(parseFloat(xCords), parseFloat(yCords), NaN);
 };
 
