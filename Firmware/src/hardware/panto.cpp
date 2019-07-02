@@ -293,8 +293,8 @@ void Panto::actuateMotors()
             }
             unsigned char dir = error < 0;
             unsigned long now = micros();
-            float dt = now - prevTime;
-            prevTime = now;
+            float dt = now - m_prevTime;
+            m_prevTime = now;
             error = fabs(error);
             // Power: PID
             m_integral[localIndex] += error * dt;
