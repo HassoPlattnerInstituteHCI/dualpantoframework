@@ -28,42 +28,37 @@ class svgConverter {
   /**
    * @private This is an internal function.
    * @description Parses Groups
-   * @param {object} group - The group as object.
+   * @param {object} groups - The group as object.
    * @param {object} svg - The svg as object.
    * @return {object} - Object containing the found objects.
    */
-  loadGroup(group, svg) {
+  loadGroup(groups, svg) {
     const objects = [];
-    for (let j = 0; j < group.length; j++) {
-      let newTrigger;
-      // group Recs
-      if (group[j].rect) {
-        const hapticObjects = parseObjects(
-            ObjectTypeEnum.rect, group[j].rect, svg, true);
-        if (hapticObjects.length > 0) {
-          newTrigger = hapticObjects[0];
-        }
-        // TODO: this should handle multiple rects
+    for (let j = 0; j < groups.length; j++) {
+      const group = groups[j];
+      // first level Recs
+      let hapticObjects = [];
+      if (group.rect) {
+        hapticObjects = parseObjects(
+            ObjectTypeEnum.rect, group.rect, svg, true);
       }
-      // group paths
-      if (group[j].path) {
-        const hapticObjects = parseObjects(
-            ObjectTypeEnum.path, group[j].path, svg, true);
-        if (hapticObjects.length > 0) {
-          newTrigger = hapticObjects[0];
-        }
-        // TODO: this should handle multiple paths
+      // first level Paths
+      if (group.path) {
+        hapticObjects = hapticObjects.concat(parseObjects(
+            ObjectTypeEnum.path, group.path, svg, true));
       }
-      if (!newTrigger) {
+      if (hapticObjects.length < 1) {
         return;
       }
-      const matrix = parseTransform(group[j].$.transform);
-      applyMatrixToObject(newTrigger, matrix);
+      const matrix = parseTransform(groups[j].$.transform);
+      for (let i = 0; i < hapticObjects.length; i++) {
+        applyMatrixToObject(hapticObjects[i], matrix);
+      }
       // group Text
-      if (group[j].text) {
+      if (groups[j].text) {
         let userString;
-        for (let i = 0; i < group[j].text.length; i++) {
-          const textStyle = group[j].text[i].$.style
+        for (let i = 0; i < groups[j].text.length; i++) {
+          const textStyle = groups[j].text[i].$.style
               .split(';');
           let color;
           for (let k = 0; k < textStyle.length; k++) {
@@ -73,58 +68,62 @@ class svgConverter {
             }
           }
           if (color == '#000000') {
-            userString = group[j].text[i].tspan[0]._;
+            userString = groups[j].text[i].tspan[0]._;
             break;
           }
+          // TODO: parse multiple texts
         }
-        if (userString && userString.includes('|')) {
-          const directionValue = userString.split('|')[0];
-          switch (directionValue) {
-            case '->':
-              newTrigger.triggerStartTouch = true;
-              newTrigger.commentOnly = false;
-              break;
-            case '<-':
-              newTrigger.triggerEndTouch = true;
-              newTrigger.commentOnly = false;
-              break;
-            case '':
-              newTrigger.triggerTouch = true;
-              newTrigger.commentOnly = false;
-              break;
+        for (let i = 0; i < hapticObjects.length; i++) {
+          const hapticObject = hapticObjects[i];
+          if (userString && userString.includes('|')) {
+            const directionValue = userString.split('|')[0];
+            switch (directionValue) {
+              case '->':
+                hapticObject.triggerStartTouch = true;
+                hapticObject.commentOnly = false;
+                break;
+              case '<-':
+                hapticObject.triggerEndTouch = true;
+                hapticObject.commentOnly = false;
+                break;
+              case '':
+                hapticObject.triggerTouch = true;
+                hapticObject.commentOnly = false;
+                break;
+            }
+            const sound = userString.split('|')[1];
+            if (sound[0] === '"') {
+              hapticObject.speech = sound.slice(1, -1);
+            } else {
+              hapticObject.soundfile = sound;
+            }
+          } else if (userString) {
+            const directionValue = userString.split(']')[0];
+            switch (directionValue) {
+              case '->[':
+                hapticObject.triggerEnter = true;
+                hapticObject.commentOnly = false;
+                break;
+              case '<-[':
+                hapticObject.triggerLeave = true;
+                hapticObject.commentOnly = false;
+                break;
+              case '[-':
+                hapticObject.triggerInside = true;
+                hapticObject.commentOnly = false;
+                break;
+            }
+            const sound = userString.split(']')[1];
+            if (sound[0] === '"') {
+              hapticObject.speech = sound.slice(1, -1);
+            } else {
+              hapticObject.soundfile = sound;
+            }
           }
-          const sound = userString.split('|')[1];
-          if (sound[0] === '"') {
-            newTrigger.speech = sound.slice(1, -1);
-          } else {
-            newTrigger.soundfile = sound;
-          }
-        } else if (userString) {
-          const directionValue = userString.split(']')[0];
-          switch (directionValue) {
-            case '->[':
-              newTrigger.triggerEnter = true;
-              newTrigger.commentOnly = false;
-              break;
-            case '<-[':
-              newTrigger.triggerLeave = true;
-              newTrigger.commentOnly = false;
-              break;
-            case '[-':
-              newTrigger.triggerInside = true;
-              newTrigger.commentOnly = false;
-              break;
-          }
-          const sound = userString.split(']')[1];
-          if (sound[0] === '"') {
-            newTrigger.speech = sound.slice(1, -1);
-          } else {
-            newTrigger.soundfile = sound;
+          if (!hapticObject.commentOnly) {
+            objects.push(hapticObject);
           }
         }
-      }
-      if (!newTrigger.commentOnly) {
-        objects.push(newTrigger);
       }
     }
     return objects;
