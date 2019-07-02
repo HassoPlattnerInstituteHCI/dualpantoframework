@@ -62,7 +62,6 @@ private:
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
-    Vector2D m_inner[2];
     float m_handleX = 0;
     float m_handleY = 0;
     float m_targetX = 0;
