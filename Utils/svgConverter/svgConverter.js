@@ -26,11 +26,11 @@ class svgConverter {
   /**
    * @private This is an internal function.
    * @description Parses Groups
-   * @param {object} groups - The group as object.
+   * @param {object[]} groups - The groups as array of objects.
    * @param {object} svg - The svg as object.
    * @return {object} - Object containing the found objects.
    */
-  loadGroup(groups, svg) {
+  loadGroups(groups, svg) {
     const objects = [];
     for (let j = 0; j < groups.length; j++) {
       const group = groups[j];
@@ -114,7 +114,7 @@ class svgConverter {
         }
       }
       if (group.g) {
-        hapticObjects = hapticObjects.concat(this.loadGroup(group.g, svg));
+        hapticObjects = hapticObjects.concat(this.loadGroups(group.g, svg));
       }
       const matrix = parseTransform(groups[j].$.transform);
       for (let i = 0; i < hapticObjects.length; i++) {
@@ -168,7 +168,7 @@ class svgConverter {
 
         let hapticObjects = [];
         if (svg.g) {
-          hapticObjects = this.loadGroup(svg.g, svg);
+          hapticObjects = this.loadGroups(svg.g, svg);
         }
 
         const viewBox = this.getViewBox(svg);
@@ -182,7 +182,7 @@ class svgConverter {
           }
           return inside;
         });
-        console.log('found ', hapticObjects.length, ' haptic objects');
+        console.log('found', hapticObjects.length, 'haptic objects');
         fileGenerator.generateFile(
             hapticObjects, this.studentDir);
         console.log('Generation complete.',
