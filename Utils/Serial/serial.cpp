@@ -96,6 +96,7 @@ public:
     static void dumpBuffersToFile();
 };
 
+std::string DPSerial::s_path;
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 DPSerial::Header DPSerial::s_header = DPSerial::Header();
 uint8_t DPSerial::s_packetBuffer[c_packetSize];
