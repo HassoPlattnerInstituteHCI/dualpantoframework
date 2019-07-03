@@ -47,11 +47,8 @@ class svgConverter {
         hapticObjects = hapticObjects.concat(parseObjects(
             ObjectTypeEnum.path, group.path, svg, true));
       }
-      if (hapticObjects.length < 1) {
-        return;
-      }
       // group Text
-      if (groups[j].text) {
+      if (hapticObjects.length > 0 && groups[j].text) {
         let userString;
         for (let i = 0; i < groups[j].text.length; i++) {
           const textStyle = groups[j].text[i].$.style
