@@ -9,13 +9,7 @@
 #include <protocol/protocol.hpp>
 
 #include "utils/receiveHandler.hpp"
-
-enum ReceiveState
-{
-    NONE = 0,
-    FOUND_MAGIC = 1,
-    FOUND_HEADER = 2
-};
+#include "utils/receiveState.hpp"
 
 class DPSerial : DPProtocol
 {
