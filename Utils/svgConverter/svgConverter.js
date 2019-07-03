@@ -50,10 +50,6 @@ class svgConverter {
       if (hapticObjects.length < 1) {
         return;
       }
-      const matrix = parseTransform(groups[j].$.transform);
-      for (let i = 0; i < hapticObjects.length; i++) {
-        applyMatrixToObject(hapticObjects[i], matrix);
-      }
       // group Text
       if (groups[j].text) {
         let userString;
@@ -121,6 +117,13 @@ class svgConverter {
             }
           }
         }
+      }
+      if (group.g) {
+        hapticObjects = hapticObjects.concat(this.loadGroup(group.g, svg));
+      }
+      const matrix = parseTransform(groups[j].$.transform);
+      for (let i = 0; i < hapticObjects.length; i++) {
+        applyMatrixToObject(hapticObjects[i], matrix);
       }
       for (let i = 0; i < hapticObjects.length; i++) {
         if (!hapticObjects[i].commentOnly) {
