@@ -138,7 +138,6 @@ class svgConverter {
     fs.readFile(this.svgPath, function(err, data) {
       parser.parseString(data, function(err, result) {
         const svg = result.svg;
-        let hapticBoxObjects = [];
         if (svg.g[0].$.transform) {
           this.offset = new Vector(
               parseFloat(svg.g[0].$.transform.split('(')[1]
@@ -147,27 +146,25 @@ class svgConverter {
                   .split('(')[1].split(')')[0].split(',')[1]));
         }
         // first level Recs
+        let hapticObjects = [];
         if (svg.g[0].rect) {
-          hapticBoxObjects = parseObjects(
+          hapticObjects = parseObjects(
               ObjectTypeEnum.rect, svg.g[0].rect, svg);
         }
         // first level Paths
-        let hapticMeshObjects = [];
         if (svg.g[0].path) {
-          hapticMeshObjects = parseObjects(
-              ObjectTypeEnum.path, svg.g[0].path, svg);
+          hapticObjects = hapticObjects.concat(parseObjects(
+              ObjectTypeEnum.path, svg.g[0].path, svg));
         }
         // first level groups
         if (svg.g[0].g) {
           const groupedObjects = this.loadGroups(svg);
-          hapticMeshObjects = hapticMeshObjects
+          hapticObjects = hapticObjects
               .concat(groupedObjects);
         }
-        console.log('found ', hapticBoxObjects.length +
-          hapticMeshObjects.length, ' haptic objects');
-        fileGenerator.generateFile(hapticBoxObjects,
-            hapticMeshObjects,
-            this.studentDir, this.offset);
+        console.log('found', hapticObjects.length, 'haptic objects');
+        fileGenerator.generateFile(
+            hapticObjects, this.studentDir, this.offset);
         console.log('Generation complete.',
             'File can be found at: ' + this.studentDir + '\n',
             'Run \'node ' + this.studentDir +
