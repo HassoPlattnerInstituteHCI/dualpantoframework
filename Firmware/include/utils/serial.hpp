@@ -1,11 +1,12 @@
 #pragma once
 
-#include <functional>
 #include <map>
 #include <queue>
 #include <string>
 
 #include <protocol.hpp>
+
+#include "utils/receiveHandler.hpp"
 
 enum ReceiveState
 {
@@ -77,7 +78,7 @@ private:
     static void receiveInvalid();
 
     // map of receive handlers
-    static std::map<MessageType, std::function<void()>> s_receiveHandlers;
+    static std::map<MessageType, ReceiveHandler> s_receiveHandlers;
 public:
     // delete contructor - this class only contains static members
     DPSerial() = delete;

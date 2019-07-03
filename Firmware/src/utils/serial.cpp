@@ -14,7 +14,7 @@ ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
 uint16_t DPSerial::s_unacknowledgedHeartbeats = 0;
-std::map<MessageType, std::function<void()>> 
+std::map<MessageType, ReceiveHandler> 
     DPSerial::s_receiveHandlers = {
         {SYNC_ACK, DPSerial::receiveSyncAck},
         {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
