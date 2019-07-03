@@ -4,7 +4,9 @@
 #include <queue>
 #include <string>
 
-#include <protocol.hpp>
+#include <protocol/header.hpp>
+#include <protocol/messageType.hpp>
+#include <protocol/protocol.hpp>
 
 #include "utils/receiveHandler.hpp"
 
