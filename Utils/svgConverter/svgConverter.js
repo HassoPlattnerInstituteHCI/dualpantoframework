@@ -212,7 +212,7 @@ class svgConverter {
           }
           return inside;
         });
-        console.log('found ', hapticObjects.length, ' haptic objects');
+        console.log('found', hapticObjects.length, 'haptic objects');
         fileGenerator.generateFile(
             hapticObjects, this.studentDir, this.offset);
         console.log('Generation complete.',

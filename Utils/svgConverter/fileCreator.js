@@ -39,7 +39,7 @@ class FileCreator {
   /**
    * @private This is an internal function.
    * @description Generates file out of found objects in .svg files.
-   * @param {Array} hapticObjects - Array containing found hapic objects.
+   * @param {Array} hapticObjects - Array containing found haptic objects.
    * @param {string} studentDir - String containing the path of student
    * directory.
    * @param {Vector} offset - Vector containing the overall ofset of the svg.
