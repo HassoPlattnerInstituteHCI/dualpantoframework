@@ -5,7 +5,6 @@ const {
   ObjectTypeEnum, parseObjects,
   parseTransform, applyMatrixToObject} = require('./utils.js');
 const fileGenerator = new FileGenerator();
-const Vector = require('../../lib/vector.js');
 const fs = require('fs');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
@@ -22,7 +21,6 @@ class svgConverter {
   constructor(svgPath, studentDir) {
     this.svgPath = svgPath;
     this.studentDir = studentDir;
-    this.offset = new Vector(0, 0);
   }
 
   /**
@@ -167,42 +165,12 @@ class svgConverter {
     fs.readFile(this.svgPath, function(err, data) {
       parser.parseString(data, function(err, result) {
         const svg = result.svg;
-        if (svg.g[0].$.transform) {
-          this.offset = new Vector(
-              parseFloat(svg.g[0].$.transform.split('(')[1]
-                  .split(')')[0].split(',')[0]),
-              parseFloat(svg.g[0].$.transform
-                  .split('(')[1].split(')')[0].split(',')[1]));
-        }
-        // first level Recs
+
         let hapticObjects = [];
-        if (svg.g[0].rect) {
-          hapticObjects = parseObjects(
-              ObjectTypeEnum.rect, svg.g[0].rect, svg);
-        }
-        // first level Paths
-        if (svg.g[0].path) {
-          hapticObjects = hapticObjects.concat(parseObjects(
-              ObjectTypeEnum.path, svg.g[0].path, svg));
-        }
-        // first level groups
-        if (svg.g[0].g) {
-          const groupedObjects = this.loadGroup(svg.g[0].g, svg);
-          hapticObjects = hapticObjects
-              .concat(groupedObjects);
+        if (svg.g) {
+          hapticObjects = this.loadGroup(svg.g, svg);
         }
 
-        for (let i = 0; i < hapticObjects.length; i++) {
-          const mesh = hapticObjects[i].points;
-          for (let i = 0; i < mesh.length; i++) {
-            mesh[i].x += this.offset.x;
-            mesh[i].y += this.offset.y;
-          }
-          if (hapticObjects[i].polarPoint) {
-            hapticObjects[i].polarPoint.x += this.offset.x;
-            hapticObjects[i].polarPoint.y += this.offset.y;
-          }
-        }
         const viewBox = this.getViewBox(svg);
         hapticObjects = hapticObjects.filter((hapticObject) => {
           let inside = false;
@@ -216,7 +184,7 @@ class svgConverter {
         });
         console.log('found ', hapticObjects.length, ' haptic objects');
         fileGenerator.generateFile(
-            hapticObjects, this.studentDir, this.offset);
+            hapticObjects, this.studentDir);
         console.log('Generation complete.',
             'File can be found at: ' + this.studentDir + '\n',
             'Run \'node ' + this.studentDir +
