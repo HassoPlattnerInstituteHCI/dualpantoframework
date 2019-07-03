@@ -28,11 +28,11 @@ class svgConverter {
   /**
    * @private This is an internal function.
    * @description Parses Groups
-   * @param {object} groups - The group as object.
+   * @param {object[]} groups - The groups as array of objects.
    * @param {object} svg - The svg as object.
    * @return {object} - Object containing the found objects.
    */
-  loadGroup(groups, svg) {
+  loadGroups(groups, svg) {
     const objects = [];
     for (let j = 0; j < groups.length; j++) {
       const group = groups[j];
@@ -185,7 +185,7 @@ class svgConverter {
         }
         // first level groups
         if (svg.g[0].g) {
-          const groupedObjects = this.loadGroup(svg.g[0].g, svg);
+          const groupedObjects = this.loadGroups(svg.g[0].g, svg);
           hapticObjects = hapticObjects
               .concat(groupedObjects);
         }
