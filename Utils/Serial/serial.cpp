@@ -147,7 +147,17 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 #else
 bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
-    return fread(target, 1, length, s_handle) == length;
+    const uint32_t result = fread(target, 1, length, s_handle);
+    if(result == length) {
+        return true;
+    } else {
+        if (feof(s_handle))
+            printf("Error reading test.bin: unexpected end of file\n");
+        else if (ferror(s_handle)) {
+            perror("Error reading test.bin");
+        }
+        return false;
+    }
 }
 #endif
 
