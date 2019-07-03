@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "config/config.hpp"
+#include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
 
 // make sure results are in range -270° ~ 0° ~ +90°
@@ -50,7 +51,7 @@ private:
     const float c_rightBaseY;
 
     #ifdef LINKAGE_ENCODER_USE_SPI
-    std::function<uint32_t()> m_angleAccessors[2];
+    AngleAccessor m_angleAccessors[2];
     #endif
     Encoder *m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
@@ -78,8 +79,7 @@ public:
     float getActuationAngle(const uint8_t index) const;
     Vector2D getPosition() const;
     float getRotation() const;
-    void setAngleAccessor(
-        const uint8_t index, const std::function<uint32_t()> accessor);
+    void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
     void calibrationEnd();

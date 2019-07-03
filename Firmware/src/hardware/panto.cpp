@@ -408,7 +408,7 @@ float Panto::getRotation() const
 
 void Panto::setAngleAccessor(
     const uint8_t localIndex,
-    const std::function<uint32_t()> accessor)
+    const AngleAccessor accessor)
 {
     m_angleAccessors[localIndex] = accessor;
 };
