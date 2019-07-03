@@ -440,7 +440,7 @@ const parsePathData = function(data) {
       case 'M':
         i++;
         const MPoint = stringToVec(spaceSplit[i]);
-        lastControl = mPoint;
+        lastControl = MPoint;
         points.push(new Vector(MPoint.x, MPoint.y, MPoint.r));
         i++;
         lastMode = 'L';

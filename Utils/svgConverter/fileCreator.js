@@ -53,14 +53,6 @@ class FileCreator {
       'function () {\n  ');
     for (let i = 0; i < hapticObjects.length; i++) {
       let mesh = hapticObjects[i].points;
-      for (let i = 0; i < mesh.length; i++) {
-        mesh[i].x += offset.x;
-        mesh[i].y += offset.y;
-      }
-      if (hapticObjects[i].polarPoint) {
-        hapticObjects[i].polarPoint.x += offset.x;
-        hapticObjects[i].polarPoint.y += offset.y;
-      }
       mesh = this.transformMeshToPanto(mesh);
       outputString = this.addMeshToFile(hapticObjects, i, mesh,
           outputString);
