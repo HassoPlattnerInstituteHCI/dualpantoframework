@@ -186,7 +186,7 @@ void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
     setZero(newZero);
 }
 
-std::function<uint32_t()> SPIEncoderChain::getAngleAccessor(uint32_t index)
+AngleAccessor SPIEncoderChain::getAngleAccessor(uint32_t index)
 {
     return std::bind(&SPIEncoder::getAngle, &m_encoders[index]);
 }

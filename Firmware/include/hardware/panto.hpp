@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Encoder.h>
-#include <functional>
 
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
