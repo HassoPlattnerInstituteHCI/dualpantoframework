@@ -69,7 +69,11 @@ inline void Task::checkFps()
     }
 };
 
-Task::Task(void (*setupFunc)(), void (*loopFunc)(), const char *name, int core)
+Task::Task(
+        TaskFunction setupFunc,
+        TaskFunction loopFunc,
+        const char *name,
+        int core)
     : m_setupFunc(setupFunc),
       m_loopFunc(loopFunc),
       m_name(name),

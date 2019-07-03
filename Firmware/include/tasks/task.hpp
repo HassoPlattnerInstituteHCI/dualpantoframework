@@ -4,6 +4,7 @@
 #include <map>
 
 #include "utils/framerateLimiter.hpp"
+#include "tasks/taskFunction.hpp"
 
 class Task
 {
@@ -14,8 +15,8 @@ private:
     static const uint32_t c_defaultFpsInterval = 1000;
 
     // task data
-    void (*m_setupFunc)();
-    void (*m_loopFunc)();
+    TaskFunction m_setupFunc;
+    TaskFunction m_loopFunc;
     const char *m_name;
     uint32_t m_stackDepth;
     uint32_t m_priority;
@@ -36,7 +37,11 @@ private:
     inline void initFps();
     inline void checkFps();
 public:
-    Task(void (*setupFunc)(), void (*loopFunc)(), const char *name, int core);
+    Task(
+        TaskFunction setupFunc,
+        TaskFunction loopFunc,
+        const char *name,
+        int core);
     void run();
     void setLogFps(bool logFps = true);
     TaskHandle_t getHandle();
