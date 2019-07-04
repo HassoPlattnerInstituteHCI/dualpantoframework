@@ -33,28 +33,22 @@ void GodObject::update()
         m_actionQueue.pop_front();
         switch (action.m_type)
         {
-        case ENABLE_EDGE:
-            DPSerial::sendInstantDebugLog(
-                "%10p %10u %+010.3f %+010.3f %+010.3f %+010.3f",
-                action.m_type,
-                std::get<0>(action.m_data.m_annotatedEdge),
-                std::get<1>(action.m_data.m_annotatedEdge),
-                std::get<2>(action.m_data.m_annotatedEdge).m_first.x,
-                std::get<2>(action.m_data.m_annotatedEdge).m_first.y,
-                std::get<2>(action.m_data.m_annotatedEdge).m_second.x,
-                std::get<2>(action.m_data.m_annotatedEdge).m_second.y);
-            m_hashtable.add(
-                std::get<0>(action.m_data.m_annotatedEdge),
-                std::get<1>(action.m_data.m_annotatedEdge),
-                std::get<2>(action.m_data.m_annotatedEdge));
+        case HT_ENABLE_EDGE:
+            // DPSerial::sendInstantDebugLog(
+            //     "%10p %10u %+010.3f %+010.3f %+010.3f %+010.3f",
+            //     action.m_type,
+            //     action.m_data.m_annotatedEdge.m_indexedEdge->m_obstacle,
+            //     action.m_data.m_annotatedEdge.m_indexedEdge->m_index,
+            //     action.m_data.m_annotatedEdge.m_edge->m_first.x,
+            //     action.m_data.m_annotatedEdge.m_edge->m_first.y,
+            //     action.m_data.m_annotatedEdge.m_edge->m_second.x,
+            //     action.m_data.m_annotatedEdge.m_edge->m_second.y);
+            m_hashtable.add(action.m_data.m_annotatedEdge);
             break;
-        case DISABLE_EDGE:
-            m_hashtable.remove(
-                std::get<0>(action.m_data.m_annotatedEdge),
-                std::get<1>(action.m_data.m_annotatedEdge),
-                std::get<2>(action.m_data.m_annotatedEdge));
+        case HT_DISABLE_EDGE:
+            m_hashtable.remove(action.m_data.m_annotatedEdge);
             break;
-        case REMOVE_OBSTACLE:
+        case GO_REMOVE_OBSTACLE:
             m_obstacles.erase(action.m_data.m_obstacleId);
             break;
         default:
@@ -197,7 +191,7 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 void GodObject::removeObstacle(uint16_t id)
 {
     enableObstacle(id, false);
-    m_actionQueue.emplace_back(REMOVE_OBSTACLE, id);
+    m_actionQueue.emplace_back(GO_REMOVE_OBSTACLE, id);
 }
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
@@ -209,7 +203,7 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         if(enable != it->second.enabled())
         {
             const auto edges = it->second.getAnnotatedEdges();
-            const auto action = enable ? ENABLE_EDGE : DISABLE_EDGE;
+            const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
             for (const auto& edge : edges)
             {
                 m_actionQueue.emplace_back(action, edge);

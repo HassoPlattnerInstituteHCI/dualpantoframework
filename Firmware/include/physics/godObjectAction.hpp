@@ -1,5 +1,6 @@
 #pragma once
 
+#include "physics/annotatedEdge.hpp"
 #include "physics/godObjectActionData.hpp"
 #include "physics/godObjectActionType.hpp"
 
@@ -9,7 +10,7 @@ struct GodObjectAction
     const GodObjectActionData m_data;
     GodObjectAction(
         const GodObjectActionType type,
-        const std::tuple<Obstacle*, uint32_t, Edge>& data)
+        const AnnotatedEdge& data)
         : m_type(type)
         , m_data{.m_annotatedEdge = {data}} { };
     GodObjectAction(

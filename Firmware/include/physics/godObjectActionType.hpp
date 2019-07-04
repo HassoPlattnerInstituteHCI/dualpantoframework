@@ -2,7 +2,7 @@
 
 enum GodObjectActionType
 {
-    ENABLE_EDGE,
-    DISABLE_EDGE,
-    REMOVE_OBSTACLE
+    HT_ENABLE_EDGE,
+    HT_DISABLE_EDGE,
+    GO_REMOVE_OBSTACLE
 };

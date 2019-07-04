@@ -99,28 +99,33 @@ Hashtable::Hashtable()
         hashtableUsedMemory);
 }
 
-void Hashtable::add(Obstacle* obstacle, uint32_t index, Edge edge)
+void Hashtable::add(AnnotatedEdge edge)
 {
-    for(auto&& cellIndex : getCellIndices(edge))
+    DPSerial::sendInstantDebugLog("%p", edge.m_indexedEdge);
+    DPSerial::sendInstantDebugLog("%p %u", edge.m_indexedEdge->m_obstacle, edge.m_indexedEdge->m_index);
+    for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
     {
-        m_cells[cellIndex].emplace_back(obstacle, index);
+        m_cells[cellIndex].emplace_back(
+            edge.m_indexedEdge->m_obstacle, edge.m_indexedEdge->m_index);
     }
+    edge.destroy();
 }
 
-void Hashtable::remove(Obstacle* obstacle, uint32_t index, Edge edge)
+void Hashtable::remove(AnnotatedEdge edge)
 {
-    for(auto&& cellIndex : getCellIndices(edge))
+    for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
     {
         auto& cell = m_cells[cellIndex];
         auto it = std::find(
             cell.begin(), 
             cell.end(), 
-            IndexedEdge{obstacle, index});
+            *(edge.m_indexedEdge));
         if(it != cell.end())
         {
             cell.erase(it);
         }
     }
+    edge.destroy();
 }
 
 void Hashtable::getPossibleCollisions(
