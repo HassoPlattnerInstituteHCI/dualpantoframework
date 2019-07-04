@@ -1,7 +1,7 @@
 #include "physicsMain.hpp"
 
 #include "hardware/panto.hpp"
-#include "hardware/spiEncoder.hpp"
+#include "hardware/spiEncoderChain.hpp"
 #include "physics/pantoPhysics.hpp"
 #include "tasks/taskRegistry.hpp"
 #include "utils/performanceMonitor.hpp"

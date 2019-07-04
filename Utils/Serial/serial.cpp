@@ -1,5 +1,3 @@
-#include "protocol.hpp"
-
 #include <string>
 #include <iomanip>
 #include <iostream>
@@ -28,6 +26,10 @@
     if (code != napi_ok) \
         std::cerr << "NOT OK: " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
+
+#include <protocol/header.hpp>
+#include <protocol/messageType.hpp>
+#include <protocol/protocol.hpp>
 
 //#define DEBUG_LOGGING
 
@@ -96,7 +98,7 @@ class DPSerial : DPProtocol
 };
 
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
-DPSerial::Header DPSerial::s_header = DPSerial::Header();
+Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_packetBuffer[c_packetSize];
 FILEHANDLE DPSerial::s_handle;
 
