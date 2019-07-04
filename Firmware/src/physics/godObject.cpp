@@ -19,10 +19,48 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
-void GodObject::updateHashtable()
+void GodObject::update()
 {
+    if(m_actionQueue.empty())
+    {
+        return;
+    }
+
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_hashtable.processQueues();
+    for(auto i = 0; i < obstacleChangesPerFrame && !m_actionQueue.empty(); ++i)
+    {
+        const auto action = m_actionQueue.front();
+        m_actionQueue.pop_front();
+        switch (action.m_type)
+        {
+        case ENABLE_EDGE:
+            DPSerial::sendInstantDebugLog(
+                "%10p %10u %+010.3f %+010.3f %+010.3f %+010.3f",
+                action.m_type,
+                std::get<0>(action.m_data.m_annotatedEdge),
+                std::get<1>(action.m_data.m_annotatedEdge),
+                std::get<2>(action.m_data.m_annotatedEdge).m_first.x,
+                std::get<2>(action.m_data.m_annotatedEdge).m_first.y,
+                std::get<2>(action.m_data.m_annotatedEdge).m_second.x,
+                std::get<2>(action.m_data.m_annotatedEdge).m_second.y);
+            m_hashtable.add(
+                std::get<0>(action.m_data.m_annotatedEdge),
+                std::get<1>(action.m_data.m_annotatedEdge),
+                std::get<2>(action.m_data.m_annotatedEdge));
+            break;
+        case DISABLE_EDGE:
+            m_hashtable.remove(
+                std::get<0>(action.m_data.m_annotatedEdge),
+                std::get<1>(action.m_data.m_annotatedEdge),
+                std::get<2>(action.m_data.m_annotatedEdge));
+            break;
+        case REMOVE_OBSTACLE:
+            m_obstacles.erase(action.m_data.m_obstacleId);
+            break;
+        default:
+            break;
+        }
+    }
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
@@ -157,9 +195,7 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 void GodObject::removeObstacle(uint16_t id)
 {
     enableObstacle(id, false);
-    portENTER_CRITICAL(&m_obstacleMutex);
-    m_obstacles.erase(id);
-    portEXIT_CRITICAL(&m_obstacleMutex);
+    m_actionQueue.emplace_back(REMOVE_OBSTACLE, id);
 }
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
@@ -170,19 +206,14 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         portENTER_CRITICAL(&m_obstacleMutex);
         if(enable != it->second.enabled())
         {
-            auto edges = it->second.getAnnotatedEdges();
-            if(enable)
+            const auto edges = it->second.getAnnotatedEdges();
+            const auto action = enable ? ENABLE_EDGE : DISABLE_EDGE;
+            for (const auto& edge : edges)
             {
-                m_hashtable.add(edges);
-            }
-            else
-            {
-                m_hashtable.remove(edges);
+                m_actionQueue.emplace_back(action, edge);
             }
         }
-
         it->second.enable(enable);
-
         portEXIT_CRITICAL(&m_obstacleMutex);
     }
 }

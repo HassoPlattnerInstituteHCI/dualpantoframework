@@ -73,30 +73,6 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     return result;
 }
 
-void Hashtable::add(Obstacle* obstacle, uint32_t index, Edge edge)
-{
-    for(auto&& cellIndex : getCellIndices(edge))
-    {
-        m_cells[cellIndex].emplace_back(obstacle, index);
-    }
-}
-
-void Hashtable::remove(Obstacle* obstacle, uint32_t index, Edge edge)
-{
-    for(auto&& cellIndex : getCellIndices(edge))
-    {
-        auto& cell = m_cells[cellIndex];
-        auto it = std::find(
-            cell.begin(), 
-            cell.end(), 
-            IndexedEdge{obstacle, index});
-        if(it != cell.end())
-        {
-            cell.erase(it);
-        }
-    }
-}
-
 Hashtable::Hashtable()
 {
     DPSerial::sendQueuedDebugLog(
@@ -123,39 +99,26 @@ Hashtable::Hashtable()
         hashtableUsedMemory);
 }
 
-void Hashtable::add(
-    const std::vector<std::tuple<Obstacle*, uint32_t, Edge>>& elements)
+void Hashtable::add(Obstacle* obstacle, uint32_t index, Edge edge)
 {
-    m_addQueue.insert(m_addQueue.end(), elements.begin(), elements.end());
-}
-
-void Hashtable::remove(
-    const std::vector<std::tuple<Obstacle*, uint32_t, Edge>>& elements)
-{
-    m_removeQueue.insert(m_removeQueue.end(), elements.begin(), elements.end());
-}
-
-void Hashtable::processQueues()
-{
-    // quick check to avoid loop if not necessary
-    if(m_addQueue.empty() && m_removeQueue.empty())
+    for(auto&& cellIndex : getCellIndices(edge))
     {
-        return;
+        m_cells[cellIndex].emplace_back(obstacle, index);
     }
+}
 
-    for(auto i = 0; i < hashtableProcessedEntriesPerFrame; ++i)
+void Hashtable::remove(Obstacle* obstacle, uint32_t index, Edge edge)
+{
+    for(auto&& cellIndex : getCellIndices(edge))
     {
-        if(!m_addQueue.empty())
+        auto& cell = m_cells[cellIndex];
+        auto it = std::find(
+            cell.begin(), 
+            cell.end(), 
+            IndexedEdge{obstacle, index});
+        if(it != cell.end())
         {
-            auto edge = m_addQueue.front();
-            m_addQueue.pop_front();
-            add(std::get<0>(edge), std::get<1>(edge), std::get<2>(edge));
-        }
-        if(!m_removeQueue.empty())
-        {
-            auto edge = m_removeQueue.front();
-            m_removeQueue.pop_front();
-            remove(std::get<0>(edge), std::get<1>(edge), std::get<2>(edge));
+            cell.erase(it);
         }
     }
 }
