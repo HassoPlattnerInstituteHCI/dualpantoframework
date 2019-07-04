@@ -20,13 +20,37 @@ Speaks a text.
 
 Returns **[Promise][3]** Returns a promise for the speech output.
 
-### sayText
+### getWindowsVoiceForLangue
 
-Creates a script which speaks a german text with 1.4 speed.
+Selects the default voice for Windows based on a language.
+
+#### Parameters
+
+-   `language` **[string][1]** The language to be spoken.
+
+Returns **[string][1]** Returns the default voice for the language.
+
+### getMacOsVoiceForLanguage
+
+Selects the default voice for MacOS based on a language.
+
+#### Parameters
+
+-   `language` **[string][1]** The language to be spoken.
+
+Returns **[string][1]** Returns the default voice for the language.
+
+### speakTextAsync
+
+Speaks a text async.
 
 #### Parameters
 
 -   `txt` **[string][1]** The text to speak.
+-   `language` **[string][1]** The language to speak. (optional, default `DE`)
+-   `speed` **[number][2]** The speed that is spoken with. (optional, default `1.4`)
+-   `voice` **[string][1]** The voice that is spoken with.
+    When this parameter specified, the language parameter is ignored.
 
 ### playSound
 
