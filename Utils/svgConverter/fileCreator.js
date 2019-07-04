@@ -29,7 +29,7 @@ class FileCreator {
     '\n  }\n});\n';
     this.startFunction = '\nconst start = function () {' +
     '\n  open(\'http://localhost:8080/map.html\');' +
-    '\n setTimeout(generateLevel, 3000);' +
+    '\n  setTimeout(generateLevel, 3000);' +
     '\n}\n\n';
     this.pantoxOffset = 175;
     this.pantoyOffset = 5;
