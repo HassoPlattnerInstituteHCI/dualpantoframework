@@ -42,9 +42,8 @@ class FileCreator {
    * @param {Array} hapticObjects - Array containing found haptic objects.
    * @param {string} studentDir - String containing the path of student
    * directory.
-   * @param {Vector} offset - Vector containing the overall ofset of the svg.
    */
-  generateFile(hapticObjects, studentDir, offset) {
+  generateFile(hapticObjects, studentDir) {
     let outputString = '\'use strict\';\n';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
