@@ -35,7 +35,8 @@
 
 class DPSerial : DPProtocol
 {
-  private:
+private:
+    static std::string s_path;
     static uint8_t s_headerBuffer[c_headerSize];
     static Header s_header;
     static const uint32_t c_packetSize = 0xFF;
@@ -78,7 +79,7 @@ class DPSerial : DPProtocol
     static void nodeSendFloat(napi_env env, napi_value value, uint16_t &offset);
 #endif
 
-  public:
+public:
     static bool setup(std::string path);
     static void terminate(int signal);
 
@@ -97,6 +98,7 @@ class DPSerial : DPProtocol
     static void dumpBuffersToFile();
 };
 
+std::string DPSerial::s_path;
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_packetBuffer[c_packetSize];
@@ -149,7 +151,24 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 #else
 bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
-    return fread(target, 1, length, s_handle) == length;
+    const uint32_t result = fread(target, 1, length, s_handle);
+    const bool valid = result == length;
+    if(!valid)
+    {
+        if (feof(s_handle))
+        {
+            std::cout
+                << "Read end of file from serial, trying to reconnect."
+                << std::endl;
+            tearDown();
+            setup(s_path);
+        }
+        else if (ferror(s_handle))
+        {
+            perror("Error while reading from serial");
+        }
+    }
+    return valid;
 }
 #endif
 
@@ -373,6 +392,7 @@ void DPSerial::nodeSendFloat(napi_env env, napi_value value, uint16_t &offset)
 #ifdef WINDOWS
 bool DPSerial::setup(std::string path)
 {
+    s_path = path;
     s_handle = CreateFileA(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (s_handle == INVALID_HANDLE_VALUE)
     {
@@ -405,6 +425,7 @@ bool DPSerial::setup(std::string path)
 #else
 bool DPSerial::setup(std::string path)
 {
+    s_path = path;
     int fd = open(path.c_str(), O_RDWR | O_NOCTTY);
     if (fd < 0)
     {
