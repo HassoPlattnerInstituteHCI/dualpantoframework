@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Encoder.h>
-#include <functional>
 
 #include "config/config.hpp"
+#include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
 
 // make sure results are in range -270° ~ 0° ~ +90°
@@ -50,37 +50,35 @@ private:
     const float c_rightBaseY;
 
     #ifdef LINKAGE_ENCODER_USE_SPI
-    std::function<uint32_t()> m_angleAccessors[2];
+    AngleAccessor m_angleAccessors[2];
     #endif
     Encoder *m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
-    uint32_t m_engagedTime[c_dofCount] = {};
-    uint32_t prevTime = 0;
+    uint32_t m_prevTime = 0;
 
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
-    Vector2D m_inner[2];
-    double m_handleX = 0;
-    double m_handleY = 0;
-    double m_targetX = 0;
-    double m_targetY = 0;
+    float m_handleX = 0;
+    float m_handleY = 0;
+    float m_targetX = 0;
+    float m_targetY = 0;
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
     void inverseKinematics();
-    void setMotor(uint8_t i, bool dir, float power);
+    void setMotor(
+        const uint8_t& localIndex, const bool& dir, const float& power);
     void disengageMotors();
 public:
     Panto(uint8_t pantoIndex);
     float getActuationAngle(const uint8_t index) const;
     Vector2D getPosition() const;
     float getRotation() const;
-    void setAngleAccessor(
-        const uint8_t index, const std::function<uint32_t()> accessor);
+    void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
     void calibrationEnd();

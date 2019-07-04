@@ -1,11 +1,15 @@
 #pragma once
 
-#include <functional>
 #include <map>
 #include <queue>
 #include <string>
 
-#include <protocol.hpp>
+#include <protocol/header.hpp>
+#include <protocol/messageType.hpp>
+#include <protocol/protocol.hpp>
+
+#include "utils/receiveHandler.hpp"
+#include "utils/receiveState.hpp"
 
 class DPSerial : DPProtocol
 {
@@ -19,22 +23,15 @@ private:
 
     // multithreading safety
     static portMUX_TYPE s_serialMutex;
-     
-    // receive state
-    enum ReceiveState
-    {
-        NONE = 0,
-        FOUND_MAGIC = 1,
-        FOUND_HEADER = 2
-    };
+    
     static ReceiveState s_receiveState;
 
     // connection
     static bool s_connected;
-    static const int c_heartbeatIntervalMs = 1000;
+    static const uint16_t c_heartbeatIntervalMs = 1000;
     static unsigned long s_lastHeartbeatTime;
-    static const int c_maxUnacklowledgedHeartbeats = 5;
-    static int s_unacknowledgedHeartbeats;
+    static const uint16_t c_maxUnacklowledgedHeartbeats = 5;
+    static uint16_t s_unacknowledgedHeartbeats;
 
     // send helper
     static void sendUInt8(uint8_t data);
@@ -77,8 +74,11 @@ private:
     static void receiveInvalid();
 
     // map of receive handlers
-    static std::map<DPProtocol::MessageType, std::function<void()>> s_receiveHandlers;
+    static std::map<MessageType, ReceiveHandler> s_receiveHandlers;
 public:
+    // delete contructor - this class only contains static members
+    DPSerial() = delete;
+
     // setup
     static void init();
     static bool ensureConnection();

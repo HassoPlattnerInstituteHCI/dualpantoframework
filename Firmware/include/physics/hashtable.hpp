@@ -7,6 +7,7 @@
 
 #include "config/config.hpp"
 #include "hardware/panto.hpp"
+#include "physics/annotatedEdge.hpp"
 #include "physics/indexedEdge.hpp"
 
 class Hashtable
