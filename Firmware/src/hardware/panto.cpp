@@ -25,13 +25,13 @@ void Panto::forwardKinematics()
     // calculate inner positions
     // PERFMON_START("[abbc] calculate inner positions");
     const auto leftInnerX =
-        fma(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
+        fmaf(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
     const auto leftInnerY =
-        fma(leftBaseAngleSin, c_leftInnerLength, c_leftBaseY);
+        fmaf(leftBaseAngleSin, c_leftInnerLength, c_leftBaseY);
     const auto rightInnerX =
-        fma(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
+        fmaf(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
     const auto rightInnerY =
-        fma(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
+        fmaf(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
     // PERFMON_STOP("[abbc] calculate inner positions");
 
     // diagonal between inner positions
@@ -68,9 +68,9 @@ void Panto::forwardKinematics()
     // handle position
     // PERFMON_START("[abbg] handle position");
     m_handleX =
-        fma(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
+        fmaf(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
     m_handleY =
-        fma(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
+        fmaf(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
     // PERFMON_STOP("[abbg] handle position");
 
     // right elbow angles
@@ -190,32 +190,21 @@ void Panto::inverseKinematics()
     }
 };
 
-void Panto::setMotor(uint8_t localIndex, bool dir, float power)
+void Panto::setMotor(
+    const uint8_t& localIndex, const bool& dir, const float& power)
 {
     const auto globalIndex = c_globalIndexOffset + localIndex;
-    if (motorFlipped[globalIndex])
+
+    if(motorPwmPin[globalIndex] == dummyPin)
     {
-        dir = !dir;
+        return;
     }
 
-    digitalWrite(motorDirAPin[globalIndex], dir);
-    digitalWrite(motorDirBPin[globalIndex], !dir);
-    if (motorPwmPin[globalIndex] != dummyPin)
-    {
-        power = min(power, motorPowerLimit[globalIndex]);
-        if (power < motorPowerLimit[globalIndex])
-        {
-            m_engagedTime[localIndex] = 0;
-        }
-        else if (++m_engagedTime[localIndex] >= 36000)
-        {
-            disengageMotors();
-            while (true)
-            {
-            }
-        }
-        ledcWrite(globalIndex, power * PWM_MAX);
-    }
+    const auto flippedDir = dir ^ motorFlipped[globalIndex];
+
+    digitalWrite(motorDirAPin[globalIndex], flippedDir);
+    digitalWrite(motorDirBPin[globalIndex], !flippedDir);
+    ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
 };
 
 void Panto::readEncoders()
@@ -291,8 +280,8 @@ void Panto::actuateMotors()
             }
             unsigned char dir = error < 0;
             unsigned long now = micros();
-            float dt = now - prevTime;
-            prevTime = now;
+            float dt = now - m_prevTime;
+            m_prevTime = now;
             error = fabs(error);
             // Power: PID
             m_integral[localIndex] += error * dt;
@@ -419,7 +408,7 @@ float Panto::getRotation() const
 
 void Panto::setAngleAccessor(
     const uint8_t localIndex,
-    const std::function<uint32_t()> accessor)
+    const AngleAccessor accessor)
 {
     m_angleAccessors[localIndex] = accessor;
 };

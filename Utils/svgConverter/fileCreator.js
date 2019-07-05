@@ -21,7 +21,7 @@ class FileCreator {
     '  MeshHardStep,\n' +
     '  BoxHardStep,\n' +
     '  ForcefieldSampleFunctions} = Components;\nconst fs = require(\'fs\');' +
-    '\nconst VoiceInteraction = Broker.voiceInteraction;' +
+    '\nconst VoiceInteraction = Broker.voiceInteraction;\n' +
     'const {PerformanceObserver, performance} = require(\'perf_hooks\');\n';
     this.waitForPanto = 'let device;\n\nBroker.on(\'devices' +
     'Changed\', function(devices) {\n  for(const newdevice of devices) {\n' +
@@ -29,7 +29,7 @@ class FileCreator {
     '\n  }\n});\n';
     this.startFunction = '\nconst start = function () {' +
     '\n  open(\'http://localhost:8080/map.html\');' +
-    '\n setTimeout(generateLevel, 3000);' +
+    '\n  setTimeout(generateLevel, 3000);' +
     '\n}\n\n';
     this.pantoxOffset = 175;
     this.pantoyOffset = 5;
@@ -42,9 +42,8 @@ class FileCreator {
    * @param {Array} hapticObjects - Array containing found haptic objects.
    * @param {string} studentDir - String containing the path of student
    * directory.
-   * @param {Vector} offset - Vector containing the overall ofset of the svg.
    */
-  generateFile(hapticObjects, studentDir, offset) {
+  generateFile(hapticObjects, studentDir) {
     let outputString = '\'use strict\';\n';
     outputString = outputString.concat(this.imports);
     outputString = outputString.concat(this.waitForPanto);
@@ -57,7 +56,7 @@ class FileCreator {
       outputString = this.addMeshToFile(hapticObjects, i, mesh,
           outputString);
     }
-    outputString = outputString.concat('}\n');
+    outputString = outputString.concat('\n}\n');
     fs.writeFileSync(studentDir + '/prototype.js', outputString);
   }
 

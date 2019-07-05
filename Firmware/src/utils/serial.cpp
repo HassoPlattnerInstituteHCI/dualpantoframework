@@ -6,15 +6,15 @@
 #include "physics/pantoPhysics.hpp"
 #include "utils/vector.hpp"
 
-DPSerial::Header DPSerial::s_header = DPSerial::Header();
+Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
 std::queue<std::string> DPSerial::s_debugLogQueue;
 portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
-DPSerial::ReceiveState DPSerial::s_receiveState = NONE;
+ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
-int DPSerial::s_unacknowledgedHeartbeats = 0;
-std::map<DPProtocol::MessageType, std::function<void()>> 
+uint16_t DPSerial::s_unacknowledgedHeartbeats = 0;
+std::map<MessageType, ReceiveHandler> 
     DPSerial::s_receiveHandlers = {
         {SYNC_ACK, DPSerial::receiveSyncAck},
         {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
@@ -69,7 +69,7 @@ void DPSerial::sendFloat(float data)
     #pragma GCC diagnostic pop
 }
 
-void DPSerial::sendMessageType(DPSerial::MessageType data)
+void DPSerial::sendMessageType(MessageType data)
 {
     Serial.write(data);
 }
@@ -146,7 +146,7 @@ float DPSerial::receiveFloat()
     #pragma GCC diagnostic pop
 }
 
-DPSerial::MessageType DPSerial::receiveMessageType()
+MessageType DPSerial::receiveMessageType()
 {
     return static_cast<MessageType>(Serial.read());
 }

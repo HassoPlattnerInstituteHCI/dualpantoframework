@@ -3,7 +3,8 @@ const {Broker} = DualPantoFramework;
 const VoiceInteraction = Broker.voiceInteraction;
 console.log('with promises');
 VoiceInteraction.speakText('Hallo').then(
-    () => VoiceInteraction.speakText('Welt')).then(() => withoutPromise());
+    () => VoiceInteraction.speakText('Welt')).then(
+    () => withoutPromise());
 let englishVoice;
 switch (process.platform) {
   case 'darwin':
@@ -18,7 +19,7 @@ switch (process.platform) {
 }
 
 const withoutPromise = () => {
-  console.log('startting speaking without promise');
+  console.log('starting speaking without promise');
   VoiceInteraction.speakTextAsync('Dieser Text läuft während der Kode läuft!');
   setTimeout(() => console.log('1 sekunde'), 1000);
   setTimeout(() => console.log('2 sekunde'), 2000);
@@ -28,8 +29,8 @@ const withoutPromise = () => {
 
 const voiceAndLanguages = () => {
   VoiceInteraction.speakText('We can also change the language', 'EN').then(
-      () => VoiceInteraction.speakText('If I speak to slow', 'EN')).then(
-      () => VoiceInteraction.speakText('I can go waay faster', 'EN', 3)).then(
-      () => VoiceInteraction.speakText('Also I can change my Voice if you' +
-      ' pass a Voice as the last parameter', 'EN', 1, englishVoice));
+      () => VoiceInteraction.speakText('If I speak too slow', 'EN', 1)).then(
+      () => VoiceInteraction.speakText('I can go way faster', 'EN', 2)).then(
+      () => VoiceInteraction.speakText('I can also change my voice if you' +
+      ' pass a voice as the last parameter', 'EN', 1.4, englishVoice));
 };

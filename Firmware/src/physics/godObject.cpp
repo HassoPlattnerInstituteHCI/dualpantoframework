@@ -82,17 +82,19 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
             auto edgeFirst = edge.m_first;
             auto firstMinusPos = edgeFirst - m_position;
             auto firstMinusSecond = edgeFirst - edge.m_second;
-            auto divisor = determinant(firstMinusSecond, posMinusTarget);
+            auto divisor =
+                Vector2D::determinant(firstMinusSecond, posMinusTarget);
 
             auto movementRatio =
-                -determinant(firstMinusSecond, firstMinusPos) / divisor;
+                -Vector2D::determinant(firstMinusSecond, firstMinusPos) /
+                divisor;
             if(movementRatio < 0 || movementRatio > 1)
             {
                 continue;
             }
 
             auto edgeRatio =
-                determinant(firstMinusPos, posMinusTarget) / divisor;
+                Vector2D::determinant(firstMinusPos, posMinusTarget) / divisor;
             if(edgeRatio < 0 || edgeRatio > 1)
             {
                 continue;
@@ -115,10 +117,10 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
                 -closestEdgeFirstMinusSecond.y,
                 closestEdgeFirstMinusSecond.x);
             auto resolveRatio =
-                -determinant(
+                -Vector2D::determinant(
                     closestEdgeFirstMinusSecond,
                     closestEdgeFirst - targetPoint)
-                / determinant(
+                / Vector2D::determinant(
                     closestEdgeFirstMinusSecond,
                     perpendicular);
             auto resolveVec = perpendicular * resolveRatio;
