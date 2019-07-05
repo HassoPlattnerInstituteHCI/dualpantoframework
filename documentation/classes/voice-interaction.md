@@ -20,7 +20,7 @@ Speaks a text.
 
 Returns **[Promise][3]** Returns a promise for the speech output.
 
-### getWindowsVoiceForLangue
+### getWindowsVoiceForLanguage
 
 Selects the default voice for Windows based on a language.
 
@@ -42,7 +42,7 @@ Returns **[string][1]** Returns the default voice for the language.
 
 ### speakTextAsync
 
-Speaks a text async.
+Speaks a text asynchronously.
 
 #### Parameters
 
