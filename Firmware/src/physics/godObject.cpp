@@ -4,10 +4,9 @@
 #include "utils/serial.hpp"
 
 GodObject::GodObject(Vector2D position)
-: m_position(position)
-, m_obstacleMutex{portMUX_FREE_VAL, 0}
-, m_possibleCollisions(new std::set<IndexedEdge>())
-{ }
+    : m_position(position), m_obstacleMutex{portMUX_FREE_VAL, 0}, m_possibleCollisions(new std::set<IndexedEdge>())
+{
+}
 
 GodObject::~GodObject()
 {
@@ -19,40 +18,86 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
+void print(const GodObjectAction& action)
+{
+    DPSerial::sendInstantDebugLog(
+                "ae %p",
+                &action);
+    DPSerial::sendInstantDebugLog(
+        "ie %p",
+        action
+            .m_data
+            .m_annotatedEdge
+            .m_indexedEdge);
+    DPSerial::sendInstantDebugLog(
+        "ob %p",
+        action
+            .m_data
+            .m_annotatedEdge
+            .m_indexedEdge
+            ->m_obstacle);
+    DPSerial::sendInstantDebugLog(
+        "in %u",
+        action
+            .m_data
+            .m_annotatedEdge
+            .m_indexedEdge
+            ->m_index);
+}
+
 void GodObject::update()
 {
-    if(m_actionQueue.empty())
+    if (m_actionQueue.empty())
     {
         return;
     }
 
     portENTER_CRITICAL(&m_obstacleMutex);
-    for(auto i = 0; i < obstacleChangesPerFrame && !m_actionQueue.empty(); ++i)
+    for (auto i = 0; i < obstacleChangesPerFrame && !m_actionQueue.empty(); ++i)
     {
-        const auto action = m_actionQueue.front();
+        const auto &action = m_actionQueue.front();
         m_actionQueue.pop_front();
+        DPSerial::sendInstantDebugLog("ty %u", action.m_type);
         switch (action.m_type)
         {
         case HT_ENABLE_EDGE:
+        {
+            print(action);
             // DPSerial::sendInstantDebugLog(
-            //     "%10p %10u %+010.3f %+010.3f %+010.3f %+010.3f",
-            //     action.m_type,
+            //     "ae %10p ie %10p",
+            //     &(action.m_data.m_annotatedEdge),
+            //     action.m_data.m_annotatedEdge.m_indexedEdge);
+            // DPSerial::sendInstantDebugLog(
+            //     "ob %10p in %10u",
             //     action.m_data.m_annotatedEdge.m_indexedEdge->m_obstacle,
-            //     action.m_data.m_annotatedEdge.m_indexedEdge->m_index,
+            //     action.m_data.m_annotatedEdge.m_indexedEdge->m_index);
+            // DPSerial::sendInstantDebugLog(
+            //     "fx %+010.3f fy %+010.3f sx %+010.3f sy %+010.3f",
             //     action.m_data.m_annotatedEdge.m_edge->m_first.x,
             //     action.m_data.m_annotatedEdge.m_edge->m_first.y,
             //     action.m_data.m_annotatedEdge.m_edge->m_second.x,
             //     action.m_data.m_annotatedEdge.m_edge->m_second.y);
-            m_hashtable.add(action.m_data.m_annotatedEdge);
+            // m_hashtable.add(action.m_data.m_annotatedEdge);
             break;
+        }
         case HT_DISABLE_EDGE:
-            m_hashtable.remove(action.m_data.m_annotatedEdge);
+        {
+            print(action);
+            // m_hashtable.remove(action.m_data.m_annotatedEdge);
             break;
+        }
         case GO_REMOVE_OBSTACLE:
+        {
+            DPSerial::sendInstantDebugLog(
+                "id %5u",
+                action.m_data.m_obstacleId);
             m_obstacles.erase(action.m_data.m_obstacleId);
             break;
+        }
         default:
+        {
             break;
+        }
         }
     }
     portEXIT_CRITICAL(&m_obstacleMutex);
@@ -75,13 +120,13 @@ void GodObject::move()
     m_position = checkCollisions(nextPosition);
     portEXIT_CRITICAL(&m_obstacleMutex);
 
-    if(m_processingObstacleCollision)
+    if (m_processingObstacleCollision)
     {
         auto error = m_position - nextPosition;
         m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
         m_lastError = error;
     }
-    
+
     m_doneColliding = lastState && !m_processingObstacleCollision;
 }
 
@@ -90,7 +135,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
     m_possibleCollisions->clear();
     m_hashtable.getPossibleCollisions(
         Edge(m_position, targetPoint), m_possibleCollisions);
-    if(m_possibleCollisions->empty())
+    if (m_possibleCollisions->empty())
     {
         return targetPoint;
     }
@@ -107,8 +152,8 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
         // value is constant for loop
         const auto posMinusTarget = m_position - targetPoint;
-        
-        for(auto&& indexedEdge : *m_possibleCollisions)
+
+        for (auto &&indexedEdge : *m_possibleCollisions)
         {
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
@@ -120,19 +165,19 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
             auto movementRatio =
                 -Vector2D::determinant(firstMinusSecond, firstMinusPos) /
                 divisor;
-            if(movementRatio < 0 || movementRatio > 1)
+            if (movementRatio < 0 || movementRatio > 1)
             {
                 continue;
             }
 
             auto edgeRatio =
                 Vector2D::determinant(firstMinusPos, posMinusTarget) / divisor;
-            if(edgeRatio < 0 || edgeRatio > 1)
+            if (edgeRatio < 0 || edgeRatio > 1)
             {
                 continue;
             }
 
-            if(!foundCollision || movementRatio < shortestMovementRatio)
+            if (!foundCollision || movementRatio < shortestMovementRatio)
             {
                 foundCollision = true;
                 shortestMovementRatio = movementRatio;
@@ -140,8 +185,8 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
                 closestEdgeFirstMinusSecond = firstMinusSecond;
             }
         }
-        
-        if(foundCollision)
+
+        if (foundCollision)
         {
             m_processingObstacleCollision = true;
 
@@ -151,8 +196,8 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
             auto resolveRatio =
                 -Vector2D::determinant(
                     closestEdgeFirstMinusSecond,
-                    closestEdgeFirst - targetPoint)
-                / Vector2D::determinant(
+                    closestEdgeFirst - targetPoint) /
+                Vector2D::determinant(
                     closestEdgeFirstMinusSecond,
                     perpendicular);
             auto resolveVec = perpendicular * resolveRatio;
@@ -180,7 +225,7 @@ void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points)
 void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 {
     auto it = m_obstacles.find(id);
-    if(it != m_obstacles.end())
+    if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
         m_obstacles.at(id).add(points);
@@ -197,16 +242,60 @@ void GodObject::removeObstacle(uint16_t id)
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
     auto it = m_obstacles.find(id);
-    if(it != m_obstacles.end())
+    if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
-        if(enable != it->second.enabled())
+        if (enable != it->second.enabled())
         {
-            const auto edges = it->second.getAnnotatedEdges();
+            const auto edges = it->second.getIndexedEdges();
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
-            for (const auto& edge : edges)
+            for (const auto &edge : edges)
             {
-                m_actionQueue.emplace_back(action, edge);
+                DPSerial::sendInstantDebugLog(
+                    "-> ie %p ob %p in %u",
+                    &edge,
+                    edge.m_obstacle,
+                    edge.m_index);
+                const auto ae = AnnotatedEdge(
+                    new IndexedEdge(edge.m_obstacle, edge.m_index),
+                    new Edge(edge.getEdge()));
+                DPSerial::sendInstantDebugLog(
+                    "ie %p",
+                    ae.m_indexedEdge);
+                DPSerial::sendInstantDebugLog(
+                    "ob %p",
+                    ae.m_indexedEdge->m_obstacle);
+                DPSerial::sendInstantDebugLog(
+                    "in %u",
+                    ae.m_indexedEdge->m_index);
+                m_actionQueue.emplace_back(
+                    action,
+                    std::move(ae));
+                DPSerial::sendInstantDebugLog(
+                    "ae %p",
+                    &(m_actionQueue.back()));
+                DPSerial::sendInstantDebugLog(
+                    "ie %p",
+                    m_actionQueue.back()
+                        .m_data
+                        .m_annotatedEdge
+                        .m_indexedEdge);
+                DPSerial::sendInstantDebugLog(
+                    "ob %p",
+                    m_actionQueue.back()
+                        .m_data
+                        .m_annotatedEdge
+                        .m_indexedEdge
+                        ->m_obstacle);
+                DPSerial::sendInstantDebugLog(
+                    "in %u",
+                    m_actionQueue.back()
+                        .m_data
+                        .m_annotatedEdge
+                        .m_indexedEdge
+                        ->m_index);
+                const auto& back = m_actionQueue.back();
+                print(back);
             }
         }
         it->second.enable(enable);

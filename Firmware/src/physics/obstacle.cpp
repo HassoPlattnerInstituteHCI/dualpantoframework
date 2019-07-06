@@ -14,7 +14,7 @@ void Obstacle::enable(bool enable)
     m_enabled = enable;
 }
 
-std::vector<AnnotatedEdge> Obstacle::getAnnotatedEdges(
+std::vector<IndexedEdge> Obstacle::getIndexedEdges(
     uint32_t first, uint32_t last
 )
 {
@@ -26,10 +26,10 @@ std::vector<AnnotatedEdge> Obstacle::getAnnotatedEdges(
     {
         last = m_points.size() - 1;
     }
-    std::vector<AnnotatedEdge> result;
+    std::vector<IndexedEdge> result;
     for(auto i = first; i <= last; ++i)
     {
-        result.emplace_back(this, i, getEdge(i));
+        result.emplace_back(this, i);
     }
     return result;
 }

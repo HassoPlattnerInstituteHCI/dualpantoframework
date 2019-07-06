@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <sstream>
 
+#include "physics/edge.hpp"
 #include "utils/assert.hpp"
 #include "utils/serial.hpp"
 #include "utils/utils.hpp"
@@ -101,8 +102,9 @@ Hashtable::Hashtable()
 
 void Hashtable::add(AnnotatedEdge edge)
 {
-    DPSerial::sendInstantDebugLog("%p", edge.m_indexedEdge);
-    DPSerial::sendInstantDebugLog("%p %u", edge.m_indexedEdge->m_obstacle, edge.m_indexedEdge->m_index);
+    DPSerial::sendInstantDebugLog("a %p", edge.m_indexedEdge);
+    DPSerial::sendInstantDebugLog("o %p", edge.m_indexedEdge->m_obstacle);
+    DPSerial::sendInstantDebugLog("i %u", edge.m_indexedEdge->m_index);
     for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
     {
         m_cells[cellIndex].emplace_back(

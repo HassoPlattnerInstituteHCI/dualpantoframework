@@ -12,7 +12,7 @@ struct GodObjectAction
         const GodObjectActionType type,
         const AnnotatedEdge& data)
         : m_type(type)
-        , m_data{.m_annotatedEdge = {data}} { };
+        , m_data{.m_annotatedEdge = {data.m_indexedEdge, data.m_edge}} { };
     GodObjectAction(
         const GodObjectActionType type,
         const uint16_t data)
