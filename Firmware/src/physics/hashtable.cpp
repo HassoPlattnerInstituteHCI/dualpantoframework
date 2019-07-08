@@ -102,9 +102,6 @@ Hashtable::Hashtable()
 
 void Hashtable::add(AnnotatedEdge* edge)
 {
-    // DPSerial::sendInstantDebugLog("a %p", edge->m_indexedEdge);
-    // DPSerial::sendInstantDebugLog("o %p", edge->m_indexedEdge->m_obstacle);
-    // DPSerial::sendInstantDebugLog("i %u", edge->m_indexedEdge->m_index);
     for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
     {
         m_cells[cellIndex].emplace_back(
