@@ -5,13 +5,6 @@
 #include "physics/edge.hpp"
 #include "physics/indexedEdge.hpp"
 
-// AnnotatedEdge::AnnotatedEdge(
-//     Obstacle* obstacle, uint32_t index, const Edge& edge)
-// : m_indexedEdge(new IndexedEdge(obstacle, index))
-// , m_edge(new Edge(edge))
-// {
-// }
-
 AnnotatedEdge::AnnotatedEdge(IndexedEdge* indexedEdge, Edge* edge)
 : m_indexedEdge{indexedEdge}
 , m_edge{edge}
