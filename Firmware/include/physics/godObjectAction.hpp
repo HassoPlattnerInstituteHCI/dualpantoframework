@@ -6,16 +6,16 @@
 
 struct GodObjectAction
 {
-    const GodObjectActionType m_type;
-    const GodObjectActionData m_data;
+    GodObjectActionType m_type;
+    GodObjectActionData m_data;
     GodObjectAction(
-        const GodObjectActionType type,
-        const AnnotatedEdge& data)
+        GodObjectActionType type,
+        AnnotatedEdge* data)
         : m_type(type)
-        , m_data{.m_annotatedEdge = {data.m_indexedEdge, data.m_edge}} { };
+        , m_data{.m_annotatedEdge = data} { };
     GodObjectAction(
-        const GodObjectActionType type,
-        const uint16_t data)
+        GodObjectActionType type,
+        uint16_t data)
         : m_type(type)
         // Intellisense might show an error here, but that's a bug.
         // https://github.com/Microsoft/vscode-cpptools/issues/3491

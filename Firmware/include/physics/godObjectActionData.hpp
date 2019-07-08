@@ -7,6 +7,6 @@
 
 union GodObjectActionData
 {
-    const AnnotatedEdge& m_annotatedEdge;
-    const uint16_t m_obstacleId;
+    AnnotatedEdge* m_annotatedEdge;
+    uint16_t m_obstacleId;
 };

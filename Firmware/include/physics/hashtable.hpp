@@ -19,8 +19,8 @@ private:
     std::vector<uint32_t> getCellIndices(Edge edge);
 public:
     Hashtable();
-    void add(AnnotatedEdge edge);
-    void remove(AnnotatedEdge edge);
+    void add(AnnotatedEdge* edge);
+    void remove(AnnotatedEdge* edge);
     void getPossibleCollisions(Edge movement, std::set<IndexedEdge>* result);
     void print();
 };

@@ -18,32 +18,32 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
-void print(const GodObjectAction& action)
-{
-    DPSerial::sendInstantDebugLog(
-                "ae %p",
-                &action);
-    DPSerial::sendInstantDebugLog(
-        "ie %p",
-        action
-            .m_data
-            .m_annotatedEdge
-            .m_indexedEdge);
-    DPSerial::sendInstantDebugLog(
-        "ob %p",
-        action
-            .m_data
-            .m_annotatedEdge
-            .m_indexedEdge
-            ->m_obstacle);
-    DPSerial::sendInstantDebugLog(
-        "in %u",
-        action
-            .m_data
-            .m_annotatedEdge
-            .m_indexedEdge
-            ->m_index);
-}
+// void print(const GodObjectAction* const action)
+// {
+//     DPSerial::sendInstantDebugLog(
+//                 "ae %p",
+//                 action);
+//     DPSerial::sendInstantDebugLog(
+//         "ie %p",
+//         action
+//             ->m_data
+//             .m_annotatedEdge
+//             ->m_indexedEdge);
+//     DPSerial::sendInstantDebugLog(
+//         "ob %p",
+//         action
+//             ->m_data
+//             .m_annotatedEdge
+//             ->m_indexedEdge
+//             ->m_obstacle);
+//     DPSerial::sendInstantDebugLog(
+//         "in %u",
+//         action
+//             ->m_data
+//             .m_annotatedEdge
+//             ->m_indexedEdge
+//             ->m_index);
+// }
 
 void GodObject::update()
 {
@@ -55,14 +55,14 @@ void GodObject::update()
     portENTER_CRITICAL(&m_obstacleMutex);
     for (auto i = 0; i < obstacleChangesPerFrame && !m_actionQueue.empty(); ++i)
     {
-        const auto &action = m_actionQueue.front();
+        auto action = m_actionQueue.front();
         m_actionQueue.pop_front();
-        DPSerial::sendInstantDebugLog("ty %u", action.m_type);
-        switch (action.m_type)
+        // DPSerial::sendInstantDebugLog("ty %u", action->m_type);
+        switch (action->m_type)
         {
         case HT_ENABLE_EDGE:
         {
-            print(action);
+            // print(action);
             // DPSerial::sendInstantDebugLog(
             //     "ae %10p ie %10p",
             //     &(action.m_data.m_annotatedEdge),
@@ -77,21 +77,21 @@ void GodObject::update()
             //     action.m_data.m_annotatedEdge.m_edge->m_first.y,
             //     action.m_data.m_annotatedEdge.m_edge->m_second.x,
             //     action.m_data.m_annotatedEdge.m_edge->m_second.y);
-            // m_hashtable.add(action.m_data.m_annotatedEdge);
+            m_hashtable.add(action->m_data.m_annotatedEdge);
             break;
         }
         case HT_DISABLE_EDGE:
         {
-            print(action);
-            // m_hashtable.remove(action.m_data.m_annotatedEdge);
+            // print(action);
+            m_hashtable.remove(action->m_data.m_annotatedEdge);
             break;
         }
         case GO_REMOVE_OBSTACLE:
         {
-            DPSerial::sendInstantDebugLog(
-                "id %5u",
-                action.m_data.m_obstacleId);
-            m_obstacles.erase(action.m_data.m_obstacleId);
+            // DPSerial::sendInstantDebugLog(
+            //     "id %5u",
+            //     action->m_data.m_obstacleId);
+            m_obstacles.erase(action->m_data.m_obstacleId);
             break;
         }
         default:
@@ -99,6 +99,7 @@ void GodObject::update()
             break;
         }
         }
+        delete action;
     }
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
@@ -236,7 +237,7 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 void GodObject::removeObstacle(uint16_t id)
 {
     enableObstacle(id, false);
-    m_actionQueue.emplace_back(GO_REMOVE_OBSTACLE, id);
+    m_actionQueue.push_back(new GodObjectAction(GO_REMOVE_OBSTACLE, id));
 }
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
@@ -251,51 +252,50 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
             for (const auto &edge : edges)
             {
-                DPSerial::sendInstantDebugLog(
-                    "-> ie %p ob %p in %u",
-                    &edge,
-                    edge.m_obstacle,
-                    edge.m_index);
-                const auto ae = AnnotatedEdge(
-                    new IndexedEdge(edge.m_obstacle, edge.m_index),
-                    new Edge(edge.getEdge()));
-                DPSerial::sendInstantDebugLog(
-                    "ie %p",
-                    ae.m_indexedEdge);
-                DPSerial::sendInstantDebugLog(
-                    "ob %p",
-                    ae.m_indexedEdge->m_obstacle);
-                DPSerial::sendInstantDebugLog(
-                    "in %u",
-                    ae.m_indexedEdge->m_index);
-                m_actionQueue.emplace_back(
+                // DPSerial::sendInstantDebugLog(
+                //     "-> ie %p ob %p in %u",
+                //     &edge,
+                //     edge.m_obstacle,
+                //     edge.m_index);
+                // DPSerial::sendInstantDebugLog(
+                //     "ie %p",
+                //     ae.m_indexedEdge);
+                // DPSerial::sendInstantDebugLog(
+                //     "ob %p",
+                //     ae.m_indexedEdge->m_obstacle);
+                // DPSerial::sendInstantDebugLog(
+                //     "in %u",
+                //     ae.m_indexedEdge->m_index);
+                m_actionQueue.push_back(new GodObjectAction(
                     action,
-                    std::move(ae));
-                DPSerial::sendInstantDebugLog(
-                    "ae %p",
-                    &(m_actionQueue.back()));
-                DPSerial::sendInstantDebugLog(
-                    "ie %p",
-                    m_actionQueue.back()
-                        .m_data
-                        .m_annotatedEdge
-                        .m_indexedEdge);
-                DPSerial::sendInstantDebugLog(
-                    "ob %p",
-                    m_actionQueue.back()
-                        .m_data
-                        .m_annotatedEdge
-                        .m_indexedEdge
-                        ->m_obstacle);
-                DPSerial::sendInstantDebugLog(
-                    "in %u",
-                    m_actionQueue.back()
-                        .m_data
-                        .m_annotatedEdge
-                        .m_indexedEdge
-                        ->m_index);
-                const auto& back = m_actionQueue.back();
-                print(back);
+                    new AnnotatedEdge(
+                        new IndexedEdge(edge.m_obstacle, edge.m_index),
+                        new Edge(edge.getEdge()))));
+                // DPSerial::sendInstantDebugLog(
+                //     "ae %p",
+                //     m_actionQueue.back());
+                // DPSerial::sendInstantDebugLog(
+                //     "ie %p",
+                //     m_actionQueue.back()
+                //         ->m_data
+                //         .m_annotatedEdge
+                //         ->m_indexedEdge);
+                // DPSerial::sendInstantDebugLog(
+                //     "ob %p",
+                //     m_actionQueue.back()
+                //         ->m_data
+                //         .m_annotatedEdge
+                //         ->m_indexedEdge
+                //         ->m_obstacle);
+                // DPSerial::sendInstantDebugLog(
+                //     "in %u",
+                //     m_actionQueue.back()
+                //         ->m_data
+                //         .m_annotatedEdge
+                //         ->m_indexedEdge
+                //         ->m_index);
+                // const auto& back = m_actionQueue.back();
+                // print(back);
             }
         }
         it->second.enable(enable);

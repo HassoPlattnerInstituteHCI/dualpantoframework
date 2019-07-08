@@ -28,4 +28,5 @@ void AnnotatedEdge::destroy()
 {
     delete m_indexedEdge;
     delete m_edge;
+    delete this;
 }

@@ -100,34 +100,34 @@ Hashtable::Hashtable()
         hashtableUsedMemory);
 }
 
-void Hashtable::add(AnnotatedEdge edge)
+void Hashtable::add(AnnotatedEdge* edge)
 {
-    DPSerial::sendInstantDebugLog("a %p", edge.m_indexedEdge);
-    DPSerial::sendInstantDebugLog("o %p", edge.m_indexedEdge->m_obstacle);
-    DPSerial::sendInstantDebugLog("i %u", edge.m_indexedEdge->m_index);
-    for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
+    // DPSerial::sendInstantDebugLog("a %p", edge->m_indexedEdge);
+    // DPSerial::sendInstantDebugLog("o %p", edge->m_indexedEdge->m_obstacle);
+    // DPSerial::sendInstantDebugLog("i %u", edge->m_indexedEdge->m_index);
+    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
     {
         m_cells[cellIndex].emplace_back(
-            edge.m_indexedEdge->m_obstacle, edge.m_indexedEdge->m_index);
+            edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
     }
-    edge.destroy();
+    edge->destroy();
 }
 
-void Hashtable::remove(AnnotatedEdge edge)
+void Hashtable::remove(AnnotatedEdge* edge)
 {
-    for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
+    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
     {
         auto& cell = m_cells[cellIndex];
         auto it = std::find(
             cell.begin(), 
             cell.end(), 
-            *(edge.m_indexedEdge));
+            *(edge->m_indexedEdge));
         if(it != cell.end())
         {
             cell.erase(it);
         }
     }
-    edge.destroy();
+    edge->destroy();
 }
 
 void Hashtable::getPossibleCollisions(
