@@ -1,4 +1,4 @@
-#include "node/node.hpp"
+#include "node.hpp"
 
 napi_value Node::receiveUInt8(napi_env env, uint16_t &offset)
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "serial/serial.hpp"
+#include "serial.hpp"
 
 class Standalone : public DPSerial
 {

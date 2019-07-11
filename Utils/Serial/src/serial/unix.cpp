@@ -1,4 +1,4 @@
-#include "serial/serial.hpp"
+#include "serial.hpp"
 
 #include <iostream>
 #include <sys/ioctl.h>

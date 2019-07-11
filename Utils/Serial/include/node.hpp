@@ -1,6 +1,6 @@
 #pragma once
 
-#include "serial/serial.hpp"
+#include "serial.hpp"
 
 #if __has_include("node_api.h")
 #include <node_api.h>

@@ -2,7 +2,7 @@
 #include <csignal>
 #include <iomanip>
 
-#include "standalone/standalone.hpp"
+#include "standalone.hpp"
 
 int main(int argc, char **argv)
 {

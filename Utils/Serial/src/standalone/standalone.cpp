@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "standalone/standalone.hpp"
+#include "standalone.hpp"
 
 void Standalone::terminate(int signal)
 {

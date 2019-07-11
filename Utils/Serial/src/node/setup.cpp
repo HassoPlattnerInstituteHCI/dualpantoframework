@@ -1,4 +1,4 @@
-#include "node/node.hpp"
+#include "node.hpp"
 
 napi_value Node::open(napi_env env, napi_callback_info info)
 {

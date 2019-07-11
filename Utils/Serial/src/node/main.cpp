@@ -1,4 +1,4 @@
-#include "node/node.hpp"
+#include "node.hpp"
 
 #define defFunc(name, ptr)                                             \
     if (napi_create_function(env, NULL, 0, ptr, NULL, &fn) != napi_ok) \

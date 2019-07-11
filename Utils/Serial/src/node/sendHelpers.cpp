@@ -1,4 +1,4 @@
-#include "node/node.hpp"
+#include "node.hpp"
 
 void Node::sendUInt8(napi_env env, napi_value value, uint16_t &offset)
 {
