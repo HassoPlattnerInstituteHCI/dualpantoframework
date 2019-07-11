@@ -2,7 +2,12 @@
     "targets": [{
         "target_name": "serial",
         "sources": [
-            "./Utils/Serial/src/node/node.cpp",
+            "./Utils/Serial/src/node/main.cpp",
+            "./Utils/Serial/src/node/setup.cpp",
+            "./Utils/Serial/src/node/poll.cpp",
+            "./Utils/Serial/src/node/send.cpp",
+            "./Utils/Serial/src/node/receiveHelpers.cpp",
+            "./Utils/Serial/src/node/sendHelpers.cpp",
             "./Utils/Serial/src/serial/shared.cpp",
             "./Protocol/src/protocol/protocol.cpp"
         ],
