@@ -1,4 +1,4 @@
-#include "serial.hpp"
+#include "serial/serial.hpp"
 
 uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
