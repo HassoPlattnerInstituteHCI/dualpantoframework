@@ -1,90 +1,92 @@
-#include "api/node.hpp"
+#include "node/node.hpp"
 
-napi_value Node::nodeReceiveUInt8(napi_env env, uint16_t &offset)
+#include <iostream>
+
+napi_value Node::receiveUInt8(napi_env env, uint16_t &offset)
 {
     napi_value result;
-    napi_create_uint32(env, receiveUInt8(offset), &result);
+    napi_create_uint32(env, DPSerial::receiveUInt8(offset), &result);
     return result;
 }
 
-napi_value Node::nodeReceiveInt16(napi_env env, uint16_t &offset)
+napi_value Node::receiveInt16(napi_env env, uint16_t &offset)
 {
     napi_value result;
-    napi_create_int32(env, receiveInt16(offset), &result);
+    napi_create_int32(env, DPSerial::receiveInt16(offset), &result);
     return result;
 }
 
-napi_value Node::nodeReceiveUInt16(napi_env env, uint16_t &offset)
+napi_value Node::receiveUInt16(napi_env env, uint16_t &offset)
 {
     napi_value result;
-    napi_create_uint32(env, receiveUInt16(offset), &result);
+    napi_create_uint32(env, DPSerial::receiveUInt16(offset), &result);
     return result;
 }
 
-napi_value Node::nodeReceiveInt32(napi_env env, uint16_t &offset)
+napi_value Node::receiveInt32(napi_env env, uint16_t &offset)
 {
     napi_value result;
-    napi_create_int32(env, receiveInt32(offset), &result);
+    napi_create_int32(env, DPSerial::receiveInt32(offset), &result);
     return result;
 }
 
-napi_value Node::nodeReceiveUInt32(napi_env env, uint16_t &offset)
+napi_value Node::receiveUInt32(napi_env env, uint16_t &offset)
 {
     napi_value result;
-    napi_create_uint32(env, receiveUInt32(offset), &result);
+    napi_create_uint32(env, DPSerial::receiveUInt32(offset), &result);
     return result;
 }
 
-napi_value Node::nodeReceiveFloat(napi_env env, uint16_t &offset)
+napi_value Node::receiveFloat(napi_env env, uint16_t &offset)
 {
     napi_value result;
-    napi_create_double(env, receiveFloat(offset), &result);
+    napi_create_double(env, DPSerial::receiveFloat(offset), &result);
     return result;
 }
 
-void Node::nodeSendUInt8(napi_env env, napi_value value, uint16_t &offset)
+void Node::sendUInt8(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
-    sendUInt8(static_cast<uint8_t>(temp), offset);
+    DPSerial::sendUInt8(static_cast<uint8_t>(temp), offset);
 }
 
-void Node::nodeSendInt16(napi_env env, napi_value value, uint16_t &offset)
+void Node::sendInt16(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
-    sendInt16(static_cast<int16_t>(temp), offset);
+    DPSerial::sendInt16(static_cast<int16_t>(temp), offset);
 }
 
-void Node::nodeSendUInt16(napi_env env, napi_value value, uint16_t &offset)
+void Node::sendUInt16(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
-    sendUInt16(static_cast<uint16_t>(temp), offset);
+    DPSerial::sendUInt16(static_cast<uint16_t>(temp), offset);
 }
 
-void Node::nodeSendInt32(napi_env env, napi_value value, uint16_t &offset)
+void Node::sendInt32(napi_env env, napi_value value, uint16_t &offset)
 {
     int32_t temp;
     napi_get_value_int32(env, value, &temp);
-    sendInt32(temp, offset);
+    DPSerial::sendInt32(temp, offset);
 }
 
-void Node::nodeSendUInt32(napi_env env, napi_value value, uint16_t &offset)
+void Node::sendUInt32(napi_env env, napi_value value, uint16_t &offset)
 {
     uint32_t temp;
     napi_get_value_uint32(env, value, &temp);
-    sendUInt32(temp, offset);
+    DPSerial::sendUInt32(temp, offset);
 }
 
-void Node::nodeSendFloat(napi_env env, napi_value value, uint16_t &offset)
+void Node::sendFloat(napi_env env, napi_value value, uint16_t &offset)
 {
     double temp;
     napi_get_value_double(env, value, &temp);
-    sendFloat(static_cast<float>(temp), offset);
+    DPSerial::sendFloat(static_cast<float>(temp), offset);
 }
 
-napi_value DPSerial::nodeOpen(napi_env env, napi_callback_info info)
+napi_value Node::open(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value argv[1];
@@ -104,7 +106,7 @@ napi_value DPSerial::nodeOpen(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value DPSerial::nodeClose(napi_env env, napi_callback_info info)
+napi_value Node::close(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value argv[1];
@@ -117,7 +119,7 @@ napi_value DPSerial::nodeClose(napi_env env, napi_callback_info info)
     return NULL;
 }
 
-napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
+napi_value Node::poll(napi_env env, napi_callback_info info)
 {
     // argv[0]: handle
     // argv[1]: device
@@ -154,7 +156,7 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
         {
         case SYNC:
         {
-            auto receivedRevision = receiveUInt32(offset);
+            auto receivedRevision = DPSerial::receiveUInt32(offset);
             if (receivedRevision == c_revision)
             {
                 receivedSync = true;
@@ -175,7 +177,7 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
             while (offset < s_header.PayloadSize)
             {
                 uint8_t index = offset / 4;
-                positionCoords[index] = receiveFloat(offset);
+                positionCoords[index] = DPSerial::receiveFloat(offset);
             }
             break;
         case DEBUG_LOG:
@@ -235,7 +237,7 @@ napi_value DPSerial::nodePoll(napi_env env, napi_callback_info info)
     return NULL;
 }
 
-napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
+napi_value Node::send(napi_env env, napi_callback_info info)
 {
     size_t argc = 3;
     napi_value argv[3];
@@ -267,19 +269,19 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         // control method
         napi_get_element(env, argv[2], index++, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
         // panto index
         napi_get_element(env, argv[2], index++, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
         // position
         while (index < 5)
         {
             napi_get_element(env, argv[2], index++, &tempNapiValue);
             napi_get_value_double(env, tempNapiValue, &tempDouble);
-            sendFloat(static_cast<float>(tempDouble), offset);
+            DPSerial::sendFloat(static_cast<float>(tempDouble), offset);
         }
         break;
     }
@@ -292,7 +294,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         napi_create_string_utf8(env, "motorIndex", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
         napi_create_string_utf8(env, "pid", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
@@ -302,7 +304,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         {
             napi_get_element(env, tempNapiValue, i, &pidNapiValue);
             napi_get_value_double(env, pidNapiValue, &pidDouble);
-            sendFloat(static_cast<float>(pidDouble), offset);
+            DPSerial::sendFloat(static_cast<float>(pidDouble), offset);
         }
         break;
     }
@@ -316,12 +318,12 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
         napi_create_string_utf8(env, "id", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
+        DPSerial::sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
 
         napi_create_string_utf8(env, "posArray", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
@@ -333,7 +335,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         {
             napi_get_element(env, tempNapiValue, i, &posNapiValue);
             napi_get_value_double(env, posNapiValue, &posDouble);
-            sendFloat(static_cast<float>(posDouble), offset);
+            DPSerial::sendFloat(static_cast<float>(posDouble), offset);
         }
         break;
     }
@@ -348,12 +350,12 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
 
         napi_create_string_utf8(env, "id", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
+        DPSerial::sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
         break;
     }
     case DUMP_HASHTABLE:
@@ -365,7 +367,7 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
         napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
         napi_get_property(env, argv[2], propertyName, &tempNapiValue);
         napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
-        sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
         break;
     }
     default:
@@ -406,10 +408,10 @@ napi_value DPSerial::nodeSend(napi_env env, napi_callback_info info)
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_value fn;
-    defFunc("open", DPSerial::nodeOpen);
-    defFunc("close", DPSerial::nodeClose);
-    defFunc("poll", DPSerial::nodePoll);
-    defFunc("send", DPSerial::nodeSend);
+    defFunc("open", Node::open);
+    defFunc("close", Node::close);
+    defFunc("poll", Node::poll);
+    defFunc("send", Node::send);
     return exports;
 }
 

@@ -11,21 +11,26 @@
     if (code != napi_ok) \
         std::cerr << "NOT OK: " << __FILE__ << ":" << __LINE__ << std::endl;
 
-static napi_value nodeReceiveUInt8(napi_env env, uint16_t &offset);
-static napi_value nodeReceiveInt16(napi_env env, uint16_t &offset);
-static napi_value nodeReceiveUInt16(napi_env env, uint16_t &offset);
-static napi_value nodeReceiveInt32(napi_env env, uint16_t &offset);
-static napi_value nodeReceiveUInt32(napi_env env, uint16_t &offset);
-static napi_value nodeReceiveFloat(napi_env env, uint16_t &offset);
+class Node : public DPSerial
+{
+private:
+    static napi_value receiveUInt8(napi_env env, uint16_t &offset);
+    static napi_value receiveInt16(napi_env env, uint16_t &offset);
+    static napi_value receiveUInt16(napi_env env, uint16_t &offset);
+    static napi_value receiveInt32(napi_env env, uint16_t &offset);
+    static napi_value receiveUInt32(napi_env env, uint16_t &offset);
+    static napi_value receiveFloat(napi_env env, uint16_t &offset);
 
-static void nodeSendUInt8(napi_env env, napi_value value, uint16_t &offset);
-static void nodeSendInt16(napi_env env, napi_value value, uint16_t &offset);
-static void nodeSendUInt16(napi_env env, napi_value value, uint16_t &offset);
-static void nodeSendInt32(napi_env env, napi_value value, uint16_t &offset);
-static void nodeSendUInt32(napi_env env, napi_value value, uint16_t &offset);
-static void nodeSendFloat(napi_env env, napi_value value, uint16_t &offset);
+    static void sendUInt8(napi_env env, napi_value value, uint16_t &offset);
+    static void sendInt16(napi_env env, napi_value value, uint16_t &offset);
+    static void sendUInt16(napi_env env, napi_value value, uint16_t &offset);
+    static void sendInt32(napi_env env, napi_value value, uint16_t &offset);
+    static void sendUInt32(napi_env env, napi_value value, uint16_t &offset);
+    static void sendFloat(napi_env env, napi_value value, uint16_t &offset);
 
-static napi_value nodeOpen(napi_env env, napi_callback_info info);
-static napi_value nodeClose(napi_env env, napi_callback_info info);
-static napi_value nodePoll(napi_env env, napi_callback_info info);
-static napi_value nodeSend(napi_env env, napi_callback_info info);
+public:
+    static napi_value open(napi_env env, napi_callback_info info);
+    static napi_value close(napi_env env, napi_callback_info info);
+    static napi_value poll(napi_env env, napi_callback_info info);
+    static napi_value send(napi_env env, napi_callback_info info);
+};
