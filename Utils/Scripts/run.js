@@ -22,7 +22,17 @@ const buildHandlers = {
   },
   'serial-standalone': () => {
     // eslint-disable-next-line max-len
-    return exec(cppExec, cppArgs.concat(['Utils/Serial/serial.cpp', 'Protocol/src/protocol/protocol.cpp', '-IProtocol/include', '-o Utils/Serial/serial']));
+    return exec(cppExec, cppArgs.concat([
+      'Utils/Serial/src/standalone/main.cpp',
+      'Utils/Serial/src/standalone/standalone.cpp',
+      'Utils/Serial/src/serial/shared.cpp',
+      process.platform == 'win32' ?
+        'Utils/Serial/src/serial/win.cpp' :
+        'Utils/Serial/src/serial/unix.cpp',
+      'Protocol/src/protocol/protocol.cpp',
+      '-IUtils/Serial/include',
+      '-IProtocol/include',
+      '-o Utils/Serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])

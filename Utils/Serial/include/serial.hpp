@@ -1,25 +1,40 @@
 #pragma once
 
+#include <string>
+
 #include <protocol/header.hpp>
 #include <protocol/messageType.hpp>
 #include <protocol/protocol.hpp>
 
-class DPSerial : DPProtocol
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+#include <Windows.h>
+#define FILEHANDLE HANDLE
+#else
+#include <cstring>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+#define FILEHANDLE FILE *
+#endif
+
+class DPSerial : public DPProtocol
 {
-private:
+protected:
     static std::string s_path;
     static uint8_t s_headerBuffer[c_headerSize];
     static Header s_header;
     static const uint32_t c_packetSize = 0xFF;
     static uint8_t s_packetBuffer[c_packetSize];
     static FILEHANDLE s_handle;
+    static void tearDown();
+    
+    static void receivePacket();
 
-    static void write(uint8_t* data, uint32_t length);
+    static void write(const uint8_t* const data, const uint32_t length);
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
-    static void tearDown();
     static bool readBytesFromSerial(void *target, uint32_t length);
-    static void receivePacket();
     static void sendPacket();
 
     static uint8_t receiveUInt8(uint16_t &offset);
@@ -38,8 +53,7 @@ private:
 
 public:
     static bool setup(std::string path);
-    static void terminate(int signal);
 
     static void dumpBuffers();
     static void dumpBuffersToFile();
-}
+};

@@ -1,4 +1,6 @@
-#include "os/unix.hpp"
+#include "serial.hpp"
+
+#include <sys/ioctl.h>
 
 uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
@@ -37,7 +39,7 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
     return valid;
 }
 
-void DPSerial::write(uint8_t* data, uint32_t length)
+void DPSerial::write(const uint8_t* const data, const uint32_t length)
 {
     write(fileno(s_handle), data, length);
 }

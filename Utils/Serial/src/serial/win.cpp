@@ -1,4 +1,4 @@
-#include "os/win.hpp"
+#include "serial.hpp"
 
 uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
@@ -23,7 +23,7 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
     return bytesRead == length;
 }
 
-void DPSerial::write(uint8_t* data, uint32_t length)
+void DPSerial::write(const uint8_t* const data, const uint32_t length)
 {
     DWORD bytesWritten = 0;
     WriteFile(s_handle, data, length, &bytesWritten, NULL);
