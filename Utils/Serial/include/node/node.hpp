@@ -11,6 +11,9 @@
     if (code != napi_ok) \
         std::cerr << "NOT OK: " << __FILE__ << ":" << __LINE__ << std::endl;
 
+// enable for debugging
+// #define DEBUG_LOGGING
+
 class Node : public DPSerial
 {
 private:
