@@ -29,7 +29,7 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
     {
         receivePacket();
 
-        if(s_header.PayloadSize > c_maxPayloadSize)
+        if (s_header.PayloadSize > c_maxPayloadSize)
         {
             continue;
         }

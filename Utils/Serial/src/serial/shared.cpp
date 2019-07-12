@@ -61,7 +61,7 @@ uint8_t DPSerial::receiveUInt8(uint16_t& offset)
 int16_t DPSerial::receiveInt16(uint16_t& offset)
 {
     uint8_t temp[2];
-    for(auto i = 0; i < 2; ++i)
+    for (auto i = 0; i < 2; ++i)
     {
         temp[i] = s_packetBuffer[offset + i];
     }
@@ -78,7 +78,7 @@ uint16_t DPSerial::receiveUInt16(uint16_t& offset)
 int32_t DPSerial::receiveInt32(uint16_t& offset)
 {
     uint8_t temp[4];
-    for(auto i = 0; i < 4; ++i)
+    for (auto i = 0; i < 4; ++i)
     {
         temp[i] = s_packetBuffer[offset + i];
     }
@@ -139,10 +139,10 @@ void dumpBuffer(uint8_t* begin, uint32_t size)
 
     std::cout << std::hex << std::uppercase << std::setfill('0');
 
-    while(index < size)
+    while (index < size)
     {
         std::cout << "0x" << std::setw(8) << index << " |";
-        for(auto i = 0u; i < bytesPerLine && index + i < size; ++i)
+        for (auto i = 0u; i < bytesPerLine && index + i < size; ++i)
         {
             std::cout << " " << std::setw(2) << (int)begin[index + i];
         }

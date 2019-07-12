@@ -22,7 +22,7 @@ bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
 {
     const uint32_t result = fread(target, 1, length, s_handle);
     const bool valid = result == length;
-    if(!valid)
+    if (!valid)
     {
         if (feof(s_handle))
         {
