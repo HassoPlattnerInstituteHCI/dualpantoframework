@@ -107,7 +107,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
         // value is constant for loop
         const auto posMinusTarget = m_position - targetPoint;
 
-        for (auto &&indexedEdge : *m_possibleCollisions)
+        for (auto&& indexedEdge : *m_possibleCollisions)
         {
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
@@ -203,7 +203,7 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         {
             const auto edges = it->second.getIndexedEdges();
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
-            for (const auto &edge : edges)
+            for (const auto& edge : edges)
             {
                 m_actionQueue.push_back(new GodObjectAction(
                     action,

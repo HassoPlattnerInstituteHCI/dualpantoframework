@@ -11,8 +11,8 @@ struct Vector2D
     static double determinant(const Vector2D& first, const Vector2D& second);
     double length() const;
     double angle() const;
-    Vector2D operator+(const Vector2D &other) const;
-    Vector2D operator-(const Vector2D &other) const;
-    double operator*(const Vector2D &other) const;
+    Vector2D operator+(const Vector2D& other) const;
+    Vector2D operator-(const Vector2D& other) const;
+    double operator*(const Vector2D& other) const;
     Vector2D operator*(const double scale) const;
 };

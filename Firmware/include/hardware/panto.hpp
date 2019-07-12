@@ -52,7 +52,7 @@ private:
     #ifdef LINKAGE_ENCODER_USE_SPI
     AngleAccessor m_angleAccessors[2];
     #endif
-    Encoder *m_encoder[c_dofCount];
+    Encoder* m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];

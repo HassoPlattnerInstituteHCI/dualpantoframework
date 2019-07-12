@@ -10,9 +10,9 @@
 std::map<TaskHandle_t, uint32_t> Task::s_fpsMap;
 FramerateLimiter loggingLimiter = FramerateLimiter::fromSeconds(1);
 
-void Task::taskLoop(void *parameters)
+void Task::taskLoop(void* parameters)
 {
-    Task *task = reinterpret_cast<Task *>(parameters);
+    Task* task = reinterpret_cast<Task*>(parameters);
 
 #ifdef ENABLE_FPS
     task->initFps();
@@ -72,7 +72,7 @@ inline void Task::checkFps()
 Task::Task(
         TaskFunction setupFunc,
         TaskFunction loopFunc,
-        const char *name,
+        const char* name,
         int core)
     : m_setupFunc(setupFunc),
       m_loopFunc(loopFunc),
