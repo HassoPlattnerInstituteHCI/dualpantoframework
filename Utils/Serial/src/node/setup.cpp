@@ -28,7 +28,7 @@ napi_value Node::close(napi_env env, napi_callback_info info)
     {
         napi_throw_error(env, NULL, "Failed to parse arguments");
     }
-    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
+    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t*>(&s_handle));
     tearDown();
     return NULL;
 }

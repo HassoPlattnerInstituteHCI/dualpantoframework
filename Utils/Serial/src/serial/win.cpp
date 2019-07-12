@@ -16,7 +16,7 @@ void DPSerial::tearDown()
     CloseHandle(s_handle);
 }
 
-bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
+bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
 {
     DWORD bytesRead;
     ReadFile(s_handle, target, length, &bytesRead, NULL);

@@ -18,7 +18,7 @@ void DPSerial::tearDown()
     fclose(s_handle);
 }
 
-bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
+bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
 {
     const uint32_t result = fread(target, 1, length, s_handle);
     const bool valid = result == length;

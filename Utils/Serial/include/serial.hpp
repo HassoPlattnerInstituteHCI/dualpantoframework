@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-#define FILEHANDLE FILE *
+#define FILEHANDLE FILE*
 #endif
 
 class DPSerial : public DPProtocol
@@ -34,22 +34,22 @@ protected:
     static void write(const uint8_t* const data, const uint32_t length);
 
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
-    static bool readBytesFromSerial(void *target, uint32_t length);
+    static bool readBytesFromSerial(void* target, uint32_t length);
     static void sendPacket();
 
-    static uint8_t receiveUInt8(uint16_t &offset);
-    static int16_t receiveInt16(uint16_t &offset);
-    static uint16_t receiveUInt16(uint16_t &offset);
-    static int32_t receiveInt32(uint16_t &offset);
-    static uint32_t receiveUInt32(uint16_t &offset);
-    static float receiveFloat(uint16_t &offset);
+    static uint8_t receiveUInt8(uint16_t& offset);
+    static int16_t receiveInt16(uint16_t& offset);
+    static uint16_t receiveUInt16(uint16_t& offset);
+    static int32_t receiveInt32(uint16_t& offset);
+    static uint32_t receiveUInt32(uint16_t& offset);
+    static float receiveFloat(uint16_t& offset);
 
-    static void sendUInt8(uint8_t value, uint16_t &offset);
-    static void sendInt16(int16_t value, uint16_t &offset);
-    static void sendUInt16(uint16_t value, uint16_t &offset);
-    static void sendInt32(int32_t value, uint16_t &offset);
-    static void sendUInt32(uint32_t value, uint16_t &offset);
-    static void sendFloat(float value, uint16_t &offset);
+    static void sendUInt8(uint8_t value, uint16_t& offset);
+    static void sendInt16(int16_t value, uint16_t& offset);
+    static void sendUInt16(uint16_t value, uint16_t& offset);
+    static void sendInt32(int32_t value, uint16_t& offset);
+    static void sendUInt32(uint32_t value, uint16_t& offset);
+    static void sendFloat(float value, uint16_t& offset);
 
 public:
     static bool setup(std::string path);

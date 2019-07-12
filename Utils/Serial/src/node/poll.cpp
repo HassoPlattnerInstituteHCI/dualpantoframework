@@ -17,7 +17,7 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
     {
         napi_throw_error(env, NULL, "Failed to parse arguments");
     }
-    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
+    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t*>(&s_handle));
 
     // only keep binary state for packages where only the newest counts
     bool receivedSync = false;

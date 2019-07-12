@@ -53,12 +53,12 @@ void DPSerial::sendPacket()
     write(s_packetBuffer, s_header.PayloadSize);
 }
 
-uint8_t DPSerial::receiveUInt8(uint16_t &offset)
+uint8_t DPSerial::receiveUInt8(uint16_t& offset)
 {
     return s_packetBuffer[offset++];
 }
 
-int16_t DPSerial::receiveInt16(uint16_t &offset)
+int16_t DPSerial::receiveInt16(uint16_t& offset)
 {
     uint8_t temp[2];
     for(auto i = 0; i < 2; ++i)
@@ -69,13 +69,13 @@ int16_t DPSerial::receiveInt16(uint16_t &offset)
     return temp[0] << 8 | temp[1];
 }
 
-uint16_t DPSerial::receiveUInt16(uint16_t &offset)
+uint16_t DPSerial::receiveUInt16(uint16_t& offset)
 {
     auto temp = receiveInt16(offset);
-    return *reinterpret_cast<uint16_t *>(&temp);
+    return *reinterpret_cast<uint16_t*>(&temp);
 }
 
-int32_t DPSerial::receiveInt32(uint16_t &offset)
+int32_t DPSerial::receiveInt32(uint16_t& offset)
 {
     uint8_t temp[4];
     for(auto i = 0; i < 4; ++i)
@@ -86,35 +86,35 @@ int32_t DPSerial::receiveInt32(uint16_t &offset)
     return temp[0] << 24 | temp[1] << 16 | temp[2] << 8 | temp[3];
 }
 
-uint32_t DPSerial::receiveUInt32(uint16_t &offset)
+uint32_t DPSerial::receiveUInt32(uint16_t& offset)
 {
     auto temp = receiveInt32(offset);
-    return *reinterpret_cast<uint32_t *>(&temp);
+    return *reinterpret_cast<uint32_t*>(&temp);
 }
 
-float DPSerial::receiveFloat(uint16_t &offset)
+float DPSerial::receiveFloat(uint16_t& offset)
 {
     auto temp = receiveInt32(offset);
-    return *reinterpret_cast<float *>(&temp);
+    return *reinterpret_cast<float*>(&temp);
 }
 
-void DPSerial::sendUInt8(uint8_t value, uint16_t &offset)
+void DPSerial::sendUInt8(uint8_t value, uint16_t& offset)
 {
     s_packetBuffer[offset++] = value;
 }
 
-void DPSerial::sendInt16(int16_t value, uint16_t &offset)
+void DPSerial::sendInt16(int16_t value, uint16_t& offset)
 {
     s_packetBuffer[offset++] = value >> 8;
     s_packetBuffer[offset++] = value & 255;
 }
 
-void DPSerial::sendUInt16(uint16_t value, uint16_t &offset)
+void DPSerial::sendUInt16(uint16_t value, uint16_t& offset)
 {
-    sendInt16(*reinterpret_cast<int16_t *>(&value), offset);
+    sendInt16(*reinterpret_cast<int16_t*>(&value), offset);
 }
 
-void DPSerial::sendInt32(int32_t value, uint16_t &offset)
+void DPSerial::sendInt32(int32_t value, uint16_t& offset)
 {
     s_packetBuffer[offset++] = value >> 24;
     s_packetBuffer[offset++] = (value >> 16) & 255;
@@ -122,14 +122,14 @@ void DPSerial::sendInt32(int32_t value, uint16_t &offset)
     s_packetBuffer[offset++] = value & 255;
 }
 
-void DPSerial::sendUInt32(uint32_t value, uint16_t &offset)
+void DPSerial::sendUInt32(uint32_t value, uint16_t& offset)
 {
-    sendInt32(*reinterpret_cast<int32_t *>(&value), offset);
+    sendInt32(*reinterpret_cast<int32_t*>(&value), offset);
 }
 
-void DPSerial::sendFloat(float value, uint16_t &offset)
+void DPSerial::sendFloat(float value, uint16_t& offset)
 {
-    sendInt32(*reinterpret_cast<int32_t *>(&value), offset);
+    sendInt32(*reinterpret_cast<int32_t*>(&value), offset);
 }
 
 void dumpBuffer(uint8_t* begin, uint32_t size)
@@ -163,7 +163,7 @@ void dumpBufferToFile(uint8_t* begin, uint32_t size, std::string file)
 {
     std::ofstream out;
     out.open(file, std::ios::out | std::ios::binary);
-    out.write(reinterpret_cast<char *>(begin), size);
+    out.write(reinterpret_cast<char*>(begin), size);
 }
 
 void DPSerial::dumpBuffersToFile()
