@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <sstream>
 
+#include "physics/edge.hpp"
 #include "utils/assert.hpp"
 #include "utils/serial.hpp"
 #include "utils/utils.hpp"
@@ -73,35 +74,6 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     return result;
 }
 
-void Hashtable::add(AnnotatedEdge edge)
-{
-    for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
-    {
-        m_cells[cellIndex].emplace_back(
-            edge.m_indexedEdge->m_obstacle, edge.m_indexedEdge->m_index);
-    }
-    edge.destroy();
-}
-
-void Hashtable::remove(AnnotatedEdge edge)
-{
-    for(auto&& cellIndex : getCellIndices(*(edge.m_edge)))
-    {
-        auto& cell = m_cells[cellIndex];
-        auto it = std::find(
-            cell.begin(), 
-            cell.end(), 
-            IndexedEdge{
-                edge.m_indexedEdge->m_obstacle,
-                edge.m_indexedEdge->m_index});
-        if(it != cell.end())
-        {
-            cell.erase(it);
-        }
-    }
-    edge.destroy();
-}
-
 Hashtable::Hashtable()
 {
     DPSerial::sendQueuedDebugLog(
@@ -128,39 +100,31 @@ Hashtable::Hashtable()
         hashtableUsedMemory);
 }
 
-void Hashtable::add(const std::vector<AnnotatedEdge>& elements)
+void Hashtable::add(AnnotatedEdge* edge)
 {
-    m_addQueue.insert(m_addQueue.end(), elements.begin(), elements.end());
+    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
+    {
+        m_cells[cellIndex].emplace_back(
+            edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
+    }
+    edge->destroy();
 }
 
-void Hashtable::remove(const std::vector<AnnotatedEdge>& elements)
+void Hashtable::remove(AnnotatedEdge* edge)
 {
-    m_removeQueue.insert(m_removeQueue.end(), elements.begin(), elements.end());
-}
-
-void Hashtable::processQueues()
-{
-    // quick check to avoid loop if not necessary
-    if(m_addQueue.empty() && m_removeQueue.empty())
+    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
     {
-        return;
-    }
-
-    for(auto i = 0; i < hashtableProcessedEntriesPerFrame; ++i)
-    {
-        if(!m_addQueue.empty())
+        auto& cell = m_cells[cellIndex];
+        auto it = std::find(
+            cell.begin(), 
+            cell.end(), 
+            *(edge->m_indexedEdge));
+        if(it != cell.end())
         {
-            auto edge = m_addQueue.front();
-            m_addQueue.pop_front();
-            add(edge);
-        }
-        if(!m_removeQueue.empty())
-        {
-            auto edge = m_removeQueue.front();
-            m_removeQueue.pop_front();
-            remove(edge);
+            cell.erase(it);
         }
     }
+    edge->destroy();
 }
 
 void Hashtable::getPossibleCollisions(

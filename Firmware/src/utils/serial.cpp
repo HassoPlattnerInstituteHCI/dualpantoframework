@@ -45,7 +45,7 @@ void DPSerial::sendInt16(int16_t data)
 
 void DPSerial::sendUInt16(uint16_t data)
 {
-    sendInt16(reinterpret_cast<int16_t &>(data));
+    sendInt16(reinterpret_cast<int16_t&>(data));
 }
 
 void DPSerial::sendInt32(int32_t data)
@@ -58,14 +58,14 @@ void DPSerial::sendInt32(int32_t data)
 
 void DPSerial::sendUInt32(uint32_t data)
 {
-    sendInt32(reinterpret_cast<int32_t &>(data));
+    sendInt32(reinterpret_cast<int32_t&>(data));
 }
 
 void DPSerial::sendFloat(float data)
 {
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-    sendInt32(reinterpret_cast<int32_t &>(data));
+    sendInt32(reinterpret_cast<int32_t&>(data));
     #pragma GCC diagnostic pop
 }
 
@@ -123,7 +123,7 @@ int16_t DPSerial::receiveInt16()
 uint16_t DPSerial::receiveUInt16()
 {
     auto temp = receiveInt16();
-    return reinterpret_cast<uint16_t &>(temp);
+    return reinterpret_cast<uint16_t&>(temp);
 }
 
 int32_t DPSerial::receiveInt32()
@@ -134,7 +134,7 @@ int32_t DPSerial::receiveInt32()
 uint32_t DPSerial::receiveUInt32()
 {
     auto temp = receiveInt32();
-    return reinterpret_cast<uint32_t &>(temp);
+    return reinterpret_cast<uint32_t&>(temp);
 }
 
 float DPSerial::receiveFloat()
@@ -142,7 +142,7 @@ float DPSerial::receiveFloat()
     auto temp = receiveInt32();
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-    return reinterpret_cast<float &>(temp);
+    return reinterpret_cast<float&>(temp);
     #pragma GCC diagnostic pop
 }
 
@@ -394,12 +394,12 @@ void DPSerial::sendPosition()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendInstantDebugLog(const char *message, ...)
+void DPSerial::sendInstantDebugLog(const char* message, ...)
 {
     portENTER_CRITICAL(&s_serialMutex);
     va_list args;
     va_start(args, message);
-    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
     sendMagicNumber();
@@ -408,15 +408,15 @@ void DPSerial::sendInstantDebugLog(const char *message, ...)
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendQueuedDebugLog(const char *message, ...)
+void DPSerial::sendQueuedDebugLog(const char* message, ...)
 {
     portENTER_CRITICAL(&s_serialMutex);
     va_list args;
     va_start(args, message);
-    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
-    s_debugLogQueue.emplace(reinterpret_cast<char *>(s_debugLogBuffer), length);
+    s_debugLogQueue.emplace(reinterpret_cast<char*>(s_debugLogBuffer), length);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
@@ -435,7 +435,7 @@ void DPSerial::processDebugLogQueue()
                 sendMagicNumber();
                 sendHeader(DEBUG_LOG, length);
                 Serial.write(
-                    reinterpret_cast<const uint8_t *>(msg.c_str()),
+                    reinterpret_cast<const uint8_t*>(msg.c_str()),
                     length);
                 s_debugLogQueue.pop();
             }

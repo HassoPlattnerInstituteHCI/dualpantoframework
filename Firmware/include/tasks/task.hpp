@@ -17,14 +17,14 @@ private:
     // task data
     TaskFunction m_setupFunc;
     TaskFunction m_loopFunc;
-    const char *m_name;
+    const char* m_name;
     uint32_t m_stackDepth;
     uint32_t m_priority;
     TaskHandle_t m_handle;
     int m_core;
 
     // task function
-    static void taskLoop(void *parameters);
+    static void taskLoop(void* parameters);
 
     // fps counter data
     uint32_t m_fpsInterval;
@@ -40,7 +40,7 @@ public:
     Task(
         TaskFunction setupFunc,
         TaskFunction loopFunc,
-        const char *name,
+        const char* name,
         int core);
     void run();
     void setLogFps(bool logFps = true);

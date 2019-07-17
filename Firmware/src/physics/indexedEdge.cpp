@@ -19,3 +19,8 @@ bool IndexedEdge::operator<(const IndexedEdge& other) const
         m_index < other.m_index :
         m_obstacle < other.m_obstacle;
 }
+
+Edge IndexedEdge::getEdge() const
+{
+    return m_obstacle->getEdge(m_index);
+}

@@ -30,7 +30,7 @@ void PantoPhysics::step()
 {
     // PERFMON_START("[ba] Physics::step");
     // PERFMON_START("[baa] Physics::step::prep");
-    m_godObject->updateHashtable();
+    m_godObject->update();
 
     m_currentPosition = m_panto->getPosition();
 

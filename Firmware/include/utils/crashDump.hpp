@@ -10,7 +10,7 @@ public:
     CrashDump();
     void clear();
     void dump();
-    template<class T> CrashDump & operator <<(T value)
+    template<class T> CrashDump& operator<<(T value)
     {
         m_stream << value;
         return *this;
