@@ -1,16 +1,31 @@
 #include "crashAnalyzer.hpp"
 
+#include <iostream>
+
 uint8_t CrashAnalyzer::s_buffer[c_bufferLength];
 uint16_t CrashAnalyzer::s_length = 0;
 uint16_t CrashAnalyzer::s_index = 0;
 
 void CrashAnalyzer::clearBuffer()
 {
-    // TODO: reset index and stored length
+    s_index = 0;
+    s_length = 0;
+}
+
+uint8_t CrashAnalyzer::getChar(uint16_t offset)
+{
+    return s_buffer[(s_index - offset) % c_bufferLength];
 }
 
 void CrashAnalyzer::push_back(const uint8_t character)
 {
-    // TODO: write to buffer at index, increase index (wrap around) and length
-    // (only up to c_bufferSize)
+    s_buffer[s_index] = character;
+    s_index = (s_index + 1) % c_bufferLength;
+    s_length = (s_length >= c_bufferLength) ? c_bufferLength : (s_length + 1);
+
+    uint16_t foundOffset;
+    if(findString(0, c_rebootString.length(), c_rebootString, foundOffset))
+    {
+        std::cout << "[Reboot detected]" << std::endl;
+    }
 }

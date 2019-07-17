@@ -9,6 +9,8 @@
             "./Utils/Serial/src/node/receiveHelpers.cpp",
             "./Utils/Serial/src/node/sendHelpers.cpp",
             "./Utils/Serial/src/serial/shared.cpp",
+            "./Utils/Serial/src/crashAnalyzer/buffer.cpp",
+            "./Utils/Serial/src/crashAnalyzer/analyze.cpp",
             "./Protocol/src/protocol/protocol.cpp"
         ],
         "conditions": [
