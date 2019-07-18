@@ -23,9 +23,5 @@ void CrashAnalyzer::push_back(const uint8_t character)
     s_index = (s_index + 1) % c_bufferLength;
     s_length = (s_length >= c_bufferLength) ? c_bufferLength : (s_length + 1);
 
-    uint16_t foundOffset;
-    if(findString(0, c_rebootString.length(), c_rebootString, foundOffset))
-    {
-        std::cout << "[Reboot detected]" << std::endl;
-    }
+    checkOutput();
 }

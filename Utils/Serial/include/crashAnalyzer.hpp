@@ -24,6 +24,8 @@ private:
         uint16_t& foundOffset);
     static std::vector<std::string> getBacktraceAdresses(
         uint16_t startOffset, uint16_t endOffset);
+
+    static void checkOutput();
 public:
     static void push_back(const uint8_t character);
 };

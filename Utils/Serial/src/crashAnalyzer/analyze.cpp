@@ -13,9 +13,9 @@ bool CrashAnalyzer::findString(
 {
     const auto length = string.length();
     int32_t index = length - 1;
-    auto offset = 0;
+    auto offset = startOffset;
 
-    while (index > -1 && offset < endOffset)
+    while (index > -1 && offset <= endOffset)
     {
         if(getChar(offset) == string.at(index))
         {
@@ -26,7 +26,7 @@ bool CrashAnalyzer::findString(
         offset++;
     }
 
-    if(index == 0)
+    if(index == -1)
     {
         foundOffset = offset;
         return true;
@@ -40,4 +40,29 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAdresses(
 {
     // TODO: go backwards, grab all space-seperated words until "Backtrace:" is
     // found, split them up at ':' to remove data adresses
+}
+
+void CrashAnalyzer::checkOutput()
+{
+    uint16_t rebootOffset;
+    if(!findString(
+        0,
+        c_rebootString.length(),
+        c_rebootString,
+        rebootOffset))
+    {
+        return;
+    }
+    std::cout << std::endl << "[Reboot detected]" << std::endl;
+
+    uint16_t backtraceOffset;
+    if(!findString(
+        rebootOffset,
+        s_length,
+        c_backtraceString,
+        backtraceOffset))
+    {
+        return;
+    }
+    std::cout << "[Backtrace found]" << std::endl;
 }
