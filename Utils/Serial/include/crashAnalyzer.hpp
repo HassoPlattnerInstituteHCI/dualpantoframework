@@ -22,7 +22,7 @@ private:
         uint16_t endOffset,
         const std::string string,
         uint16_t& foundOffset);
-    static std::vector<std::string> getBacktraceAdresses(
+    static std::vector<std::string> getBacktraceAddresses(
         uint16_t startOffset, uint16_t endOffset);
 
     static void checkOutput();

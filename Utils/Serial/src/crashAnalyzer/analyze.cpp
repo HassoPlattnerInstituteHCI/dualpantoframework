@@ -1,6 +1,7 @@
 #include "crashAnalyzer.hpp"
 
 #include <iostream>
+#include <regex>
 
 const std::string CrashAnalyzer::c_rebootString = "Rebooting...";
 const std::string CrashAnalyzer::c_backtraceString = "Backtrace:";
@@ -35,11 +36,25 @@ bool CrashAnalyzer::findString(
     return false;
 }
 
-std::vector<std::string> CrashAnalyzer::getBacktraceAdresses(
-        uint16_t startOffset, uint16_t endOffset)
+std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
+    uint16_t startOffset, uint16_t endOffset)
 {
-    // TODO: go backwards, grab all space-seperated words until "Backtrace:" is
-    // found, split them up at ':' to remove data adresses
+    std::string data(startOffset - endOffset + 1, 'a');
+    for(auto i = startOffset; i >= endOffset; --i)
+    {
+        data.at(startOffset - i) = getChar(i);
+    }
+    std::regex regex("(0x.{8}):0x.{8}");
+    auto it = std::sregex_iterator(data.begin(), data.end(), regex);
+    auto end = std::sregex_iterator();
+
+    std::vector<std::string> result;
+    while(it != end)
+    {
+        result.push_back((*it++).str(1));
+    }
+
+    return result;
 }
 
 void CrashAnalyzer::checkOutput()
@@ -53,7 +68,7 @@ void CrashAnalyzer::checkOutput()
     {
         return;
     }
-    std::cout << std::endl << "[Reboot detected]" << std::endl;
+    std::cout << std::endl << "[reboot detected]" << std::endl;
 
     uint16_t backtraceOffset;
     if(!findString(
@@ -64,5 +79,17 @@ void CrashAnalyzer::checkOutput()
     {
         return;
     }
-    std::cout << "[Backtrace found]" << std::endl;
+    std::cout << "[backtrace found]" << std::endl;
+
+    auto addresses = getBacktraceAddresses(
+        backtraceOffset - c_backtraceString.length() - 1,
+        rebootOffset);
+
+    std::cout << "[stack addresses]" << std::endl;
+
+    for (const auto& address : addresses)
+    {
+        std::cout << address << std::endl;
+    }
+    
 }
