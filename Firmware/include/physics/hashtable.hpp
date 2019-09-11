@@ -15,6 +15,7 @@ private:
 
     std::vector<IndexedEdge> m_cells[hashtableNumCells];
     std::vector<uint32_t> getCellIndices(Edge edge);
+    std::set<uint32_t> expand(const std::vector<uint32_t>& edges);
 public:
     Hashtable();
     void add(AnnotatedEdge* edge);

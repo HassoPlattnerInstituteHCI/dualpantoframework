@@ -74,6 +74,36 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     return result;
 }
 
+std::set<uint32_t> Hashtable::expand(const std::vector<uint32_t>& edges)
+{
+    std::set<uint32_t> result;
+    uint32_t x, y;
+    for (const auto& edge : edges)
+    {
+        x = edge % hashtableStepsY;
+        y = edge / hashtableStepsY;
+
+        for(int32_t i = -1; i < 2; ++i)
+        {
+            if((x == 0 && i == -1) || (x == hashtableStepsX - 1 && i == 1))
+            {
+                continue;
+            }
+
+            for(int32_t j = -1; j < 2; ++j)
+            {
+                if((y == 0 && j == -1) || (y == hashtableStepsY - 1 && j == 1))
+                {
+                    continue;
+                }
+
+                result.insert((y + j) * hashtableStepsY + (x + i));
+            }
+        }
+    }
+    return result;
+}
+
 Hashtable::Hashtable()
 {
     DPSerial::sendQueuedDebugLog(
@@ -102,7 +132,7 @@ Hashtable::Hashtable()
 
 void Hashtable::add(AnnotatedEdge* edge)
 {
-    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
+    for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
         m_cells[cellIndex].emplace_back(
             edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
