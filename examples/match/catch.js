@@ -9,7 +9,7 @@ const VoiceInteraction = Broker.voiceInteraction;
 const connected = [];
 const positions = [new Vector(-60, -115), new Vector(60, - 100)];
 let readyCount = 0;
-let cathcingEnabled = false;
+let catchingEnabled = false;
 
 Broker.on('devicesChanged', function(devices) {
   start();
@@ -40,7 +40,8 @@ const oneReady = function(panto, handle) {
 const allReady = function() {
   connected.forEach((d, i) => {
     generateLevel(d);
-    d.unblockHandle(-1);
+    d.unblockHandle(0);
+    d.unblockHandle(1);
     d.on('handleMoved', (index, pos) => {
       // console.log(
       //     'Panto', i,
@@ -49,21 +50,19 @@ const allReady = function() {
       if (index == 0) {
         connected[other(i)].moveHandleTo(1, pos);
         positions[i] = pos;
-        if (cathcingEnabled &&
-            positions[0].difference(positions[1]).length() < 2) {
-          cathcingEnabled = false;
+        if (catchingEnabled &&
+            positions[0].difference(positions[1]).length() < 5) {
+          catchingEnabled = false;
           VoiceInteraction.speakText(
-              'Success!', 'EN');
+              'Success! Now it\'s the other player\s turn.', 'EN');
           setTimeout(() => {
-            cathcingEnabled = true;
-            VoiceInteraction.speakText(
-                'Now it\'s the other player\s turn.', 'EN');
+            catchingEnabled = true;
           }, 2000);
         }
       }
     });
   });
-  cathcingEnabled = true;
+  catchingEnabled = true;
   VoiceInteraction.speakText('Left player: catch the right player.', 'EN');
 };
 
