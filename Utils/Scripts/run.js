@@ -17,22 +17,26 @@ const buildHandlers = {
     return exec('node', ['./voice-command/build/build-release.js']);
   },
   'serial-plugin': () => {
-    return exec('node-gyp', ['configure'])
+    const gypDef = '--cppdefs="NODE_GYP ' + cppDefines.join(' ') + '"';
+    return exec('node-gyp', ['configure', gypDef])
          & exec('node-gyp', ['build']);
   },
   'serial-standalone': () => {
-    // eslint-disable-next-line max-len
-    return exec(cppExec, cppArgs.concat([
-      'Utils/Serial/src/standalone/main.cpp',
-      'Utils/Serial/src/standalone/standalone.cpp',
-      'Utils/Serial/src/serial/shared.cpp',
-      process.platform == 'win32' ?
-        'Utils/Serial/src/serial/win.cpp' :
-        'Utils/Serial/src/serial/unix.cpp',
-      'Protocol/src/protocol/protocol.cpp',
-      '-IUtils/Serial/include',
-      '-IProtocol/include',
-      '-o Utils/Serial/serial']));
+    return exec(
+        cppExec,
+        cppArgs.concat(cppDefines.map((d) => cppDefinePrefix + d)).concat([
+          'Utils/Serial/src/standalone/main.cpp',
+          'Utils/Serial/src/standalone/standalone.cpp',
+          'Utils/Serial/src/serial/shared.cpp',
+          'Utils/Serial/src/crashAnalyzer/analyze.cpp',
+          'Utils/Serial/src/crashAnalyzer/buffer.cpp',
+          process.platform == 'win32' ?
+            'Utils/Serial/src/serial/win.cpp' :
+            'Utils/Serial/src/serial/unix.cpp',
+          'Protocol/src/protocol/protocol.cpp',
+          '-IUtils/Serial/include',
+          '-IProtocol/include',
+          '-o Utils/Serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -141,10 +145,17 @@ const handlers = {
 
 let platformioExec;
 let cppExec;
+let cppDefinePrefix;
+const cppDefines = [];
 let cppArgs;
 if (process.platform == 'win32') {
   platformioExec = '"%userprofile%/.platformio/penv/Scripts/platformio"';
   cppExec = 'cl';
+  cppDefinePrefix = '/D';
+  cppDefines.push('WINDOWS');
+  if (exec('where', ['bash']) && exec('bash', ['-c "which gdb"'])) {
+    cppDefines.push('GDB_AVAILABLE');
+  }
   cppArgs = ['/Fo:Utils\\Serial\\'];
 } else {
   if (exec('which', ['platformio'])) {
@@ -154,10 +165,15 @@ if (process.platform == 'win32') {
   }
   if (process.platform == 'linux') {
     cppExec = 'g++';
+    cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   } else {
     cppExec = 'clang++';
+    cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
+  }
+  if (exec('which', ['gdb'])) {
+    defines.push('GDB_AVAILABLE');
   }
 }
 

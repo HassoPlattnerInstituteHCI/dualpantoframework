@@ -1,4 +1,7 @@
 {
+    "variables": {
+        "cppdefs": "NODE_GYP",
+    },
     "targets": [{
         "target_name": "serial",
         "sources": [
@@ -25,6 +28,8 @@
             "./Utils/Serial/include",
             "./Protocol/include"
         ],
-        "defines": [ "NODE_GYP" ]
+        "defines": [
+            "<@(cppdefs)"
+        ]
     }]
 }
