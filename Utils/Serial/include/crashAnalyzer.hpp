@@ -7,11 +7,13 @@ class CrashAnalyzer
 {
 private:
     static const uint16_t c_bufferLength = 1024;
+    static const uint16_t c_dumpLineWidth = 32;
     static uint8_t s_buffer[c_bufferLength];
     static uint16_t s_length;
     static uint16_t s_index;
 
     static void clearBuffer();
+    static void dumpBuffer();
     static uint8_t getChar(uint16_t offset);
 
     static const std::string c_rebootString;
@@ -24,7 +26,7 @@ private:
         uint16_t& foundOffset);
     static std::vector<std::string> getBacktraceAddresses(
         uint16_t startOffset, uint16_t endOffset);
-    static void gdb(std::vector<std::string> addresses);
+    static void addr2line(std::vector<std::string> addresses);
 
     static void checkOutput();
 public:

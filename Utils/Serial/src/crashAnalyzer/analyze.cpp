@@ -60,16 +60,7 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
     return result;
 }
 
-std::string toWslBashPath(const std::string path)
-{
-    auto result = path;
-    std::replace(result.begin(), result.end(), '\\', '/');
-    const auto cpos = result.find("C:");
-    result.replace(cpos, 2, "/mnt/c");
-    return result;
-}
-
-void CrashAnalyzer::gdb(std::vector<std::string> addresses)
+void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
 {
     #ifdef ADDR2LINE_PATH
 
@@ -89,6 +80,7 @@ void CrashAnalyzer::gdb(std::vector<std::string> addresses)
 
     std::system(command.str().c_str());
 
+    std::cout << "Stacktrace (most recent call first):" << std::endl;
     {
         std::ifstream output(outputFile);
         std::cout << output.rdbuf();
@@ -117,7 +109,9 @@ void CrashAnalyzer::checkOutput()
     {
         return;
     }
-    std::cout << std::endl << ">>> [reboot detected]" << std::endl;
+    std::cout << std::endl << "Reboot detected." << std::endl;
+
+    dumpBuffer();
 
     uint16_t backtraceOffset;
     if(!findString(
@@ -128,21 +122,11 @@ void CrashAnalyzer::checkOutput()
     {
         return;
     }
-    std::cout << ">>> [backtrace found]" << std::endl;
 
     auto addresses = getBacktraceAddresses(
         backtraceOffset - c_backtraceString.length() - 1,
         rebootOffset);
 
-    std::cout << ">>> [stack addresses]" << std::endl;
-
-    for (const auto& address : addresses)
-    {
-        std::cout << address << std::endl;
-    }
-
-    std::cout << ">>> [analyzing stack]" << std::endl;
-    gdb(addresses);
-    std::cout << ">>> [clearing buffer]" << std::endl;
+    addr2line(addresses);
     clearBuffer();
 }
