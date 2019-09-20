@@ -60,6 +60,15 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
     return result;
 }
 
+std::string toWslBashPath(const std::string path)
+{
+    auto result = path;
+    std::replace(result.begin(), result.end(), '\\', '/');
+    const auto cpos = result.find("C:");
+    result.replace(cpos, 2, "/mnt/c");
+    return result;
+}
+
 void CrashAnalyzer::gdb(std::vector<std::string> addresses)
 {
     #ifdef GDB_AVAILABLE
@@ -78,6 +87,10 @@ void CrashAnalyzer::gdb(std::vector<std::string> addresses)
 
     char gdbOutputFile[L_tmpnam];
     std::tmpnam(gdbOutputFile);
+    {
+        std::ofstream gdbOutput(gdbOutputFile);
+        gdbOutput << "something";
+    }
     const auto binFile = "./Firmware/.pio/build/esp32dev/firmware.elf";
 
     std::ostringstream gdbCommand;
@@ -85,10 +98,7 @@ void CrashAnalyzer::gdb(std::vector<std::string> addresses)
 
     std::ostringstream bashCommand;
     #ifdef WINDOWS
-    auto inner = gdbCommand.str();
-    std::replace(inner.begin(), inner.end(), '\\', '/');
-    const auto cpos = inner.find("C:");
-    inner.replace(cpos, 2, "/mnt/c");
+    auto inner = toWslBashPath(gdbCommand.str());
     std::string bashExe;
     switch (sizeof(void*))
     {
@@ -103,7 +113,8 @@ void CrashAnalyzer::gdb(std::vector<std::string> addresses)
         return;
     }
     std::cout << "Using bash located in " << bashExe << std::endl;
-    bashCommand << bashExe << " -c \"" << inner << "\" > " << gdbOutputFile;
+    //bashCommand << bashExe << " -c \"" << inner << "\" > " << gdbOutputFile;
+    bashCommand << "wsl \"gdb --help >>" << toWslBashPath(gdbOutputFile) << "\" >> " << gdbOutputFile;
     #else
     bashCommand << gdbCommand.str() << " > " << gdbOutputFile;
     #endif
