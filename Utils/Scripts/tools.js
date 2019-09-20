@@ -42,8 +42,16 @@ function remove(target) {
   return true;
 }
 
+function escape(string) {
+  if (process.platform != 'win32') {
+    return string;
+  }
+  return string.replace(/\\/g, '\\\\').replace(/"/g, '\\\"');
+}
+
 module.exports = {
   exec,
   remove,
-  color
+  color,
+  escape
 };

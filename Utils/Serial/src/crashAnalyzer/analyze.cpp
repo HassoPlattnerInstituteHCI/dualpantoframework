@@ -71,69 +71,37 @@ std::string toWslBashPath(const std::string path)
 
 void CrashAnalyzer::gdb(std::vector<std::string> addresses)
 {
-    #ifdef GDB_AVAILABLE
+    #ifdef ADDR2LINE_PATH
 
-    char gdbScriptFile[L_tmpnam];
-    std::tmpnam(gdbScriptFile);
+    char outputFile[L_tmpnam];
+    std::tmpnam(outputFile);
+
+    std::ostringstream command;
+    command
+        << ADDR2LINE_PATH
+        << " -e ./Firmware/.pio/build/esp32dev/firmware.elf"
+        << " -fpCis" // see https://linux.die.net/man/1/addr2line
+        << " > " << outputFile;
+    for (const auto &address : addresses)
     {
-        std::ofstream gdbScript(gdbScriptFile);
-        for (const auto& address : addresses)
-        {
-            gdbScript << "echo === " << address << " ===\\n" << std::endl;
-            gdbScript << "info symbol " << address << std::endl;
-            gdbScript << "info line *" << address << std::endl;
-        }
+        command << " " << address;
     }
 
-    char gdbOutputFile[L_tmpnam];
-    std::tmpnam(gdbOutputFile);
-    {
-        std::ofstream gdbOutput(gdbOutputFile);
-        gdbOutput << "something";
-    }
-    const auto binFile = "./Firmware/.pio/build/esp32dev/firmware.elf";
-
-    std::ostringstream gdbCommand;
-    gdbCommand << "gdb -batch -x " << gdbScriptFile << " " << binFile;
-
-    std::ostringstream bashCommand;
-    #ifdef WINDOWS
-    auto inner = toWslBashPath(gdbCommand.str());
-    std::string bashExe;
-    switch (sizeof(void*))
-    {
-    case 4:
-        bashExe = "C:\\Windows\\Sysnative\\bash";
-        break;
-    case 8:
-        bashExe = "bash";
-        break;
-    default:
-        std::cout << "Unsure where to find bash. Guessing just bash.";
-        return;
-    }
-    std::cout << "Using bash located in " << bashExe << std::endl;
-    //bashCommand << bashExe << " -c \"" << inner << "\" > " << gdbOutputFile;
-    bashCommand << "wsl \"gdb --help >>" << toWslBashPath(gdbOutputFile) << "\" >> " << gdbOutputFile;
-    #else
-    bashCommand << gdbCommand.str() << " > " << gdbOutputFile;
-    #endif
-
-    std::cout << "Running " << bashCommand.str() << std::endl;
-    std::system(bashCommand.str().c_str());
+    std::system(command.str().c_str());
 
     {
-        std::ifstream gdbOutput(gdbOutputFile);
-        std::cout << "Result: " << gdbOutput.rdbuf() << std::endl;
+        std::ifstream output(outputFile);
+        std::cout << output.rdbuf();
     }
 
-    std::remove(gdbScriptFile);
-    std::remove(gdbOutputFile);
+    std::remove(outputFile);
 
     #else
 
     std::cout
-        << "Install gdb to analyze the stacktrace." << std::endl;
+        << "Path to addr2line executable not set. Can't analyze stacktrace."
+        << std::endl;
+    return;
 
     #endif
 }

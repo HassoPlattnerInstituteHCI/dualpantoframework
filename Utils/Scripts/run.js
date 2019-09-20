@@ -1,7 +1,9 @@
 /* eslint-disable require-jsdoc */
 'use strict';
 
-const {exec, remove, color} = require('./tools');
+const os = require('os');
+const path = require('path');
+const {exec, remove, color, escape} = require('./tools');
 
 function log(message, messageColor) {
   console.log(`${messageColor}${message}${color.reset}`);
@@ -17,7 +19,7 @@ const buildHandlers = {
     return exec('node', ['./voice-command/build/build-release.js']);
   },
   'serial-plugin': () => {
-    const gypDef = '--cppdefs="NODE_GYP ' + cppDefines.join(' ') + '"';
+    const gypDef = '--cppdefs="NODE_GYP ' + escape(cppDefines.join(' ')) + '"';
     return exec('node-gyp', ['configure', gypDef])
          & exec('node-gyp', ['build']);
   },
@@ -143,25 +145,28 @@ const handlers = {
   'docs': docs
 };
 
+const platformioDir = os.homedir() + '/.platformio';
+const xtensaUtilDir = platformioDir + '/packages/toolchain-xtensa32/bin/';
+const addr2linePath = path.join(xtensaUtilDir, 'xtensa-esp32-elf-addr2line');
+
 let platformioExec;
 let cppExec;
 let cppDefinePrefix;
-const cppDefines = [];
 let cppArgs;
+const cppDefines = [];
+
 if (process.platform == 'win32') {
-  platformioExec = '"%userprofile%/.platformio/penv/Scripts/platformio"';
+  platformioExec = path.join(platformioDir, '/penv/Scripts/platformio');
   cppExec = 'cl';
   cppDefinePrefix = '/D';
-  cppDefines.push('WINDOWS');
-  if (exec('where', ['bash']) && exec('bash', ['-c "which gdb"'])) {
-    cppDefines.push('GDB_AVAILABLE');
-  }
   cppArgs = ['/Fo:Utils\\Serial\\'];
+  const addr2lineDefine = 'ADDR2LINE_PATH=\"' + addr2linePath + '\"';
+  cppDefines.push(escape(addr2lineDefine));
 } else {
   if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';
   } else {
-    platformioExec = '~/.platformio/penv/bin/platformio';
+    platformioExec = platformioDir + '/penv/bin/platformio';
   }
   if (process.platform == 'linux') {
     cppExec = 'g++';
@@ -172,9 +177,7 @@ if (process.platform == 'win32') {
     cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   }
-  if (exec('which', ['gdb'])) {
-    defines.push('GDB_AVAILABLE');
-  }
+  cppDefines.push('ADDR2LINE_PATH=\\\"' + addr2linePath + '\\\"');
 }
 
 const command = process.argv[2];
