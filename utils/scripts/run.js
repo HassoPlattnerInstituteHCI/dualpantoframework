@@ -20,8 +20,8 @@ const buildHandlers = {
   },
   'serial-plugin': () => {
     const gypDef = '--cppdefs="NODE_GYP ' + escape(cppDefines.join(' ')) + '"';
-    return exec('node-gyp', ['configure', gypDef])
-         & exec('node-gyp', ['build']);
+    return exec('node-gyp', ['configure', '-C utils/serial', gypDef])
+         & exec('node-gyp', ['build', '-C utils/serial']);
   },
   'serial-standalone': () => {
     return exec(

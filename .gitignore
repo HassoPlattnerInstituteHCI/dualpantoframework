@@ -1,6 +1,7 @@
 utils/serial/*
 !utils/serial/include
 !utils/serial/src
+!utils/serial/binding.gyp
 !utils/voiceCommand/build/build-release.js
 build/
 node_modules/
