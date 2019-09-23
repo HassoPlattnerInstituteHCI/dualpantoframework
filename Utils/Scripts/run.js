@@ -35,9 +35,9 @@ const buildHandlers = {
           process.platform == 'win32' ?
             'Utils/Serial/src/serial/win.cpp' :
             'Utils/Serial/src/serial/unix.cpp',
-          'Protocol/src/protocol/protocol.cpp',
+          'protocol/src/protocol/protocol.cpp',
           '-IUtils/Serial/include',
-          '-IProtocol/include',
+          '-Iprotocol/include',
           '-o Utils/Serial/serial']));
   },
   'firmware': () => {

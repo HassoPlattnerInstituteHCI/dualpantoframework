@@ -14,7 +14,7 @@
             "./Utils/Serial/src/serial/shared.cpp",
             "./Utils/Serial/src/crashAnalyzer/buffer.cpp",
             "./Utils/Serial/src/crashAnalyzer/analyze.cpp",
-            "./Protocol/src/protocol/protocol.cpp"
+            "./protocol/src/protocol/protocol.cpp"
         ],
         "conditions": [
             ["OS=='win'", {
@@ -26,7 +26,7 @@
         ],
         "include_dirs": [
             "./Utils/Serial/include",
-            "./Protocol/include"
+            "./protocol/include"
         ],
         "defines": [
             "<@(cppdefs)"
