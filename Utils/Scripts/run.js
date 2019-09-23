@@ -84,8 +84,8 @@ const cleanHandlers = {
     return true;
   },
   'firmware': () => {
-    return remove('./Firmware/src/config/config.cpp')
-         & remove('./Firmware/include/config/config.hpp')
+    return remove('./firmware/src/config/config.cpp')
+         & remove('./firmware/include/config/config.hpp')
          & platformio('clean');
   }
 };
@@ -124,7 +124,7 @@ function platformio(command) {
     command = '.';
   }
   log(`Running platformio ${command}`, color.green);
-  return exec(platformioExec, ['run', '-d Firmware', `-t ${command}`]);
+  return exec(platformioExec, ['run', '-d firmware', `-t ${command}`]);
 }
 
 function plotter() {

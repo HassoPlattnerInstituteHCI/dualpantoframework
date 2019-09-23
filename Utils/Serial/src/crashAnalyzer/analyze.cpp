@@ -74,7 +74,7 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
     std::ostringstream command;
     command
         << ADDR2LINE_PATH
-        << " -e ./Firmware/.pio/build/esp32dev/firmware.elf"
+        << " -e ./firmware/.pio/build/esp32dev/firmware.elf"
         << " -fpCis" // see https://linux.die.net/man/1/addr2line
         << " > " << outputFile;
     for (const auto &address : addresses)

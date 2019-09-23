@@ -232,7 +232,7 @@ constexpr double hashtableStepSizeY = ${hashtable.stepSizeY};
 const uint32_t obstacleChangesPerFrame = ${input.obstacleChangesPerFrame};`;
 
 console.log(headerOutput);
-const headerDir = 'Firmware/include/config/';
+const headerDir = 'firmware/include/config/';
 if (!fs.existsSync(headerDir)) {
   fs.mkdirSync(headerDir, {recursive: true});
 }
@@ -253,7 +253,7 @@ float pidFactor[${pantoCount*3}][3] = {
 };`;
 
 console.log(sourceOutput);
-const sourceDir = 'Firmware/src/config/';
+const sourceDir = 'firmware/src/config/';
 if (!fs.existsSync(sourceDir)) {
   fs.mkdirSync(sourceDir, {recursive: true});
 }
