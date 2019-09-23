@@ -29,9 +29,7 @@ void CrashAnalyzer::dumpBuffer()
         std::cout << "0x" << std::setw(8) << dumpIndex << " | ";
         for(uint16_t lineIndex = 0; lineIndex < c_dumpLineWidth; ++lineIndex)
         {
-            character = s_buffer[dumpIndex + lineIndex];
-            std::cout <<
-                (character < 0x20 || character > 0x7E ? '?' : character);
+            std::cout << ensurePrintable(s_buffer[dumpIndex + lineIndex]);
             if((lineIndex + 1) % 8 == 0)
             {
                 std::cout << " | ";
@@ -45,7 +43,12 @@ void CrashAnalyzer::dumpBuffer()
 
 uint8_t CrashAnalyzer::getChar(uint16_t offset)
 {
-    return s_buffer[(s_index - offset) % c_bufferLength];
+    return s_buffer[SAFEMOD((s_index - offset), c_bufferLength)];
+}
+
+char CrashAnalyzer::ensurePrintable(uint8_t character)
+{
+    return (character < 0x20 || character > 0x7E ? '?' : character);
 }
 
 void CrashAnalyzer::push_back(const uint8_t character)

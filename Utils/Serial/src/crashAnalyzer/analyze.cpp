@@ -13,18 +13,58 @@ bool CrashAnalyzer::findString(
         uint16_t startOffset,
         uint16_t endOffset,
         const std::string string,
-        uint16_t& foundOffset)
+        uint16_t& foundOffset,
+        const bool debug)
 {
     const auto length = string.length();
     int32_t index = length - 1;
     auto offset = startOffset;
 
+    #ifdef INCLUDE_DEBUG
+    if(debug)
+    {
+        std::cout
+            << "start " << startOffset << " end " << endOffset
+            << " length " << length << " string " << string << std::endl;
+    }
+    #define PRINT_PAIR(same) \
+    if(debug) \
+    { \
+         std::cout \
+        << "[" << offset << "] " << ensurePrintable(getChar(offset)) \
+        << same \
+        << "[" << index << "] " << ensurePrintable(string.at(index)) \
+        << std::endl; \
+    }
+    #endif
+
     while (index > -1 && offset <= endOffset)
     {
+        #ifdef INCLUDE_DEBUG
+        if(debug)
+        {
+            std::cout
+                << "s_index " << s_index << std::endl
+                << "offset " << offset << std::endl
+                << "s_index - offset " << (s_index - offset) << std::endl
+                << "(s_index - offset) % c_bufferLength "
+                << ((s_index - offset) % c_bufferLength) << std::endl
+                << "s_buffer[(s_index - offset) % c_bufferLength] "
+                << s_buffer[(s_index - offset) % c_bufferLength] << std::endl;
+        }
+        #endif
         if(getChar(offset) == string.at(index))
         {
+            #ifdef INCLUDE_DEBUG
+            PRINT_PAIR(" == ");
+            #endif
             index--;
-        } else {
+        }
+        else
+        {
+            #ifdef INCLUDE_DEBUG
+            PRINT_PAIR(" != ");
+            #endif
             index = length - 1;
         }
         offset++;
@@ -109,16 +149,19 @@ void CrashAnalyzer::checkOutput()
     {
         return;
     }
-    std::cout << std::endl << "Reboot detected." << std::endl;
+    std::cout << std::endl << "Reboot detected. ";
 
+    #ifdef INCLUDE_DEBUG
     dumpBuffer();
+    #endif
 
     uint16_t backtraceOffset;
     if(!findString(
         rebootOffset,
         s_length,
         c_backtraceString,
-        backtraceOffset))
+        backtraceOffset,
+        true))
     {
         return;
     }
