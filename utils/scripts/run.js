@@ -77,7 +77,7 @@ const cleanHandlers = {
     return remove('./utils/voiceCommand/.bin');
   },
   'serial-plugin': () => {
-    return remove('./build');
+    return remove('./utils/serial/build');
   },
   'serial-standalone': () => {
     log('Clean serial-standalone not implemented yet', color.yellow);

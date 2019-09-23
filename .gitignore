@@ -13,7 +13,7 @@ persistent.json
 
 *.exe
 
-src/osx/voiceCommand/build
+src/osx/voice-command/build
 .bin/
 
 
