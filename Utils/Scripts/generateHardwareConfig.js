@@ -110,7 +110,7 @@ if (input.range) {
 function getHashtableSettings() {
   const rangeX = range.maxX - range.minX;
   const rangeY = range.maxY - range.minY;
-  const maxMemory = input.hashtable.memory / pantoCount;
+  const maxMemory = input.hashtableMemory / pantoCount;
   const sizeofVector = 12; // = sizeof(std::vector<IndexedEdge>)
   const maxCells = Math.floor(maxMemory / sizeofVector);
   const targetStepSize = Math.sqrt(rangeX * rangeY / maxCells);
@@ -129,8 +129,7 @@ function getHashtableSettings() {
     stepsX,
     stepsY,
     stepSizeX,
-    stepSizeY,
-    entries: input.hashtable.processedEntriesPerFrame
+    stepSizeY
   };
 }
 
@@ -230,7 +229,7 @@ constexpr uint32_t hashtableStepsX = ${hashtable.stepsX};
 constexpr uint32_t hashtableStepsY = ${hashtable.stepsY};
 constexpr double hashtableStepSizeX = ${hashtable.stepSizeX};
 constexpr double hashtableStepSizeY = ${hashtable.stepSizeY};
-constexpr double hashtableProcessedEntriesPerFrame = ${hashtable.entries};`;
+const uint32_t obstacleChangesPerFrame = ${input.obstacleChangesPerFrame};`;
 
 console.log(headerOutput);
 const headerDir = 'Firmware/include/config/';

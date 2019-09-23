@@ -22,17 +22,17 @@ double Vector2D::angle() const
     return atan2(y, x);
 };
 
-Vector2D Vector2D::operator+(const Vector2D &other) const
+Vector2D Vector2D::operator+(const Vector2D& other) const
 {
     return Vector2D(x + other.x, y + other.y);
 };
 
-Vector2D Vector2D::operator-(const Vector2D &other) const
+Vector2D Vector2D::operator-(const Vector2D& other) const
 {
     return Vector2D(x - other.x, y - other.y);
 };
 
-double Vector2D::operator*(const Vector2D &other) const
+double Vector2D::operator*(const Vector2D& other) const
 {
     return x * other.x + y * other.y;
 };

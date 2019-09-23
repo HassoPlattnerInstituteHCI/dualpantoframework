@@ -146,18 +146,18 @@ class DualPanto {
     }
     const offset = 2 * index;
     if (!this.token[0 + offset]) {
-      this.token.push(svg.append('circle')
+      this.token[0 + offset] = svg.append('circle')
           .attr('cx', positionX + pantoxOffset)
           .attr('cy', -(positionY - pantoyOffset))
           .attr('r', 1)
-          .attr('fill', color));
-      this.token.push(svg.append('line')
+          .attr('fill', color);
+      this.token[1 + offset] = svg.append('line')
           .attr('class', 'aimline')
           .attr('x1', positionX)
           .attr('y1', -(positionY - pantoyOffset))
           .attr('x2', positionX + pantoxOffset + directionVec.x)
           .attr('y2', -(positionY - pantoyOffset) + directionVec.y)
-          .style('stroke', 'black'));
+          .style('stroke', 'black');
     } else {
       this.token[0 + offset].attr('cx', positionX + pantoxOffset)
           .attr('cy', -(positionY - pantoyOffset));

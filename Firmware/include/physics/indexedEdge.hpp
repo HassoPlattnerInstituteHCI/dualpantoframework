@@ -1,6 +1,10 @@
 #pragma once
 
-#include "physics/obstacle.hpp"
+#include <Arduino.h>
+
+#include "physics/edge.hpp"
+
+class Obstacle;
 
 struct IndexedEdge
 {
@@ -9,4 +13,5 @@ struct IndexedEdge
     IndexedEdge(Obstacle* obstacle, uint32_t index);
     bool operator==(const IndexedEdge& other) const;
     bool operator<(const IndexedEdge& other) const;
+    Edge getEdge() const;
 };
