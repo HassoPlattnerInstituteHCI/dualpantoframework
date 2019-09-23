@@ -13,58 +13,20 @@ bool CrashAnalyzer::findString(
         uint16_t startOffset,
         uint16_t endOffset,
         const std::string string,
-        uint16_t& foundOffset,
-        const bool debug)
+        uint16_t& foundOffset)
 {
     const auto length = string.length();
     int32_t index = length - 1;
     auto offset = startOffset;
 
-    #ifdef INCLUDE_DEBUG
-    if(debug)
-    {
-        std::cout
-            << "start " << startOffset << " end " << endOffset
-            << " length " << length << " string " << string << std::endl;
-    }
-    #define PRINT_PAIR(same) \
-    if(debug) \
-    { \
-         std::cout \
-        << "[" << offset << "] " << ensurePrintable(getChar(offset)) \
-        << same \
-        << "[" << index << "] " << ensurePrintable(string.at(index)) \
-        << std::endl; \
-    }
-    #endif
-
     while (index > -1 && offset <= endOffset)
     {
-        #ifdef INCLUDE_DEBUG
-        if(debug)
-        {
-            std::cout
-                << "s_index " << s_index << std::endl
-                << "offset " << offset << std::endl
-                << "s_index - offset " << (s_index - offset) << std::endl
-                << "(s_index - offset) % c_bufferLength "
-                << ((s_index - offset) % c_bufferLength) << std::endl
-                << "s_buffer[(s_index - offset) % c_bufferLength] "
-                << s_buffer[(s_index - offset) % c_bufferLength] << std::endl;
-        }
-        #endif
         if(getChar(offset) == string.at(index))
         {
-            #ifdef INCLUDE_DEBUG
-            PRINT_PAIR(" == ");
-            #endif
             index--;
         }
         else
         {
-            #ifdef INCLUDE_DEBUG
-            PRINT_PAIR(" != ");
-            #endif
             index = length - 1;
         }
         offset++;
@@ -102,6 +64,8 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
 
 void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
 {
+    std::cout << std::endl << "===== STACKTRACE BEGIN =====" << std::endl;
+
     #ifdef ADDR2LINE_PATH
 
     char outputFile[L_tmpnam];
@@ -120,7 +84,8 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
 
     std::system(command.str().c_str());
 
-    std::cout << "Stacktrace (most recent call first):" << std::endl;
+    std::cout
+        << "Stacktrace (most recent call first):" << std::endl;
     {
         std::ifstream output(outputFile);
         std::cout << output.rdbuf();
@@ -133,9 +98,10 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
     std::cout
         << "Path to addr2line executable not set. Can't analyze stacktrace."
         << std::endl;
-    return;
 
     #endif
+
+    std::cout << "====== STACKTRACE END ======" << std::endl;
 }
 
 void CrashAnalyzer::checkOutput()
@@ -149,20 +115,15 @@ void CrashAnalyzer::checkOutput()
     {
         return;
     }
-    std::cout << std::endl << "Reboot detected. ";
-
-    #ifdef INCLUDE_DEBUG
-    dumpBuffer();
-    #endif
 
     uint16_t backtraceOffset;
     if(!findString(
         rebootOffset,
         s_length,
         c_backtraceString,
-        backtraceOffset,
-        true))
+        backtraceOffset))
     {
+        std::cout << "Reboot detected, but no backtrace found." << std::endl;
         return;
     }
 

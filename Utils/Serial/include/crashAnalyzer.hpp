@@ -3,9 +3,6 @@
 #include <string>
 #include <vector>
 
-// enable for debugging
-// #define INCLUDE_DEBUG
-
 #define SAFEMOD(a, b) ((a) % (b) + (b)) % (b)
 
 class CrashAnalyzer
@@ -18,9 +15,7 @@ private:
     static uint16_t s_index;
 
     static void clearBuffer();
-    static void dumpBuffer();
     static uint8_t getChar(uint16_t offset);
-    static char ensurePrintable(uint8_t character);
 
     static const std::string c_rebootString;
     static const std::string c_backtraceString;
@@ -29,8 +24,7 @@ private:
         uint16_t startOffset,
         uint16_t endOffset,
         const std::string string,
-        uint16_t& foundOffset,
-        const bool debug = false);
+        uint16_t& foundOffset);
     static std::vector<std::string> getBacktraceAddresses(
         uint16_t startOffset, uint16_t endOffset);
     static void addr2line(std::vector<std::string> addresses);
