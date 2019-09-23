@@ -1,6 +1,6 @@
-Utils/Serial/*
-!Utils/Serial/include
-!Utils/Serial/src
+utils/serial/*
+!utils/serial/include
+!utils/serial/src
 !voice-command/build/build-release.js
 build/
 node_modules/

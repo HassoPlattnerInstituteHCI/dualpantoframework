@@ -27,18 +27,18 @@ const buildHandlers = {
     return exec(
         cppExec,
         cppArgs.concat(cppDefines.map((d) => cppDefinePrefix + d)).concat([
-          'Utils/Serial/src/standalone/main.cpp',
-          'Utils/Serial/src/standalone/standalone.cpp',
-          'Utils/Serial/src/serial/shared.cpp',
-          'Utils/Serial/src/crashAnalyzer/analyze.cpp',
-          'Utils/Serial/src/crashAnalyzer/buffer.cpp',
+          'utils/serial/src/standalone/main.cpp',
+          'utils/serial/src/standalone/standalone.cpp',
+          'utils/serial/src/serial/shared.cpp',
+          'utils/serial/src/crashAnalyzer/analyze.cpp',
+          'utils/serial/src/crashAnalyzer/buffer.cpp',
           process.platform == 'win32' ?
-            'Utils/Serial/src/serial/win.cpp' :
-            'Utils/Serial/src/serial/unix.cpp',
+            'utils/serial/src/serial/win.cpp' :
+            'utils/serial/src/serial/unix.cpp',
           'protocol/src/protocol/protocol.cpp',
-          '-IUtils/Serial/include',
+          '-Iutils/serial/include',
           '-Iprotocol/include',
-          '-o Utils/Serial/serial']));
+          '-o utils/serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -116,7 +116,7 @@ function config(target) {
     target = 'doerte';
   }
   log(`Generating config ${target}`, color.green);
-  return exec('node', ['Utils/Scripts/generateHardwareConfig.js', target]);
+  return exec('node', ['utils/scripts/generateHardwareConfig.js', target]);
 }
 
 function platformio(command) {
@@ -128,12 +128,12 @@ function platformio(command) {
 }
 
 function plotter() {
-  return exec('http-server', ['Utils/plotter/']);
+  return exec('http-server', ['utils/plotter/']);
 }
 
 function docs() {
   log(`Building docs`, color.green);
-  return exec('node', ['Utils/Scripts/docs.js']);
+  return exec('node', ['utils/scripts/docs.js']);
 }
 
 const handlers = {
@@ -159,7 +159,7 @@ if (process.platform == 'win32') {
   platformioExec = path.join(platformioDir, '/penv/Scripts/platformio');
   cppExec = 'cl';
   cppDefinePrefix = '/D';
-  cppArgs = ['/Fo:Utils\\Serial\\'];
+  cppArgs = ['/Fo:utils\\serial\\'];
   const addr2lineDefine = 'ADDR2LINE_PATH=\"' + addr2linePath + '\"';
   cppDefines.push(escape(addr2lineDefine));
 } else {

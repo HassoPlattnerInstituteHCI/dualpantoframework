@@ -4,7 +4,7 @@
 # In order to find line numbers, add -g3 to the PlatformIO build flags.
 # The default target is set for running this script from the base framework dir.
 # Alternatively, you may pass an path to the elf as the first argument.
-# Default usage: ./Utils/Backtrace/backtrace.sh "0x40085698:0x3ffb5e80 [...]"
+# Default usage: ./utils/backtrace/backtrace.sh "0x40085698:0x3ffb5e80 [...]"
 # Alternative usage example for running from this dir: ./backtrace.sh ./../../firmware/.pioenvs/esp32dev/firmware.elf "0x40085698:0x3ffb5e80 [...]"
 
 if [ "$#" -eq 1 ]; then

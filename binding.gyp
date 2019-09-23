@@ -5,27 +5,27 @@
     "targets": [{
         "target_name": "serial",
         "sources": [
-            "./Utils/Serial/src/node/main.cpp",
-            "./Utils/Serial/src/node/setup.cpp",
-            "./Utils/Serial/src/node/poll.cpp",
-            "./Utils/Serial/src/node/send.cpp",
-            "./Utils/Serial/src/node/receiveHelpers.cpp",
-            "./Utils/Serial/src/node/sendHelpers.cpp",
-            "./Utils/Serial/src/serial/shared.cpp",
-            "./Utils/Serial/src/crashAnalyzer/buffer.cpp",
-            "./Utils/Serial/src/crashAnalyzer/analyze.cpp",
+            "./utils/serial/src/node/main.cpp",
+            "./utils/serial/src/node/setup.cpp",
+            "./utils/serial/src/node/poll.cpp",
+            "./utils/serial/src/node/send.cpp",
+            "./utils/serial/src/node/receiveHelpers.cpp",
+            "./utils/serial/src/node/sendHelpers.cpp",
+            "./utils/serial/src/serial/shared.cpp",
+            "./utils/serial/src/crashAnalyzer/buffer.cpp",
+            "./utils/serial/src/crashAnalyzer/analyze.cpp",
             "./protocol/src/protocol/protocol.cpp"
         ],
         "conditions": [
             ["OS=='win'", {
-                "sources": ["./Utils/Serial/src/serial/win.cpp"]
+                "sources": ["./utils/serial/src/serial/win.cpp"]
             }],
             ["OS!='win'", {
-                "sources": ["./Utils/Serial/src/serial/unix.cpp"]
+                "sources": ["./utils/serial/src/serial/unix.cpp"]
             }],
         ],
         "include_dirs": [
-            "./Utils/Serial/include",
+            "./utils/serial/include",
             "./protocol/include"
         ],
         "defines": [
