@@ -16,7 +16,7 @@ const buildHandlers = {
          & build('serial-standalone');
   },
   'voice-command': () => {
-    return exec('node', ['./voice-command/build/build-release.js']);
+    return exec('node', ['./utils/voiceCommand/build/build-release.js']);
   },
   'serial-plugin': () => {
     const gypDef = '--cppdefs="NODE_GYP ' + escape(cppDefines.join(' ')) + '"';
@@ -74,7 +74,7 @@ const cleanHandlers = {
          & clean('serial-standalone');
   },
   'voice-command': () => {
-    return remove('./voice-command/.bin');
+    return remove('./utils/voiceCommand/.bin');
   },
   'serial-plugin': () => {
     return remove('./build');

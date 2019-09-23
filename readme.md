@@ -94,4 +94,4 @@ The `examples` dir contains multiple example programs, as we ll as programs for 
   - `serial` - \[C++\] The serial plugin for the framework. Uses the shared protocol files (`./protocol/`) to implement the specification (`./documentation/protocol/`).
   - `svgConverter` - \[JavaScript\] Converts a `svg` file of a level into a `prototype.js` script. Use the [svgToJs command](#Available-Scripts).
   - `viDeb` - \[JavaScript\] Implements a emulated device.
-- `voice-interaction` - \[JavaScript\] Voice input plugin used by the framework.
+  - `voiceInteraction` - \[JavaScript\] Voice input plugin used by the framework.
