@@ -43,9 +43,6 @@ function remove(target) {
 }
 
 function escape(string) {
-  if (process.platform != 'win32') {
-    return string;
-  }
   return string.replace(/\\/g, '\\\\').replace(/"/g, '\\\"');
 }
 
