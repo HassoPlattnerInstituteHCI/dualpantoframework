@@ -177,7 +177,7 @@ if (process.platform == 'win32') {
     cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   }
-  cppDefines.push('ADDR2LINE_PATH=\\\"' + addr2linePath + '\\\"');
+  cppDefines.push('ADDR2LINE_PATH=\\\\\\\"' + addr2linePath + '\\\\\\\"');
 }
 
 const command = process.argv[2];
