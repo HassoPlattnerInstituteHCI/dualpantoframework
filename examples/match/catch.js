@@ -43,10 +43,6 @@ const allReady = function() {
     d.unblockHandle(0);
     d.unblockHandle(1);
     d.on('handleMoved', (index, pos) => {
-      // console.log(
-      //     'Panto', i,
-      //     'handle', index,
-      //     'moved to', pos);
       if (index == 0) {
         connected[other(i)].moveHandleTo(1, pos);
         positions[i] = pos;
