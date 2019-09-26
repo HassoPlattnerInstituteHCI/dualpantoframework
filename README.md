@@ -44,5 +44,33 @@ The communication protocol between the framework and the device is specified [he
 
 ## Examples
 
-...under construction...
- 
+The `examples` dir contains multiple example programs, as well as programs for checking the basic functionality.
+
+- `basic` - General examples for checking that the device is working.
+  - `connect.js` - Just includes the framework, connecting to any devices currently plugged in and printing the debug messages.
+  - `logPos.js` - Logs the position of the device's me and it handles.
+  - `move.js` - Moves both handles in a triangle.
+  - `updatesPerSecond.js` - Logs the number of position updates received each second.
+- `hapticObject` - Examples for how to use the hapticObject/component feature.
+  - `collider.js` - How to use the box and mesh collider components.
+  - `enableDisable.js` - Allows to enable/disable/remove/add an collider using keyboard input.
+  - `forcefield.js` - How to use the box and mesh forcefield components.
+  - `hardStep.js` - How to use the box and mesh hardStep components, containing both a hard to enter and one hard to leave hardStep.
+  - `rails.js` - Using a forcefield to snap the handle to vertical lines.
+  - `trace.js` - Shows how the `trace` function can be used to convey the shape of a component.
+  - `trigger.js` - How to use the box and mesh trigger components, both for entering/leaving and touching objects.
+- `homefinder` - Contains the interactive homefinder.
+  - `homefinder.js` - The interactive homefinder.
+- `match` - Multiplayer demos.
+  - `match.js` - Mirrors each player's me handle to the opponents it handle.
+  - `catch.js` - Mirrors each player's me handle to the opponents it handle. Implements a simple catching game based on this.
+- `precisionTest` - Different scripts for checking the device's behaviour in edge cases.
+  - `corridor.js` - Horizontal corridor that gets more and more narrow.
+  - `gap1mm.js` - Horizontal gap, 1 mm wide.
+  - `move.js` - Moves the handle back and forth between two positions.
+  - `roomFractal.js` - Multiple conencted rooms that get smaller and smaller.
+- `voiceInteraction` - Examples on how to use the sound output.
+  - `playSound.js` - Plays sound file.
+  - `speakText.js` - Uses the voice output.
+- `wall` - Obstacle testing.
+  - `wallGenerator.js` - generates a circle obstacle, subdivided into a given number of edges.
