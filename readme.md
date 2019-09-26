@@ -44,10 +44,10 @@ The communication protocol between the framework and the device is specified [he
 
 ## Examples
 
-The `examples` dir contains multiple example programs, as we ll as programs for checking the basic functionality.
+The `examples` dir contains multiple example programs, as well as programs for checking the basic functionality.
 
 - `basic` - General examples for checking that the device is working.
-  - `connect.js` - Just includes the framework, connecting to any devices currently  plugged in and  printing the debug messages.
+  - `connect.js` - Just includes the framework, connecting to any devices currently plugged in and printing the debug messages.
   - `logPos.js` - Logs the position of the device's me and it handles.
   - `move.js` - Moves both handles in a triangle.
   - `updatesPerSecond.js` - Logs the number of position updates received each second.
@@ -64,7 +64,7 @@ The `examples` dir contains multiple example programs, as we ll as programs for 
 - `match` - Multiplayer demos.
   - `match.js` - Mirrors each player's me handle to the opponents it handle.
   - `catch.js` - Mirrors each player's me handle to the opponents it handle. Implements a simple catching game based on this.
-- `precisionTest` - Different scripts for checking the device's behaviour ni edge cases.
+- `precisionTest` - Different scripts for checking the device's behaviour in edge cases.
   - `corridor.js` - Horizontal corridor that gets more and more narrow.
   - `gap1mm.js` - Horizontal gap, 1 mm wide.
   - `move.js` - Moves the handle back and forth between two positions.

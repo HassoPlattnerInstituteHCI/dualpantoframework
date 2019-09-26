@@ -161,7 +161,8 @@ if (process.platform == 'win32') {
   platformioExec = path.join(platformioDir, '/penv/Scripts/platformio');
   cppExec = 'cl';
   cppDefinePrefix = '/D';
-  cppArgs = ['/Fo:utils\\serial\\'];
+  cppArgs = ['/Fo:Utils\\Serial\\'];
+  cppDefines.push('WINDOWS');
 } else {
   if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';
