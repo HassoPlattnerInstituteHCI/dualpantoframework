@@ -1,4 +1,7 @@
 {
+    "variables": {
+        "cppdefs": "NODE_GYP",
+    },
     "targets": [{
         "target_name": "serial",
         "sources": [
@@ -9,6 +12,8 @@
             "./Utils/Serial/src/node/receiveHelpers.cpp",
             "./Utils/Serial/src/node/sendHelpers.cpp",
             "./Utils/Serial/src/serial/shared.cpp",
+            "./Utils/Serial/src/crashAnalyzer/buffer.cpp",
+            "./Utils/Serial/src/crashAnalyzer/analyze.cpp",
             "./Protocol/src/protocol/protocol.cpp"
         ],
         "conditions": [
@@ -23,6 +28,8 @@
             "./Utils/Serial/include",
             "./Protocol/include"
         ],
-        "defines": [ "NODE_GYP" ]
+        "defines": [
+            "<@(cppdefs)"
+        ]
     }]
 }

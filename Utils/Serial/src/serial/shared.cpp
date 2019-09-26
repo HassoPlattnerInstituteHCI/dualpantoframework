@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <fstream>
 
+#include "crashAnalyzer.hpp"
+
 std::string DPSerial::s_path;
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 Header DPSerial::s_header = Header();
@@ -25,6 +27,7 @@ void DPSerial::receivePacket()
         else
         {
             std::cout << received;
+            CrashAnalyzer::push_back(received);
             index = 0;
         }
     }

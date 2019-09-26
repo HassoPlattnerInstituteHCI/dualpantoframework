@@ -1,7 +1,9 @@
 /* eslint-disable require-jsdoc */
 'use strict';
 
-const {exec, remove, color} = require('./tools');
+const os = require('os');
+const path = require('path');
+const {exec, remove, color, escape} = require('./tools');
 
 function log(message, messageColor) {
   console.log(`${messageColor}${message}${color.reset}`);
@@ -17,22 +19,26 @@ const buildHandlers = {
     return exec('node', ['./voice-command/build/build-release.js']);
   },
   'serial-plugin': () => {
-    return exec('node-gyp', ['configure'])
+    const gypDef = '--cppdefs="NODE_GYP ' + escape(cppDefines.join(' ')) + '"';
+    return exec('node-gyp', ['configure', gypDef])
          & exec('node-gyp', ['build']);
   },
   'serial-standalone': () => {
-    // eslint-disable-next-line max-len
-    return exec(cppExec, cppArgs.concat([
-      'Utils/Serial/src/standalone/main.cpp',
-      'Utils/Serial/src/standalone/standalone.cpp',
-      'Utils/Serial/src/serial/shared.cpp',
-      process.platform == 'win32' ?
-        'Utils/Serial/src/serial/win.cpp' :
-        'Utils/Serial/src/serial/unix.cpp',
-      'Protocol/src/protocol/protocol.cpp',
-      '-IUtils/Serial/include',
-      '-IProtocol/include',
-      '-o Utils/Serial/serial']));
+    return exec(
+        cppExec,
+        cppArgs.concat(cppDefines.map((d) => cppDefinePrefix + d)).concat([
+          'Utils/Serial/src/standalone/main.cpp',
+          'Utils/Serial/src/standalone/standalone.cpp',
+          'Utils/Serial/src/serial/shared.cpp',
+          'Utils/Serial/src/crashAnalyzer/analyze.cpp',
+          'Utils/Serial/src/crashAnalyzer/buffer.cpp',
+          process.platform == 'win32' ?
+            'Utils/Serial/src/serial/win.cpp' :
+            'Utils/Serial/src/serial/unix.cpp',
+          'Protocol/src/protocol/protocol.cpp',
+          '-IUtils/Serial/include',
+          '-IProtocol/include',
+          '-o Utils/Serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -139,24 +145,37 @@ const handlers = {
   'docs': docs
 };
 
+const platformioDir = os.homedir() + '/.platformio';
+const xtensaUtilDir = platformioDir + '/packages/toolchain-xtensa32/bin/';
+const addr2linePath = path.join(xtensaUtilDir, 'xtensa-esp32-elf-addr2line');
+
 let platformioExec;
 let cppExec;
+let cppDefinePrefix;
 let cppArgs;
+const cppDefines = [
+  escape('ADDR2LINE_PATH=\"' + addr2linePath + '\"')
+];
+
 if (process.platform == 'win32') {
-  platformioExec = '"%userprofile%/.platformio/penv/Scripts/platformio"';
+  platformioExec = path.join(platformioDir, '/penv/Scripts/platformio');
   cppExec = 'cl';
+  cppDefinePrefix = '/D';
   cppArgs = ['/Fo:Utils\\Serial\\'];
+  cppDefines.push('WINDOWS');
 } else {
   if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';
   } else {
-    platformioExec = '~/.platformio/penv/bin/platformio';
+    platformioExec = platformioDir + '/penv/bin/platformio';
   }
   if (process.platform == 'linux') {
     cppExec = 'g++';
+    cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   } else {
     cppExec = 'clang++';
+    cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   }
 }

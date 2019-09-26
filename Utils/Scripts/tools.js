@@ -42,8 +42,13 @@ function remove(target) {
   return true;
 }
 
+function escape(string) {
+  return string.replace(/\\/g, '\\\\').replace(/"/g, '\\\"');
+}
+
 module.exports = {
   exec,
   remove,
-  color
+  color,
+  escape
 };
