@@ -153,15 +153,16 @@ let platformioExec;
 let cppExec;
 let cppDefinePrefix;
 let cppArgs;
-const cppDefines = [];
+const cppDefines = [
+  escape('ADDR2LINE_PATH=\"' + addr2linePath + '\"')
+];
 
 if (process.platform == 'win32') {
   platformioExec = path.join(platformioDir, '/penv/Scripts/platformio');
   cppExec = 'cl';
   cppDefinePrefix = '/D';
-  cppArgs = ['/Fo:utils\\serial\\'];
-  const addr2lineDefine = 'ADDR2LINE_PATH=\"' + addr2linePath + '\"';
-  cppDefines.push(escape(addr2lineDefine));
+  cppArgs = ['/Fo:Utils\\Serial\\'];
+  cppDefines.push('WINDOWS');
 } else {
   if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';
@@ -177,7 +178,6 @@ if (process.platform == 'win32') {
     cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   }
-  cppDefines.push('ADDR2LINE_PATH=\\\"' + addr2linePath + '\\\"');
 }
 
 const command = process.argv[2];
