@@ -183,12 +183,16 @@ if (process.platform == 'win32') {
 const command = process.argv[2];
 if (!handlers.hasOwnProperty(command)) {
   log(`Unknown command ${command}`, color.red);
+  process.exitCode = 1;
   return;
 }
+
 log(`=== Running ${command} ===`, color.green);
 const result = handlers[command](process.argv[3]);
 if (result) {
   log(`=== ${command} successful ===`, color.green);
+  process.exitCode = 0;
 } else {
   log(`=== ${command} failed ===`, color.red);
+  process.exitCode = 1;
 }
