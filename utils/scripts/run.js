@@ -16,29 +16,29 @@ const buildHandlers = {
          & build('serial-standalone');
   },
   'voice-command': () => {
-    return exec('node', ['./voice-command/build/build-release.js']);
+    return exec('node', ['./utils/voiceCommand/build/build-release.js']);
   },
   'serial-plugin': () => {
     const gypDef = '--cppdefs="NODE_GYP ' + escape(cppDefines.join(' ')) + '"';
-    return exec('node-gyp', ['configure', gypDef])
-         & exec('node-gyp', ['build']);
+    return exec('node-gyp', ['configure', '-C utils/serial', gypDef])
+         & exec('node-gyp', ['build', '-C utils/serial']);
   },
   'serial-standalone': () => {
     return exec(
         cppExec,
         cppArgs.concat(cppDefines.map((d) => cppDefinePrefix + d)).concat([
-          'Utils/Serial/src/standalone/main.cpp',
-          'Utils/Serial/src/standalone/standalone.cpp',
-          'Utils/Serial/src/serial/shared.cpp',
-          'Utils/Serial/src/crashAnalyzer/analyze.cpp',
-          'Utils/Serial/src/crashAnalyzer/buffer.cpp',
+          'utils/serial/src/standalone/main.cpp',
+          'utils/serial/src/standalone/standalone.cpp',
+          'utils/serial/src/serial/shared.cpp',
+          'utils/serial/src/crashAnalyzer/analyze.cpp',
+          'utils/serial/src/crashAnalyzer/buffer.cpp',
           process.platform == 'win32' ?
-            'Utils/Serial/src/serial/win.cpp' :
-            'Utils/Serial/src/serial/unix.cpp',
-          'Protocol/src/protocol/protocol.cpp',
-          '-IUtils/Serial/include',
-          '-IProtocol/include',
-          '-o Utils/Serial/serial']));
+            'utils/serial/src/serial/win.cpp' :
+            'utils/serial/src/serial/unix.cpp',
+          'utils/protocol/src/protocol/protocol.cpp',
+          '-Iutils/serial/include',
+          '-Iutils/protocol/include',
+          '-o utils/serial/serial']));
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -74,18 +74,18 @@ const cleanHandlers = {
          & clean('serial-standalone');
   },
   'voice-command': () => {
-    return remove('./voice-command/.bin');
+    return remove('./utils/voiceCommand/.bin');
   },
   'serial-plugin': () => {
-    return remove('./build');
+    return remove('./utils/serial/build');
   },
   'serial-standalone': () => {
     log('Clean serial-standalone not implemented yet', color.yellow);
     return true;
   },
   'firmware': () => {
-    return remove('./Firmware/src/config/config.cpp')
-         & remove('./Firmware/include/config/config.hpp')
+    return remove('./firmware/src/config/config.cpp')
+         & remove('./firmware/include/config/config.hpp')
          & platformio('clean');
   }
 };
@@ -116,7 +116,7 @@ function config(target) {
     target = 'doerte';
   }
   log(`Generating config ${target}`, color.green);
-  return exec('node', ['Utils/Scripts/generateHardwareConfig.js', target]);
+  return exec('node', ['utils/scripts/generateHardwareConfig.js', target]);
 }
 
 function platformio(command) {
@@ -124,16 +124,16 @@ function platformio(command) {
     command = '.';
   }
   log(`Running platformio ${command}`, color.green);
-  return exec(platformioExec, ['run', '-d Firmware', `-t ${command}`]);
+  return exec(platformioExec, ['run', '-d firmware', `-t ${command}`]);
 }
 
 function plotter() {
-  return exec('http-server', ['Utils/plotter/']);
+  return exec('http-server', ['utils/plotter/']);
 }
 
 function docs() {
   log(`Building docs`, color.green);
-  return exec('node', ['Utils/Scripts/docs.js']);
+  return exec('node', ['utils/scripts/docs.js']);
 }
 
 const handlers = {

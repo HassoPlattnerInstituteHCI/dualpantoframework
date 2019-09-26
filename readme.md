@@ -74,3 +74,24 @@ The `examples` dir contains multiple example programs, as well as programs for c
   - `speakText.js` - Uses the voice output.
 - `wall` - Obstacle testing.
   - `wallGenerator.js` - generates a circle obstacle, subdivided into a given number of edges.
+
+## Repository Overview
+
+- `documentation` - \[Markdown\] Contains the documentation about interfaces and setup.
+  - `classes` - Documentaion for the classes exported by the framework. Build this using `npm run docs`.
+  - `protocol` - Definition of the serial communication protocol. The shared source files implementing this can be found in `./utils/protocol/`. The serial implementations are stored in `./firmware/utils/` (firmware side) and `./utils/serial/` (framework side).
+  - `setup` - Instuctions on how to set up the framework for different operating systems.
+- `examples` - \[JavaScript\] Example scripts on how to use the framework. See [example section](#Examples).
+- `firmware` - \[C++\] The firmware for the ESP32 built into the device. Build using the [platformio command](#Available-Scripts).
+- `hardware` - \[JSON\] Config files for different hardware iterations. These are used with the [configure command](#Available-Scripts) to generate source files which are then compiled into the firmware.
+- `lib` - \[JavaScript\] The dualpantoframework library. Refer the [docs](documentation/classes/index.md) for more info about the files.
+- `utils` - Mixed helpers for building and debugging.
+  - `backtrace` - \[sh\] Bash script vor decoding the ESP32's crash backtrace. Functionality is built into the framework's serial plugin now, but this script may be used without a platformio installation.
+  - `geogebra` - Geometric representations of forward and inverse kinematics. Contains both complete websites for easy use, as well as the scripts used to create those websites.
+  - `plotter` - \[JavaScript\] Visualization of the panto's available space and the resolution. Use the [plotter command](#Available-Scripts) to start a server, open the page (note: due to a bug in a dependency, go directly to `[...]/index.html`) and upload one of the hardware config files.
+  - `protocol` - \[C++\] Serial protocol base files, shared between firmware and framework. Based on the specification stored in `./documentation/protocol/`.
+  - `scripts` - \[JavaScript\] The scripts behind the [commands](#Available-Scripts). Check out `./package.json` and `./utils/scripts/run.js` if you want to add functionality.
+  - `serial` - \[C++\] The serial plugin for the framework. Uses the shared protocol files (`./utils/protocol/`) to implement the specification (`./documentation/protocol/`).
+  - `svgConverter` - \[JavaScript\] Converts a `svg` file of a level into a `prototype.js` script. Use the [svgToJs command](#Available-Scripts).
+  - `viDeb` - \[JavaScript\] Implements a emulated device.
+  - `voiceCommand` - \[JavaScript\] Voice input plugin used by the framework.
