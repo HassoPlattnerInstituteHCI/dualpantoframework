@@ -162,6 +162,7 @@ if (process.platform == 'win32') {
   cppExec = 'cl';
   cppDefinePrefix = '/D';
   cppArgs = ['/Fo:Utils\\Serial\\'];
+  cppDefines.push('WINDOWS');
 } else {
   if (exec('which', ['platformio'])) {
     platformioExec = 'platformio';

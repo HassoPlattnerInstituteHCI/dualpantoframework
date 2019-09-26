@@ -1,5 +1,6 @@
 #include "crashAnalyzer.hpp"
 
+#include <array>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -62,14 +63,29 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
     return result;
 }
 
+std::string exec(const char* cmd) {
+    #ifdef WINDOWS
+    #define popen _popen
+    #define pclose _pclose
+    #endif
+
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        return "popen() failed!";
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
 void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
 {
     std::cout << std::endl << "===== STACKTRACE BEGIN =====" << std::endl;
 
     #ifdef ADDR2LINE_PATH
-
-    char outputFile[L_tmpnam];
-    std::tmpnam(outputFile);
 
     std::ostringstream command;
     command
@@ -80,18 +96,12 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
     {
         command << " " << address;
     }
-    command << " > " << outputFile;
 
-    std::system(command.str().c_str());
+    const auto result = exec(command.str().c_str());
 
     std::cout
-        << "Stacktrace (most recent call first):" << std::endl;
-    {
-        std::ifstream output(outputFile);
-        std::cout << output.rdbuf();
-    }
-
-    std::remove(outputFile);
+        << "Stacktrace (most recent call first):" << std::endl
+        << result;
 
     #else
 
