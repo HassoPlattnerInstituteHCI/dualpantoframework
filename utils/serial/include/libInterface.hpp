@@ -17,4 +17,5 @@ public:
 extern "C"
 {
     uint32_t SERIAL_EXPORT GetRevision();
+    void SERIAL_EXPORT CallMeMaybe(void (*target)());
 };

@@ -11,3 +11,8 @@ uint32_t CppLib::getRevision()
 #define ALIAS(alias, func) alias { return CppLib::func; }
 
 ALIAS(uint32_t GetRevision(), getRevision())
+
+void SERIAL_EXPORT CallMeMaybe(void (*target)())
+{
+    target();
+}
