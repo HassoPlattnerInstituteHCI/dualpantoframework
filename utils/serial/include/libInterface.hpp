@@ -17,6 +17,7 @@ public:
     static void poll();
     static void sendSyncAck();
     static void sendHeartbeatAck();
+    static void sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation);
 };
 
 // handlers
@@ -46,4 +47,5 @@ extern "C"
     void SERIAL_EXPORT Poll(uint64_t handle);
     void SERIAL_EXPORT SendSyncAck(uint64_t handle);
     void SERIAL_EXPORT SendHeartbeatAck(uint64_t handle);
+    void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation);
 };

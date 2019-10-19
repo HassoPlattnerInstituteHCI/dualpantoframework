@@ -132,6 +132,21 @@ void CppLib::sendHeartbeatAck ()
     sendPacket();
 }
 
+void CppLib::sendMotor (uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation)
+{
+    log("sending motor data");
+    s_header.MessageType = MOTOR;
+    s_header.PayloadSize = 14; // 1 for control, 1 for index, 3 * 4 for position
+    uint16_t offset = 0;
+    sendUInt8(controlMethod, offset);
+    sendUInt8(pantoIndex, offset);
+    sendFloat(positionX, offset);
+    sendFloat(positionY, offset);
+    sendFloat(rotation, offset);
+    sendPacket();
+    dumpBuffersToFile();
+}
+
 // handlers
 
 syncHandler_t syncHandler;
@@ -206,4 +221,10 @@ void SERIAL_EXPORT SendHeartbeatAck(uint64_t handle)
 {
     CppLib::setActiveHandle(handle);
     CppLib::sendHeartbeatAck();
+}
+
+void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
 }
