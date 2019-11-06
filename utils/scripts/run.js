@@ -123,6 +123,9 @@ function platformio(command) {
   if (command == 'build' || command === undefined) {
     command = '.';
   }
+
+  // pip install -U platformio
+
   log(`Running platformio ${command}`, color.green);
   return exec(platformioExec, ['run', '-d firmware', `-t ${command}`]);
 }
