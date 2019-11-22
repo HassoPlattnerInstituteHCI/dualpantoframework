@@ -5,6 +5,10 @@
 
 #include "standalone.hpp"
 
+bool Standalone::setup(std::string path){
+    return DPSerial::setup(path);
+}
+
 void Standalone::terminate(int signal)
 {
     tearDown();
