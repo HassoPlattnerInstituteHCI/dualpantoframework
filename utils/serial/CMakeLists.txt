@@ -65,9 +65,21 @@ generate_export_header(serial
 
 set_target_properties(serial PROPERTIES PUBLIC_HEADER "${public_headers}")
 
+if(APPLE)
+set_target_properties(serial PROPERTIES SUFFIX ".bundle")
+elseif(WIN32)
+set_target_properties(serial PROPERTIES SUFFIX ".dll")
+endif()
+
 include(GNUInstallDirs)
 install(TARGETS serial
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+add_executable(standalone.out ${serial_source_dir}/standalone/standalone.cpp
+${serial_source_dir}/standalone/main.cpp
+${serial_include_dir}/standalone.hpp
+${serial_include_dir}/serial.hpp
+)

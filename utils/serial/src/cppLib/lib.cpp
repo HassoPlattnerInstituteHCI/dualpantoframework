@@ -22,7 +22,7 @@ uint64_t CppLib::open(char* port)
 
 void CppLib::setActiveHandle(uint64_t handle)
 {
-    s_handle = (void*) handle;
+    s_handle = (FILEHANDLE) handle;
 }
 
 void CppLib::close()
