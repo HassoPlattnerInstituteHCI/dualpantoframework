@@ -18,6 +18,7 @@ public:
     static void sendSyncAck();
     static void sendHeartbeatAck();
     static void sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation);
+    static void freeMotor(uint8_t controlMethod, uint8_t pantoIndex);
     static void createObstacle (uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     static void addToObstacle (uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     static void removeObstacle (uint8_t pantoIndex, uint16_t obstacleId);

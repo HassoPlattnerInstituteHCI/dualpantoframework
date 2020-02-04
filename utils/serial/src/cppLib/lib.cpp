@@ -285,6 +285,12 @@ void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pan
     CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
 }
 
+void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::sendMotor(controlMethod, pantoIndex, null, null, null);
+}
+
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
     CppLib::setActiveHandle(handle);
