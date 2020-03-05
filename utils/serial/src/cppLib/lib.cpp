@@ -2,6 +2,12 @@
 
 #include <iostream>
 
+#ifdef _WIN32
+#define FILEPTR void*
+#else
+#define FILEPTR FILE*
+#endif
+
 // class stuff
 
 uint32_t CppLib::getRevision()
@@ -22,7 +28,7 @@ uint64_t CppLib::open(char* port)
 
 void CppLib::setActiveHandle(uint64_t handle)
 {
-    s_handle = (void*) handle;
+    s_handle = (FILEPTR) handle;
 }
 
 void CppLib::close()
