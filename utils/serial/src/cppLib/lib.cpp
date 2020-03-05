@@ -152,17 +152,21 @@ void CppLib::createObstacle (uint8_t pantoIndex, uint16_t obstacleId, float vect
     uint16_t offset = 0;
     sendUInt8(pantoIndex, offset);
     sendUInt16(obstacleId, offset);
-    sendFloat(vector1x, offset);
+    /*sendFloat(vector1x, offset);
     sendFloat(vector1y, offset);
     sendFloat(vector2x, offset);
-    sendFloat(vector2y, offset);
+    sendFloat(vector2y, offset);*/
+    sendFloat(-150.f, offset);
+    sendFloat(-124.f, offset);
+    sendFloat(150.f, offset);
+    sendFloat(-124.f, offset);
     sendPacket();
     dumpBuffersToFile();
 }
 
 void CppLib::addToObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
-    s_header.MessageType = ADD_TO_OBSTACLE;
+    /*s_header.MessageType = ADD_TO_OBSTACLE;
     s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
     uint16_t offset = 0;
     sendUInt8(pantoIndex, offset);
@@ -171,7 +175,7 @@ void CppLib::addToObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector
     sendFloat(vector1y, offset);
     sendFloat(vector2x, offset);
     sendFloat(vector2y, offset);
-    sendPacket();
+    sendPacket();*/
 }
 
 void CppLib::removeObstacle(uint8_t pantoIndex, uint16_t obstacleId)
@@ -285,10 +289,10 @@ void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pan
     CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
 }
 
-void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod)
+void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex)
 {
     CppLib::setActiveHandle(handle);
-    CppLib::sendMotor(controlMethod, pantoIndex, null, null, null);
+    CppLib::sendMotor(controlMethod, pantoIndex, NULL, NULL, NULL);
 }
 
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)

@@ -54,6 +54,7 @@ extern "C"
     void SERIAL_EXPORT SendSyncAck(uint64_t handle);
     void SERIAL_EXPORT SendHeartbeatAck(uint64_t handle);
     void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation);
+    void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex);
     void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     void SERIAL_EXPORT AddToObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     void SERIAL_EXPORT RemoveObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId);
