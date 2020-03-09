@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Encoder.h>
-
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
@@ -69,6 +68,9 @@ private:
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
+    //test
+    uint32_t lastUpdateTime = 0;
+
     void inverseKinematics();
     void setMotor(
         const uint8_t& localIndex, const bool& dir, const float& power);
@@ -85,6 +87,8 @@ public:
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();
+    double easeInOutSine_fn(double t);
+    double smoothStep_fn(double t);
 };
 
 extern std::vector<Panto> pantos;

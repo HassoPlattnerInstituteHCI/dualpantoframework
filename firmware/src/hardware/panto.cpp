@@ -5,6 +5,7 @@
 #include "utils/performanceMonitor.hpp"
 #include "utils/serial.hpp"
 
+
 std::vector<Panto> pantos;
 
 void Panto::forwardKinematics()
@@ -259,7 +260,7 @@ void Panto::actuateMotors()
                 fabs(m_targetAngle[localIndex]) * forceFactor);
         }
         else
-        {
+        {   
             auto error =
                 m_targetAngle[localIndex] - m_actuationAngle[localIndex];
             if (localIndex == c_localHandleIndex)
@@ -278,7 +279,7 @@ void Panto::actuateMotors()
                     error += TWO_PI;
                 }
             }
-            unsigned char dir = error < 0;
+            bool dir = error < 0; 
             unsigned long now = micros();
             float dt = now - m_prevTime;
             m_prevTime = now;
@@ -292,12 +293,18 @@ void Panto::actuateMotors()
             float pVal = pid[0] * error;
             float dVal = pid[2] * derivative;
             dVal = pVal + dVal > 0 ? dVal : 0;
+
+            float t = constrain((now-lastUpdateTime)/1000000,0,1000000);//increasing t over one second
+            float ft = constrain(easeInOutSine_fn(t),0,1);//smoothstep or easeInOutSine
+            //accumulate dt here, stop at 1 in 1s == T
+            //T->F(T) tween
+            //F(T)->constrain(0,1,F(T))
             setMotor(
                 localIndex,
                 dir,
-                pVal +
+                (pVal +
                 pid[1] * m_integral[localIndex] +
-                dVal);
+                dVal)*ft);  //multiplz FT)()
         }
     }
 };
@@ -414,7 +421,10 @@ void Panto::setAngleAccessor(
 };
 
 void Panto::setTarget(const Vector2D target, const bool isForceRendering)
-{
+{   
+    ///TODO: start calculating (adding dt) that goes 1 in 1s
+      //test
+    lastUpdateTime=micros();
     m_isforceRendering = isForceRendering;
     m_targetX = target.x;
     m_targetY = target.y;
@@ -425,3 +435,11 @@ void Panto::setRotation(const float rotation)
 {
     m_targetAngle[c_localHandleIndex] = rotation;
 };
+
+double Panto::easeInOutSine_fn(double t) {
+	return -0.5 * (cos(PI*t) - 1);
+}
+
+double Panto::smoothStep_fn(double t) {
+	return (t*t *(3 - 2*t));
+}
