@@ -272,6 +272,15 @@ FF       // pantograph index - both handles
 0023     // obstacle ID
 ```
 
+### 0xA5 Calibrate panto
+
+Example message for sending calibration request:
+```
+4450     // magic number
+A5       // message type: Calibrate panto
+0000     // payload lenght: 0
+```
+
 ### 0xC0 Dump hashtable
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer.
