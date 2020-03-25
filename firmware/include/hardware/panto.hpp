@@ -58,6 +58,7 @@ private:
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
     uint32_t m_prevTime = 0;
+    uint32_t m_dt = 0.0;
 
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
@@ -66,13 +67,25 @@ private:
     float m_handleY = 0;
     float m_targetX = 0;
     float m_targetY = 0;
+
+    float m_startX = 0;
+    float m_startY = 0;
+    float m_tweenTargetX = 0;
+    float m_tweenTargetY = 0;
+
+    float m_tweenDuration = 3.0;
+
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
+
+    float m_tweenValue = 0.0;
 
     void inverseKinematics();
     void setMotor(
         const uint8_t& localIndex, const bool& dir, const float& power);
     void disengageMotors();
+    float tweenFunc(float t){float sqt = t * t;return sqt / (2.0f * (sqt - t) + 1.0f);}
+    float tweenFuncBesier(float t){return constrain(t * t * (3.0f - 2.0f * t), 0.0, 1.0);}
 public:
     Panto(uint8_t pantoIndex);
     float getActuationAngle(const uint8_t index) const;
@@ -80,11 +93,15 @@ public:
     float getRotation() const;
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
+    void computeTweenTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
     void calibrationEnd();
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();
+    void updateTweenValue();
+    void setTweenValue(float value);
+    void setTweenSpeed(float v){m_tweenDuration=v;}
 };
 
 extern std::vector<Panto> pantos;

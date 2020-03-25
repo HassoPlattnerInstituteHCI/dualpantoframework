@@ -217,7 +217,9 @@ void DPSerial::receiveMotor()
 
     const auto target = Vector2D(receiveFloat(), receiveFloat());
     pantos[pantoIndex].setRotation(receiveFloat());
-    pantos[pantoIndex].setTarget(target, controlMethod == 1);
+    // pantos[pantoIndex].setTarget(target, controlMethod == 1);
+    pantos[pantoIndex].computeTweenTarget(target, controlMethod == 1); //TODO: WIP tweening.
+    pantos[pantoIndex].setTweenValue(0.0);
 };
 
 void DPSerial::receivePID()

@@ -280,12 +280,12 @@ void Panto::actuateMotors()
             }
             unsigned char dir = error < 0;
             unsigned long now = micros();
-            float dt = now - m_prevTime;
+            m_dt = now - m_prevTime;
             m_prevTime = now;
             error = fabs(error);
             // Power: PID
-            m_integral[localIndex] += error * dt;
-            float derivative = (error - m_previousDiff[localIndex]) / dt;
+            m_integral[localIndex] += error * m_dt;
+            float derivative = (error - m_previousDiff[localIndex]) / m_dt;
             m_previousDiff[localIndex] = error;
             const auto globalIndex = c_globalIndexOffset + localIndex;
             const auto& pid = pidFactor[globalIndex];
@@ -297,10 +297,32 @@ void Panto::actuateMotors()
                 dir,
                 pVal +
                 pid[1] * m_integral[localIndex] +
-                dVal);
+                dVal
+                );
         }
     }
+    updateTweenValue();
 };
+
+void Panto::setTweenValue(float value){
+    m_tweenValue = value;
+    return;
+}
+
+void Panto::updateTweenValue(){
+    m_tweenValue += m_dt / (m_tweenDuration * 1e4);
+    m_tweenValue = constrain(m_tweenValue, 0.0, 1.0);
+
+    float t = tweenFuncBesier(m_tweenValue);
+
+    float tweenVecX = m_startX + t * (m_tweenTargetX - m_startX);
+    float tweenVecY = m_startY + t * (m_tweenTargetY - m_startY);
+
+    m_targetX = tweenVecX;
+    m_targetY = tweenVecY;
+    inverseKinematics();
+    return;
+}
 
 void Panto::disengageMotors()
 {
@@ -413,11 +435,29 @@ void Panto::setAngleAccessor(
     m_angleAccessors[localIndex] = accessor;
 };
 
+//TODO: make compatiblity with tweening.
 void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 {
     m_isforceRendering = isForceRendering;
     m_targetX = target.x;
     m_targetY = target.y;
+    inverseKinematics();
+};
+
+
+
+//TODO: update tweentarget x, y.->target tweening
+void Panto::computeTweenTarget(const Vector2D target, const bool isForceRendering)
+{
+    m_isforceRendering = isForceRendering;
+    m_startX  = m_handleX;
+    m_startY  = m_handleY;
+
+    m_tweenTargetX = target.x;
+    m_tweenTargetY = target.y;
+
+    m_targetX = m_handleX; //TODO: Unblock resolve!!
+    m_targetY = m_handleY;
     inverseKinematics();
 };
 
