@@ -383,17 +383,31 @@ Panto::Panto(uint8_t pantoIndex)
     }
 };
 
-void Panto::calibrationEnd()
-{
+void Panto::calibrateEncoders(int pantoIndex){
     for (auto localIndex = 0; localIndex < 3; ++localIndex)
     {
         if (m_encoder[localIndex])
         {
             const auto globalIndex = c_globalIndexOffset + localIndex;
-            m_encoder[localIndex]->write(
+            const int32_t encoder = (
                 m_actuationAngle[localIndex] /
                 (TWO_PI) *
                 encoderSteps[globalIndex]);
+            DPSerial::sendInstantDebugLog("%i", encoder);
+            EEPROM.writeInt((3*pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)),encoder);
+        }
+        EEPROM.commit();
+    }
+}
+
+
+void Panto::calibrationEnd(int pantoIndex)
+{
+    for (auto localIndex = 0; localIndex < 3; ++localIndex)
+    {
+        if (m_encoder[localIndex])
+        {
+            m_encoder[localIndex]->write(EEPROM.readInt(3*pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)));
         }
     }
 };

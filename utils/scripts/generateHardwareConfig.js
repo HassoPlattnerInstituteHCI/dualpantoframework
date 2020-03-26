@@ -2,7 +2,7 @@
 /* eslint-disable guard-for-in */
 // also, this is just a helper script and does not need documentation
 /* eslint-disable require-jsdoc */
-// the template strings can't ne broken into multiple lines
+// the template strings can't be broken into multiple lines
 /* eslint-disable max-len */
 const input = require('../../hardware/'+process.argv[2]+'.json');
 const fs = require('fs');

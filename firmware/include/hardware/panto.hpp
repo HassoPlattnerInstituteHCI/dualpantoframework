@@ -4,6 +4,7 @@
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
+#include <EEPROM.h>
 
 // make sure results are in range -270° ~ 0° ~ +90°
 #define ensureAngleRange(angle) \
@@ -83,7 +84,8 @@ public:
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
-    void calibrationEnd();
+    void calibrateEncoders(int pantoIndex);
+    void calibrationEnd(int pantoIndex);
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();

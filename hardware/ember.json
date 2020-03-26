@@ -1,0 +1,138 @@
+{
+    "firmware": "ESP32",
+    "opMinDist": 65,
+    "opMaxDist": 210,
+    "opAngle": 2.2,
+    "forceFactor": 0.01,
+    "dummyPin": 40,
+    "usesSpi": true,
+    "forcePidFactor": [0.375, 0, 0],
+    "hashtableMemory": 200000,
+    "obstacleChangesPerFrame": 1,
+    "range": {
+        "minX": -175,
+        "minY": -205,
+        "maxX": 175,
+        "maxY": 5
+    },
+    "pantos": {
+        "upper": {
+            "left": {
+                "linkage": {
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": -22,
+                    "baseY": 0
+                },
+                "motor": {
+                    "pwmPinForwards":21, 
+                    "pwmPinBackwards": 22,
+                    "flipped": true,
+                    "powerLimit": 1.0,
+                    "pidFactor": [7, 0.0, 600]
+                },
+                "encoder": {
+                    "steps": 16384,
+                    "flipped": true,
+                    "setup": -0.4806,
+                    "spiIndex": 3
+                }
+            },
+            "right": {
+                "linkage": {
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": 22,
+                    "baseY": 0
+                },
+                "motor": {
+                    "pwmPinForwards": 18,
+                    "pwmPinBackwards": 19,
+                    "flipped": true,
+                    "powerLimit": 1.0,
+                    "pidFactor": [7, 0.0, 600]
+                },
+                "encoder": {
+                    "steps": 16384,
+                    "flipped": true,
+                    "setup": -0.0194,
+                    "spiIndex": 2
+                }
+            },
+            "handle": {
+                "motor": {
+                    "pwmPin": 25,
+                    "dirAPin": 32,
+                    "flipped": false,
+                    "powerLimit": 0.2,
+                    "pidFactor": [0.3, 0.0, 30.0]
+                },
+                "encoder": {
+                    "aPin": 35,
+                    "bPin": 34,
+                    "steps": 136,
+                    "setup": 0.0
+                }
+            }
+        },
+        "lower": {
+            "left": {
+                "linkage": {
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": -22,
+                    "baseY": 0
+                },
+                "motor": {
+                    "pwmPinForwards": 4,
+                    "pwmPinBackwards": 16,
+                    "flipped": true,
+                    "powerLimit": 1.0,
+                    "pidFactor": [7, 0.0, 600]
+                },
+                "encoder": {
+                    "steps": 16384,
+                    "flipped": true,
+                    "setup": -0.4806,
+                    "spiIndex": 0
+                }
+            },
+            "right": {
+                "linkage": {
+                    "innerLength": 84.5,
+                    "outerLength": 114,
+                    "baseX": 22,
+                    "baseY": 0
+                },
+                "motor": {
+                    "pwmPinForwards": 17,
+                    "pwmPinBackwards": 5,
+                    "flipped": true,
+                    "powerLimit": 1.0,
+                    "pidFactor": [7, 0.0, 600]
+                },
+                "encoder": {
+                    "steps": 16384,
+                    "flipped": true,
+                    "setup": -0.0194,
+                    "spiIndex": 1
+                }
+            },
+            "handle": {
+                "motor": {
+                    "pwmPin": 23,
+                    "dirAPin": 26,
+                    "flipped": false,
+                    "powerLimit": 0.7,
+                    "pidFactor": [5.0, 0.0, 0.0]
+                },
+                "encoder": {
+                    "aPin": 36,
+                    "bPin": 39,
+                    "steps": 136,
+                    "setup": 0.0
+                }
+            }
+        }
+    }
+}

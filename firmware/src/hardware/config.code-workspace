@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "C:\\Users\\dalen\\Documents\\DualPanto\\dualpantoframework"
+		},
+		{
+			"name": "firmware",
+			"path": "C:\\Users\\dalen\\Documents\\DualPanto\\dualpantoframework\\firmware"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"fstream": "cpp",
+			"istream": "cpp",
+			"memory": "cpp",
+			"ostream": "cpp",
+			"random": "cpp",
+			"sstream": "cpp",
+			"streambuf": "cpp",
+			"xstring": "cpp",
+			"*.tcc": "cpp",
+			"exception": "cpp",
+			"iosfwd": "cpp",
+			"new": "cpp",
+			"shared_mutex": "cpp",
+			"xlocbuf": "cpp"
+		}
+	}
+}
