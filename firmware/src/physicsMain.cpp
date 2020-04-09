@@ -27,9 +27,17 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
-    for (auto i = 0; i < pantoCount; ++i) //two pantos
-    {
-        pantos[i].calibrationEnd();
+
+    EEPROM.begin(sizeof(int32_t)*pantoCount*3);
+
+    //calibrateEncoders; Comment if not needed 
+    // for (auto i = 0; i < pantoCount; ++i)
+    // { pantos[i].calibrateEncoders(i);}
+
+
+    for (auto i = 0; i < pantoCount; ++i)
+    {   
+        pantos[i].calibrationEnd(i);
         #ifdef LINKAGE_ENCODER_USE_SPI
         for (auto j = 0; j < 3; ++j) // three encoders
         {
