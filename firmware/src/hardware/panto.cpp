@@ -409,7 +409,7 @@ void Panto::calibrateEncoders(){
                 (TWO_PI) *
                 encoderSteps[globalIndex]);
             DPSerial::sendInstantDebugLog("%i", encoder);
-            EEPROM.writeInt((3*pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)),encoder);
+            EEPROM.writeInt((3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)),encoder);
         }
         EEPROM.commit();
     }
@@ -422,7 +422,7 @@ void Panto::calibrationEnd()
     {
         if (m_encoder[localIndex])
         {
-            m_encoder[localIndex]->write(EEPROM.readInt(3*pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)));
+            m_encoder[localIndex]->write(EEPROM.readInt(3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)));
         }
     }
 };

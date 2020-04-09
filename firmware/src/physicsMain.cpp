@@ -37,7 +37,7 @@ void physicsSetup()
 
     for (auto i = 0; i < pantoCount; ++i)
     {   
-        pantos[i].calibrationEnd(i);
+        pantos[i].calibrationEnd();
         #ifdef LINKAGE_ENCODER_USE_SPI
         for (auto j = 0; j < 3; ++j) // three encoders
         {
