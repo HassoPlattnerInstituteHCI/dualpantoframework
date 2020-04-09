@@ -27,14 +27,14 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
-    for (auto i = 0; i < pantoCount; ++i)
+    for (auto i = 0; i < pantoCount; ++i) //two pantos
     {
         pantos[i].calibrationEnd();
         #ifdef LINKAGE_ENCODER_USE_SPI
-        for (auto j = 0; j < 3; ++j)
+        for (auto j = 0; j < 3; ++j) // three encoders
         {
             auto index = encoderSpiIndex[i * 3 + j];
-            if(index != 0xffffffff)
+            if(index != 0xffffffff) // excluding it / me handle.
             {
                 startPositions[index] =
                     ((uint16_t)(pantos[i].getActuationAngle(j) /
