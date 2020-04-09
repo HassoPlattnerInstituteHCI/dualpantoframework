@@ -326,6 +326,9 @@ void DPSerial::receiveDisableObstacle()
 void DPSerial::receiveCalibrationRequest()
 {
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
+    for(auto i = 0; i < pantoCount; ++i){
+        pantos[i].calibratePanto();
+    }
 }
 
 void DPSerial::receiveDumpHashtable()

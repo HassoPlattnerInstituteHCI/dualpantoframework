@@ -81,6 +81,8 @@ private:
 
     float m_tweenValue = 0.0;
 
+    bool m_isCalibrating = false;
+
     void inverseKinematics();
     void setMotor(
         const uint8_t& localIndex, const bool& dir, const float& power);
@@ -96,8 +98,11 @@ public:
     void setTarget(const Vector2D target, const bool isForceRendering);
     void computeTweenTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
+    bool getCalibrationState();
     void calibrateEncoders();
+    void calibratePanto();
     void calibrationEnd();
+    void resetActuationAngle();
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();

@@ -415,6 +415,20 @@ void Panto::calibrateEncoders(){
     }
 }
 
+void Panto::resetActuationAngle(){
+   for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex){
+    const auto globalIndex = c_globalIndexOffset + localIndex;
+    m_actuationAngle[localIndex] = setupAngle[globalIndex] * TWO_PI;
+   }
+}
+
+bool Panto::getCalibrationState(){
+    return m_isCalibrating;
+}
+
+void Panto::calibratePanto(){
+    m_isCalibrating = true;
+}
 
 void Panto::calibrationEnd()
 {
@@ -425,6 +439,7 @@ void Panto::calibrationEnd()
             m_encoder[localIndex]->write(EEPROM.readInt(3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)));
         }
     }
+    m_isCalibrating = false;
 };
 
 float Panto::getActuationAngle(const uint8_t localIndex) const
