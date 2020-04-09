@@ -96,8 +96,8 @@ public:
     void setTarget(const Vector2D target, const bool isForceRendering);
     void computeTweenTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
-    void calibrateEncoders(int pantoIndex);
-    void calibrationEnd(int pantoIndex);
+    void calibrateEncoders();
+    void calibrationEnd();
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();

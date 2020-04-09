@@ -398,7 +398,7 @@ Panto::Panto(uint8_t pantoIndex)
     }
 };
 
-void Panto::calibrateEncoders(int pantoIndex){
+void Panto::calibrateEncoders(){
     for (auto localIndex = 0; localIndex < 3; ++localIndex)
     {
         if (m_encoder[localIndex])
@@ -416,7 +416,7 @@ void Panto::calibrateEncoders(int pantoIndex){
 }
 
 
-void Panto::calibrationEnd(int pantoIndex)
+void Panto::calibrationEnd()
 {
     for (auto localIndex = 0; localIndex < 3; ++localIndex)
     {
