@@ -325,7 +325,7 @@ void DPSerial::receiveDisableObstacle()
 
 void DPSerial::receiveCalibrationRequest()
 {
-    DPSerial::sendInstantDebugLog("=== Nachricht eingegangen ===");
+    DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
 }
 
 void DPSerial::receiveDumpHashtable()
