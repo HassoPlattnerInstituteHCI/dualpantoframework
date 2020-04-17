@@ -412,11 +412,12 @@ void Panto::calibrateEncoders(){
     {
         if (m_encoder[localIndex])
         {
-            const auto globalIndex = c_globalIndexOffset + localIndex;
-            const int32_t encoder = (int32_t)(
+            //const auto globalIndex = c_globalIndexOffset + localIndex;
+            const int32_t encoder = m_angleAccessors[localIndex]();
+            /*const int32_t encoder = (int32_t)(
                 m_actuationAngle[localIndex]/
                 TWO_PI*
-                encoderSteps[globalIndex]);
+                encoderSteps[globalIndex]);*/
             DPSerial::sendInstantDebugLog("Encoder: %i",encoder);
             EEPROM.writeInt((3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)),encoder);
             DPSerial::sendInstantDebugLog("Read: %i ", EEPROM.readInt(3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)));
