@@ -69,7 +69,8 @@ private:
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
-    //test
+    
+    bool m_isCalibrating = false;
     uint32_t lastUpdateTime = 0;
 
     void inverseKinematics();
@@ -84,8 +85,12 @@ public:
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
-    void calibrateEncoders(int pantoIndex);
-    void calibrationEnd(int pantoIndex);
+    bool getCalibrationState();
+    void calibrateEncoders();
+    void calibratePanto();
+    void moveToStartingPosition();
+    void calibrationEnd();
+    void resetActuationAngle();
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();

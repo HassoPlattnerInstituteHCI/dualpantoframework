@@ -26,6 +26,7 @@ std::map<MessageType, ReceiveHandler>
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
         {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
+        {MOVE_TO_STARTING_POSITION, DPSerial::receiveStartingPositionRequest},
         {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
     };
 
@@ -323,7 +324,18 @@ void DPSerial::receiveDisableObstacle()
 
 void DPSerial::receiveCalibrationRequest()
 {
-    DPSerial::sendInstantDebugLog("=== Nachricht eingegangen ===");
+    for (auto i = 0; i < pantoCount; ++i)
+    {pantos[i].calibratePanto();}
+    DPSerial::sendInstantDebugLog("=== calibration successful! ===");
+}
+
+void DPSerial::receiveStartingPositionRequest()
+{
+    DPSerial::sendInstantDebugLog("=== moving to starting position... ===");
+    for (auto i = 0; i < pantoCount; ++i)
+    {   
+        //pantos[i].moveToStartingPosition();
+    }
 }
 
 void DPSerial::receiveDumpHashtable()

@@ -126,6 +126,9 @@ napi_value Node::send(napi_env env, napi_callback_info info)
     case CALIBRATE_PANTO:{
         break;
     }
+    case MOVE_TO_STARTING_POSITION:{
+        break;
+    }
     case DUMP_HASHTABLE:
     {
         napi_value propertyName;
