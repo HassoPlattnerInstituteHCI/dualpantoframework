@@ -28,7 +28,7 @@ void physicsSetup()
     std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
 
-    EEPROM.begin(sizeof(int32_t)*pantoCount*3);
+    EEPROM.begin(sizeof(uint32_t)*numberOfSpiEncoders);
 
     //calibrateEncoders; Comment if not needed 
     // for (auto i = 0; i < pantoCount; ++i)
@@ -37,26 +37,21 @@ void physicsSetup()
 
     for (auto i = 0; i < pantoCount; ++i)
     {   
-        pantos[i].calibrationEnd();
+        pantos[i].calibrationEnd(); //calibrating only handle pulse encoder
         #ifdef LINKAGE_ENCODER_USE_SPI
         for (auto j = 0; j < 3; ++j) // three encoders
         {
             auto index = encoderSpiIndex[i * 3 + j];
             if(index != 0xffffffff) // excluding it / me handle.
             {
-                startPositions[index] =
-                    ((uint16_t)(pantos[i].getActuationAngle(j) /
-                    (TWO_PI) *
-                    encoderSteps[i * 3 + j]) & 0x3fff);
                 pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
             }
         }
         #endif
     }
     #ifdef LINKAGE_ENCODER_USE_SPI
-    spi->setPosition(startPositions);
+        spi->wakeUp();
     #endif
-
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
@@ -112,8 +107,8 @@ void physicsLoop()
         std::vector<uint16_t> startPositions(numberOfSpiEncoders);
         #endif
         for (auto i = 0; i < pantoCount; ++i)
-        {   
-            pantos[i].resetActuationAngle();
+        {
+            pantos[i].calibrationEnd();
             #ifdef LINKAGE_ENCODER_USE_SPI
             for (auto j = 0; j < 3; ++j) // three encoders
             {
@@ -124,12 +119,9 @@ void physicsLoop()
                         ((uint16_t)(pantos[i].getActuationAngle(j) /
                         (TWO_PI) *
                         encoderSteps[i * 3 + j]) & 0x3fff);
-                    pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
                 }
             }
             #endif
-            pantos[i].calibrateEncoders();
-            pantos[i].calibrationEnd();
         }
         #ifdef LINKAGE_ENCODER_USE_SPI
         spi->setPosition(startPositions);

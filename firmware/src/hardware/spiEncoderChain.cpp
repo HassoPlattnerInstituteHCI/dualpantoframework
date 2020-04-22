@@ -2,6 +2,7 @@
 
 #include "hardware/spiCommands.hpp"
 #include "utils/serial.hpp"
+#include <EEPROM.h>
 
 void SPIEncoderChain::begin()
 {
@@ -45,6 +46,12 @@ void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
     }
     end();
 
+    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    {
+        DPSerial::sendQueuedDebugLog("newZero[%d] = %d is written", i, newZero[i] & 0x3fff);
+        EEPROM.writeInt((i*sizeof(int32_t)),newZero[i] & 0x3fff);
+    }
+    EEPROM.commit();
     transfer(SPICommands::c_readAngle);
 }
 
@@ -113,7 +120,7 @@ void SPIEncoderChain::clearError()
     }
 }
 
-std::vector<uint16_t> SPIEncoderChain::getZero()
+std::vector<uint16_t> SPIEncoderChain::getZero() //getZero returns 0 everytime power == off.
 {
     // first pass - request high part of zero, don't care about current return value
     transfer(SPICommands::c_highZeroRead);
@@ -134,6 +141,12 @@ std::vector<uint16_t> SPIEncoderChain::getZero()
     for(auto i = 0; i < m_numberOfEncoders; ++i)
     {
         result[i] |= m_encoders[i].m_lastPacket.m_data & 0b111111;
+    }
+
+    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    {
+        result[i] = (uint16_t)EEPROM.readInt(i*sizeof(int32_t));
+        DPSerial::sendQueuedDebugLog("getZero[%d] = %d is read", i, result[i]);
     }
 
     return result;
@@ -184,6 +197,17 @@ void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
     }
 
     setZero(newZero);
+}
+
+void SPIEncoderChain::wakeUp(){
+    std::vector<uint16_t> result(m_numberOfEncoders);
+    update();
+    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    {
+        result[i] = (uint16_t)EEPROM.readInt(i*sizeof(int32_t));
+        DPSerial::sendQueuedDebugLog("getZero[%d] = %d is read", i, result[i]);
+    }
+    setZero(result);
 }
 
 AngleAccessor SPIEncoderChain::getAngleAccessor(uint32_t index)
