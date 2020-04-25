@@ -126,6 +126,10 @@ napi_value Node::send(napi_env env, napi_callback_info info)
     case CALIBRATE_PANTO:{
         break;
     }
+
+    case READ_EEPROM:{
+        break;
+    }
     case DUMP_HASHTABLE:
     {
         napi_value propertyName;

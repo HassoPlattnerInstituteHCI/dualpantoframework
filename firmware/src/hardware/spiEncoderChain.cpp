@@ -199,13 +199,13 @@ void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
     setZero(newZero);
 }
 
-void SPIEncoderChain::wakeUp(){
+void SPIEncoderChain::wakeUp(){ //call setZero(EEPROM_VALUE)
     std::vector<uint16_t> result(m_numberOfEncoders);
     update();
     for(auto i = 0; i < m_numberOfEncoders; ++i)
     {
         result[i] = (uint16_t)EEPROM.readInt(i*sizeof(int32_t));
-        DPSerial::sendQueuedDebugLog("getZero[%d] = %d is read", i, result[i]);
+        //DPSerial::sendQueuedDebugLog("getZero[%d] = %d is read", i, result[i]);
     }
     setZero(result);
 }

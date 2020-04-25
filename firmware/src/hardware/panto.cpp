@@ -399,20 +399,13 @@ Panto::Panto(uint8_t pantoIndex)
 };
 
 void Panto::calibrateEncoders(){
-    for (auto localIndex = 0; localIndex < 3; ++localIndex)
-    {
-        if (m_encoder[localIndex])
-        {
-            const auto globalIndex = c_globalIndexOffset + localIndex;
-            const int32_t encoder = (
-                m_actuationAngle[localIndex] /
-                (TWO_PI) *
-                encoderSteps[globalIndex]);
-            DPSerial::sendInstantDebugLog("%i", encoder);
-            EEPROM.writeInt((3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)),encoder);
-        }
-        EEPROM.commit();
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+    {   
+        //Write encoder values to EEPROM
+        EEPROM.writeInt((3*c_pantoIndex*sizeof(uint32_t)+localIndex*sizeof(uint32_t)),m_angleAccessors[localIndex]());
     }
+    #endif
 }
 
 void Panto::resetActuationAngle(){
@@ -436,9 +429,14 @@ void Panto::calibrationEnd()
     {
         if (m_encoder[localIndex])
         {
-            m_encoder[localIndex]->write(EEPROM.readInt(3*c_pantoIndex*sizeof(int32_t)+localIndex*sizeof(int32_t)));
+            const auto globalIndex = c_globalIndexOffset + localIndex;
+            m_encoder[localIndex]->write(
+                m_actuationAngle[localIndex] /
+                (TWO_PI) *
+                encoderSteps[globalIndex]);
         }
     }
+    resetActuationAngle();
     m_isCalibrating = false;
 };
 

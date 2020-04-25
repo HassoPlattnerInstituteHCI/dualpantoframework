@@ -16,5 +16,6 @@ enum MessageType
     ENABLE_OBSTACLE = 0xA3,
     DISABLE_OBSTACLE = 0xA4,
     CALIBRATE_PANTO = 0xA5,
+    READ_EEPROM = 0xA6,
     DUMP_HASHTABLE = 0xC0
 };

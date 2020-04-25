@@ -71,6 +71,7 @@ private:
     static void receiveEnableObstacle();
     static void receiveDisableObstacle();
     static void receiveCalibrationRequest();
+    static void receiveEEPROMRequest();
     static void receiveDumpHashtable();
     static void receiveInvalid();
 

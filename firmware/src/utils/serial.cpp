@@ -26,6 +26,7 @@ std::map<MessageType, ReceiveHandler>
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
         {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
+        {READ_EEPROM, DPSerial::receiveEEPROMRequest},
         {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
     };
 
@@ -328,6 +329,17 @@ void DPSerial::receiveCalibrationRequest()
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
     for(auto i = 0; i < pantoCount; ++i){
         pantos[i].calibratePanto();
+    }
+}
+
+void DPSerial::receiveEEPROMRequest()
+{
+    DPSerial::sendInstantDebugLog("=== Calibrated Value (EEPROM) Request received ===");
+    for(auto i = 0;i < 2; i++){
+        for (auto j = 0; j < 3; j++){
+            uint32_t value = EEPROM.readInt(3*i*sizeof(uint32_t)+j*sizeof(uint32_t));
+            DPSerial::sendInstantDebugLog("EEPROM Value (encoder) [%d][%d] => [%ld]", i, j, value);
+        }
     }
 }
 
