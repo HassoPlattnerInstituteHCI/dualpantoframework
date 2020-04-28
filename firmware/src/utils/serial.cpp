@@ -25,6 +25,7 @@ std::map<MessageType, ReceiveHandler>
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
+        {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
         {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
     };
 
@@ -317,6 +318,14 @@ void DPSerial::receiveDisableObstacle()
         {
             pantoPhysics[i].godObject()->enableObstacle(id, false);
         }
+    }
+}
+
+void DPSerial::receiveCalibrationRequest()
+{
+    DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
+    for(auto i = 0; i < pantoCount; ++i){
+        pantos[i].calibratePanto();
     }
 }
 

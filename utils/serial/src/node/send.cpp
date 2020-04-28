@@ -123,6 +123,9 @@ napi_value Node::send(napi_env env, napi_callback_info info)
         DPSerial::sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
         break;
     }
+    case CALIBRATE_PANTO:{
+        break;
+    }
     case DUMP_HASHTABLE:
     {
         napi_value propertyName;
