@@ -41,3 +41,8 @@ Vector2D Vector2D::operator*(const double scale) const
 {
     return Vector2D(x * scale, y * scale);
 };
+
+bool Vector2D::operator==(const Vector2D &other) const
+{
+    return x == other.x && y == other.y;
+};
