@@ -2,6 +2,12 @@
 
 #include <iostream>
 
+#ifdef _WIN32
+#define FILEPTR void*
+#else
+#define FILEPTR FILE*
+#endif
+
 // class stuff
 
 uint32_t CppLib::getRevision()
@@ -22,7 +28,7 @@ uint64_t CppLib::open(char* port)
 
 void CppLib::setActiveHandle(uint64_t handle)
 {
-    s_handle = (void*) handle;
+    s_handle = (FILEPTR) handle;
 }
 
 void CppLib::close()
@@ -152,17 +158,21 @@ void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vecto
     uint16_t offset = 0;
     sendUInt8(pantoIndex, offset);
     sendUInt16(obstacleId, offset);
-    sendFloat(vector1x, offset);
+    /*sendFloat(vector1x, offset);
     sendFloat(vector1y, offset);
     sendFloat(vector2x, offset);
-    sendFloat(vector2y, offset);
+    sendFloat(vector2y, offset);*/
+    sendFloat(-150.f, offset);
+    sendFloat(-124.f, offset);
+    sendFloat(150.f, offset);
+    sendFloat(-124.f, offset);
     sendPacket();
     dumpBuffersToFile();
 }
 
 void CppLib::addToObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
-    s_header.MessageType = ADD_TO_OBSTACLE;
+    /*s_header.MessageType = ADD_TO_OBSTACLE;
     s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
     uint16_t offset = 0;
     sendUInt8(pantoIndex, offset);
@@ -171,7 +181,7 @@ void CppLib::addToObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector
     sendFloat(vector1y, offset);
     sendFloat(vector2x, offset);
     sendFloat(vector2y, offset);
-    sendPacket();
+    sendPacket();*/
 }
 
 void CppLib::removeObstacle(uint8_t pantoIndex, uint16_t obstacleId)
