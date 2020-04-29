@@ -13,10 +13,10 @@ uint64_t CppLib::open(char* port)
 {
     if(!setup(port))
     {
-        log("Open failed");
+        logString("Open failed");
         return 0;
     }
-    log("Open successfull");
+    logString("Open successfull");
     return (uint64_t) s_handle;
 }
 
@@ -58,7 +58,7 @@ void CppLib::poll()
             }
             else
             {
-                log("Revision id not matching");
+                logString("Revision id not matching");
             }
             break;
         }
@@ -74,7 +74,7 @@ void CppLib::poll()
             }
             break;
         case DEBUG_LOG:
-            log((char*)s_packetBuffer);
+            logString((char *)s_packetBuffer);
             break;
         default:
             break;
@@ -85,7 +85,7 @@ void CppLib::poll()
     {
         if(syncHandler == nullptr)
         {
-            log("Received sync, but handler not set up");
+            logString("Received sync, but handler not set up");
         }
         else
         {
@@ -97,7 +97,7 @@ void CppLib::poll()
     {
         if(heartbeatHandler == nullptr)
         {
-            log("Received heartbeat, but handler not set up");
+            logString("Received heartbeat, but handler not set up");
         }
         else
         {
@@ -109,7 +109,7 @@ void CppLib::poll()
     {
         if(positionHandler == nullptr)
         {
-            log("Received position, but handler not set up");
+            logString("Received position, but handler not set up");
         }
         else
         {
@@ -118,21 +118,21 @@ void CppLib::poll()
     }
 }
 
-void CppLib::sendSyncAck ()
+void CppLib::sendSyncAck()
 {
     s_header.MessageType = SYNC_ACK;
     s_header.PayloadSize = 0;
     sendPacket();
 }
 
-void CppLib::sendHeartbeatAck ()
+void CppLib::sendHeartbeatAck()
 {
     s_header.MessageType = HEARTBEAT_ACK;
     s_header.PayloadSize = 0;
     sendPacket();
 }
 
-void CppLib::sendMotor (uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation)
+void CppLib::sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation)
 {
     s_header.MessageType = MOTOR;
     s_header.PayloadSize = 14; // 1 for control, 1 for index, 3 * 4 for position
@@ -145,7 +145,7 @@ void CppLib::sendMotor (uint8_t controlMethod, uint8_t pantoIndex, float positio
     sendPacket();
 }
 
-void CppLib::createObstacle (uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
+void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
     s_header.MessageType = CREATE_OBSTACLE;
     s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
@@ -210,7 +210,7 @@ heartbeatHandler_t heartbeatHandler;
 positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
 
-void log (char* msg)
+void logString(char* msg)
 {
     if(loggingHandler != nullptr)
     {
@@ -229,19 +229,19 @@ uint32_t GetRevision()
 void SERIAL_EXPORT SetSyncHandler(syncHandler_t handler)
 {
     syncHandler = handler;
-    log("Sync handler set");
+    logString("Sync handler set");
 }
 
 void SERIAL_EXPORT SetHeartbeatHandler(heartbeatHandler_t handler)
 {
     heartbeatHandler = handler;
-    log("Heartbeat handler set");
+    logString("Heartbeat handler set");
 }
 
 void SERIAL_EXPORT SetPositionHandler(positionHandler_t handler)
 {
     positionHandler = handler;
-    log("Position handler set");
+    logString("Position handler set");
 }
 
 void SERIAL_EXPORT SetLoggingHandler(loggingHandler_t handler)
@@ -285,10 +285,10 @@ void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pan
     CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
 }
 
-void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod)
+void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex)
 {
     CppLib::setActiveHandle(handle);
-    CppLib::sendMotor(controlMethod, pantoIndex, null, null, null);
+    CppLib::sendMotor(controlMethod, pantoIndex, NULL, NULL, NULL);
 }
 
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
