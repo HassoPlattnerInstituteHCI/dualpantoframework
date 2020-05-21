@@ -187,6 +187,12 @@ const float forcePidFactor[2][3] = {
 const uint8_t motorPwmPin[] = {
     ${aggregate('motor_pwmPin', input.dummyPin)}
 };
+const uint8_t motorPwmPinForwards[] = {
+    ${aggregate('motor_pwmPinForwards', input.dummyPin)}
+};
+const uint8_t motorPwmPinBackwards[] = {
+    ${aggregate('motor_pwmPinBackwards', input.dummyPin)}
+};
 const uint8_t motorDirAPin[] = {
     ${aggregate('motor_dirAPin', input.dummyPin)}
 };
