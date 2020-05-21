@@ -16,7 +16,7 @@ Broker.on('devicesChanged', function(devices, attached, detached) {
           const remainder = (abs % 1).toFixed(3).substring(1, 5);
           return sign + whole + remainder;
         }
-        if (index == 0) {
+        if (index == 1) {
           console.log(
               '[me] ', format(pos[0].x), '|', format(pos[0].y),
               '[it] ', format(pos[1].x), '|', format(pos[1].y));
