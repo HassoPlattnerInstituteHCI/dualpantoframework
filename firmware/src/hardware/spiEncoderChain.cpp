@@ -49,7 +49,7 @@ void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
 }
 
 SPIEncoderChain::SPIEncoderChain(uint32_t numberOfEncoders)
-: m_settings(10000000, SPI_MSBFIRST, SPI_MODE1)
+: m_settings(10000000, SPI_MSBFIRST, SPI_MODE1) //was 100000
 , m_spi(HSPI)
 , m_numberOfEncoders(numberOfEncoders)
 , m_encoders(numberOfEncoders, &m_spi)
@@ -62,6 +62,8 @@ SPIEncoderChain::SPIEncoderChain(uint32_t numberOfEncoders)
 
 void SPIEncoderChain::update()
 {
+    while(m_currentTry < m_maxTries) {
+        m_currentTry += 1;
     // first pass - request position
     transfer(SPICommands::c_readAngle);
 
@@ -78,14 +80,22 @@ void SPIEncoderChain::update()
         }
         else
         {
-            DPSerial::sendQueuedDebugLog("Encoder %i received %04x", i, m_encoders[i].m_lastPacket.m_transmission);
+            errors += 1;
+            //DPSerial::sendQueuedDebugLog("Encoder %i received %04x", i, m_encoders[i].m_lastPacket.m_transmission);
         }
     }
+    requests += m_numberOfEncoders;
+    //todo add retry
 
     if(!allValid)
     {
-        DPSerial::sendQueuedDebugLog("Transmission error - resetting error register...");
+        //DPSerial::sendQueuedDebugLog("Transmission error - resetting error register...");
         clearError();
+    }
+    else {
+        m_currentTry = 0;
+        break;
+    }
     }
 }
 
@@ -108,7 +118,7 @@ void SPIEncoderChain::clearError()
 
         if(parityError || commandInvalidError || framingError)
         {
-            DPSerial::sendQueuedDebugLog("Encoder %u reported parity=%u, command=%u, framing=%u", i, parityError, commandInvalidError, framingError);
+            //DPSerial::sendQueuedDebugLog("Encoder %u reported parity=%u, command=%u, framing=%u", i, parityError, commandInvalidError, framingError);
         }
     }
 }
@@ -189,4 +199,17 @@ void SPIEncoderChain::setPosition(std::vector<uint16_t> positions)
 AngleAccessor SPIEncoderChain::getAngleAccessor(uint32_t index)
 {
     return std::bind(&SPIEncoder::getAngle, &m_encoders[index]);
+}
+
+uint32_t SPIEncoderChain::getErrors() {    
+    return errors;
+}
+
+uint32_t SPIEncoderChain::getRequests() {
+    return requests;
+}
+
+void SPIEncoderChain::resetErrors() {
+    errors = 0;
+    requests = 0;
 }

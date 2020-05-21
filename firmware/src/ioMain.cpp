@@ -6,6 +6,7 @@
 #include "utils/serial.hpp"
 
 FramerateLimiter sendLimiter = FramerateLimiter::fromFPS(60);
+//todo copy limiter to physics physicsMain.cpp for SPI error logging
 
 void ioSetup()
 {
@@ -20,6 +21,8 @@ void ioLoop()
     PERFMON_STOP("[a] Receive serial");
 
     PERFMON_START("[b] Send positions");
+    //DPSerial::sendDebugData();
+    //DPSerial::sendInstantDebugLog("\n");
     if (connected && sendLimiter.step())
     {
         DPSerial::sendPosition();
