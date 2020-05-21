@@ -5,6 +5,10 @@
 #include "physics/pantoPhysics.hpp"
 #include "tasks/taskRegistry.hpp"
 #include "utils/performanceMonitor.hpp"
+#include "utils/framerateLimiter.hpp"
+#include "utils/serial.hpp"
+
+FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
@@ -90,4 +94,9 @@ void physicsLoop()
         pantos[i].actuateMotors();
     }
     PERFMON_STOP("[c] Actuate motors");
+
+    if(spiErrorLimiter.step()) {
+        DPSerial::sendQueuedDebugLog("SPI Errors: %i of %i", spi->getErrors(), spi->getRequests());
+        spi->resetErrors();
+    }
 }

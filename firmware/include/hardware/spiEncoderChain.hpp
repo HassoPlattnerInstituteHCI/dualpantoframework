@@ -13,6 +13,10 @@ private:
     SPIClass m_spi;
     uint32_t m_numberOfEncoders;
     std::vector<SPIEncoder> m_encoders;
+    uint32_t errors = 0;
+    uint32_t requests = 0;
+    uint8_t m_maxTries = 4;
+    uint8_t m_currentTry = 0;
     static const uint32_t c_hspiSsPin = 15;
     void begin();
     void end();
@@ -26,5 +30,8 @@ public:
     void setZero();
     bool needsZero();
     void setPosition(std::vector<uint16_t> positions);
+    uint32_t getErrors();
+    uint32_t getRequests();
+    void resetErrors();
     AngleAccessor getAngleAccessor(uint32_t index);
 };
