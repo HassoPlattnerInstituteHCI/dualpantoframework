@@ -195,12 +195,26 @@ void Panto::setMotor(
 {
     const auto globalIndex = c_globalIndexOffset + localIndex;
 
-    if(motorPwmPin[globalIndex] == dummyPin)
+    if(motorPwmPin[globalIndex] == dummyPin && motorPwmPinForwards[globalIndex] == dummyPin)
     {
         return;
     }
 
     const auto flippedDir = dir ^ motorFlipped[globalIndex];
+
+    if(motorPwmPinForwards[globalIndex] != dummyPin)
+    {
+        if(!flippedDir) {
+            ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+        }
+        else {
+            ledcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex+6, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+        }
+        return;
+    }
+
 
     digitalWrite(motorDirAPin[globalIndex], flippedDir);
     digitalWrite(motorDirBPin[globalIndex], !flippedDir);
@@ -365,11 +379,41 @@ Panto::Panto(uint8_t pantoIndex)
         pinMode(encoderIndexPin[globalIndex], INPUT);
         pinMode(motorDirAPin[globalIndex], OUTPUT);
         pinMode(motorDirBPin[globalIndex], OUTPUT);
-        pinMode(motorPwmPin[globalIndex], OUTPUT);
 
-        ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
-        ledcAttachPin(motorPwmPin[globalIndex], globalIndex);
+        if(motorPwmPinForwards[globalIndex] == dummyPin) {
+            pinMode(motorPwmPin[globalIndex], OUTPUT);
 
+            ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
+            ledcAttachPin(motorPwmPin[globalIndex], globalIndex);
+        }
+
+        if(motorPwmPin[globalIndex] == dummyPin && motorPwmPinForwards[globalIndex] != dummyPin) {
+            pinMode(motorPwmPinForwards[globalIndex], OUTPUT);
+            pinMode(motorPwmPinBackwards[globalIndex], OUTPUT);
+
+            // TODO: initiate the PWM channels independent from globalIndex
+            ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
+            ledcSetup(globalIndex+6, c_ledcFrequency, c_ledcResolution);
+            
+            //DPSerial::sendInstantDebugLog("attaching gi %i to pwm %i and pwm %i\n", globalIndex, motorPwmPinForwards[globalIndex], motorPwmPinBackwards[globalIndex]);
+
+            ledcAttachPin(motorPwmPinForwards[globalIndex], globalIndex);
+            ledcAttachPin(motorPwmPinBackwards[globalIndex], globalIndex+6);
+
+            ledcWrite(globalIndex, 0.1*PWM_MAX);
+            delay(10);
+            ledcWrite(globalIndex, 0);
+            delay(10);
+            ledcWrite(globalIndex+6, 0.1*PWM_MAX);
+            delay(10);
+            ledcWrite(globalIndex+6, 0);
+            /*
+            ledcWrite(globalIndex, 0.2*PWM_MAX);
+            delay(2000);
+            ledcWrite(globalIndex, 0);
+            */
+
+        }
         // TODO: Calibration
         // Use encoder index pin and actuate the motors to reach it
         setMotor(localIndex, false, 0);
