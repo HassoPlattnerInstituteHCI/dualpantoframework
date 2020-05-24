@@ -96,7 +96,11 @@ void physicsLoop()
     PERFMON_STOP("[c] Actuate motors");
 
     if(spiErrorLimiter.step()) {
-        DPSerial::sendQueuedDebugLog("SPI Errors: %i of %i", spi->getErrors(), spi->getRequests());
+        DPSerial::sendQueuedDebugLog("SPI Errors: %i out of %i requests", spi->getErrors(), spi->getRequests());
+        DPSerial::sendQueuedDebugLog("Encoder Errors panto[0]: %i out of %i requests",
+            pantos[0].getEncoderErrorCount(), pantos[0].getEncoderRequests());
+        DPSerial::sendQueuedDebugLog("Encoder Errors panto[1]: %i out of %i requests",
+            pantos[1].getEncoderErrorCount(), pantos[1].getEncoderRequests());
         spi->resetErrors();
     }
 }
