@@ -227,6 +227,7 @@ void Panto::readEncoders()
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
+        m_previousAngle[localIndex] = m_actuationAngle[localIndex];
         m_actuationAngle[localIndex] =
             ensureAngleRange(
                 encoderFlipped[globalIndex] *
@@ -252,9 +253,37 @@ void Panto::readEncoders()
                 NAN);
     }
     #endif
-
+    
+    m_previousAngle[c_localHandleIndex] = m_actuationAngle[c_localHandleIndex];
     m_actuationAngle[c_localHandleIndex] =
         fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+    if(m_previousAnglesCount>4){
+        m_previousAnglesCount=0;
+        for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+        {
+            float std = 0.0f;
+            float mean = 0.0f;
+            for(int i = 0; i < 5; i++){
+                mean+=m_previousAngles[localIndex][i];
+            }mean/=5.0f;
+            for(int i = 0; i < 5; i++){
+                std+=(m_previousAngles[localIndex][i]-mean)*(m_previousAngles[localIndex][i]-mean);
+            }std /=5.0f;
+            if(std < 1.0f){
+                m_actuationAngle[localIndex] = m_previousAngles[localIndex][4];
+            }
+            else{
+                m_actuationAngle[localIndex] = m_previousAngle[localIndex];
+            }
+        }
+    }
+    else{
+        for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+        {
+            m_previousAngles[localIndex][m_previousAnglesCount] = m_actuationAngle[localIndex];
+        }
+    }
+    m_previousAnglesCount++;
 };
 
 void Panto::actuateMotors()
