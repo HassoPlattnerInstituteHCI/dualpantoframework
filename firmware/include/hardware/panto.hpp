@@ -62,6 +62,8 @@ private:
     uint32_t m_prevTime = 0;
 
     int m_previousAnglesCount = 0;
+    int m_encoderErrorCount = 0;
+    int m_encoderRequestCount = 0;
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
@@ -88,6 +90,8 @@ public:
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();
+    int getEncoderErrorCount();
+    int getEncoderRequests();
 };
 
 extern std::vector<Panto> pantos;

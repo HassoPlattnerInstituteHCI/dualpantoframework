@@ -232,6 +232,7 @@ void Panto::readEncoders()
                 encoderFlipped[globalIndex] *
                 TWO_PI * m_angleAccessors[localIndex]() /
                 encoderSteps[globalIndex]);
+        m_encoderRequestCount++;
     }
     m_actuationAngle[c_localHandleIndex] =
         (m_encoder[c_localHandleIndex]) ? 
@@ -275,6 +276,7 @@ void Panto::readEncoders()
                 m_actuationAngle[localIndex] = m_previousAngles[localIndex][4];
             }
             else{
+                m_encoderErrorCount++;
                 // DPSerial::sendQueuedDebugLog("jumps at [panto %d][motor %d] (std>1.0f) mean = %f",c_pantoIndex, localIndex, mean);
                 // for(int i = 0; i < 5; i++){
                 //  DPSerial::sendQueuedDebugLog("previousAngles[%d][%d]=%f",localIndex, i, m_previousAngles[localIndex][i]);
@@ -504,3 +506,15 @@ void Panto::setRotation(const float rotation)
 {
     m_targetAngle[c_localHandleIndex] = rotation;
 };
+
+int Panto::getEncoderErrorCount(){
+    int res= m_encoderErrorCount;
+    m_encoderErrorCount =0;
+    return res;
+}
+
+int Panto::getEncoderRequests(){
+    int res= m_encoderRequestCount;
+    m_encoderRequestCount =0;
+    return res;
+}
