@@ -227,8 +227,7 @@ void Panto::readEncoders()
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
-        m_previousAngle[localIndex] = m_actuationAngle[localIndex];
-        m_actuationAngle[localIndex] =
+        m_previousAngle[localIndex] =
             ensureAngleRange(
                 encoderFlipped[globalIndex] *
                 TWO_PI * m_angleAccessors[localIndex]() /
@@ -253,10 +252,13 @@ void Panto::readEncoders()
                 NAN);
     }
     #endif
-    
+
     m_previousAngle[c_localHandleIndex] = m_actuationAngle[c_localHandleIndex];
-    m_actuationAngle[c_localHandleIndex] =
-        fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+    {
+        if(m_previousAngle[localIndex]==0)return;
+    }
     if(m_previousAnglesCount>4){
         m_previousAnglesCount=0;
         for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
@@ -273,14 +275,18 @@ void Panto::readEncoders()
                 m_actuationAngle[localIndex] = m_previousAngles[localIndex][4];
             }
             else{
-                m_actuationAngle[localIndex] = m_previousAngle[localIndex];
+                // DPSerial::sendQueuedDebugLog("jumps at [panto %d][motor %d] (std>1.0f) mean = %f",c_pantoIndex, localIndex, mean);
+                // for(int i = 0; i < 5; i++){
+                //  DPSerial::sendQueuedDebugLog("previousAngles[%d][%d]=%f",localIndex, i, m_previousAngles[localIndex][i]);
+                // }
+                // m_actuationAngle[localIndex] = m_previousAngle[localIndex];
             }
         }
     }
     else{
         for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
         {
-            m_previousAngles[localIndex][m_previousAnglesCount] = m_actuationAngle[localIndex];
+            m_previousAngles[localIndex][m_previousAnglesCount] = m_previousAngle[localIndex];
         }
     }
     m_previousAnglesCount++;
