@@ -54,11 +54,14 @@ private:
     #endif
     Encoder* m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
+    float m_previousAngle[c_dofCount];
+    float m_previousAngles[c_dofCount][5];
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
     uint32_t m_prevTime = 0;
 
+    int m_previousAnglesCount = 0;
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
