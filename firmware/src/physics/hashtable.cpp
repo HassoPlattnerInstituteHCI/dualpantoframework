@@ -160,7 +160,7 @@ void Hashtable::remove(AnnotatedEdge* edge)
 void Hashtable::getPossibleCollisions(
     Edge movement, std::set<IndexedEdge>* result)
 {
-    return;
+    // return;
     if(movement.m_first.x == 0 && movement.m_first.y == 0)
     {
         DPSerial::sendInstantDebugLog(

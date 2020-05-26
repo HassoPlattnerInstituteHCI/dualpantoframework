@@ -37,7 +37,7 @@ const uint8_t linkageHandleMount[] = {
     0, 0, 0, 0, 0, 0
 };
 const float motorPowerLimit[] = {
-    0.2, 0.2, 0.2, 0.2, 0.2, 0.2
+    0.6, 0.6, 0.2, 0.6, 0.6, 0.2
 };
 extern float pidFactor[6][3];
 const float forceP = 0.375; //changed from 0.375
