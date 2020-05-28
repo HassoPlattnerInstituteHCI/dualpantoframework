@@ -25,6 +25,7 @@ public:
     void clearError();
     void setZero();
     bool needsZero();
+    void wakeUp();
     void setPosition(std::vector<uint16_t> positions);
     AngleAccessor getAngleAccessor(uint32_t index);
 };

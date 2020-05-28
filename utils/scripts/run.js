@@ -123,6 +123,8 @@ function platformio(command) {
   if (command == 'build' || command === undefined) {
     command = '.';
   }
+
+
   log(`Running platformio ${command}`, color.green);
   return exec(platformioExec, ['run', '-d firmware', `-t ${command}`]);
 }
