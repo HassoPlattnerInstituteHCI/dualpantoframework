@@ -47,7 +47,6 @@ The available values for messages from the framework to the hardware are:
   - [0xA2 Remove obstacle](#0xA2-Remove-obstacle) - This message specifies an obstacle to remove.
   - [0xA3 Enable obstacle](#0xA3-Enable-obstacle) - This message specifies an obstacle to enable.
   - [0xA4 Disable obstacle](#0xA4-Disable-obstacle) - This message specifies an obstacle to disable.
-  - [0xA5 Calibrate panto](#0xA5-Calibrate-panto) - This message specifies a calibration request.
 - 0xC0 to 0xCF - Debug tools
     [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' hashtable.
 
@@ -271,15 +270,6 @@ A4       // message type: Disable obstacle
 0003     // payload lenght: 1 byte for index, 2 for ID
 FF       // pantograph index - both handles
 0023     // obstacle ID
-```
-
-### 0xA5 Calibrate panto
-
-Example message for sending calibration request:
-```
-4450     // magic number
-A5       // message type: Calibrate panto
-0000     // payload lenght: 0
 ```
 
 ### 0xC0 Dump hashtable
