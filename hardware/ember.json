@@ -1,5 +1,4 @@
 {
-    "_comment": "TODO: adjust encoder setup values & range",
     "firmware": "ESP32",
     "opMinDist": 65,
     "opMaxDist": 210,
