@@ -97,10 +97,14 @@ void physicsLoop()
 
     if(spiErrorLimiter.step()) {
         DPSerial::sendQueuedDebugLog("SPI Errors: %i out of %i requests", spi->getErrors(), spi->getRequests());
-        DPSerial::sendQueuedDebugLog("Encoder Errors panto[0]: %i out of %i requests",
-            pantos[0].getEncoderErrorCount(), pantos[0].getEncoderRequests());
-        DPSerial::sendQueuedDebugLog("Encoder Errors panto[1]: %i out of %i requests",
-            pantos[1].getEncoderErrorCount(), pantos[1].getEncoderRequests());
+        for(int i=0; i < 2; i++){
+        DPSerial::sendQueuedDebugLog("Encoder Errors panto[0][%i]: %i out of %i requests",i,
+            pantos[0].getEncoderErrorCounts(i), pantos[0].getEncoderRequestsCounts(i));
+        }
+        for(int i=0; i < 2; i++){
+        DPSerial::sendQueuedDebugLog("Encoder Errors panto[1][%i]: %i out of %i requests",i,
+            pantos[1].getEncoderErrorCounts(i), pantos[1].getEncoderRequestsCounts(i));
+        }
         spi->resetErrors();
     }
 }

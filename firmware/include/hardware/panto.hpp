@@ -63,7 +63,9 @@ private:
 
     int m_previousAnglesCount = 0;
     int m_encoderErrorCount = 0;
+    int m_encoderErrorCounts[4] = {0,0,0,0};
     int m_encoderRequestCount = 0;
+    int m_encoderRequestCounts[4] = {0,0,0,0};
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
@@ -92,6 +94,8 @@ public:
     void actuateMotors();
     int getEncoderErrorCount();
     int getEncoderRequests();
+    int getEncoderErrorCounts(int i);
+    int getEncoderRequestsCounts(int i);
 };
 
 extern std::vector<Panto> pantos;
