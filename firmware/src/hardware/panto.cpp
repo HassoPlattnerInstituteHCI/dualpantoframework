@@ -520,7 +520,6 @@ int Panto::getEncoderErrorCounts(int i){
     m_encoderErrorCounts[i] =0;
     return res;
 }
-
 int Panto::getEncoderRequests(){
     int res= m_encoderRequestCount;
     m_encoderRequestCount =0;
