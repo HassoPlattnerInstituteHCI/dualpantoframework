@@ -12,7 +12,7 @@
 
 #include <Arduino.h>
 
-const uint8_t configHash[] = {0x55, 0x56, 0x97, 0x8A, 0x1D, 0xDC, 0x66, 0x8E, 0xB0, 0xD5, 0xB6, 0xA3, 0x0F, 0x0D, 0x52, 0x17};
+const uint8_t configHash[] = {0xA7, 0x9C, 0x86, 0xEB, 0x3C, 0x42, 0x44, 0x83, 0xAF, 0x1A, 0x40, 0xBA, 0x40, 0xDD, 0xB9, 0xCC};
 const float opMinDist = 65,
             opMaxDist = 210,
             opAngle = 2.2;
@@ -80,7 +80,7 @@ const uint32_t encoderSpiIndex[] = {
     3, 2, 4294967295, 0, 1, 4294967295
 };
 const float encoderFlipped[] = {
-    1, 1, 1, -1, -1, 1
+    1, 1, -1, -1, -1, -1
 };
 const float setupAngle[] = {
     -0.5, 0.001, -0.25, -0.5, 0.001, -0.25
