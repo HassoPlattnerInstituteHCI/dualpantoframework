@@ -5,6 +5,7 @@
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
+#include <EEPROM.h>
 
 // make sure results are in range -270° ~ 0° ~ +90°
 #define ensureAngleRange(angle) \
@@ -76,6 +77,8 @@ private:
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
+    bool m_isCalibrating = false;
+
     void inverseKinematics();
     void setMotor(
         const uint8_t& localIndex, const bool& dir, const float& power);
@@ -88,7 +91,11 @@ public:
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
     void setRotation(const float rotation);
+    bool getCalibrationState();
+    void calibrateEncoders();
+    void calibratePanto();
     void calibrationEnd();
+    void resetActuationAngle();
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();

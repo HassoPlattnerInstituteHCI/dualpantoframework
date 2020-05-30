@@ -25,6 +25,7 @@ std::map<MessageType, ReceiveHandler>
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
+        {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
         {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
     };
 
@@ -320,6 +321,14 @@ void DPSerial::receiveDisableObstacle()
     }
 }
 
+void DPSerial::receiveCalibrationRequest()
+{
+    DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
+    for(auto i = 0; i < pantoCount; ++i){
+        pantos[i].calibratePanto();
+    }
+}
+
 void DPSerial::receiveDumpHashtable()
 {
     auto pantoIndex = receiveUInt8();
@@ -401,7 +410,7 @@ void DPSerial::sendInstantDebugLog(const char* message, ...)
     va_start(args, message);
     uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
-    length = constrain(length, 0, c_debugLogBufferSize);
+    length = constrain(length + 1, 0, c_debugLogBufferSize);
     sendMagicNumber();
     sendHeader(DEBUG_LOG, length);
     Serial.write(s_debugLogBuffer, length);
@@ -431,7 +440,7 @@ void DPSerial::processDebugLogQueue()
             if(!s_debugLogQueue.empty())
             {
                 auto& msg = s_debugLogQueue.front();
-                auto length = msg.length();
+                auto length = msg.length() + 1;
                 sendMagicNumber();
                 sendHeader(DEBUG_LOG, length);
                 Serial.write(

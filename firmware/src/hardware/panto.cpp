@@ -459,6 +459,31 @@ Panto::Panto(uint8_t pantoIndex)
     }
 };
 
+void Panto::calibrateEncoders(){
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+    {   
+        //Write encoder values to EEPROM
+        EEPROM.writeInt((3*c_pantoIndex*sizeof(uint32_t)+localIndex*sizeof(uint32_t)),m_angleAccessors[localIndex]());
+    }
+    #endif
+}
+
+void Panto::resetActuationAngle(){
+   for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex){
+    const auto globalIndex = c_globalIndexOffset + localIndex;
+    m_actuationAngle[localIndex] = setupAngle[globalIndex] * TWO_PI;
+   }
+}
+
+bool Panto::getCalibrationState(){
+    return m_isCalibrating;
+}
+
+void Panto::calibratePanto(){
+    m_isCalibrating = true;
+}
+
 void Panto::calibrationEnd()
 {
     for (auto localIndex = 0; localIndex < 3; ++localIndex)
@@ -472,6 +497,8 @@ void Panto::calibrationEnd()
                 encoderSteps[globalIndex]);
         }
     }
+    resetActuationAngle();
+    m_isCalibrating = false;
 };
 
 float Panto::getActuationAngle(const uint8_t localIndex) const

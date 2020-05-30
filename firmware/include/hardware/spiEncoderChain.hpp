@@ -29,6 +29,7 @@ public:
     void clearError();
     void setZero();
     bool needsZero();
+    void wakeUp();
     void setPosition(std::vector<uint16_t> positions);
     uint32_t getErrors();
     uint32_t getRequests();

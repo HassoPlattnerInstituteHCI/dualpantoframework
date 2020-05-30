@@ -15,4 +15,5 @@ struct Vector2D
     Vector2D operator-(const Vector2D& other) const;
     double operator*(const Vector2D& other) const;
     Vector2D operator*(const double scale) const;
+    bool operator==(const Vector2D& other) const;
 };
