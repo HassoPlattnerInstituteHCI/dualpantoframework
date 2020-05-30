@@ -410,7 +410,7 @@ void DPSerial::sendInstantDebugLog(const char* message, ...)
     va_start(args, message);
     uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
-    length = constrain(length, 0, c_debugLogBufferSize);
+    length = constrain(length + 1, 0, c_debugLogBufferSize);
     sendMagicNumber();
     sendHeader(DEBUG_LOG, length);
     Serial.write(s_debugLogBuffer, length);
@@ -440,7 +440,7 @@ void DPSerial::processDebugLogQueue()
             if(!s_debugLogQueue.empty())
             {
                 auto& msg = s_debugLogQueue.front();
-                auto length = msg.length();
+                auto length = msg.length() + 1;
                 sendMagicNumber();
                 sendHeader(DEBUG_LOG, length);
                 Serial.write(

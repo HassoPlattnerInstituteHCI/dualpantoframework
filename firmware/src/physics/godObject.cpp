@@ -86,6 +86,10 @@ void GodObject::move()
 
 Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 {
+    if (m_position == targetPoint)
+    {
+        return targetPoint;
+    }
     m_possibleCollisions->clear();
     m_hashtable.getPossibleCollisions(
         Edge(m_position, targetPoint), m_possibleCollisions);
@@ -106,6 +110,11 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
         // value is constant for loop
         const auto posMinusTarget = m_position - targetPoint;
+
+        if (posMinusTarget == Vector2D(0, 0))
+        {
+            return targetPoint;
+        }
 
         for (auto&& indexedEdge : *m_possibleCollisions)
         {

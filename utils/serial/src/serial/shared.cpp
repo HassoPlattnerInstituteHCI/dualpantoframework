@@ -27,7 +27,9 @@ void DPSerial::receivePacket()
         else
         {
             std::cout << received;
+            #ifndef SKIP_ANALYZER
             CrashAnalyzer::push_back(received);
+            #endif
             index = 0;
         }
     }
