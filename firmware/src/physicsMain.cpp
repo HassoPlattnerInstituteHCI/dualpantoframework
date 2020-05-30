@@ -57,9 +57,10 @@ void physicsSetup()
         }
         #endif
     }
-    // #ifdef LINKAGE_ENCODER_USE_SPI
-    //     spi->wakeUp();
-    // #endif
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    spi->setPosition(startPositions);
+    #endif
+    
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);

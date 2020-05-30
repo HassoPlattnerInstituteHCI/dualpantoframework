@@ -46,11 +46,11 @@ void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
     }
     end();
 
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
-    {
-        EEPROM.writeInt((i*sizeof(int32_t)),newZero[i] & 0x3fff);
-    }
-    EEPROM.commit();
+    // for(auto i = 0; i < m_numberOfEncoders; ++i)
+    // {
+    //     EEPROM.writeInt((i*sizeof(int32_t)),newZero[i] & 0x3fff);
+    // }
+    // EEPROM.commit();
     transfer(SPICommands::c_readAngle);
 }
 
@@ -152,10 +152,10 @@ std::vector<uint16_t> SPIEncoderChain::getZero() //getZero returns 0 everytime p
         result[i] |= m_encoders[i].m_lastPacket.m_data & 0b111111;
     }
 
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
-    {
-        result[i] = (uint16_t)EEPROM.readInt(i*sizeof(int32_t));
-    }
+    // for(auto i = 0; i < m_numberOfEncoders; ++i)
+    // {
+    //     result[i] = (uint16_t)EEPROM.readInt(i*sizeof(int32_t));
+    // }
 
     return result;
 }
