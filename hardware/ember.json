@@ -1,5 +1,4 @@
 {
-    "_comment": "TODO: adjust encoder setup values & range",
     "firmware": "ESP32",
     "opMinDist": 65,
     "opMaxDist": 210,
@@ -56,7 +55,7 @@
                 "encoder": {
                     "steps": 16384,
                     "flipped": false,
-                    "setup": 0.0,
+                    "setup": 0.001,
                     "spiIndex": 2
                 }
             },
@@ -116,7 +115,7 @@
                 "encoder": {
                     "steps": 16384,
                     "flipped": true,
-                    "setup": 0.0,
+                    "setup": 0.001,
                     "spiIndex": 1
                 }
             },

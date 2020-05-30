@@ -10,7 +10,7 @@ class DPProtocol
 {
 protected:
     // revision
-    static const uint32_t c_revision = 2;
+    static const uint32_t c_revision = 5;
 
     // connection info
     static const uint32_t c_baudRate = 115200;

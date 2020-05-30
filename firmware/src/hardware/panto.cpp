@@ -196,12 +196,26 @@ void Panto::setMotor(
 {
     const auto globalIndex = c_globalIndexOffset + localIndex;
 
-    if(motorPwmPin[globalIndex] == dummyPin)
+    if(motorPwmPin[globalIndex] == dummyPin && motorPwmPinForwards[globalIndex] == dummyPin)
     {
         return;
     }
 
     const auto flippedDir = dir ^ motorFlipped[globalIndex];
+
+    if(motorPwmPinForwards[globalIndex] != dummyPin)
+    {
+        if(!flippedDir) {
+            ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+        }
+        else {
+            ledcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex+6, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+        }
+        return;
+    }
+
 
     digitalWrite(motorDirAPin[globalIndex], flippedDir);
     digitalWrite(motorDirBPin[globalIndex], !flippedDir);
@@ -214,11 +228,13 @@ void Panto::readEncoders()
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
-        m_actuationAngle[localIndex] =
+        m_previousAngle[localIndex] =
             ensureAngleRange(
                 encoderFlipped[globalIndex] *
                 TWO_PI * m_angleAccessors[localIndex]() /
                 encoderSteps[globalIndex]);
+        m_encoderRequestCount++;
+        m_encoderRequestCounts[localIndex]++;
     }
     m_actuationAngle[c_localHandleIndex] =
         (m_encoder[c_localHandleIndex]) ? 
@@ -240,8 +256,44 @@ void Panto::readEncoders()
     }
     #endif
 
-    m_actuationAngle[c_localHandleIndex] =
-        fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+    m_previousAngle[c_localHandleIndex] = m_actuationAngle[c_localHandleIndex];
+    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+    {
+        if(m_previousAngle[localIndex]==0)return;
+    }
+    if(m_previousAnglesCount>4){
+        m_previousAnglesCount=0;
+        for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+        {
+            float std = 0.0f;
+            float mean = 0.0f;
+            for(int i = 0; i < 5; i++){
+                mean+=m_previousAngles[localIndex][i];
+            }mean/=5.0f;
+            for(int i = 0; i < 5; i++){
+                std+=(m_previousAngles[localIndex][i]-mean)*(m_previousAngles[localIndex][i]-mean);
+            }std /=5.0f;
+            if(std < 1.0f){
+                m_actuationAngle[localIndex] = m_previousAngles[localIndex][4];
+            }
+            else{
+                m_encoderErrorCounts[localIndex]++;
+                // DPSerial::sendQueuedDebugLog("jumps at [panto %d][motor %d] (std>1.0f) mean = %f",c_pantoIndex, localIndex, mean);
+                // for(int i = 0; i < 5; i++){
+                //  DPSerial::sendQueuedDebugLog("previousAngles[%d][%d]=%f",localIndex, i, m_previousAngles[localIndex][i]);
+                // }
+                // m_actuationAngle[localIndex] = m_previousAngle[localIndex];
+            }
+        }
+    }
+    else{
+        for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+        {
+            m_previousAngles[localIndex][m_previousAnglesCount] = m_previousAngle[localIndex];
+        }
+    }
+    m_previousAnglesCount++;
 };
 
 void Panto::actuateMotors()
@@ -366,11 +418,41 @@ Panto::Panto(uint8_t pantoIndex)
         pinMode(encoderIndexPin[globalIndex], INPUT);
         pinMode(motorDirAPin[globalIndex], OUTPUT);
         pinMode(motorDirBPin[globalIndex], OUTPUT);
-        pinMode(motorPwmPin[globalIndex], OUTPUT);
 
-        ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
-        ledcAttachPin(motorPwmPin[globalIndex], globalIndex);
+        if(motorPwmPinForwards[globalIndex] == dummyPin) {
+            pinMode(motorPwmPin[globalIndex], OUTPUT);
 
+            ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
+            ledcAttachPin(motorPwmPin[globalIndex], globalIndex);
+        }
+
+        if(motorPwmPin[globalIndex] == dummyPin && motorPwmPinForwards[globalIndex] != dummyPin) {
+            pinMode(motorPwmPinForwards[globalIndex], OUTPUT);
+            pinMode(motorPwmPinBackwards[globalIndex], OUTPUT);
+
+            // TODO: initiate the PWM channels independent from globalIndex
+            ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
+            ledcSetup(globalIndex+6, c_ledcFrequency, c_ledcResolution);
+            
+            //DPSerial::sendInstantDebugLog("attaching gi %i to pwm %i and pwm %i\n", globalIndex, motorPwmPinForwards[globalIndex], motorPwmPinBackwards[globalIndex]);
+
+            ledcAttachPin(motorPwmPinForwards[globalIndex], globalIndex);
+            ledcAttachPin(motorPwmPinBackwards[globalIndex], globalIndex+6);
+
+            ledcWrite(globalIndex, 0.1*PWM_MAX);
+            delay(10);
+            ledcWrite(globalIndex, 0);
+            delay(10);
+            ledcWrite(globalIndex+6, 0.1*PWM_MAX);
+            delay(10);
+            ledcWrite(globalIndex+6, 0);
+            /*
+            ledcWrite(globalIndex, 0.2*PWM_MAX);
+            delay(2000);
+            ledcWrite(globalIndex, 0);
+            */
+
+        }
         // TODO: Calibration
         // Use encoder index pin and actuate the motors to reach it
         setMotor(localIndex, false, 0);
@@ -453,3 +535,26 @@ void Panto::setRotation(const float rotation)
 {
     m_targetAngle[c_localHandleIndex] = rotation;
 };
+
+int Panto::getEncoderErrorCount(){
+    int res= m_encoderErrorCount;
+    m_encoderErrorCount =0;
+    return res;
+}
+
+int Panto::getEncoderErrorCounts(int i){
+    int res= m_encoderErrorCounts[i];
+    m_encoderErrorCounts[i] =0;
+    return res;
+}
+int Panto::getEncoderRequests(){
+    int res= m_encoderRequestCount;
+    m_encoderRequestCount =0;
+    return res;
+}
+
+int Panto::getEncoderRequestsCounts(int i){
+    int res= m_encoderRequestCounts[i];
+    m_encoderRequestCounts[i] =0;
+    return res;
+}
