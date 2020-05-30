@@ -11,6 +11,7 @@
     "config": "npm run script config",
     "plotter": "npm run script plotter",
     "docs": "npm run script docs",
+    "unity": "npm run script unity",
     "script": "node ./utils/scripts/run.js",
     "svgToJs": "node ./utils/svgConverter/svgToJs.js",
     "setup-commit-hook": "if-env NODE_ENV=production && echo \" production mode \" || node ./utils/scripts/createJsCommitHook.js"

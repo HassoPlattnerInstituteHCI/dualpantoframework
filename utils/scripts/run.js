@@ -13,7 +13,8 @@ const buildHandlers = {
   'framework': () => {
     return build('voice-command')
          & build('serial-plugin')
-         & build('serial-standalone');
+         & build('serial-standalone')
+         & build('unity-serial');
   },
   'voice-command': () => {
     return exec('node', ['./utils/voiceCommand/build/build-release.js']);
@@ -39,6 +40,9 @@ const buildHandlers = {
           '-Iutils/serial/include',
           '-Iutils/protocol/include',
           '-o utils/serial/serial']));
+  },
+  'unity-serial': () =>{
+    return unity();
   },
   'firmware': () => {
     return config(process.argv[4])
@@ -138,13 +142,23 @@ function docs() {
   return exec('node', ['utils/scripts/docs.js']);
 }
 
+function unity() {
+  const unityDir = './utils/serial/unity/';
+  if (process.platform == 'win32') {
+    return exec(unityDir+'win.bat');
+  } else {
+    return exec(unityDir+'mac.sh');
+  }
+}
+
 const handlers = {
   'build': build,
   'clean': clean,
   'config': config,
   'platformio': platformio,
   'plotter': plotter,
-  'docs': docs
+  'docs': docs,
+  'unity': unity
 };
 
 const platformioDir = os.homedir() + '/.platformio';
