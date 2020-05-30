@@ -47,14 +47,19 @@ void physicsSetup()
             auto index = encoderSpiIndex[i * 3 + j];
             if(index != 0xffffffff) // excluding it / me handle.
             {
+                startPositions[index] =
+                ((uint16_t)(pantos[i].getActuationAngle(j) /
+                (TWO_PI) *
+                encoderSteps[i * 3 + j]) & 0x3fff);
+
                 pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
             }
         }
         #endif
     }
-    #ifdef LINKAGE_ENCODER_USE_SPI
-        spi->wakeUp();
-    #endif
+    // #ifdef LINKAGE_ENCODER_USE_SPI
+    //     spi->wakeUp();
+    // #endif
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
