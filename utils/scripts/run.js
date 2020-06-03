@@ -143,10 +143,10 @@ function docs() {
 }
 
 function unity() {
-  const unityDir = './utils/serial/unity/';
   if (process.platform == 'win32') {
-    return exec(unityDir+'win.bat');
+    return exec('utils\\serial\\unity\\win.bat');
   } else {
+    const unityDir = './utils/serial/unity/';
     return exec(unityDir+'mac.sh');
   }
 }
