@@ -11,6 +11,7 @@ FramerateLimiter sendLimiter = FramerateLimiter::fromFPS(60);
 void ioSetup()
 {
     ulTaskNotifyTake(true, portMAX_DELAY);
+    delay(100); // TODO: patch: wait until pantoPhysics instantiates godobject (physicsMain);
 }
 
 void ioLoop()
