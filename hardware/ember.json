@@ -28,7 +28,7 @@
                     "pwmPinForwards": 16,
                     "pwmPinBackwards": 4,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
@@ -49,7 +49,7 @@
                     "pwmPinForwards": 2,
                     "pwmPinBackwards": 17,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
@@ -88,7 +88,7 @@
                     "pwmPinForwards":22, 
                     "pwmPinBackwards": 21,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
@@ -109,7 +109,7 @@
                     "pwmPinForwards": 19,
                     "pwmPinBackwards": 18,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
