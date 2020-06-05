@@ -177,6 +177,11 @@ const uint8_t linkageHandleMount[] = {
 const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
 };
+
+const float motor_powerLimitForce[] = {
+  ${aggregate('motor_powerLimitForce')}
+};
+
 extern float pidFactor[${pantoCount*3}][3];
 const float forceP = ${input.forcePidFactor[0]};
 const float forceI = ${input.forcePidFactor[1]};
