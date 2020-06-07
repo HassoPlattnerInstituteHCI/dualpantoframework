@@ -65,10 +65,10 @@
                 "motor": {
                     "pwmPin": 25,
                     "dirAPin": 32,
-                    "flipped": false,
+                    "flipped": true,
                     "powerLimit": 0.2,
                     "powerLimitForce":0.2,
-                    "pidFactor": [0.3, 0, 30]
+                    "pidFactor": [0.5, 0, 30]
                 },
                 "encoder": {
                     "aPin": 35,
@@ -128,10 +128,10 @@
                 "motor": {
                     "pwmPin": 23,
                     "dirAPin": 26,
-                    "flipped": false,
+                    "flipped": true,
                     "powerLimit": 0.2,
                     "powerLimitForce":0.2,
-                    "pidFactor": [0.3, 0, 30]
+                    "pidFactor": [0.5, 0, 30]
                 },
                 "encoder": {
                     "aPin": 36,
