@@ -339,7 +339,7 @@ void Panto::actuateMotors()
             m_prevTime = now;
             error = fabs(error);
             // Power: PID
-            m_integral[localIndex] += error * dt;
+            m_integral[localIndex] = min(0.5f, m_integral[localIndex] + error * dt);
             float derivative = (error - m_previousDiff[localIndex]) / dt;
             m_previousDiff[localIndex] = error;
             const auto globalIndex = c_globalIndexOffset + localIndex;
