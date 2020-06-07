@@ -207,11 +207,13 @@ void Panto::setMotor(
     {
         if(!flippedDir) {
             ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex, min(power, 
+            (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         else {
             ledcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex+6, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex+6, min(power,
+            (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         return;
     }
