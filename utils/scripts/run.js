@@ -145,9 +145,11 @@ function docs() {
 function unity() {
   if (process.platform == 'win32') {
     return exec('utils\\serial\\unity\\win.bat');
-  } else {
+  } else if (process.platform == 'darwin') {
     const unityDir = './utils/serial/unity/';
     return exec(unityDir+'mac.sh');
+  } else {
+    exec('echo "Linux is not supported for building unity framework."');
   }
 }
 
