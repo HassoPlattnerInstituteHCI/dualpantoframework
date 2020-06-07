@@ -207,11 +207,13 @@ void Panto::setMotor(
     {
         if(!flippedDir) {
             ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex, min(power, 
+            (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         else {
             ledcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex+6, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            ledcWrite(globalIndex+6, min(power,
+            (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         return;
     }
@@ -337,7 +339,7 @@ void Panto::actuateMotors()
             m_prevTime = now;
             error = fabs(error);
             // Power: PID
-            m_integral[localIndex] += error * dt;
+            m_integral[localIndex] = min(0.5f, m_integral[localIndex] + error * dt);
             float derivative = (error - m_previousDiff[localIndex]) / dt;
             m_previousDiff[localIndex] = error;
             const auto globalIndex = c_globalIndexOffset + localIndex;
