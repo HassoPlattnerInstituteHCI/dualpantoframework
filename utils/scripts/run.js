@@ -149,7 +149,7 @@ function unity() {
     const unityDir = './utils/serial/unity/';
     return exec(unityDir+'mac.sh');
   } else {
-    exec('echo "Linux is not supported for building unity framework."');
+    return exec('echo "Linux is not supported for building unity framework."');
   }
 }
 
