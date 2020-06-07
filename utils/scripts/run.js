@@ -13,8 +13,7 @@ const buildHandlers = {
   'framework': () => {
     return build('voice-command')
          & build('serial-plugin')
-         & build('serial-standalone')
-         & build('unity-serial');
+         & build('serial-standalone');
   },
   'voice-command': () => {
     return exec('node', ['./utils/voiceCommand/build/build-release.js']);
