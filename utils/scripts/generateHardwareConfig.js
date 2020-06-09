@@ -177,6 +177,9 @@ const uint8_t linkageHandleMount[] = {
 const float motorPowerLimit[] = {
     ${aggregate('motor_powerLimit')}
 };
+const float motor_powerLimitForce[] = {
+  ${aggregate('motor_powerLimitForce')}
+};
 extern float pidFactor[${pantoCount*3}][3];
 const float forceP = ${input.forcePidFactor[0]};
 const float forceI = ${input.forcePidFactor[1]};
@@ -186,6 +189,12 @@ const float forcePidFactor[2][3] = {
 };
 const uint8_t motorPwmPin[] = {
     ${aggregate('motor_pwmPin', input.dummyPin)}
+};
+const uint8_t motorPwmPinForwards[] = {
+    ${aggregate('motor_pwmPinForwards', input.dummyPin)}
+};
+const uint8_t motorPwmPinBackwards[] = {
+    ${aggregate('motor_pwmPinBackwards', input.dummyPin)}
 };
 const uint8_t motorDirAPin[] = {
     ${aggregate('motor_dirAPin', input.dummyPin)}

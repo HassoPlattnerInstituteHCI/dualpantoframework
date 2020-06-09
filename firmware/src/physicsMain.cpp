@@ -5,6 +5,10 @@
 #include "physics/pantoPhysics.hpp"
 #include "tasks/taskRegistry.hpp"
 #include "utils/performanceMonitor.hpp"
+#include "utils/framerateLimiter.hpp"
+#include "utils/serial.hpp"
+
+FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
@@ -43,14 +47,20 @@ void physicsSetup()
             auto index = encoderSpiIndex[i * 3 + j];
             if(index != 0xffffffff) // excluding it / me handle.
             {
+                startPositions[index] =
+                ((uint16_t)(pantos[i].getActuationAngle(j) /
+                (TWO_PI) *
+                encoderSteps[i * 3 + j]) & 0x3fff);
+
                 pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
             }
         }
         #endif
     }
     #ifdef LINKAGE_ENCODER_USE_SPI
-        spi->wakeUp();
+    spi->setPosition(startPositions);
     #endif
+    
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
@@ -93,6 +103,19 @@ void physicsLoop()
     }
     PERFMON_STOP("[c] Actuate motors");
 
+    if(spiErrorLimiter.step()) {
+        // DPSerial::sendQueuedDebugLog("SPI Errors: %i out of %i requests", spi->getErrors(), spi->getRequests());
+        // for(int i=0; i < 2; i++){
+        // DPSerial::sendQueuedDebugLog("Encoder Errors panto[0][%i]: %i out of %i requests",i,
+        //     pantos[0].getEncoderErrorCounts(i), pantos[0].getEncoderRequestsCounts(i));
+        // }
+        // for(int i=0; i < 2; i++){
+        // DPSerial::sendQueuedDebugLog("Encoder Errors panto[1][%i]: %i out of %i requests",i,
+        //     pantos[1].getEncoderErrorCounts(i), pantos[1].getEncoderRequestsCounts(i));
+        // }
+        // spi->resetErrors();
+    }
+  
     PERFMON_START("[d] Calibrate Pantos");
     bool flag = false;
     for(auto i = 0; i < pantoCount; ++i){

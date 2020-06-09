@@ -55,11 +55,18 @@ private:
     #endif
     Encoder* m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
+    float m_previousAngle[c_dofCount];
+    float m_previousAngles[c_dofCount][5];
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
     uint32_t m_prevTime = 0;
 
+    int m_previousAnglesCount = 0;
+    int m_encoderErrorCount = 0;
+    int m_encoderErrorCounts[4] = {0,0,0,0};
+    int m_encoderRequestCount = 0;
+    int m_encoderRequestCounts[4] = {0,0,0,0};
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
@@ -92,6 +99,10 @@ public:
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();
+    int getEncoderErrorCount();
+    int getEncoderRequests();
+    int getEncoderErrorCounts(int i);
+    int getEncoderRequestsCounts(int i);
 };
 
 extern std::vector<Panto> pantos;

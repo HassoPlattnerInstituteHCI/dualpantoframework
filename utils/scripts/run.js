@@ -40,6 +40,9 @@ const buildHandlers = {
           '-Iutils/protocol/include',
           '-o utils/serial/serial']));
   },
+  'unity-serial': () =>{
+    return unity();
+  },
   'firmware': () => {
     return config(process.argv[4])
          & platformio('build');
@@ -113,7 +116,7 @@ function clean(target) {
 
 function config(target) {
   if (target === undefined) {
-    target = 'doerte';
+    target = 'ember';
   }
   log(`Generating config ${target}`, color.green);
   return exec('node', ['utils/scripts/generateHardwareConfig.js', target]);
@@ -138,13 +141,25 @@ function docs() {
   return exec('node', ['utils/scripts/docs.js']);
 }
 
+function unity() {
+  if (process.platform == 'win32') {
+    return exec('utils\\serial\\unity\\win.bat');
+  } else if (process.platform == 'darwin') {
+    const unityDir = './utils/serial/unity/';
+    return exec(unityDir+'mac.sh');
+  } else {
+    return exec('echo "Linux is not supported for building unity framework."');
+  }
+}
+
 const handlers = {
   'build': build,
   'clean': clean,
   'config': config,
   'platformio': platformio,
   'plotter': plotter,
-  'docs': docs
+  'docs': docs,
+  'unity': unity
 };
 
 const platformioDir = os.homedir() + '/.platformio';

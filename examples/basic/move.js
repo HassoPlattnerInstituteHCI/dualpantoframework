@@ -5,21 +5,36 @@ const {Broker, Vector} = require('../..');
 Broker.on('devicesChanged', function(devices, attached, detached) {
   for (const device of devices) {
     if (device) {
+      const pos = [new Vector(), new Vector()];
+      device.on('handleMoved', function(index, position) {
+        pos[index] = position;
+        // eslint-disable-next-line require-jsdoc
+        function format(number) {
+          const sign = number >= 0 ? '+' : '-';
+          const abs = Math.abs(number);
+          const whole = (abs / 1000).toFixed(3).substring(2, 5);
+          const remainder = (abs % 1).toFixed(3).substring(1, 5);
+          return sign + whole + remainder;
+        }
+        if (index == 0 || index == 1) {
+          console.log(
+              '[me] ', format(pos[0].x), '|', format(pos[0].y),
+              '|', '[r ] ', format(pos[0].r * 180 / Math.PI),
+              '[it] ', format(pos[1].x), '|', format(pos[1].y),
+              '|', '[r ] ', format(pos[1].r * 180 / Math.PI));
+        }
+      });
       Broker.runScript([
-        () => device.movePantoTo(0, new Vector(-100, -100), 50),
-        () => Broker.waitMS(3000),
-        () => device.movePantoTo(0, new Vector(0, -100), 50),
-        () => Broker.waitMS(3000),
-        () => device.movePantoTo(0, new Vector(100, -100), 50),
-        () => Broker.waitMS(3000),
-        () => device.unblockHandle(0),
-        () => device.movePantoTo(1, new Vector(-100, -100), 50),
-        () => Broker.waitMS(3000),
-        () => device.movePantoTo(1, new Vector(0, -100), 50),
-        () => Broker.waitMS(3000),
-        () => device.movePantoTo(1, new Vector(100, -100), 50),
-        () => Broker.waitMS(3000),
-        () => device.unblockHandle(1)
+        () => device.rotateHandleTo(0, 0),
+        () => device.rotateHandleTo(1, 0),
+        () => device.movePantoTo(0, new Vector(-20, -80), 50),
+        () => Broker.waitMS(2000),
+        () => device.movePantoTo(0, new Vector(20, -80), 50),
+        () => Broker.waitMS(2000),
+        () => device.movePantoTo(1, new Vector(-20, -80), 50),
+        () => Broker.waitMS(2000),
+        () => device.movePantoTo(1, new Vector(20, -80), 50),
+        () => Broker.waitMS(2000)
       ]);
     }
   }

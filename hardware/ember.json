@@ -1,5 +1,4 @@
 {
-    "_comment": "TODO: adjust encoder setup values & range",
     "firmware": "ESP32",
     "opMinDist": 65,
     "opMaxDist": 210,
@@ -29,7 +28,8 @@
                     "pwmPinForwards": 16,
                     "pwmPinBackwards": 4,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
+                    "powerLimitForce":0.6,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
@@ -50,13 +50,14 @@
                     "pwmPinForwards": 2,
                     "pwmPinBackwards": 17,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
+                    "powerLimitForce":0.6,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
                     "steps": 16384,
                     "flipped": false,
-                    "setup": 0.0,
+                    "setup": 0.001,
                     "spiIndex": 2
                 }
             },
@@ -64,15 +65,16 @@
                 "motor": {
                     "pwmPin": 25,
                     "dirAPin": 32,
-                    "flipped": false,
+                    "flipped": true,
                     "powerLimit": 0.2,
-                    "pidFactor": [0.3, 0, 30]
+                    "powerLimitForce":0.2,
+                    "pidFactor": [0.5, 0, 30]
                 },
                 "encoder": {
                     "aPin": 35,
                     "bPin": 34,
                     "steps": 136,
-                    "flipped": false,
+                    "flipped": true,
                     "setup": -0.25
                 }
             }
@@ -89,7 +91,8 @@
                     "pwmPinForwards":22, 
                     "pwmPinBackwards": 21,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
+                    "powerLimitForce":0.6,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
@@ -110,13 +113,14 @@
                     "pwmPinForwards": 19,
                     "pwmPinBackwards": 18,
                     "flipped": false,
-                    "powerLimit": 0.6,
+                    "powerLimit": 0.2,
+                    "powerLimitForce":0.6,
                     "pidFactor": [6, 0, 600]
                 },
                 "encoder": {
                     "steps": 16384,
                     "flipped": true,
-                    "setup": 0.0,
+                    "setup": 0.001,
                     "spiIndex": 1
                 }
             },
@@ -124,15 +128,16 @@
                 "motor": {
                     "pwmPin": 23,
                     "dirAPin": 26,
-                    "flipped": false,
+                    "flipped": true,
                     "powerLimit": 0.2,
-                    "pidFactor": [0.3, 0, 30]
+                    "powerLimitForce":0.2,
+                    "pidFactor": [0.5, 0, 30]
                 },
                 "encoder": {
                     "aPin": 36,
                     "bPin": 39,
                     "steps": 136,
-                    "flipped": false,
+                    "flipped": true,
                     "setup": -0.25
                 }
             }

@@ -172,6 +172,7 @@ void Hashtable::getPossibleCollisions(
         get1dIndex(movement.m_first.y, rangeMinY, hashtableStepSizeY);
     const auto startIndex = startX * hashtableStepsY + startY;
     ASSERT_GE(startIndex, 0);
+
     ASSERT_LT(startIndex, hashtableNumCells);
     const auto endX =
         get1dIndex(movement.m_second.x, rangeMinX, hashtableStepSizeX);
