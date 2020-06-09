@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 const DualPantoFramework = require('../..');
-const {Vector, Broker, Components} = DualPantoFramework;
+const {Vector, Broker, Components, open} = DualPantoFramework;
 const {BoxForcefield} = Components;
 const {
   BoxCollider} = Components;
@@ -18,7 +18,8 @@ Broker.on('devicesChanged', function(devices) {
   for (const newdevice of devices) {
     if (!device) {
       device = newdevice;
-      start();
+      open('http://localhost:8080/map.html');
+      setTimeout(start, 1000);
     }
   }
 });
