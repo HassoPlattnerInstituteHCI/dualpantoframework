@@ -192,7 +192,7 @@ void Panto::inverseKinematics()
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
         //TODO: constant velocity here.
-        m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0);
+        m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
     }
 };
 
@@ -543,7 +543,7 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 
     float dx = (m_targetX - m_startX);
     float dy = (m_targetY - m_startY);
-    float d  = max(sqrt(dx*dx + dy*dy), 1.0f); //distance to target: avoiding 0 division
+    float d  = max((float)sqrt(dx*dx + dy*dy), 1.0f); //distance to target: avoiding 0 division
 
     const float velocity = 0.001; //[mm / s] maybe?
 
