@@ -79,6 +79,7 @@ private:
     float m_filteredX = 0;
     float m_filteredY = 0;
     float m_tweeningValue = 0.0f;
+    float m_tweeningStep = 0.00001f;
     float delta = 0.01;
     float velocity = 1.0f;
     bool m_isforceRendering = false;
