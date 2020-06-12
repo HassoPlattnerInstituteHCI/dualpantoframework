@@ -74,6 +74,13 @@ private:
     float m_handleY = 0;
     float m_targetX = 0;
     float m_targetY = 0;
+    float m_startX = 0;
+    float m_startY = 0;
+    float m_filteredX = 0;
+    float m_filteredY = 0;
+    float m_tweeningValue = 0.0f;
+    float delta = 0.01;
+    float velocity = 1.0f;
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
