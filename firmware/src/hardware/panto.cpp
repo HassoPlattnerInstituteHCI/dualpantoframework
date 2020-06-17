@@ -87,7 +87,8 @@ void Panto::forwardKinematics()
     m_pointingAngle =
         handleAngle +
         (encoderFlipped[c_globalHandleIndex]==1? 1 : -1)* //sign changes when encoder is flipped
-        (c_handleMountedOnRightArm ?
+        (c_pantoIndex==0 ? -1 : 1)*
+        (c_handleMountedOnRightArm==1 ?
         rightElbowTotalAngle :
         leftElbowTotalAngle);
     // PERFMON_STOP("[abbi] store angles");
