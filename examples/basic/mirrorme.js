@@ -7,8 +7,7 @@ Broker.on('devicesChanged', function(devices, attached, detached) {
     if (device) {
       device.on('handleMoved', function(index, pos) {
         if (index==0) {
-          device.moveHandleTo(1, new Vector(pos.x, pos.y, -pos.r));
-          // device.rotateHandleTo(1, pos.r);
+          device.moveHandleTo(1, new Vector(pos.x, pos.y, pos.r));
         }
       });
     }
