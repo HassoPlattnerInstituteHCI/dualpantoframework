@@ -137,7 +137,7 @@
                     "aPin": 36,
                     "bPin": 39,
                     "steps": 136,
-                    "flipped": true,
+                    "flipped": false,
                     "setup": -0.25
                 }
             }
