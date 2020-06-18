@@ -333,6 +333,7 @@ void Panto::actuateMotors()
                 {
                     error += TWO_PI;
                 }
+                if(encoderFlipped[c_globalHandleIndex]==1) error*=-1;
             }
             unsigned char dir = error < 0;
             unsigned long now = micros();
