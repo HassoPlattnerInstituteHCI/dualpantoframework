@@ -116,7 +116,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
             return targetPoint;
         }
 
-        for (auto&& indexedEdge : *m_possibleCollisions)
+        for (auto &&indexedEdge : *m_possibleCollisions)
         {
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
@@ -142,6 +142,13 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
             if (!foundCollision || movementRatio < shortestMovementRatio)
             {
+
+                //if a collision with a rail is detected and the handle is not within the rail object,
+                //discard the collision and continue
+                if (indexedEdge.m_obstacle->isOvercome(targetPoint))
+                {
+                    continue;
+                }
                 foundCollision = true;
                 shortestMovementRatio = movementRatio;
                 closestEdgeFirst = edgeFirst;
@@ -212,7 +219,7 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         {
             const auto edges = it->second.getIndexedEdges();
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
-            for (const auto& edge : edges)
+            for (const auto &edge : edges)
             {
                 m_actionQueue.push_back(new GodObjectAction(
                     action,

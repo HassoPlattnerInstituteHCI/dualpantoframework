@@ -1,10 +1,11 @@
+/* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
 const DualPantoFramework = require('../../../lib/dualpantoframework');
 const {Vector, Broker, Components, open} = DualPantoFramework;
 const {Mesh, MeshTrigger, MeshCollider, BoxForcefield} = Components;
 const VoiceInteraction = Broker.voiceInteraction;
 
-const {scene1, scene2} = require('./scenes');
+const {scene1} = require('./scenes');
 /**
  * @type {import('../../../lib/device')}
  */
@@ -165,8 +166,8 @@ const rails = function(position, lastPosition) {
     [new Vector(40, -150), new Vector(5, -70)]];
   const force = new Vector(0, 0, NaN);
   const forceFactor = 0.01;
-  const maxForce = 100; // railFunc === negativeLogarithmicRails ? 15 : 5;
-  const range = 5;
+  const maxForce = 40; // railFunc === negativeLogarithmicRails ? 15 : 5;
+  const range = 3;
   for (let r = 0; r < rails.length; r++) {
     const rail = rails[r];
     const railVec = rail[1].subtract(rail[0]);
@@ -175,16 +176,18 @@ const rails = function(position, lastPosition) {
     const distToRail = getDistToRail(position, rail);
     if (Math.abs(distToRail) < range) {
       let railForce = railFunc(distToRail, maxForce, range);
-      console.log('Force', railForce);
+
       if (softTailActive && lastPosition) {
         const lastDistToRail = getDistToRail(lastPosition, rail);
         // we pushed over the rail
         if ((distToRail - lastDistToRail) / distToRail > 0) {
-          //railForce = softTail(distToRail, maxForce, range / 2);
-          return new Vector(0, 0, NaN);
-          //console.log('Force after soft tail application', railForce);
+          railForce = softTail(distToRail, maxForce, range / 2);
+          // railForce = 0;
+          // return new Vector(0, 0, NaN);
+          // console.log('Force after soft tail application', railForce);
         }
       }
+      console.log('Force', railForce);
       railForce *= forceFactor;
       const forceVec = railOrthogonalDir.scale(railForce);
       force.add(forceVec);
@@ -193,27 +196,25 @@ const rails = function(position, lastPosition) {
   return force;
 };
 
-async function processTrial(trialId, trialsForBlock, durations) {
+function processTrial(trialId, trialsForBlock, durations) {
+  // console.log('trials for block: ', trialsForBlock.length);
 
-  //console.log('trials for block: ', trialsForBlock.length);
-  
   trial = trialsForBlock[trialId];
   console.log(trial);
-  const handle = 1
-  startPos = new Vector(parseInt(trial.starting_x), parseInt(trial.starting_y))
-  //startPos = new Vector(20, -67);
+  const handle = 1;
+  startPos = new Vector(parseInt(trial.starting_x), parseInt(trial.starting_y));
+  // startPos = new Vector(20, -67);
   Broker.runScript([
     () => device.movePantoTo(handle, startPos, 100),
     () => Broker.waitMS(1000),
     () => VoiceInteraction.speakText('3, 2, 1, Go', 'EN'),
     () => device.unblockHandle(handle)]);
-  //device.moveHandleTo(0, startPos);
-  
-  console.log("Moved me handle to", startPos);
-  //await device.unblockHandle(0);
+  // device.moveHandleTo(0, startPos);
+
+  console.log('Moved me handle to', startPos);
   const target = device.addHapticObject(
-    new Vector(parseInt(trial.target_x), parseInt(trial.target_y)));
-  
+      new Vector(parseInt(trial.target_x), parseInt(trial.target_y)));
+
   const mesh = target.addComponent(
       new Mesh([
         new Vector(-5, 0, 0),
@@ -223,7 +224,7 @@ async function processTrial(trialId, trialsForBlock, durations) {
   const trigger = target.addComponent(
       new MeshTrigger(mesh, handle));
   target.addComponent(
-    new MeshCollider(mesh, handle));
+      new MeshCollider(mesh, handle));
   console.log(trigger);
   let objectFound = false;
   trigger.on(
@@ -234,14 +235,14 @@ async function processTrial(trialId, trialsForBlock, durations) {
           console.log('Found object of interest');
           durations.push(Date.now() - startTime);
           console.log('Experiment duration', Date.now() - startTime);
-          //object destroy
+          // object destroy
           VoiceInteraction.speakText('Found power up', 'EN').then(() =>{
-            const nextTrialId = parseInt(trialId)+1
-            if (nextTrialId<trialsForBlock.length){
+            const nextTrialId = parseInt(trialId)+1;
+            if (nextTrialId<trialsForBlock.length) {
               processTrial(nextTrialId.toString(), trialsForBlock, durations);
             } else {
-              device.disconnect()
-              console.log("Please rate how you perceived the agency during the last 5 trials:");
+              device.disconnect();
+              console.log('Please rate how you perceived the agency during the last 5 trials:');
             }
           });
         }
@@ -253,32 +254,33 @@ async function processTrial(trialId, trialsForBlock, durations) {
   }
 
   const startTime = Date.now();
-  
 }
 
 function start() {
+  scene1(device);
+
   // read csv from cmd param
-  if (process.argv.length > 2){
+  if (process.argv.length > 2) {
     studyProtocol = process.argv[2];
     const csv = require('csv-parser');
     const fs = require('fs');
     const protocol = [];
     fs.createReadStream(studyProtocol)
-    .pipe(csv())
-    .on('data', (row) => {
-      // protocol = {...protocol, row}
-      // console.log(Object.keys(row));
-      protocol.push(row);
-    })
-    .on('end', () => {
-      console.log('CSV file successfully processed');
-      console.log(protocol);
-      const blockId = '0';
-      const trialsForBlock = protocol.filter((obj) => {
-        return obj["block_id"] === blockId;
-      });
-      processTrial(0, trialsForBlock, []);
-    });
+        .pipe(csv())
+        .on('data', (row) => {
+          // protocol = {...protocol, row}
+          // console.log(Object.keys(row));
+          protocol.push(row);
+        })
+        .on('end', () => {
+          console.log('CSV file successfully processed');
+          console.log(protocol);
+          const blockId = '0';
+          const trialsForBlock = protocol.filter((obj) => {
+            return obj['block_id'] === blockId;
+          });
+          processTrial(0, trialsForBlock, []);
+        });
   } else {
     const hapticObject = device.addHapticObject(new Vector(0, -100));
     hapticObject.addComponent(new BoxForcefield(new Vector(200, 100), rails, 1));

@@ -12,7 +12,7 @@
 
 #include <Arduino.h>
 
-const uint8_t configHash[] = {0xA7, 0x9C, 0x86, 0xEB, 0x3C, 0x42, 0x44, 0x83, 0xAF, 0x1A, 0x40, 0xBA, 0x40, 0xDD, 0xB9, 0xCC};
+const uint8_t configHash[] = {0x01, 0xA8, 0xCD, 0xD5, 0x94, 0xE1, 0x6A, 0x8F, 0x4E, 0x00, 0x19, 0x27, 0xF7, 0x60, 0x9A, 0x30};
 const float opMinDist = 65,
             opMaxDist = 210,
             opAngle = 2.2;
@@ -22,22 +22,25 @@ const uint8_t dummyPin = 40;
 #define LINKAGE_ENCODER_USE_SPI
 const uint32_t numberOfSpiEncoders = 4;
 const float linkageBaseX[] = {
-    -23.7, 61.1, 0, -61.1, 23.7, 0
+    -22, 22, 0, -22, 22, 0
 };
 const float linkageBaseY[] = {
     0, 0, 0, 0, 0, 0
 };
 const float linkageInnerLength[] = {
-    95.07, 57.71, 0, 57.71, 95.07, 0
+    84.5, 84.5, 0, 84.5, 84.5, 0
 };
 const float linkageOuterLength[] = {
-    119.79, 119.79, 0, 119.79, 119.79, 0
+    114, 114, 0, 114, 114, 0
 };
 const uint8_t linkageHandleMount[] = {
     0, 0, 0, 0, 0, 0
 };
 const float motorPowerLimit[] = {
-    0.6, 0.6, 0.2, 0.6, 0.6, 0.2
+    1, 1, 0.2, 1, 1, 0.7
+};
+const float motor_powerLimitForce[] = {
+  0, 0, 0, 0, 0, 0
 };
 extern float pidFactor[6][3];
 const float forceP = 0.375;
@@ -47,22 +50,22 @@ const float forcePidFactor[2][3] = {
   {forceP, forceI, forceD}, {forceP, forceI, forceD}
 };
 const uint8_t motorPwmPin[] = {
-    40, 40, 25, 40, 40, 23
+    21, 18, 25, 4, 17, 23
 };
 const uint8_t motorPwmPinForwards[] = {
-    16, 2, 40, 22, 19, 40
-};
-const uint8_t motorPwmPinBackwards[] = {
-    4, 17, 40, 21, 18, 40
-};
-const uint8_t motorDirAPin[] = {
-    40, 40, 32, 40, 40, 26
-};
-const uint8_t motorDirBPin[] = {
     40, 40, 40, 40, 40, 40
 };
+const uint8_t motorPwmPinBackwards[] = {
+    40, 40, 40, 40, 40, 40
+};
+const uint8_t motorDirAPin[] = {
+    22, 19, 32, 16, 5, 26
+};
+const uint8_t motorDirBPin[] = {
+    40, 40, 33, 40, 40, 27
+};
 const bool motorFlipped[] = {
-    false, false, false, false, false, false
+    true, true, false, true, true, false
 };
 const uint8_t encoderAPin[] = {
     40, 40, 35, 40, 40, 36
@@ -74,27 +77,27 @@ const uint8_t encoderIndexPin[] = {
     40, 40, 40, 40, 40, 40
 };
 const uint32_t encoderSteps[] = {
-    16384, 16384, 136, 16384, 16384, 136
+    16384, 16384, 512, 16384, 16384, 15360
 };
 const uint32_t encoderSpiIndex[] = {
     3, 2, 4294967295, 0, 1, 4294967295
 };
 const float encoderFlipped[] = {
-    1, 1, -1, -1, -1, -1
+    -1, -1, 1, -1, -1, 1
 };
 const float setupAngle[] = {
-    -0.5, 0.001, -0.25, -0.5, 0.001, -0.25
+    -0.4806, -0.0194, 0, -0.4806, -0.0194, 0
 };
-constexpr float rangeMinX = -180;
+constexpr float rangeMinX = -175;
 constexpr float rangeMinY = -205;
-constexpr float rangeMaxX = 180;
+constexpr float rangeMaxX = 175;
 constexpr float rangeMaxY = 5;
 constexpr uint32_t hashtableMaxMemory = 100000;
-constexpr uint32_t hashtableUsedMemory = 98532;
+constexpr uint32_t hashtableUsedMemory = 98280;
 constexpr uint32_t hashtableMaxCells = 8333;
-constexpr uint32_t hashtableNumCells = 8211;
-constexpr uint32_t hashtableStepsX = 119;
-constexpr uint32_t hashtableStepsY = 69;
-constexpr double hashtableStepSizeX = 3.0252100840336134;
-constexpr double hashtableStepSizeY = 3.0434782608695654;
+constexpr uint32_t hashtableNumCells = 8190;
+constexpr uint32_t hashtableStepsX = 117;
+constexpr uint32_t hashtableStepsY = 70;
+constexpr double hashtableStepSizeX = 2.9914529914529915;
+constexpr double hashtableStepSizeY = 3;
 const uint32_t obstacleChangesPerFrame = 1;

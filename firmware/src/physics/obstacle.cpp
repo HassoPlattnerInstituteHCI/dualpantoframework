@@ -2,7 +2,7 @@
 
 #include "physics/indexedEdge.hpp"
 
-Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) { }
+Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) {}
 
 bool Obstacle::enabled()
 {
@@ -15,21 +15,26 @@ void Obstacle::enable(bool enable)
 }
 
 std::vector<IndexedEdge> Obstacle::getIndexedEdges(
-    uint32_t first, uint32_t last
-)
+    uint32_t first, uint32_t last)
 {
-    if(first == -1)
+    if (first == -1)
     {
         first = m_points.size() - 1;
     }
-    if(last == -1)
+    if (last == -1)
     {
         last = m_points.size() - 1;
     }
     std::vector<IndexedEdge> result;
-    for(auto i = first; i <= last; ++i)
+    for (auto i = first; i <= last; ++i)
     {
         result.emplace_back(this, i);
     }
     return result;
+}
+
+bool Obstacle::isOvercome(Vector2D target)
+{
+    // regular obstacles cannot be overcome
+    return false;
 }
