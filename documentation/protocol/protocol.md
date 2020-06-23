@@ -295,3 +295,7 @@ C0       // message type: Dump hashtable
 0001     // payload lenght: 1 byte for index
 FF       // pantograph index - both handles
 ```
+### 0xC1 Create passable obstacle
+
+Works the same way as 'create obstacle' just that the obstacle will be overcomeable
+

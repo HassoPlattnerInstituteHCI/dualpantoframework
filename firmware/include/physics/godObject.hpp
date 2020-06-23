@@ -20,13 +20,15 @@ private:
     Vector2D m_movementDirection;
     Vector2D m_activeForce;
     std::map<uint16_t, Obstacle> m_obstacles;
+    std::set<uint16_t> m_passable_obstacles;
     Hashtable m_hashtable;
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
     bool m_doneColliding;
     Vector2D m_lastError;
-    std::set<IndexedEdge>* m_possibleCollisions;
-    std::deque<GodObjectAction*> m_actionQueue;
+    std::set<IndexedEdge> *m_possibleCollisions;
+    std::deque<GodObjectAction *> m_actionQueue;
+
 public:
     GodObject(Vector2D position = Vector2D());
     ~GodObject();
@@ -35,7 +37,7 @@ public:
     void dumpHashtable();
     void move();
     Vector2D checkCollisions(Vector2D targetPoint);
-    void createObstacle(uint16_t id, std::vector<Vector2D> points);
+    void createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
     void addToObstacle(uint16_t id, std::vector<Vector2D> points);
     void removeObstacle(uint16_t id);
     void enableObstacle(uint16_t id, bool enable = true);

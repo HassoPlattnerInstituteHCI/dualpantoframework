@@ -2,7 +2,7 @@
 const DualPantoFramework = require('../../../lib/dualpantoframework');
 const {Vector, Components} = DualPantoFramework;
 const {
-  BoxCollider} = Components;
+  BoxCollider, Rail} = Components;
 
 function scene1(device) {
   const handles = [0, 1];
@@ -23,6 +23,10 @@ function scene1(device) {
       new Vector(25, -60));
   rightMiddleWall.addComponent(
       new BoxCollider(new Vector(10, 20), handles));
+  const rail = device.addHapticObject(
+      new Vector(10, -100));
+  rail.addComponent(
+      new Rail(new Vector(4, 40), handles));
 }
 
 function scene2(device) {

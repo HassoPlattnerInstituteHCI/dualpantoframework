@@ -3,6 +3,8 @@
 #include "config/config.hpp"
 #include "utils/serial.hpp"
 
+#include <typeinfo>
+
 GodObject::GodObject(Vector2D position)
     : m_position(position), m_obstacleMutex{portMUX_FREE_VAL, 0}, m_possibleCollisions(new std::set<IndexedEdge>())
 {
@@ -142,10 +144,10 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
             if (!foundCollision || movementRatio < shortestMovementRatio)
             {
-
-                //if a collision with a rail is detected and the handle is not within the rail object,
+                //if a collision with a passable object is detected (e.g. a haptic rail) and the handle is not within the rail object,
                 //discard the collision and continue
-                if (indexedEdge.m_obstacle->isOvercome(targetPoint))
+                auto ob = indexedEdge.m_obstacle;
+                if (m_passable_obstacles.find(ob->id) != m_passable_obstacles.end() && !ob->contains(targetPoint))
                 {
                     continue;
                 }
@@ -184,11 +186,15 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
     return targetPoint;
 }
 
-void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points)
+void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable)
 {
-    auto temp = Obstacle(points);
+    auto ob = Obstacle(points, id);
+    if (passable)
+    {
+        m_passable_obstacles.insert(id);
+    }
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_obstacles.emplace(id, std::move(temp));
+    m_obstacles.emplace(id, std::move(Obstacle(points, id)));
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
@@ -205,6 +211,12 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 
 void GodObject::removeObstacle(uint16_t id)
 {
+    auto it = m_obstacles.find(id);
+    auto it2 = m_passable_obstacles.find(id);
+    if (it != m_obstacles.end() && it2 != m_passable_obstacles.end())
+    {
+        m_passable_obstacles.erase(id);
+    }
     enableObstacle(id, false);
     m_actionQueue.push_back(new GodObjectAction(GO_REMOVE_OBSTACLE, id));
 }
@@ -212,6 +224,8 @@ void GodObject::removeObstacle(uint16_t id)
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
     auto it = m_obstacles.find(id);
+    DPSerial::sendInstantDebugLog("enable ob %d", id);
+    DPSerial::sendInstantDebugLog("ob pointer %p", &it->second);
     if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);

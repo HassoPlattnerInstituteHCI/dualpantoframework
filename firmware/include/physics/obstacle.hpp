@@ -12,10 +12,12 @@ private:
     bool m_enabled = false;
 
 public:
+    uint16_t id = 0;
     Obstacle(std::vector<Vector2D> points);
+    Obstacle(std::vector<Vector2D> points, uint16_t id);
     bool enabled();
     void enable(bool enable = true);
-    virtual bool isOvercome(Vector2D target);
+    virtual bool isOvercome(Vector2D target) { return false; };
     std::vector<IndexedEdge> getIndexedEdges(
         uint32_t first = 0, uint32_t last = -1);
 };

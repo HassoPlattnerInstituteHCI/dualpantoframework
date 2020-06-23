@@ -282,8 +282,8 @@ function start() {
           processTrial(0, trialsForBlock, []);
         });
   } else {
-    const hapticObject = device.addHapticObject(new Vector(0, -100));
-    hapticObject.addComponent(new BoxForcefield(new Vector(200, 100), rails, 1));
+    // const hapticObject = device.addHapticObject(new Vector(0, -100));
+    // hapticObject.addComponent(new BoxForcefield(new Vector(200, 100), rails, 1));
   }
 
   /*  for (let j=0;j<numIterations;j++){
