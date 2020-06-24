@@ -6,7 +6,7 @@ const {
 
 function scene1(device) {
   const handles = [0, 1];
-  // render small maze (kinda like doom level 1)
+  // render small maze (similar to doom level 1)
   const leftWallPart = device.addHapticObject(
       new Vector(-75, -50));
   leftWallPart.addComponent(
@@ -28,16 +28,6 @@ function scene1(device) {
   rail.addComponent(
       new Rail(new Vector(4, 40), handles));
 }
-
-function scene2(device) {
-  // render just one wall coming in from the right
-  const rightWallPart = device.addHapticObject(
-      new Vector(75, -50));
-  rightWallPart.addComponent(
-      new BoxCollider(new Vector(150, 10)));
-}
-
 module.exports = {
-  scene1,
-  scene2
+  scene1
 };

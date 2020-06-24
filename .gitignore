@@ -61,3 +61,5 @@ bld/
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+firmware/src/config
+firmware/include/config

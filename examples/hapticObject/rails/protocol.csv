@@ -1,6 +1,0 @@
-trial_id,block_id,starting_x,starting_y,target_x,target_y,cond
-0,0,100,-80,60,-70,rail
-1,0,40,-50,56,-92,rail
-2,0,-20,-100,0,-30,control
-3,0,-20,-50,-40,-100,rail
-4,0,50,-60,-60,-80,rail
