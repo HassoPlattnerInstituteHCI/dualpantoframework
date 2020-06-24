@@ -222,8 +222,6 @@ void GodObject::removeObstacle(uint16_t id)
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
     auto it = m_obstacles.find(id);
-    DPSerial::sendInstantDebugLog("enable ob %d", id);
-    DPSerial::sendInstantDebugLog("ob pointer %p", &it->second);
     if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);

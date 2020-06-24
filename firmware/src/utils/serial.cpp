@@ -143,7 +143,7 @@ float DPSerial::receiveFloat()
     auto temp = receiveInt32();
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-    return reinterpret_cast<float &>(temp);
+    return reinterpret_cast<float&>(temp);
     #pragma GCC diagnostic pop
 }
 

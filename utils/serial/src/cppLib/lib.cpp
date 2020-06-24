@@ -23,7 +23,7 @@ uint64_t CppLib::open(char* port)
         return 0;
     }
     logString("Open successfull");
-    return (uint64_t)s_handle;
+    return (uint64_t) s_handle;
 }
 
 void CppLib::setActiveHandle(uint64_t handle)
@@ -95,7 +95,7 @@ void CppLib::poll()
         }
         else
         {
-            syncHandler((uint64_t) s_handle);
+            syncHandler((uint64_t)s_handle);
         }
     }
 
