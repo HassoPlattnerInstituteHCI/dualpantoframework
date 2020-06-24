@@ -10,7 +10,7 @@ napi_value Node::send(napi_env env, napi_callback_info info)
     {
         napi_throw_error(env, NULL, "Failed to parse arguments");
     }
-    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t *>(&s_handle));
+    napi_get_value_int64(env, argv[0], reinterpret_cast<int64_t*>(&s_handle));
 
     uint32_t messageType;
     napi_get_value_uint32(env, argv[1], &messageType);
@@ -145,11 +145,11 @@ napi_value Node::send(napi_env env, napi_callback_info info)
         return NULL;
     }
 
-#ifdef DEBUG_LOGGING
+    #ifdef DEBUG_LOGGING
     std::cout << "Payload size: 0x" << std::setw(2) << offset << std::endl;
-#endif
+    #endif
 
-    if (offset > c_maxPayloadSize)
+    if(offset > c_maxPayloadSize)
     {
         std::cout << "Error: payload size of " << offset << " exceeds max payload size (" << c_maxPayloadSize << ")." << std::endl;
         return NULL;
@@ -158,9 +158,9 @@ napi_value Node::send(napi_env env, napi_callback_info info)
     s_header.PayloadSize = offset;
     sendPacket();
 
-#ifdef DEBUG_LOGGING
+    #ifdef DEBUG_LOGGING
     dumpBuffers();
-#endif
+    #endif
 
     return NULL;
 }

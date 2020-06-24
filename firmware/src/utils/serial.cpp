@@ -14,7 +14,7 @@ ReceiveState DPSerial::s_receiveState = NONE;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
 uint16_t DPSerial::s_unacknowledgedHeartbeats = 0;
-std::map<MessageType, ReceiveHandler>
+std::map<MessageType, ReceiveHandler> 
     DPSerial::s_receiveHandlers = {
         {SYNC_ACK, DPSerial::receiveSyncAck},
         {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
@@ -64,10 +64,10 @@ void DPSerial::sendUInt32(uint32_t data)
 
 void DPSerial::sendFloat(float data)
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
     sendInt32(reinterpret_cast<int32_t&>(data));
-#pragma GCC diagnostic pop
+    #pragma GCC diagnostic pop
 }
 
 void DPSerial::sendMessageType(MessageType data)
@@ -77,7 +77,7 @@ void DPSerial::sendMessageType(MessageType data)
 
 void DPSerial::sendMagicNumber()
 {
-    for(auto i = 0; i < c_magicNumberSize; ++i)
+    for (auto i = 0; i < c_magicNumberSize; ++i)
     {
         sendUInt8(c_magicNumber[i]);
     }
@@ -141,10 +141,10 @@ uint32_t DPSerial::receiveUInt32()
 float DPSerial::receiveFloat()
 {
     auto temp = receiveInt32();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
     return reinterpret_cast<float &>(temp);
-#pragma GCC diagnostic pop
+    #pragma GCC diagnostic pop
 }
 
 MessageType DPSerial::receiveMessageType()
@@ -160,10 +160,10 @@ bool DPSerial::receiveMagicNumber()
     while (Serial.available() >= c_magicNumberSize)
     {
         // does next byte fit expected by of magic number?
-        if(Serial.read() == c_magicNumber[magicNumberProgress])
+        if (Serial.read() == c_magicNumber[magicNumberProgress])
         {
             // yes - increase index. If check complete, return true.
-            if(++magicNumberProgress == c_magicNumberSize)
+            if (++magicNumberProgress == c_magicNumberSize)
             {
                 s_receiveState = FOUND_MAGIC;
                 return true;
@@ -183,7 +183,7 @@ bool DPSerial::receiveMagicNumber()
 bool DPSerial::receiveHeader()
 {
     // make sure enough data is available
-    if(Serial.available() < c_headerSize)
+    if (Serial.available() < c_headerSize)
     {
         return false;
     }
@@ -225,7 +225,7 @@ void DPSerial::receivePID()
 {
     auto motorIndex = receiveUInt8();
 
-    for(auto i = 0; i < 3; ++i)
+    for (auto i = 0; i < 3; ++i)
     {
         pidFactor[motorIndex][i] = receiveFloat();
     }
@@ -349,8 +349,7 @@ void DPSerial::receiveDisableObstacle()
 void DPSerial::receiveCalibrationRequest()
 {
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
-    for(auto i = 0; i < pantoCount; ++i)
-    {
+    for(auto i = 0; i < pantoCount; ++i){
         pantos[i].calibratePanto();
     }
 }
@@ -378,19 +377,19 @@ void DPSerial::receiveInvalid()
 
 void DPSerial::init()
 {
-    Serial.begin(c_baudRate);
+    Serial.begin(c_baudRate); 
     Serial.setRxBufferSize(4 * c_maxPayloadSize);
 }
 
 bool DPSerial::ensureConnection()
 {
-    if(!s_connected)
+    if (!s_connected)
     {
         sendSync();
         return false;
     }
 
-    if(s_unacknowledgedHeartbeats > c_maxUnacklowledgedHeartbeats)
+    if (s_unacknowledgedHeartbeats > c_maxUnacklowledgedHeartbeats)
     {
         sendQueuedDebugLog("Disconnected due to too many unacklowledged heartbeats.");
         s_unacknowledgedHeartbeats = 0;
@@ -398,7 +397,7 @@ bool DPSerial::ensureConnection()
         return false;
     }
 
-    if(millis() > s_lastHeartbeatTime + c_heartbeatIntervalMs || s_lastHeartbeatTime == 0)
+    if (millis() > s_lastHeartbeatTime + c_heartbeatIntervalMs || s_lastHeartbeatTime == 0)
     {
         sendHeartbeat();
         s_lastHeartbeatTime = millis();
@@ -485,18 +484,18 @@ void DPSerial::sendDebugData()
     const auto pos1 = pantos[1].getPosition();
     portENTER_CRITICAL(&s_serialMutex);
     sendInstantDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
-                        degrees(pantos[0].getActuationAngle(0)),
-                        degrees(pantos[0].getActuationAngle(1)),
-                        degrees(pantos[0].getActuationAngle(2)),
-                        degrees(pantos[1].getActuationAngle(0)),
-                        degrees(pantos[1].getActuationAngle(1)),
-                        degrees(pantos[1].getActuationAngle(2)),
-                        pos0.x,
-                        pos0.y,
-                        degrees(pantos[0].getRotation()),
-                        pos1.x,
-                        pos1.y,
-                        degrees(pantos[1].getRotation()));
+        degrees(pantos[0].getActuationAngle(0)),
+        degrees(pantos[0].getActuationAngle(1)), 
+        degrees(pantos[0].getActuationAngle(2)), 
+        degrees(pantos[1].getActuationAngle(0)), 
+        degrees(pantos[1].getActuationAngle(1)), 
+        degrees(pantos[1].getActuationAngle(2)),
+        pos0.x,
+        pos0.y,
+        degrees(pantos[0].getRotation()),
+        pos1.x,
+        pos1.y,
+        degrees(pantos[1].getRotation()));
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
@@ -504,26 +503,26 @@ void DPSerial::sendDebugData()
 
 void DPSerial::receive()
 {
-    if(s_receiveState == NONE && !receiveMagicNumber())
+    if (s_receiveState == NONE && !receiveMagicNumber())
     {
         return;
     }
 
-    if(s_receiveState == FOUND_MAGIC && !receiveHeader())
+    if (s_receiveState == FOUND_MAGIC && !receiveHeader())
     {
         return;
     }
 
-    if(s_receiveState == FOUND_HEADER && !payloadReady())
+    if (s_receiveState == FOUND_HEADER && !payloadReady())
     {
         if(s_header.MessageType == ADD_TO_OBSTACLE)
             sendQueuedDebugLog("Only %i of %i bytes available", Serial.available(), s_header.PayloadSize);
         return;
     }
 
-    if(!s_connected && s_header.MessageType != SYNC_ACK)
+    if (!s_connected && s_header.MessageType != SYNC_ACK)
     {
-        for(auto i = 0; i < s_header.PayloadSize; ++i)
+        for (auto i = 0; i < s_header.PayloadSize; ++i)
         {
             Serial.read();
         }

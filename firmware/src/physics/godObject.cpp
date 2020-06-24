@@ -3,8 +3,6 @@
 #include "config/config.hpp"
 #include "utils/serial.hpp"
 
-#include <typeinfo>
-
 GodObject::GodObject(Vector2D position)
     : m_position(position), m_obstacleMutex{portMUX_FREE_VAL, 0}, m_possibleCollisions(new std::set<IndexedEdge>())
 {

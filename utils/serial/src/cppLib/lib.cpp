@@ -3,9 +3,9 @@
 #include <iostream>
 
 #ifdef _WIN32
-#define FILEPTR void *
+#define FILEPTR void*
 #else
-#define FILEPTR FILE *
+#define FILEPTR FILE*
 #endif
 
 // class stuff
@@ -15,9 +15,9 @@ uint32_t CppLib::getRevision()
     return c_revision;
 }
 
-uint64_t CppLib::open(char *port)
+uint64_t CppLib::open(char* port)
 {
-    if (!setup(port))
+    if(!setup(port))
     {
         logString("Open failed");
         return 0;
@@ -28,7 +28,7 @@ uint64_t CppLib::open(char *port)
 
 void CppLib::setActiveHandle(uint64_t handle)
 {
-    s_handle = (FILEPTR)handle;
+    s_handle = (FILEPTR) handle;
 }
 
 void CppLib::close()
@@ -87,21 +87,21 @@ void CppLib::poll()
         }
     }
 
-    if (receivedSync)
+    if(receivedSync)
     {
-        if (syncHandler == nullptr)
+        if(syncHandler == nullptr)
         {
             logString("Received sync, but handler not set up");
         }
         else
         {
-            syncHandler((uint64_t)s_handle);
+            syncHandler((uint64_t) s_handle);
         }
     }
 
-    if (receivedHeartbeat)
+    if(receivedHeartbeat)
     {
-        if (heartbeatHandler == nullptr)
+        if(heartbeatHandler == nullptr)
         {
             logString("Received heartbeat, but handler not set up");
         }
@@ -113,7 +113,7 @@ void CppLib::poll()
 
     if (receivedPosition)
     {
-        if (positionHandler == nullptr)
+        if(positionHandler == nullptr)
         {
             logString("Received position, but handler not set up");
         }
@@ -231,9 +231,9 @@ heartbeatHandler_t heartbeatHandler;
 positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
 
-void logString(char *msg)
+void logString(char* msg)
 {
-    if (loggingHandler != nullptr)
+    if(loggingHandler != nullptr)
     {
         loggingHandler(msg);
     }
@@ -271,7 +271,7 @@ void SERIAL_EXPORT SetLoggingHandler(loggingHandler_t handler)
     loggingHandler("Logging from plugin is enabled");
 }
 
-uint64_t SERIAL_EXPORT Open(char *port)
+uint64_t SERIAL_EXPORT Open(char* port)
 {
     return CppLib::open(port);
 }
