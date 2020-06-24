@@ -8,11 +8,6 @@ const {scene1} = require('./scenes');
  */
 let device;
 
-const stdin = process.stdin;
-stdin.setRawMode(true);
-stdin.resume();
-stdin.setEncoding('utf8');
-
 Broker.on('devicesChanged', function(devices) {
   for (const newdevice of devices) {
     if (!device) {
@@ -24,5 +19,6 @@ Broker.on('devicesChanged', function(devices) {
 });
 
 function start() {
+  // loads a scene with a couple of obstacles and haptic rails
   scene1(device);
 }

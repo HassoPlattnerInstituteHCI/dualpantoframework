@@ -26,8 +26,8 @@ private:
     bool m_processingObstacleCollision;
     bool m_doneColliding;
     Vector2D m_lastError;
-    std::set<IndexedEdge> *m_possibleCollisions;
-    std::deque<GodObjectAction *> m_actionQueue;
+    std::set<IndexedEdge>* m_possibleCollisions;
+    std::deque<GodObjectAction*> m_actionQueue;
 
 public:
     GodObject(Vector2D position = Vector2D());

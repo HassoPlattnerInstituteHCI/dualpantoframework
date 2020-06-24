@@ -88,8 +88,8 @@ public:
 
     // send
     static void sendPosition();
-    static void sendInstantDebugLog(const char *message, ...);
-    static void sendQueuedDebugLog(const char *message, ...);
+    static void sendInstantDebugLog(const char* message, ...);
+    static void sendQueuedDebugLog(const char* message, ...);
     static void processDebugLogQueue();
     static void sendDebugData();
 
