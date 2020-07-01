@@ -64,7 +64,7 @@ void CppLib::poll()
             }
             else
             {
-                logString("Revision id not matching");
+                logString("Revision id not matching. Maybe try reset the device?");
             }
             break;
         }
