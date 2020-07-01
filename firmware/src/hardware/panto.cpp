@@ -134,6 +134,7 @@ void Panto::forwardKinematics()
     m_jacobian[1][1] =
         -lowerRow * rightColumn;
     // PERFMON_STOP("[abbl] set jacobian matrix");
+    inverseKinematics();
 }
 
 void Panto::inverseKinematics()
@@ -154,10 +155,10 @@ void Panto::inverseKinematics()
     }
     else
     {
-        const auto leftBaseToTargetX = m_targetX - c_leftBaseX;
-        const auto leftBaseToTargetY = m_targetY - c_leftBaseY;
-        const auto rightBaseToTargetX = m_targetX - c_rightBaseX;
-        const auto rightBaseToTargetY = m_targetY - c_rightBaseY;
+        const auto leftBaseToTargetX = m_filteredX - c_leftBaseX;
+        const auto leftBaseToTargetY = m_filteredY - c_leftBaseY;
+        const auto rightBaseToTargetX = m_filteredX - c_rightBaseX;
+        const auto rightBaseToTargetY = m_filteredY - c_rightBaseY;
         const auto leftBaseToTargetSquared =
             leftBaseToTargetX * leftBaseToTargetX +
             leftBaseToTargetY * leftBaseToTargetY;
@@ -189,6 +190,10 @@ void Panto::inverseKinematics()
 
         m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
         m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
+        m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
+        m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
+        //TODO: constant velocity here.
+        m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
     }
 };
 
@@ -532,6 +537,20 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     m_isforceRendering = isForceRendering;
     m_targetX = target.x;
     m_targetY = target.y;
+    m_startX = m_handleX;
+    m_startY = m_handleY;
+    m_filteredX = m_startX;
+    m_filteredY = m_startY;
+    m_tweeningValue = 0.0f;
+
+    float dx = (m_targetX - m_startX);
+    float dy = (m_targetY - m_startY);
+    float d  = max((float)sqrt(dx*dx + dy*dy), 1.0f); //distance to target: avoiding 0 division
+
+    const float velocity = 0.001; //[mm / s] maybe?
+
+    m_tweeningStep = velocity / d;
+
     inverseKinematics();
 };
 
