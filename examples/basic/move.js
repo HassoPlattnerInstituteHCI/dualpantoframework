@@ -25,16 +25,9 @@ Broker.on('devicesChanged', function(devices, attached, detached) {
         }
       });
       Broker.runScript([
-        () => device.rotateHandleTo(0, 0),
         () => device.rotateHandleTo(1, 0),
-        () => device.movePantoTo(0, new Vector(-20, -80), 50),
-        () => Broker.waitMS(2000),
-        () => device.movePantoTo(0, new Vector(20, -80), 50),
-        () => Broker.waitMS(2000),
-        () => device.movePantoTo(1, new Vector(-20, -80), 50),
-        () => Broker.waitMS(2000),
-        () => device.movePantoTo(1, new Vector(20, -80), 50),
-        () => Broker.waitMS(2000)
+        () => device.moveHandleTo(1, new Vector(-20, -40)),
+        () => device.moveHandleTo(1, new Vector(0, -70))
       ]);
     }
   }
