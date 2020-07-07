@@ -547,7 +547,7 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     float dy = (m_targetY - m_startY);
     float d  = max((float)sqrt(dx*dx + dy*dy), 1.0f); //distance to target: avoiding 0 division
 
-    const float velocity = 0.005; //[mm / s] maybe?
+    const float velocity = 0.01; //[mm / s] maybe?
 
     m_tweeningStep = velocity / d;
 

@@ -145,7 +145,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
                 //if a collision with a passable object is detected (e.g. a haptic rail) and the handle is not within the rail object,
                 //discard the collision and continue
                 auto ob = indexedEdge.m_obstacle;
-                if (m_passable_obstacles.find(ob->id) != m_passable_obstacles.end() && !ob->contains(targetPoint))
+                if (std::find(m_passable_obstacles.begin(), m_passable_obstacles.end(), ob->id) != m_passable_obstacles.end() && !ob->contains(targetPoint))
                 {
                     continue;
                 }
@@ -189,10 +189,10 @@ void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool p
     auto ob = Obstacle(points, id);
     if (passable)
     {
-        m_passable_obstacles.insert(id);
+        m_passable_obstacles.push_back(id);
     }
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_obstacles.emplace(id, std::move(Obstacle(points, id)));
+    m_obstacles.emplace(id, std::move(ob));
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
@@ -210,10 +210,15 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 void GodObject::removeObstacle(uint16_t id)
 {
     auto it = m_obstacles.find(id);
-    auto it2 = m_passable_obstacles.find(id);
+    //auto it2 = m_passable_obstacles.find(id);
+    std::vector<uint8_t>::iterator it2 = std::find(m_passable_obstacles.begin(), m_passable_obstacles.end(), id);
     if (it != m_obstacles.end() && it2 != m_passable_obstacles.end())
     {
-        m_passable_obstacles.erase(id);
+        //m_passable_obstacles.erase(it2);
+        m_passable_obstacles.clear();
+        m_passable_obstacles.shrink_to_fit();
+        //delete *it2;
+        //DPSerial::sendInstantDebugLog("passable obstacles length: %d", m_passable_obstacles.size());
     }
     enableObstacle(id, false);
     m_actionQueue.push_back(new GodObjectAction(GO_REMOVE_OBSTACLE, id));
@@ -229,6 +234,18 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         {
             const auto edges = it->second.getIndexedEdges();
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
+            if (!enable)
+            {
+                DPSerial::sendInstantDebugLog("removing obstacle with id %d ", id);
+                std::vector<uint8_t>::iterator it2 = std::find(m_passable_obstacles.begin(), m_passable_obstacles.end(), id);
+                if (it2 != m_passable_obstacles.end()){
+                    //m_passable_obstacles.erase(it2);
+                    m_passable_obstacles.clear();
+                    m_passable_obstacles.shrink_to_fit();
+                    DPSerial::sendInstantDebugLog("erased passable obj");
+                    DPSerial::sendInstantDebugLog("passable obstacles length: %d", m_passable_obstacles.capacity());
+                }
+            }
             for (const auto& edge : edges)
             {
                 m_actionQueue.push_back(new GodObjectAction(
@@ -240,7 +257,7 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         }
         it->second.enable(enable);
         portEXIT_CRITICAL(&m_obstacleMutex);
-    }
+    } 
 }
 
 Vector2D GodObject::getPosition()

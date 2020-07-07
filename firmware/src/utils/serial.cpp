@@ -251,6 +251,7 @@ void DPSerial::receiveCreateObstacle()
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createObstacle(id, path, false);
+            DPSerial::sendInstantDebugLog("Created obstacle %d",id);
         }
     }
 }
@@ -274,8 +275,9 @@ void DPSerial::receiveCreatePassableObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            DPSerial::sendInstantDebugLog("Created passable obstacle");
+            DPSerial::sendInstantDebugLog("Creating passable obstacle %d",id);
             pantoPhysics[i].godObject()->createObstacle(id, path, true);
+            DPSerial::sendInstantDebugLog("Created passable obstacle %d",id);
         }
     }
 }
@@ -308,7 +310,7 @@ void DPSerial::receiveRemoveObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-
+    DPSerial::sendInstantDebugLog("=== Received remove obstacle ===");
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
@@ -322,7 +324,7 @@ void DPSerial::receiveEnableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-
+    
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
@@ -336,7 +338,7 @@ void DPSerial::receiveDisableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-
+    DPSerial::sendInstantDebugLog("=== Received disable obstacle ===");
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)

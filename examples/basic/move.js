@@ -26,8 +26,8 @@ Broker.on('devicesChanged', function(devices, attached, detached) {
       });
       Broker.runScript([
         () => device.rotateHandleTo(1, 0),
-        () => device.moveHandleTo(1, new Vector(-20, -40)),
-        () => device.moveHandleTo(1, new Vector(0, -70))
+        () => device.moveHandleTo(1, new Vector(-20, -70, 0)),
+        () => device.moveHandleTo(1, new Vector(0, -70, 0))
       ]);
     }
   }

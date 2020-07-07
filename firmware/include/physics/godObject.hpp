@@ -20,7 +20,7 @@ private:
     Vector2D m_movementDirection;
     Vector2D m_activeForce;
     std::map<uint16_t, Obstacle> m_obstacles;
-    std::set<uint16_t> m_passable_obstacles;
+    std::vector<uint8_t> m_passable_obstacles;
     Hashtable m_hashtable;
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
