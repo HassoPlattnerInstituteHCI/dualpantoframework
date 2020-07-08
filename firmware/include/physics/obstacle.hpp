@@ -13,8 +13,9 @@ private:
 
 public:
     uint16_t id = 0;
+    bool passable = false;
     Obstacle(std::vector<Vector2D> points);
-    Obstacle(std::vector<Vector2D> points, uint16_t id);
+    Obstacle(std::vector<Vector2D> points, uint16_t id, bool passable);
     bool enabled();
     void enable(bool enable = true);
     virtual bool isOvercome(Vector2D target) { return false; };

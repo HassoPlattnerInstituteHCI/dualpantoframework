@@ -4,9 +4,10 @@
 
 Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) { }
 
-Obstacle::Obstacle(std::vector<Vector2D> points, uint16_t id) : Collider(points)
+Obstacle::Obstacle(std::vector<Vector2D> points, uint16_t id, bool passable) : Collider(points)
 {
     this->id = id;
+    this->passable = passable;
 }
 
 bool Obstacle::enabled()
