@@ -8,6 +8,7 @@
 #include "utils/serial.hpp"
 #include "utils/utils.hpp"
 
+
 int32_t Hashtable::get1dIndex(double value, double min, double step)
 {
     return (int32_t)std::floor((value - min) / step);
@@ -128,15 +129,27 @@ Hashtable::Hashtable()
         "Resulting step count is %i, using %i bytes",
         hashtableNumCells,
         hashtableUsedMemory);
+    /*for( unsigned int a = 0; a < sizeof(m_cells)/sizeof(m_cells[0]); a = a + 1 ) {
+        m_cells[a].reserve(5);
+    }*/
+    
 }
 
 void Hashtable::add(AnnotatedEdge* edge)
 {
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
+        if (m_cells[cellIndex].size() == m_cells[cellIndex].capacity()){
+            //m_cells[cellIndex].reserve(5);
+            //DPSerial::sendInstantDebugLog("Reallocating for edge");
+        }
         m_cells[cellIndex].emplace_back(
             edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
     }
+    /*DPSerial::sendInstantDebugLog(
+
+            "Add edge %d , %i", edge->m_indexedEdge->m_index);*/
+        
     edge->destroy();
 }
 
@@ -152,8 +165,10 @@ void Hashtable::remove(AnnotatedEdge* edge)
         if(it != cell.end())
         {
             cell.erase(it);
+            //cell.shrink_to_fit();
         }
     }
+    //delete edge->m_indexedEdge->m_obstacle;
     edge->destroy();
 }
 

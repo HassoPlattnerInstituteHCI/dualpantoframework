@@ -144,22 +144,19 @@ void CrashAnalyzer::checkOutput()
         std::cout << "Reboot detected, but no backtrace found." << std::endl;
         return;
     }
-    char out[c_bufferLength + 1];
-    //std::memcpy(out, s_buffer, c_bufferLength);
-    out[c_bufferLength] = '\0';
-    for (int i=0;i<c_bufferLength;i++){
-        char x = s_buffer[i];
-        if (x < 32){
-            x = 32;
-        }
-        if (x > 126){
-            x = 126;
-        }
-        
-        out[i]=x;
-    }
+<<<<<<< Updated upstream
+    /*unsigned char out[c_bufferLength + 1];
+    std::memcpy(out, s_buffer, c_bufferLength);
+    out[c_bufferLength] = 0;
+    loggingHandler(reinterpret_cast<char *>(out));
+    */
+=======
+    unsigned char out[c_bufferLength + 1];
+    std::memcpy(out, s_buffer, c_bufferLength);
+    out[c_bufferLength] = 0;
     loggingHandler(out);
 
+>>>>>>> Stashed changes
     auto addresses = getBacktraceAddresses(
         backtraceOffset - c_backtraceString.length() - 1,
         rebootOffset);

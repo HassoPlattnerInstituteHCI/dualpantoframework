@@ -517,8 +517,6 @@ void DPSerial::receive()
 
     if (s_receiveState == FOUND_HEADER && !payloadReady())
     {
-        if(s_header.MessageType == ADD_TO_OBSTACLE)
-            sendQueuedDebugLog("Only %i of %i bytes available", Serial.available(), s_header.PayloadSize);
         return;
     }
 

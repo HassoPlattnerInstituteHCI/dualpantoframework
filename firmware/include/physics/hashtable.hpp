@@ -14,6 +14,7 @@ private:
     static int32_t get1dIndex(double value, double min, double step);
 
     std::vector<IndexedEdge> m_cells[hashtableNumCells];
+    //std::vector<std::vector<IndexedEdge>> m_cells;
     std::vector<uint32_t> getCellIndices(Edge edge);
     std::set<uint32_t> expand(const std::vector<uint32_t>& edges);
 public:
