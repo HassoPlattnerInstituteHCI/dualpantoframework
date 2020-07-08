@@ -26,6 +26,7 @@ set(public_headers
 
 set(private_headers
     ${serial_include_dir}/serial.hpp
+    ${serial_include_dir}/crashAnalyzer.hpp
     ${protocol_include_dir}/protocol/protocol.hpp
     ${protocol_include_dir}/protocol/header.hpp
     ${protocol_include_dir}/protocol/messageType.hpp)
@@ -39,6 +40,8 @@ set(sources
 elseif (UNIX)
 set(sources
     ${serial_source_dir}/cppLib/lib.cpp
+    ${serial_source_dir}/crashAnalyzer/analyze.cpp
+    ${serial_source_dir}/crashAnalyzer/buffer.cpp
     ${serial_source_dir}/serial/shared.cpp
     ${serial_source_dir}/serial/unix.cpp
     ${protocol_source_dir}/protocol.cpp)
@@ -51,7 +54,7 @@ endif()
 include_directories(${generated_header_dir})
 include_directories(${serial_include_dir})
 include_directories(${protocol_include_dir})
-add_compile_definitions(SKIP_ANALYZER)
+#add_compile_definitions(ADDR2LINE_PATH)
 add_library(serial SHARED ${public_headers} ${private_headers} ${sources})
 
 include(GenerateExportHeader)
