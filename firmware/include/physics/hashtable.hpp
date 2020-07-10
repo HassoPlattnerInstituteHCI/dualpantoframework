@@ -13,8 +13,10 @@ class Hashtable
 private:
     static int32_t get1dIndex(double value, double min, double step);
 
-    std::vector<IndexedEdge> m_cells[hashtableNumCells];
-    //std::vector<std::vector<IndexedEdge>> m_cells;
+    //std::vector<IndexedEdge> m_cells[hashtableNumCells];
+    IndexedEdge m_cells[hashtableNumCells][2];
+    //IndexedEdge m_cells[hashtableNumCells];
+    //std::vector<std::vector<IndexedEdge> > m_cells;// (10000,std::vector<IndexedEdge>(10));
     std::vector<uint32_t> getCellIndices(Edge edge);
     std::set<uint32_t> expand(const std::vector<uint32_t>& edges);
 public:

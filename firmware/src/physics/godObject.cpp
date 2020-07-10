@@ -118,6 +118,9 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
         for (auto&& indexedEdge : *m_possibleCollisions)
         {
+            if (indexedEdge.m_obstacle==nullptr){
+                continue;
+            }
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
             auto firstMinusPos = edgeFirst - m_position;

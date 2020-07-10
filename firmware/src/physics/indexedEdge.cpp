@@ -2,6 +2,12 @@
 
 #include "physics/obstacle.hpp"
 
+
+IndexedEdge::IndexedEdge() {
+    m_obstacle = nullptr;
+    m_index = 0;
+}
+
 IndexedEdge::IndexedEdge(Obstacle* obstacle, uint32_t index)
 : m_obstacle(obstacle)
 , m_index(index)

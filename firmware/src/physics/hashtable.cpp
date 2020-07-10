@@ -97,8 +97,8 @@ std::set<uint32_t> Hashtable::expand(const std::vector<uint32_t>& edges)
                 {
                     continue;
                 }
-
-                result.insert((y + j) * hashtableStepsY + (x + i));
+                uint32_t res = (y + j) * hashtableStepsY + (x + i);
+                result.insert(res);
             }
         }
     }
@@ -107,6 +107,11 @@ std::set<uint32_t> Hashtable::expand(const std::vector<uint32_t>& edges)
 
 Hashtable::Hashtable()
 {
+    //m_cells = std::vector<std::vector<IndexedEdge>> (400,std::vector<IndexedEdge>(1));
+    // for (int i=0;i<hashtableNumCells;i++){
+    //     //m_cells[i] = std::vector<IndexedEdge>(3);
+    //     //m_cells[i].resize(1, IndexedEdge());
+    // }
     DPSerial::sendQueuedDebugLog(
         "Hashtable settings:");
     DPSerial::sendQueuedDebugLog(
@@ -139,12 +144,20 @@ void Hashtable::add(AnnotatedEdge* edge)
 {
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
-        if (m_cells[cellIndex].size() == m_cells[cellIndex].capacity()){
-            //m_cells[cellIndex].reserve(5);
-            //DPSerial::sendInstantDebugLog("Reallocating for edge");
-        }
-        m_cells[cellIndex].emplace_back(
-            edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
+        //  if (m_cells[cellIndex].size() == m_cells[cellIndex].capacity()){
+        //      //cell index is set
+        //      //m_cells[cellIndex].reserve(3);
+        // //     //DPSerial::sendInstantDebugLog("Reallocating for edge");
+        // }
+        IndexedEdge e = IndexedEdge(edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
+        m_cells[cellIndex][0] = e;
+        //m_cells[cellIndex].emplace_back(e);
+        //m_cells[cellIndex+1].resize(1, e);
+        // m_cells[cellIndex].emplace_back(e
+        //     );
+        /*m_cells[cellIndex].resize(1, e);
+        m_cells[cellIndex+1].resize(1, e);
+        m_cells[cellIndex+2].resize(1, e);*/
     }
     /*DPSerial::sendInstantDebugLog(
 
@@ -157,16 +170,16 @@ void Hashtable::remove(AnnotatedEdge* edge)
 {
     for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
     {
-        auto& cell = m_cells[cellIndex];
-        auto it = std::find(
-            cell.begin(), 
-            cell.end(), 
-            *(edge->m_indexedEdge));
-        if(it != cell.end())
-        {
-            cell.erase(it);
-            //cell.shrink_to_fit();
-        }
+        // auto& cell = m_cells[cellIndex];
+        // auto it = std::find(
+        //     cell.begin(), 
+        //     cell.end(), 
+        //     *(edge->m_indexedEdge));
+        // if(it != cell.end())
+        // {
+        //     cell.erase(it);
+        //     //cell.shrink_to_fit();
+        // }
     }
     //delete edge->m_indexedEdge->m_obstacle;
     edge->destroy();
@@ -201,21 +214,25 @@ void Hashtable::getPossibleCollisions(
     if(dist == 0)
     {
         const auto* cell = begin + startIndex;
-        result->insert(cell->begin(), cell->end());
+        //result->insert(cell->begin(), cell->end());
+        result->insert(*cell[0]);
     }
     else if(dist == 1)
     {
         auto* cell = begin + startIndex;
-        result->insert(cell->begin(), cell->end());
+        //result->insert(cell->begin(), cell->end());
+        result->insert(*cell[0]);
         cell = begin + endIndex;
-        result->insert(cell->begin(), cell->end());
+        //result->insert(cell->begin(), cell->end());
+        result->insert(*cell[0]);
     }
     else
     {
         for(auto&& cellIndex : getCellIndices(movement))
         {
             const auto* cell = begin + cellIndex;
-            result->insert(cell->begin(), cell->end());
+            //result->insert(cell->begin(), cell->end());
+            result->insert(*cell[0]);
         }
     }
 }
@@ -228,7 +245,7 @@ void Hashtable::print()
     {
         for(auto x = 0; x < hashtableStepsX; x++)
         {
-            str << (m_cells[x * hashtableStepsY + y].empty() ? '-' : '#');
+            //str << (m_cells[x * hashtableStepsY + y].empty() ? '-' : '#');
         }
         DPSerial::sendQueuedDebugLog(str.str().c_str());
         str.str("");
