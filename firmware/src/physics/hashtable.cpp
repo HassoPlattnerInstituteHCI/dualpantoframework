@@ -139,23 +139,15 @@ void Hashtable::add(AnnotatedEdge* edge)
 {
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
-        if (m_cells[cellIndex].size() == m_cells[cellIndex].capacity()){
-            //m_cells[cellIndex].reserve(5);
-            //DPSerial::sendInstantDebugLog("Reallocating for edge");
-        }
         m_cells[cellIndex].emplace_back(
             edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
     }
-    /*DPSerial::sendInstantDebugLog(
-
-            "Add edge %d , %i", edge->m_indexedEdge->m_index);*/
-        
     edge->destroy();
 }
 
 void Hashtable::remove(AnnotatedEdge* edge)
 {
-    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
+    for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
         auto& cell = m_cells[cellIndex];
         auto it = std::find(
@@ -165,10 +157,9 @@ void Hashtable::remove(AnnotatedEdge* edge)
         if(it != cell.end())
         {
             cell.erase(it);
-            //cell.shrink_to_fit();
+            cell.shrink_to_fit();
         }
     }
-    //delete edge->m_indexedEdge->m_obstacle;
     edge->destroy();
 }
 
