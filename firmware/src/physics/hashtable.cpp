@@ -142,7 +142,7 @@ void Hashtable::add(AnnotatedEdge* edge)
 
 void Hashtable::remove(AnnotatedEdge* edge)
 {
-    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
+    for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
         auto& cell = m_cells[cellIndex];
         auto it = std::find(
@@ -152,6 +152,7 @@ void Hashtable::remove(AnnotatedEdge* edge)
         if(it != cell.end())
         {
             cell.erase(it);
+            cell.shrink_to_fit();
         }
     }
     edge->destroy();
