@@ -186,7 +186,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
 void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable)
 {
-    auto ob = Obstacle(points, id, passable);
+    auto ob = Obstacle(points, passable);
     portENTER_CRITICAL(&m_obstacleMutex);
     m_obstacles.emplace(id, std::move(ob));
     portEXIT_CRITICAL(&m_obstacleMutex);
