@@ -10,6 +10,7 @@ enum MessageType
     HEARTBEAT_ACK = 0x81,
     MOTOR = 0x90,
     PID = 0x91,
+    SPEED = 0x92,
     CREATE_OBSTACLE = 0xA0,
     ADD_TO_OBSTACLE = 0xA1,
     REMOVE_OBSTACLE = 0xA2,

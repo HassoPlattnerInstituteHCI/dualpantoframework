@@ -64,6 +64,7 @@ private:
     static void receiveSyncAck();
     static void receiveHearbeatAck();
     static void receiveMotor();
+    static void receiveSpeed();
     static void receivePID();
     static void receiveCreateObstacle();
     static void receiveAddToObstacle();

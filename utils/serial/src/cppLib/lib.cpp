@@ -151,6 +151,16 @@ void CppLib::sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float position
     sendPacket();
 }
 
+void CppLib::sendSpeed(uint8_t pantoIndex, float speed)
+{
+    s_header.MessageType = SPEED;
+    s_header.PayloadSize = 5; // 1 for index, 1 * 4 for position
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
+    sendFloat(speed, offset);
+    sendPacket();
+}
+
 void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
     s_header.MessageType = CREATE_OBSTACLE;
@@ -289,6 +299,11 @@ void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pan
 {
     CppLib::setActiveHandle(handle);
     CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
+}
+
+void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed){
+    CppLib::setActiveHandle(handle);
+    CppLib::sendSpeed(pantoIndex, speed);
 }
 
 void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex)

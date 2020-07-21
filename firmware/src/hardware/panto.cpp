@@ -139,6 +139,12 @@ void Panto::forwardKinematics()
 
 void Panto::inverseKinematics()
 {
+
+    //update tweening delta micro here
+    unsigned long now = micros();
+    float tweening_dt = now - m_tweeningPrevtime;
+    m_tweeningPrevtime = now;
+
     if (isnan(m_targetX) || isnan(m_targetY))
     {
         m_targetAngle[c_localLeftIndex] = NAN;
@@ -193,6 +199,9 @@ void Panto::inverseKinematics()
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
         //TODO: constant velocity here.
+        float stepValue = 1.8 * 0.000001 * tweening_dt * m_tweeningSpeed; //2.4 == unity tweening speed
+        // DPSerial::sendInstantDebugLog("step = %f, %f", m_filteredX, m_filteredY);
+        // float stepValue = m_tweeningStep;
         m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
     }
 };
@@ -547,12 +556,16 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     float dy = (m_targetY - m_startY);
     float d  = max((float)sqrt(dx*dx + dy*dy), 1.0f); //distance to target: avoiding 0 division
 
-    const float velocity = 0.001; //[mm / s] maybe?
+    const float velocity = 0.001 * m_tweeningSpeed; //[mm / s] maybe?
 
     m_tweeningStep = velocity / d;
 
     inverseKinematics();
 };
+
+void Panto::setSpeed(const float _speed){
+    m_tweeningSpeed = _speed;
+}
 
 void Panto::setRotation(const float rotation)
 {
