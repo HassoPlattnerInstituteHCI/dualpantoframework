@@ -27,7 +27,8 @@ std::map<MessageType, ReceiveHandler>
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
         {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
         {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable},
-        {CREATE_PASSABLE_OBSTACLE, DPSerial::receiveCreatePassableObstacle}};
+        {CREATE_PASSABLE_OBSTACLE, DPSerial::receiveCreatePassableObstacle},
+        {CREATE_RAIL, DPSerial::receiveCreateRail}};
 
 // === private ===
 
@@ -275,9 +276,37 @@ void DPSerial::receiveCreatePassableObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            DPSerial::sendInstantDebugLog("Creating passable obstacle %d",id);
             pantoPhysics[i].godObject()->createObstacle(id, path, true);
             DPSerial::sendInstantDebugLog("Created passable obstacle %d",id);
+        }
+    }
+}
+
+void DPSerial::receiveCreateRail()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
+
+    std::vector<Vector2D> path;
+    path.reserve(vecCount);
+
+    DPSerial::sendInstantDebugLog("Received create rail %d",id);
+
+    for(auto i = 0; i < vecCount; ++i)
+    {
+        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
+    }
+
+    auto displacement = (double)receiveFloat();
+
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->createRail(id, path, displacement);
+            DPSerial::sendInstantDebugLog("Created rail %d",id);
         }
     }
 }

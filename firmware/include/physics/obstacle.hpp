@@ -12,7 +12,7 @@ private:
     bool m_enabled = false;
 
 public:
-    bool passable = false;
+    bool passable = false; 
     Obstacle(std::vector<Vector2D> points);
     Obstacle(std::vector<Vector2D> points, bool passable);
     bool enabled();

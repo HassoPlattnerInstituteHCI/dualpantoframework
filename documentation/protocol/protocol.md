@@ -48,6 +48,8 @@ The available values for messages from the framework to the hardware are:
   - [0xA3 Enable obstacle](#0xA3-Enable-obstacle) - This message specifies an obstacle to enable.
   - [0xA4 Disable obstacle](#0xA4-Disable-obstacle) - This message specifies an obstacle to disable.
   - [0xA5 Calibrate panto](#0xA5-Calibrate-panto) - This message specifies a calibration request.
+  - [0xA6 Create passable obstacle](#0xA6-Create-passable-obstacle) - This message specifies a passable obstacle to be added.
+  - [0xA7 Create rail](#0xA7-Create-rail) - This message specifies a haptic guide to be added. A haptic guide is also an obstacle and hence also needs to be enabled and can be disabled. A haptic guide also has a displacement area around it that the user needs to pass to overcome it. That way the strength of the guide can be specified.
 - 0xC0 to 0xCF - Debug tools
     [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' hashtable.
 
@@ -282,6 +284,32 @@ A5       // message type: Calibrate panto
 0000     // payload lenght: 0
 ```
 
+### 0xA6 Create passable obstacle
+
+Works the same way as 'create obstacle' just that the obstacle will be overcomeable
+
+### 0xA7 Create rail
+
+Add a haptic rail (guide)
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the obstacle ID, encoded as a 16 bit unsigned integer, and 2 2D vectors, both encoded as a pair of 32 bit floats.
+
+Setting the pantograph index to 0xFF creates the obstacle for both handles.
+
+Example message for adding an obstacle to both handles:
+```
+4450     // magic number
+A7       // message type: Create rail
+0013     // payload lenght: 1 byte for index, 2 for ID, 4*4 for values
+FF       // pantograph index - both handles
+0023     // obstacle ID
+FFFFFFFF // first vector, x
+FFFFFFFF // first vector, y
+FFFFFFFF // second vector, x
+FFFFFFFF // second vector, y
+```
+
+
 ### 0xC0 Dump hashtable
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer.
@@ -295,7 +323,4 @@ C0       // message type: Dump hashtable
 0001     // payload lenght: 1 byte for index
 FF       // pantograph index - both handles
 ```
-### 0xC1 Create passable obstacle
-
-Works the same way as 'create obstacle' just that the obstacle will be overcomeable
 

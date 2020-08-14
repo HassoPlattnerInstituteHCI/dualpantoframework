@@ -186,10 +186,21 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint)
 
 void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable)
 {
-    auto ob = Obstacle(points, passable);
+    // create obstacle or passable obstacle
+    auto ob = new Obstacle(points, passable);
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_obstacles.emplace(id, std::move(ob));
+    m_obstacles.emplace(id, ob);
     portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::createRail(uint16_t id, std::vector<Vector2D> points, double displacement)
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    Rail* rail = new Rail(points, displacement);
+    m_obstacles.emplace(id, rail);
+    portEXIT_CRITICAL(&m_obstacleMutex);
+    return;
+    
 }
 
 void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
@@ -198,7 +209,7 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
     if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
-        m_obstacles.at(id).add(points);
+        m_obstacles.at(id)->add(points);
         portEXIT_CRITICAL(&m_obstacleMutex);
     }
 }
@@ -206,7 +217,6 @@ void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
 void GodObject::removeObstacle(uint16_t id)
 {
     enableObstacle(id, false);
-    //TODO: removing fails and crashes 
     m_actionQueue.push_back(new GodObjectAction(GO_REMOVE_OBSTACLE, id));
 }
 
@@ -216,9 +226,9 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
     if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
-        if (enable != it->second.enabled())
+        if (enable != it->second->enabled())
         {
-            const auto edges = it->second.getIndexedEdges();
+            const auto edges = it->second->getIndexedEdges();
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
             for (const auto& edge : edges)
             {
@@ -229,7 +239,7 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
                         new Edge(edge.getEdge()))));
             }
         }
-        it->second.enable(enable);
+        it->second->enable(enable);
         portEXIT_CRITICAL(&m_obstacleMutex);
     } 
 }

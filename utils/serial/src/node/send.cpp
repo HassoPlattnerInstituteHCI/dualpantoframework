@@ -105,6 +105,39 @@ napi_value Node::send(napi_env env, napi_callback_info info)
         }
         break;
     }
+    case CREATE_RAIL:
+    {
+        napi_value propertyName;
+        napi_value tempNapiValue;
+        uint32_t tempUInt32;
+
+        napi_create_string_utf8(env, "index", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        DPSerial::sendUInt8(static_cast<uint8_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "id", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        napi_get_value_uint32(env, tempNapiValue, &tempUInt32);
+        DPSerial::sendUInt16(static_cast<uint16_t>(tempUInt32), offset);
+
+        napi_create_string_utf8(env, "posArray", NAPI_AUTO_LENGTH, &propertyName);
+        napi_get_property(env, argv[2], propertyName, &tempNapiValue);
+        uint32_t posArraySize;
+        napi_get_array_length(env, tempNapiValue, &posArraySize);
+        napi_value posNapiValue;
+        double posDouble;
+        for (auto i = 0; i < posArraySize; ++i)
+        {
+            napi_get_element(env, tempNapiValue, i, &posNapiValue);
+            napi_get_value_double(env, posNapiValue, &posDouble);
+            DPSerial::sendFloat(static_cast<float>(posDouble), offset);
+        }
+        double displacement;
+        napi_get_value_double(env, tempNapiValue, &displacement);
+        DPSerial::sendFloat(static_cast<float>(displacement), offset);
+        break;
+    }
     case REMOVE_OBSTACLE:
     case ENABLE_OBSTACLE:
     case DISABLE_OBSTACLE:

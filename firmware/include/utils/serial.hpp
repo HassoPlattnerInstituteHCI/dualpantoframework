@@ -67,6 +67,7 @@ private:
     static void receivePID();
     static void receiveCreateObstacle();
     static void receiveCreatePassableObstacle();
+    static void receiveCreateRail();
     static void receiveAddToObstacle();
     static void receiveRemoveObstacle();
     static void receiveEnableObstacle();
