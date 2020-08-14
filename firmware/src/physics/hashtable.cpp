@@ -129,9 +129,6 @@ Hashtable::Hashtable()
         "Resulting step count is %i, using %i bytes",
         hashtableNumCells,
         hashtableUsedMemory);
-    /*for( unsigned int a = 0; a < sizeof(m_cells)/sizeof(m_cells[0]); a = a + 1 ) {
-        m_cells[a].reserve(5);
-    }*/
     
 }
 
