@@ -4,6 +4,11 @@
 
 Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) { }
 
+Obstacle::Obstacle(std::vector<Vector2D> points, bool passable) : Collider(points)
+{
+    this->passable = passable;
+}
+
 bool Obstacle::enabled()
 {
     return m_enabled;

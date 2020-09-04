@@ -8,6 +8,7 @@
 #include "utils/serial.hpp"
 #include "utils/utils.hpp"
 
+
 int32_t Hashtable::get1dIndex(double value, double min, double step)
 {
     return (int32_t)std::floor((value - min) / step);

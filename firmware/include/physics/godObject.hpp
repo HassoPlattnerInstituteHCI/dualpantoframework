@@ -9,6 +9,7 @@
 #include "physics/godObjectAction.hpp"
 #include "physics/indexedEdge.hpp"
 #include "physics/obstacle.hpp"
+#include "physics/rail.hpp"
 #include "physics/hashtable.hpp"
 #include "utils/vector.hpp"
 
@@ -19,7 +20,7 @@ private:
     Vector2D m_position;
     Vector2D m_movementDirection;
     Vector2D m_activeForce;
-    std::map<uint16_t, Obstacle> m_obstacles;
+    std::map<uint16_t, Obstacle*> m_obstacles;
     Hashtable m_hashtable;
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
@@ -27,6 +28,7 @@ private:
     Vector2D m_lastError;
     std::set<IndexedEdge>* m_possibleCollisions;
     std::deque<GodObjectAction*> m_actionQueue;
+
 public:
     GodObject(Vector2D position = Vector2D());
     ~GodObject();
@@ -35,7 +37,8 @@ public:
     void dumpHashtable();
     void move();
     Vector2D checkCollisions(Vector2D targetPoint);
-    void createObstacle(uint16_t id, std::vector<Vector2D> points);
+    void createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
+    void createRail(uint16_t id, std::vector<Vector2D> points, double displacement);
     void addToObstacle(uint16_t id, std::vector<Vector2D> points);
     void removeObstacle(uint16_t id);
     void enableObstacle(uint16_t id, bool enable = true);

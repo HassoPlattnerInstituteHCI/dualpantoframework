@@ -12,6 +12,6 @@ protected:
 public:
     Collider(std::vector<Vector2D> points);
     void add(std::vector<Vector2D> points);
-    bool contains(Vector2D point);
+    virtual bool contains(Vector2D point);
     Edge getEdge(uint32_t index);
 };

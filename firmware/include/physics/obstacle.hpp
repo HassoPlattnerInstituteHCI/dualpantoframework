@@ -10,8 +10,11 @@ class Obstacle : public Collider
 {
 private:
     bool m_enabled = false;
+
 public:
+    bool passable = false; 
     Obstacle(std::vector<Vector2D> points);
+    Obstacle(std::vector<Vector2D> points, bool passable);
     bool enabled();
     void enable(bool enable = true);
     std::vector<IndexedEdge> getIndexedEdges(

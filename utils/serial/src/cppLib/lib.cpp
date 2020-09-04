@@ -166,6 +166,37 @@ void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vecto
     dumpBuffersToFile();
 }
 
+void CppLib::createPassableObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
+{
+    s_header.MessageType = CREATE_PASSABLE_OBSTACLE;
+    s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
+    sendUInt16(obstacleId, offset);
+    sendFloat(vector1x, offset);
+    sendFloat(vector1y, offset);
+    sendFloat(vector2x, offset);
+    sendFloat(vector2y, offset);
+    sendPacket();
+    dumpBuffersToFile();
+}
+
+void CppLib::createRail(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y, float displacement)
+{
+    s_header.MessageType = CREATE_RAIL;
+    s_header.PayloadSize = 23; // 1 for index, 2 for id, 2 * 2 * 4 for vectors, 4 for displacement
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
+    sendUInt16(obstacleId, offset);
+    sendFloat(vector1x, offset);
+    sendFloat(vector1y, offset);
+    sendFloat(vector2x, offset);
+    sendFloat(vector2y, offset);
+    sendFloat(displacement, offset);
+    sendPacket();
+    dumpBuffersToFile();
+}
+
 void CppLib::addToObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
     s_header.MessageType = ADD_TO_OBSTACLE;
@@ -301,6 +332,18 @@ void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t 
 {
     CppLib::setActiveHandle(handle);
     CppLib::createObstacle(pantoIndex, obstacleId, vector1x, vector1y, vector2x, vector2y);
+}
+
+void SERIAL_EXPORT CreatePassableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::createPassableObstacle(pantoIndex, obstacleId, vector1x, vector1y, vector2x, vector2y);
+}
+
+void SERIAL_EXPORT CreateRail(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y, float displacement)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::createRail(pantoIndex, obstacleId, vector1x, vector1y, vector2x, vector2y, displacement);
 }
 
 void SERIAL_EXPORT AddToObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)

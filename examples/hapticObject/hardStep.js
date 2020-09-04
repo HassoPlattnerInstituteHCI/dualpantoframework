@@ -19,9 +19,9 @@ Broker.on('devicesChanged',
         if (device) {
           // adding a box hard step around (-100|-100) keeping the user out
           const leftHapticObject = device.addHapticObject(
-              new Vector(-100, -100));
+              new Vector(-50, 30));
           leftHapticObject.addComponent(
-              new BoxHardStep(new Vector(100, 100), 3, 0));
+              new BoxHardStep(new Vector(100, 100), 5, 5));
           // adding a mesh hard step around (100|-100) keeping the user in
           const rightHapticObject = device.addHapticObject(
               new Vector(100, -100));
@@ -32,7 +32,7 @@ Broker.on('devicesChanged',
                 new Vector(50, 50, 0),
                 new Vector(50, -50, 0)]));
           rightHapticObject.addComponent(
-              new MeshHardStep(mesh, 0, 3));
+              new MeshHardStep(mesh, 1, 1));
         }
       }
     });
