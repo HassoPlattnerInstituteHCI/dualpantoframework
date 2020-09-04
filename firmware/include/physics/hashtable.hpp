@@ -22,5 +22,4 @@ public:
     void remove(AnnotatedEdge* edge);
     void getPossibleCollisions(Edge movement, std::set<IndexedEdge>* result);
     void print();
-    int cellCount();
 };

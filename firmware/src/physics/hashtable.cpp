@@ -129,7 +129,6 @@ Hashtable::Hashtable()
         "Resulting step count is %i, using %i bytes",
         hashtableNumCells,
         hashtableUsedMemory);
-    
 }
 
 void Hashtable::add(AnnotatedEdge* edge)
