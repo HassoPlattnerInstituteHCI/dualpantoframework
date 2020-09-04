@@ -103,8 +103,7 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
 
     const auto result = exec(command.str().c_str());
 
-    std::ostringstream out;
-    out
+    std::cout
         << "Stacktrace (most recent call first):" << std::endl
         << result;
     #else
