@@ -555,6 +555,7 @@ void DPSerial::receive()
         {
             Serial.read();
         }
+        s_receiveState = NONE;
         return;
     }
 
