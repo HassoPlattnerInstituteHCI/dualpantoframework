@@ -42,6 +42,7 @@ The available values for messages from the framework to the hardware are:
 - 0x90 to 0xAF - Data messages
   - [0x90 Motor](#0x90-Motor) - This message contains a motor movement.
   - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one 
+  - [0x92 Speed](#0x92-Speed) - This message specifies the speed to use for tweening positions 
   - [0xA0 Create obstacle](#0xA0-Create-obstacle) - This message specifies an obstacle to be added to one or both handles. Note: The obstacle isn't enabled automatically after creation. An enable message is required to enable it.
   - [0xA1 Add to obstacle](#0xA1-Add-to-obstacle) - This message specifies positions to be appended to an obstacle.
   - [0xA2 Remove obstacle](#0xA2-Remove-obstacle) - This message specifies an obstacle to remove.
@@ -190,6 +191,20 @@ Example message for tuning the second pantograph's rotation motor:
 FFFFFFFF // P value
 FFFFFFFF // I value
 FFFFFFFF // D value
+```
+
+
+### 0x92 Speed
+
+This message contains the pantograph index encoded as an 8 bit unsigned integer, followed by the speed value encoded as 32 bit float.
+
+Example message for setting the speed on both handles:
+```
+4450     // magic number
+92       // message type: PID values
+0005     // payload lenght: 1 byte for index, 4 for speed value
+FF       // pantograph index - both handles
+FFFFFFFF // speed
 ```
 
 ### 0xA0 Create obstacle

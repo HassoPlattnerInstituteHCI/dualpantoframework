@@ -18,6 +18,7 @@ public:
     static void sendSyncAck();
     static void sendHeartbeatAck();
     static void sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation);
+    static void sendSpeed(uint8_t pantoIndex, float speed);
     static void createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     static void createPassableObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     static void createRail(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y, float displacement);
@@ -55,6 +56,7 @@ extern "C"
     void SERIAL_EXPORT SendSyncAck(uint64_t handle);
     void SERIAL_EXPORT SendHeartbeatAck(uint64_t handle);
     void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation);
+    void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed);
     void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex);
     void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);
     void SERIAL_EXPORT CreatePassableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y);

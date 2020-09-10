@@ -74,6 +74,17 @@ private:
     float m_handleY = 0;
     float m_targetX = 0;
     float m_targetY = 0;
+    float m_startX = 0;
+    float m_startY = 0;
+    float m_filteredX = 0;
+    float m_filteredY = 0;
+    float m_tweeningValue = 0.0f;
+    float m_tweeningStep = 0.00001f;
+    float m_tweeningSpeed = 1.0f;
+    uint32_t m_tweeningPrevtime = 0;
+    float m_dt = 0.0001f;
+    float delta = 0.01;
+    float velocity = 1.0f;
     bool m_isforceRendering = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
@@ -90,6 +101,7 @@ public:
     float getRotation() const;
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
+    void setSpeed(const float speed);
     void setRotation(const float rotation);
     bool getCalibrationState();
     void calibrateEncoders();

@@ -20,6 +20,7 @@ std::map<MessageType, ReceiveHandler>
         {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
         {MOTOR, DPSerial::receiveMotor},
         {PID, DPSerial::receivePID},
+        {SPEED, DPSerial::receiveSpeed},
         {CREATE_OBSTACLE, DPSerial::receiveCreateObstacle},
         {ADD_TO_OBSTACLE, DPSerial::receiveAddToObstacle},
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
@@ -230,6 +231,13 @@ void DPSerial::receivePID()
     {
         pidFactor[motorIndex][i] = receiveFloat();
     }
+};
+
+void DPSerial::receiveSpeed()
+{
+    auto pantoIndex = receiveUInt8(); //0 or 1
+    auto speed = receiveFloat();
+    pantos[pantoIndex].setSpeed(speed);
 };
 
 void DPSerial::receiveCreateObstacle()
