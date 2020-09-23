@@ -28,6 +28,8 @@ private:
     Vector2D m_lastError;
     std::set<IndexedEdge>* m_possibleCollisions;
     std::deque<GodObjectAction*> m_actionQueue;
+    bool m_tethered = true;
+    float m_tetherFactor = 0.3;
 
 public:
     GodObject(Vector2D position = Vector2D());
@@ -46,4 +48,5 @@ public:
     Vector2D getActiveForce();
     bool getProcessingObstacleCollision();
     bool getDoneColliding();
+    bool tethered();
 };

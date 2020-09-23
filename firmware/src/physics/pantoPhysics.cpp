@@ -47,7 +47,14 @@ void PantoPhysics::step()
     }
     else if(m_godObject->getDoneColliding())
     {
-        m_panto->setTarget(Vector2D(NAN, NAN), false);
+        if (m_godObject->tethered())
+        {
+            // the active force is calculated using the displacement between the god object and the handle position when the god object is moved
+            m_panto->setTarget(m_godObject->getActiveForce(), true);
+        } else {
+            // here the handle is free
+            m_panto->setTarget(Vector2D(NAN, NAN), false);
+        }
     }
     // PERFMON_STOP("[bac] Physics::step::motor");
     // PERFMON_STOP("[ba] Physics::step");

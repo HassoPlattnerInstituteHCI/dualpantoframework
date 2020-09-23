@@ -69,16 +69,34 @@ void GodObject::move()
     auto lastState = m_processingObstacleCollision;
     m_processingObstacleCollision = false;
 
-    auto nextPosition = m_position + m_movementDirection;
+    Vector2D nextPosition;
+    if (m_tethered) {
+        // check if the handle is beyond the max 
+        
+        //float movement = min(m_tetherRadius, (m_movementDirection * m_tetherFactor))
+        //nextPosition = m_position + movement;
+        nextPosition = m_position + (m_movementDirection * m_tetherFactor);
+    } else {
+        nextPosition = m_position + m_movementDirection;
+    }
+     
     portENTER_CRITICAL(&m_obstacleMutex);
     m_position = checkCollisions(nextPosition);
     portEXIT_CRITICAL(&m_obstacleMutex);
 
     if (m_processingObstacleCollision)
     {
+        // the error is the difference between the godobject and the handle position
         auto error = m_position - nextPosition;
         m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
         m_lastError = error;
+    } else {
+        if (m_tethered) {
+            // if the players max movement speed is limited (tethered) then the error is the difference between the actual handle position and the calculated position
+            auto error = nextPosition - (m_position + m_movementDirection);
+            m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
+            m_lastError = error;
+        }
     }
 
     m_doneColliding = lastState && !m_processingObstacleCollision;
@@ -262,4 +280,9 @@ bool GodObject::getProcessingObstacleCollision()
 bool GodObject::getDoneColliding()
 {
     return m_doneColliding;
+}
+
+bool GodObject::tethered()
+{
+    return m_tethered;
 }
