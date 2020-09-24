@@ -38,7 +38,7 @@ void PantoPhysics::step()
     m_godObject->setMovementDirection(difference);
     // PERFMON_STOP("[baa] Physics::step::prep");
     // PERFMON_START("[bab] Physics::step::move");
-    m_godObject->move();
+    bool isMoving = m_godObject->move();
     // PERFMON_STOP("[bab] Physics::step::move");
     // PERFMON_START("[bac] Physics::step::motor");
     if(m_godObject->getProcessingObstacleCollision())
@@ -47,13 +47,19 @@ void PantoPhysics::step()
     }
     else if(m_godObject->getDoneColliding())
     {
-        if (m_godObject->tethered())
+        m_panto->setTarget(Vector2D(NAN, NAN), false);
+    } else 
+    {
+        // here the handle is free
+        //DPSerial::sendInstantDebugLog("Diff : %f", difference.length());
+        //DPSerial::sendInstantDebugLog("Force : %f", m_godObject->getActiveForce());
+        if (m_godObject->tethered() && difference.length() < 5)
         {
-            // the active force is calculated using the displacement between the god object and the handle position when the god object is moved
-            m_panto->setTarget(m_godObject->getActiveForce(), true);
-        } else {
-            // here the handle is free
-            m_panto->setTarget(Vector2D(NAN, NAN), false);
+            if (!isMoving) {
+                m_panto->setTarget(Vector2D(NAN, NAN), false);
+            } else {
+                m_panto->setTarget(m_godObject->getActiveForce(), true);
+            }
         }
     }
     // PERFMON_STOP("[bac] Physics::step::motor");

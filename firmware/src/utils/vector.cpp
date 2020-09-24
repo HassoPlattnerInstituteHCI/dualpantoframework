@@ -22,6 +22,11 @@ double Vector2D::angle() const
     return atan2(y, x);
 };
 
+Vector2D Vector2D::normalize() const 
+{
+    return Vector2D(x / length(), y / length());
+}
+
 Vector2D Vector2D::operator+(const Vector2D& other) const
 {
     return Vector2D(x + other.x, y + other.y);

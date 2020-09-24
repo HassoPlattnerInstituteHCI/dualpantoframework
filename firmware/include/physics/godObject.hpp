@@ -29,7 +29,12 @@ private:
     std::set<IndexedEdge>* m_possibleCollisions;
     std::deque<GodObjectAction*> m_actionQueue;
     bool m_tethered = true;
-    float m_tetherFactor = 0.3;
+    float m_tetherFactor = 0.01;
+    Vector2D m_lastErrorTether;
+    double m_tetherInnerRadius = 1;
+    double m_tetherOuterRadius = 2;
+    bool m_tetherActive = false; // is false if handle is in the free moving zone and true if tether is pulled 
+    double m_tetherSafeZonePadding = 0.5; // padding on the inner border to avoid that the tether gets pushed into the free moving zone immediately once the inner radius is passed
 
 public:
     GodObject(Vector2D position = Vector2D());
@@ -37,7 +42,7 @@ public:
     void setMovementDirection(Vector2D movementDirection);
     void update();
     void dumpHashtable();
-    void move();
+    bool move();
     Vector2D checkCollisions(Vector2D targetPoint);
     void createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
     void createRail(uint16_t id, std::vector<Vector2D> points, double displacement);

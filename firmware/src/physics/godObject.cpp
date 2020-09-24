@@ -64,42 +64,58 @@ void GodObject::dumpHashtable()
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
-void GodObject::move()
+bool GodObject::move()
 {
     auto lastState = m_processingObstacleCollision;
     m_processingObstacleCollision = false;
 
     Vector2D nextPosition;
+    Vector2D handlePosition = m_position + m_movementDirection;
+    float movementStepLength = m_movementDirection.length(); // only used for tethering
+    float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
     if (m_tethered) {
-        // check if the handle is beyond the max 
         
-        //float movement = min(m_tetherRadius, (m_movementDirection * m_tetherFactor))
-        //nextPosition = m_position + movement;
-        nextPosition = m_position + (m_movementDirection * m_tetherFactor);
+        // is the handle in the "free movement zone" or is the tether active?
+        if ((!m_tetherActive && (m_movementDirection.length() < m_tetherInnerRadius)) ||
+        (m_tetherActive && (m_movementDirection.length() < tetherInnerRadiusActive)))
+        {
+            // if the handle is moved within the inner radius of the tether the god object won't follow
+            m_tetherActive = false;
+            return false;
+        } else {
+            m_tetherActive = true;
+        }
+        movementStepLength = min(m_tetherOuterRadius, m_movementDirection.length());
+        
+        // check if the handle is beyond the max radius of the tether
+        nextPosition = m_position + (m_movementDirection.normalize() * movementStepLength * m_tetherFactor);
     } else {
         nextPosition = m_position + m_movementDirection;
     }
-     
+    
     portENTER_CRITICAL(&m_obstacleMutex);
     m_position = checkCollisions(nextPosition);
     portEXIT_CRITICAL(&m_obstacleMutex);
+    
+    m_doneColliding = lastState && !m_processingObstacleCollision;
 
     if (m_processingObstacleCollision)
     {
-        // the error is the difference between the godobject and the handle position
-        auto error = m_position - nextPosition;
+        // the PID error is the difference between the godobject and the handle position
+        auto error = m_position - handlePosition;
         m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
         m_lastError = error;
+        m_tetherActive = false;
+    
     } else {
-        if (m_tethered) {
+        if (m_tethered && m_tetherActive && !m_doneColliding) { // && (m_movementDirection.length() > tetherThreshold)
             // if the players max movement speed is limited (tethered) then the error is the difference between the actual handle position and the calculated position
-            auto error = nextPosition - (m_position + m_movementDirection);
-            m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
-            m_lastError = error;
+            auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
+            m_activeForce = error * forcePidFactor[0][0] + (error - m_lastErrorTether) * forcePidFactor[0][2];
+            m_lastErrorTether = error;
         }
     }
-
-    m_doneColliding = lastState && !m_processingObstacleCollision;
+    return true;
 }
 
 Vector2D GodObject::checkCollisions(Vector2D targetPoint)
