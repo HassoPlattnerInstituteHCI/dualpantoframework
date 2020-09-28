@@ -38,29 +38,16 @@ void PantoPhysics::step()
     m_godObject->setMovementDirection(difference);
     // PERFMON_STOP("[baa] Physics::step::prep");
     // PERFMON_START("[bab] Physics::step::move");
-    bool isMoving = m_godObject->move();
+    bool isForceActive = m_godObject->move();
     // PERFMON_STOP("[bab] Physics::step::move");
     // PERFMON_START("[bac] Physics::step::motor");
-    if(m_godObject->getProcessingObstacleCollision())
+    if(isForceActive)
     {
         m_panto->setTarget(m_godObject->getActiveForce(), true);
     }
-    else if(m_godObject->getDoneColliding())
+    else
     {
         m_panto->setTarget(Vector2D(NAN, NAN), false);
-    } else 
-    {
-        // here the handle is free
-        //DPSerial::sendInstantDebugLog("Diff : %f", difference.length());
-        //DPSerial::sendInstantDebugLog("Force : %f", m_godObject->getActiveForce());
-        if (m_godObject->tethered() && difference.length() < 5)
-        {
-            if (!isMoving) {
-                m_panto->setTarget(Vector2D(NAN, NAN), false);
-            } else {
-                m_panto->setTarget(m_godObject->getActiveForce(), true);
-            }
-        }
     }
     // PERFMON_STOP("[bac] Physics::step::motor");
     // PERFMON_STOP("[ba] Physics::step");

@@ -52,6 +52,11 @@ bool Vector2D::operator==(const Vector2D &other) const
     return x == other.x && y == other.y;
 };
 
+bool Vector2D::operator!=(const Vector2D &other) const
+{
+    return x != other.x || y != other.y;
+};
+
 double Vector2D::distancePointToLineSegment(Vector2D a, Vector2D b) {
     // a is the start of the line segment, b is the end
     // distance is measured from the point p
