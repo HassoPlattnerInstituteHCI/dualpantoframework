@@ -93,8 +93,14 @@ bool GodObject::move()
         nextPosition = m_position + m_movementDirection;
     }
     
+    Vector2D godObjectPos;
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_position = checkCollisions(nextPosition);
+    godObjectPos = checkCollisions(nextPosition);
+    if (m_processingObstacleCollision && m_tethered) {
+        m_position = checkCollisions(handlePosition);
+    } else {
+        m_position = godObjectPos;
+    }
     portEXIT_CRITICAL(&m_obstacleMutex);
     
     m_doneColliding = lastState && !m_processingObstacleCollision;
@@ -106,7 +112,6 @@ bool GodObject::move()
         m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
         m_lastError = error;
         m_tetherActive = false;
-    
     } else {
         if (m_tethered && m_tetherActive && !m_doneColliding) { // && (m_movementDirection.length() > tetherThreshold)
             // if the players max movement speed is limited (tethered) then the error is the difference between the actual handle position and the calculated position
