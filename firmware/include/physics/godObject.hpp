@@ -66,7 +66,7 @@ public:
     Vector2D getActiveForce();
     void renderCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition);
     void renderTetherForce(Vector2D error);
-    bool processTetheringForce(Vector2D handlePosition);
+    bool processTetheringForce(Vector2D handlePosition, bool lastCollisionState);
     bool getProcessingObstacleCollision();
     bool getDoneColliding();
     bool tethered();
