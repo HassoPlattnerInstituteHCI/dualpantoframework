@@ -42,10 +42,10 @@ private:
     bool m_tethered = true;
     float m_tetherFactor = 0.001;
     Vector2D m_lastErrorTether;
-    double m_tetherInnerRadius = 2;
-    double m_tetherOuterRadius = 3;
+    double m_tetherInnerRadius = 0;
+    double m_tetherOuterRadius = 2;
     TetherState m_tetherState = Inner;
-    double m_tetherSafeZonePadding = 1; // padding on the inner border to avoid that the tether gets pushed into the free moving zone immediately once the inner radius is passed
+    double m_tetherSafeZonePadding = 0; // padding on the inner border to avoid that the tether gets pushed into the free moving zone immediately once the inner radius is passed
 
     
 
@@ -64,8 +64,9 @@ public:
     void enableObstacle(uint16_t id, bool enable = true);
     Vector2D getPosition();
     Vector2D getActiveForce();
-    void renderCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition);
-    void renderTetherForce(Vector2D error);
+    Vector2D getCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition);
+    Vector2D getTetherForce(Vector2D error);
+    void renderForce(Vector2D collisionForce, Vector2D tetherForce);
     bool processTetheringForce(Vector2D handlePosition, bool lastCollisionState);
     bool getProcessingObstacleCollision();
     bool getDoneColliding();

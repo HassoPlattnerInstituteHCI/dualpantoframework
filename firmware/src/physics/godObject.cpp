@@ -84,7 +84,8 @@ bool GodObject::move()
             m_tetherState = Inner;
             return false;
         } else {
-            m_tetherState = (distHandleToGo > m_tetherOuterRadius) ? Outer : Active;
+            // if the tetherState was previously active and we saw a collision then we can't now switch into the outer state
+            m_tetherState = ((distHandleToGo > m_tetherOuterRadius) && !(lastState && m_tetherState == Active)) ? Outer : Active;
         }
         movementStepLength = min(m_tetherOuterRadius, distHandleToGo);
         
@@ -114,7 +115,7 @@ bool GodObject::move()
     if (!m_tethered) {
         if (m_processingObstacleCollision)
         {
-            renderCollisionForce(m_position, handlePosition);
+            renderForce(getCollisionForce(m_position, handlePosition), Vector2D(0,0));
         }
         return m_processingObstacleCollision;
     } else {
@@ -122,55 +123,66 @@ bool GodObject::move()
     }
 }
 
-void GodObject::renderCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition){
+Vector2D GodObject::getCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition){
     // the PID error is the difference between the virtual object and the handle position
     // the virtual object can either be a) the godobject or b) the tether
     auto error = godObjectPosition - handlePosition;
-    m_activeForce = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
+    auto force = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
     m_lastError = error;
+    return force;
 }
 
-void GodObject::renderTetherForce(Vector2D error){
-    m_activeForce = error * forcePidFactor[0][0] + (error - m_lastErrorTether) * forcePidFactor[0][2];
+Vector2D GodObject::getTetherForce(Vector2D error){
+    auto force = error * forcePidFactor[0][0] + (error - m_lastErrorTether) * forcePidFactor[0][2];
     m_lastErrorTether = error;
+    return force;
+}
+
+void GodObject::renderForce(Vector2D collisionForce, Vector2D tetherForce) {
+    m_activeForce = collisionForce + tetherForce;
 }
 
 bool GodObject::processTetheringForce(Vector2D handlePosition, bool lastCollisionState){
     // returns if force is active or handle is freely moving
     if (m_tetherState == Active) {
+        float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
+        auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
+        auto tetherForce = getTetherForce(error);
         if (m_processingObstacleCollision) {
             // god object collision
-            if (!lastCollisionState) {
+            /*if (!lastCollisionState) {
                 // weak constant force pushing the handle into the the wall so that the user gets force feedback at their fingertip
                 auto error = m_movementDirection.normalize() * 10;
                 renderTetherForce(error);
             } else {
                 renderCollisionForce(m_position, handlePosition);
-            }
+            }*/
+            renderForce(getCollisionForce(m_position, handlePosition), tetherForce);
             return true;
         } else {
             if (!m_doneColliding) {
                 // regular tether force active that pushes the handle back to the inner tether radius
-                float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
-                auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
-                renderTetherForce(error);
+                
+                renderForce(Vector2D(0,0), tetherForce);
             }
             return !m_doneColliding;
         }
     } else if (m_tetherState==Outer) {
+        auto error = m_movementDirection.normalize() * -1;
+        auto tetherForce = getTetherForce(error);
         if (m_processingObstacleCollision) {
+            /*
             if (!lastCollisionState) {
                 // weak constant force pushing the handle into the the wall so that the user gets force feedback at their fingertip
                 auto error = m_movementDirection.normalize() * 10;
                 renderTetherForce(error);
             } else {
                 renderCollisionForce(m_tetherPosition, handlePosition);
-            }
-            
+            }*/
+            renderForce(getCollisionForce(m_tetherPosition, handlePosition), tetherForce);
         } else {
             // weak constant force pulling the tether back to the outer tether radius
-            auto error = m_movementDirection.normalize() * -1;
-            renderTetherForce(error);
+            renderForce(Vector2D(0,0), tetherForce);
         }
         return true;
     }
@@ -249,10 +261,12 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
                 continue;
             }
 
-            if (!foundCollision || movementRatio < shortestMovementRatio)
+            // we have a collision!
+            if (!foundCollision || movementRatio < shortestMovementRatio) // I think the second condition never gets called because the movementRatio loop 
+            // would already continue if the movementRatio was below 0 (which is the shortestMovementRatio)
             {
-                //if a collision with a passable object is detected (e.g. a haptic rail) and the handle is not within the rail object,
-                //discard the collision and continue
+                // if a collision with a passable object is detected (e.g. a haptic rail) and the handle is not within the bounds of the colliding object,
+                // discard the collision and continue
                 auto ob = indexedEdge.m_obstacle;
                 if (ob->passable && !ob->contains(targetPoint))
                 {
@@ -270,7 +284,15 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
         {
             m_processingObstacleCollision = true;
             
-            // god object slides along the colliding edge according to the handle movement
+            // god object slides along the colliding edge according to the handle movement but with tethered speed
+
+            if (m_tethered) {
+                // if the movement is tethered the targetPoint can not be further away from the current position than the outer tether radius
+                const Vector2D movementVector = targetPoint - currentPosition;
+                double movementLength = min(m_tetherOuterRadius, movementVector.length());
+                targetPoint = currentPosition + (movementVector.normalize() * movementLength);
+            }
+
             auto perpendicular = Vector2D(
                 -closestEdgeFirstMinusSecond.y,
                 closestEdgeFirstMinusSecond.x);
@@ -283,8 +305,10 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
                     perpendicular);
             auto resolveVec = perpendicular * resolveRatio;
             auto resolveLength = resolveVec.length();
+            // c_resolveDistance is super small --> we need to add a tiny padding between the godobject and the edge so that it's not getting stuck in the edge
             targetPoint = targetPoint - (resolveVec * ((resolveLength + c_resolveDistance) / resolveLength));
 
+            
             // check for the new point if there is another collision with any other edge
             m_possibleCollisions->clear();
             m_hashtable.getPossibleCollisions(
