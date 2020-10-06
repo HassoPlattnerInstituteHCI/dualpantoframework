@@ -544,6 +544,9 @@ void Panto::setAngleAccessor(
 void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 {
     m_isforceRendering = isForceRendering;
+    if (!isForceRendering){
+        m_isTweening = false;
+    }
     m_targetX = target.x;
     m_targetY = target.y;
     m_startX = m_handleX;
@@ -559,12 +562,12 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     const float velocity = 0.001 * m_tweeningSpeed; //[mm / s] maybe?
 
     m_tweeningStep = velocity / d;
-
     inverseKinematics();
 };
 
 void Panto::setSpeed(const float _speed){
     m_tweeningSpeed = _speed;
+    m_isTweening = true;
 }
 
 void Panto::setRotation(const float rotation)
@@ -593,4 +596,8 @@ int Panto::getEncoderRequestsCounts(int i){
     int res= m_encoderRequestCounts[i];
     m_encoderRequestCounts[i] =0;
     return res;
+}
+
+bool Panto::getTweeningState(){
+    return m_isTweening;
 }

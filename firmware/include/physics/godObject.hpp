@@ -39,7 +39,7 @@ private:
     std::deque<GodObjectAction*> m_actionQueue;
     
     // tether related properties
-    bool m_tethered = true;
+    bool m_tethered = false;
     float m_tetherFactor = 0.001;
     Vector2D m_lastErrorTether;
     double m_tetherInnerRadius = 0;
@@ -55,7 +55,7 @@ public:
     void setMovementDirection(Vector2D movementDirection);
     void update();
     void dumpHashtable();
-    bool move();
+    bool move(bool isTweening);
     Vector2D checkCollisions(Vector2D targetPoint, Vector2D currentPosition);
     void createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
     void createRail(uint16_t id, std::vector<Vector2D> points, double displacement);

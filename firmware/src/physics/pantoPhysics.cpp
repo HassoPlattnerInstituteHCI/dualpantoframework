@@ -33,12 +33,13 @@ void PantoPhysics::step()
     m_godObject->update();
 
     m_currentPosition = m_panto->getPosition();
+    bool isTweening = m_panto->getTweeningState();
 
     auto difference = m_currentPosition - m_godObject->getPosition();
     m_godObject->setMovementDirection(difference);
     // PERFMON_STOP("[baa] Physics::step::prep");
     // PERFMON_START("[bab] Physics::step::move");
-    bool isForceActive = m_godObject->move();
+    bool isForceActive = m_godObject->move(isTweening);
     // PERFMON_STOP("[bab] Physics::step::move");
     // PERFMON_START("[bac] Physics::step::motor");
     if(isForceActive)

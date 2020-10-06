@@ -64,7 +64,7 @@ void GodObject::dumpHashtable()
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
-bool GodObject::move()
+bool GodObject::move(bool isTweening)
 {
     // returns if force is applied or not
     auto lastState = m_processingObstacleCollision;
@@ -74,7 +74,7 @@ bool GodObject::move()
     Vector2D handlePosition = m_position + m_movementDirection;
     float movementStepLength = m_movementDirection.length(); // only used for tethering
     float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
-    if (m_tethered) {
+    if (m_tethered && !isTweening) {
         double distHandleToGo = m_movementDirection.length();
         // find out the current tether state
         if ((m_tetherState==Inner && (distHandleToGo < m_tetherInnerRadius)) ||
@@ -85,7 +85,7 @@ bool GodObject::move()
             return false;
         } else {
             // if the tetherState was previously active and we saw a collision then we can't now switch into the outer state
-            m_tetherState = ((distHandleToGo > m_tetherOuterRadius) && !(lastState && m_tetherState == Active)) ? Outer : Active;
+            m_tetherState = ((distHandleToGo > m_tetherOuterRadius) ) ? Outer : Active; // && !(lastState && m_tetherState == Active)
         }
         movementStepLength = min(m_tetherOuterRadius, distHandleToGo);
         
@@ -99,18 +99,23 @@ bool GodObject::move()
     Vector2D godObjectPos;
     portENTER_CRITICAL(&m_obstacleMutex);
     godObjectPos = checkCollisions(nextGoPosition, m_position);
-    if (m_processingObstacleCollision && m_tetherState == Active) {
+    /*if (m_processingObstacleCollision && m_tetherState == Active) {
         // extra collision check to make sure we can jump passable obstacles and guides
         m_position = checkCollisions(handlePosition, m_position);
     } else {
         m_position = godObjectPos;
-    }
+    }*/
+    m_position = godObjectPos;
     if (m_tetherState == Outer) {
         m_tetherPosition = checkCollisions(handlePosition, m_tetherPosition);
     }
     portEXIT_CRITICAL(&m_obstacleMutex);
     
     m_doneColliding = lastState && !m_processingObstacleCollision;
+
+    if (isTweening) {
+        return true;
+    }
 
     if (!m_tethered) {
         if (m_processingObstacleCollision)
