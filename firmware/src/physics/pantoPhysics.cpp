@@ -48,7 +48,9 @@ void PantoPhysics::step()
     }
     else
     {
-        m_panto->setTarget(Vector2D(NAN, NAN), false);
+        if (!isTweening){
+            m_panto->setTarget(Vector2D(NAN, NAN), false);
+        }
     }
     // PERFMON_STOP("[bac] Physics::step::motor");
     // PERFMON_STOP("[ba] Physics::step");

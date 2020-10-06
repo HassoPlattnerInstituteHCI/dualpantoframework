@@ -39,14 +39,13 @@ private:
     std::deque<GodObjectAction*> m_actionQueue;
     
     // tether related properties
-    bool m_tethered = false;
+    bool m_tethered = true;
     float m_tetherFactor = 0.001;
     Vector2D m_lastErrorTether;
     double m_tetherInnerRadius = 0;
     double m_tetherOuterRadius = 2;
     TetherState m_tetherState = Inner;
     double m_tetherSafeZonePadding = 0; // padding on the inner border to avoid that the tether gets pushed into the free moving zone immediately once the inner radius is passed
-
     
 
 public:

@@ -68,10 +68,18 @@ bool GodObject::move(bool isTweening)
 {
     // returns if force is applied or not
     auto lastState = m_processingObstacleCollision;
+    
     m_processingObstacleCollision = false;
 
     Vector2D nextGoPosition;
     Vector2D handlePosition = m_position + m_movementDirection;
+    if (isTweening) {
+        m_position = handlePosition;
+        if (m_tethered) {
+            m_tetherPosition = handlePosition;
+        }
+        return false;
+    }
     float movementStepLength = m_movementDirection.length(); // only used for tethering
     float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
     if (m_tethered && !isTweening) {
@@ -90,9 +98,13 @@ bool GodObject::move(bool isTweening)
         movementStepLength = min(m_tetherOuterRadius, distHandleToGo);
         
         // this is the movement of the god object that follows the tether
-        nextGoPosition = m_position + (m_movementDirection.normalize() * movementStepLength * m_tetherFactor);
+        if (distHandleToGo != 0){
+            nextGoPosition = m_position + (m_movementDirection.normalize() * movementStepLength * m_tetherFactor);
+        } else {
+            nextGoPosition = handlePosition;
+        }
     } else {
-        nextGoPosition = m_position + m_movementDirection;
+        nextGoPosition = handlePosition;
     }
     
     // no matter what the tether state is we need to check if the god object is colliding with an obstacle
@@ -106,16 +118,12 @@ bool GodObject::move(bool isTweening)
         m_position = godObjectPos;
     }*/
     m_position = godObjectPos;
-    if (m_tetherState == Outer) {
+    if (m_tethered && m_tetherState == Outer && !isTweening) {
         m_tetherPosition = checkCollisions(handlePosition, m_tetherPosition);
     }
     portEXIT_CRITICAL(&m_obstacleMutex);
     
     m_doneColliding = lastState && !m_processingObstacleCollision;
-
-    if (isTweening) {
-        return true;
-    }
 
     if (!m_tethered) {
         if (m_processingObstacleCollision)
@@ -152,16 +160,14 @@ bool GodObject::processTetheringForce(Vector2D handlePosition, bool lastCollisio
     if (m_tetherState == Active) {
         float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
         auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
+        if (m_processingObstacleCollision && !lastCollisionState) {
+            // weak constant force pushing the handle into the the wall so that the user gets force feedback at their fingertip
+            error = m_movementDirection.normalize() * 10;   
+        }
         auto tetherForce = getTetherForce(error);
+
         if (m_processingObstacleCollision) {
             // god object collision
-            /*if (!lastCollisionState) {
-                // weak constant force pushing the handle into the the wall so that the user gets force feedback at their fingertip
-                auto error = m_movementDirection.normalize() * 10;
-                renderTetherForce(error);
-            } else {
-                renderCollisionForce(m_position, handlePosition);
-            }*/
             renderForce(getCollisionForce(m_position, handlePosition), tetherForce);
             return true;
         } else {

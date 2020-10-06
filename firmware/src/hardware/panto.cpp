@@ -150,7 +150,7 @@ void Panto::inverseKinematics()
         m_targetAngle[c_localLeftIndex] = NAN;
         m_targetAngle[c_localRightIndex] = NAN;
     }
-    else if (m_isforceRendering)
+    else if (m_isforceRendering && !m_isTweening)
     {
         m_targetAngle[c_localLeftIndex] =
             m_jacobian[0][0] * m_targetX +
@@ -161,6 +161,7 @@ void Panto::inverseKinematics()
     }
     else
     {
+        // tweening
         const auto leftBaseToTargetX = m_filteredX - c_leftBaseX;
         const auto leftBaseToTargetY = m_filteredY - c_leftBaseY;
         const auto rightBaseToTargetX = m_filteredX - c_rightBaseX;
@@ -544,11 +545,12 @@ void Panto::setAngleAccessor(
 void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 {
     m_isforceRendering = isForceRendering;
-    if (!isForceRendering){
-        m_isTweening = false;
-    }
     m_targetX = target.x;
     m_targetY = target.y;
+    if (!m_isforceRendering && (isnan(m_targetX) || isnan(m_targetY)) && m_isTweening){
+        m_isTweening = false;
+        DPSerial::sendInstantDebugLog("Tweening over");
+    }
     m_startX = m_handleX;
     m_startY = m_handleY;
     m_filteredX = m_startX;
@@ -568,6 +570,7 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 void Panto::setSpeed(const float _speed){
     m_tweeningSpeed = _speed;
     m_isTweening = true;
+    DPSerial::sendInstantDebugLog("Tweening");
 }
 
 void Panto::setRotation(const float rotation)
