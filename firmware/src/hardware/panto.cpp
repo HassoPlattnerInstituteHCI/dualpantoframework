@@ -213,9 +213,6 @@ void Panto::inverseKinematics()
 void Panto::setMotor(
     const uint8_t& localIndex, const bool& dir, const float& power)
 {
-    /*if (power == 0){
-        return;
-    }*/
     const auto globalIndex = c_globalIndexOffset + localIndex;
 
     if(motorPwmPin[globalIndex] == dummyPin && motorPwmPinForwards[globalIndex] == dummyPin)
