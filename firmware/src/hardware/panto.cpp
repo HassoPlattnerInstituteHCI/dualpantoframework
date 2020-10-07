@@ -150,7 +150,7 @@ void Panto::inverseKinematics()
         m_targetAngle[c_localLeftIndex] = NAN;
         m_targetAngle[c_localRightIndex] = NAN;
     }
-    else if (m_isforceRendering)
+    else if (m_isforceRendering && !m_isTweening)
     {
         m_targetAngle[c_localLeftIndex] =
             m_jacobian[0][0] * m_targetX +
@@ -159,7 +159,7 @@ void Panto::inverseKinematics()
             m_jacobian[1][0] * m_targetX +
             m_jacobian[1][1] * m_targetY;
     }
-    else
+    else if (m_isTweening)
     {
         const auto leftBaseToTargetX = m_filteredX - c_leftBaseX;
         const auto leftBaseToTargetY = m_filteredY - c_leftBaseY;
@@ -203,12 +203,19 @@ void Panto::inverseKinematics()
         // DPSerial::sendInstantDebugLog("step = %f, %f", m_filteredX, m_filteredY);
         // float stepValue = m_tweeningStep;
         m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
+        if(m_filteredX==m_targetX && m_filteredY == m_targetY){
+            m_isTweening = false;
+            DPSerial::sendInstantDebugLog("Tweening over");
+        }
     }
 };
 
 void Panto::setMotor(
     const uint8_t& localIndex, const bool& dir, const float& power)
 {
+    /*if (power == 0){
+        return;
+    }*/
     const auto globalIndex = c_globalIndexOffset + localIndex;
 
     if(motorPwmPin[globalIndex] == dummyPin && motorPwmPinForwards[globalIndex] == dummyPin)
@@ -317,9 +324,11 @@ void Panto::actuateMotors()
 {
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
-        if (isnan(m_targetAngle[localIndex]))
+        
+        if (isnan(m_targetAngle[localIndex]) || (m_targetAngle[localIndex] == m_actuationAngle[localIndex]))
         {
             setMotor(localIndex, false, 0);
+            return;
         }
         else if (m_isforceRendering)
         {
@@ -565,6 +574,8 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 
 void Panto::setSpeed(const float _speed){
     m_tweeningSpeed = _speed;
+    m_isTweening = true;
+    DPSerial::sendInstantDebugLog("Tweening");
 }
 
 void Panto::setRotation(const float rotation)
@@ -593,4 +604,8 @@ int Panto::getEncoderRequestsCounts(int i){
     int res= m_encoderRequestCounts[i];
     m_encoderRequestCounts[i] =0;
     return res;
+}
+
+bool Panto::getTweeningState(){
+    return m_isTweening;
 }

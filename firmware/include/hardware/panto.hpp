@@ -78,6 +78,7 @@ private:
     float m_startY = 0;
     float m_filteredX = 0;
     float m_filteredY = 0;
+    bool m_isTweening = false;
     float m_tweeningValue = 0.0f;
     float m_tweeningStep = 0.00001f;
     float m_tweeningSpeed = 1.0f;
@@ -115,6 +116,7 @@ public:
     int getEncoderRequests();
     int getEncoderErrorCounts(int i);
     int getEncoderRequestsCounts(int i);
+    bool getTweeningState();
 };
 
 extern std::vector<Panto> pantos;
