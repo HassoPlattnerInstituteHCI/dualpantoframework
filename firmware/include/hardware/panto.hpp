@@ -116,7 +116,7 @@ public:
     int getEncoderRequests();
     int getEncoderErrorCounts(int i);
     int getEncoderRequestsCounts(int i);
-    bool getTweeningState();
+    bool getTweeningState() const;
 };
 
 extern std::vector<Panto> pantos;

@@ -325,7 +325,7 @@ void Panto::actuateMotors()
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
         
-        if (isnan(m_targetAngle[localIndex]) || (m_targetAngle[localIndex] == m_actuationAngle[localIndex]))
+        if (isnan(m_targetAngle[localIndex]))
         {
             setMotor(localIndex, false, 0);
             return;
@@ -606,6 +606,6 @@ int Panto::getEncoderRequestsCounts(int i){
     return res;
 }
 
-bool Panto::getTweeningState(){
+bool Panto::getTweeningState() const{
     return m_isTweening;
 }
