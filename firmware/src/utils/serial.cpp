@@ -416,6 +416,7 @@ void DPSerial::receiveInvalid()
 
 void DPSerial::init()
 {
+    Serial.flush();
     Serial.begin(c_baudRate); 
     Serial.setRxBufferSize(4 * c_maxPayloadSize);
 }
