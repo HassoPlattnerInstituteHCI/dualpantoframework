@@ -162,12 +162,13 @@ bool GodObject::processTetheringForce(Vector2D handlePosition, bool lastCollisio
     // returns if force is active or handle is freely moving
     if (m_tetherState == Active) {
         float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
-        auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
+        /*auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
         if (m_processingObstacleCollision && !lastCollisionState) {
             // weak constant force pushing the handle into the the wall so that the user gets force feedback at their fingertip
             error = m_movementDirection.normalize() * 10;   
-        }
-        auto tetherForce = getTetherForce(error);
+        }*/
+        auto tetherForce = Vector2D(0,0); // no force feedback when crashing into wall
+        
 
         if (m_processingObstacleCollision) {
             // god object collision
