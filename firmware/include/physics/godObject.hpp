@@ -25,6 +25,8 @@ class GodObject
 {
 private:
     static constexpr double c_resolveDistance = 0.00001;
+    static constexpr double c_tetherForcePullingBack = -0.2;
+    
     Vector2D m_position;
     Vector2D m_tetherPosition;
     Vector2D m_movementDirection;

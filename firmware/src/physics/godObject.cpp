@@ -179,7 +179,7 @@ bool GodObject::processTetheringForce(Vector2D handlePosition, bool lastCollisio
             return !m_doneColliding;
         }
     } else if (m_tetherState==Outer) {
-        auto error = m_movementDirection.normalize() * -1;
+        auto error = m_movementDirection.normalize() * c_tetherForcePullingBack;
         auto tetherForce = getTetherForce(error);
         if (m_processingObstacleCollision) {
             /*
