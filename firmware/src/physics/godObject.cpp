@@ -95,7 +95,7 @@ bool GodObject::move(bool isTweening)
             // if the tetherState was previously active and we saw a collision then we can't now switch into the outer state
             m_tetherState = ((distHandleToGo > m_tetherOuterRadius) ) ? Outer : Active; // && !(lastState && m_tetherState == Active)
         }
-        movementStepLength = min(m_tetherOuterRadius, distHandleToGo);
+        movementStepLength = m_tetherOuterRadius;
         
         // this is the movement of the god object that follows the tether
         if (distHandleToGo != 0){
@@ -110,14 +110,15 @@ bool GodObject::move(bool isTweening)
     // no matter what the tether state is we need to check if the god object is colliding with an obstacle
     Vector2D godObjectPos;
     portENTER_CRITICAL(&m_obstacleMutex);
-    godObjectPos = checkCollisions(nextGoPosition, m_position);
+    if (m_tetherState != Outer && m_tethered){
+        m_position = checkCollisions(nextGoPosition, m_position);
+    }
     /*if (m_processingObstacleCollision && m_tetherState == Active) {
         // extra collision check to make sure we can jump passable obstacles and guides
         m_position = checkCollisions(handlePosition, m_position);
     } else {
         m_position = godObjectPos;
     }*/
-    m_position = godObjectPos;
     if (m_tethered && m_tetherState == Outer && !isTweening) {
         m_tetherPosition = checkCollisions(handlePosition, m_tetherPosition);
     }
@@ -300,7 +301,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
             if (m_tethered) {
                 // if the movement is tethered the targetPoint can not be further away from the current position than the outer tether radius
                 const Vector2D movementVector = targetPoint - currentPosition;
-                double movementLength = min(m_tetherOuterRadius, movementVector.length());
+                double movementLength = m_tetherOuterRadius;
                 targetPoint = currentPosition + (movementVector.normalize() * movementLength);
             }
 
