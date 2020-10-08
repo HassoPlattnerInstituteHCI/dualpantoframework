@@ -86,14 +86,17 @@ bool GodObject::move(bool isTweening)
         double distHandleToGo = m_movementDirection.length();
         // find out the current tether state
         if ((m_tetherState==Inner && (distHandleToGo < m_tetherInnerRadius)) ||
-        (m_tetherState!=Inner && (distHandleToGo < tetherInnerRadiusActive)))
+        (m_tetherState!=Inner && (distHandleToGo < tetherInnerRadiusActive)) || 
+        (m_tetherState==Inner && (distHandleToGo > 10)))
         {
             // if the handle is moved within the inner radius of the tether the god object won't follow
+            // also if the handle is way too far displaced from the godobject (e.g. in the beginning)
             m_tetherState = Inner;
             return false;
         } else {
             // if the tetherState was previously active and we saw a collision then we can't now switch into the outer state
-            m_tetherState = ((distHandleToGo > m_tetherOuterRadius) ) ? Outer : Active; // && !(lastState && m_tetherState == Active)
+            //m_tetherState = ((distHandleToGo > m_tetherOuterRadius) ) ? Outer : Active; // && !(lastState && m_tetherState == Active)
+            m_tetherState = Active;
         }
         movementStepLength = min(m_tetherOuterRadius, distHandleToGo);
         

@@ -42,7 +42,7 @@ private:
     
     // tether related properties
     bool m_tethered = true;
-    float m_tetherFactor = 0.001;
+    float m_tetherFactor = 0.01;
     Vector2D m_lastErrorTether;
     double m_tetherInnerRadius = 0;
     double m_tetherOuterRadius = 2;
