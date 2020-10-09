@@ -68,6 +68,7 @@ bool GodObject::move(bool isTweening)
 {
     // returns if force is applied or not
     auto lastState = m_processingObstacleCollision;
+    auto lastNumCollisions = m_numCollisions;
     
     m_processingObstacleCollision = false;
 
@@ -135,7 +136,8 @@ bool GodObject::move(bool isTweening)
         }
         return m_processingObstacleCollision;
     } else {
-        return processTetheringForce(handlePosition, lastState);
+        bool newCollision = lastNumCollisions < m_numCollisions;
+        return processTetheringForce(handlePosition, newCollision);
     }
 }
 
@@ -158,14 +160,14 @@ void GodObject::renderForce(Vector2D collisionForce, Vector2D tetherForce) {
     m_activeForce = collisionForce + tetherForce;
 }
 
-bool GodObject::processTetheringForce(Vector2D handlePosition, bool lastCollisionState){
+bool GodObject::processTetheringForce(Vector2D handlePosition, bool newCollision){
     // returns if force is active or handle is freely moving
     if (m_tetherState == Active) {
         float tetherInnerRadiusActive = m_tetherInnerRadius - m_tetherSafeZonePadding;
         auto error = m_movementDirection.normalize() * (tetherInnerRadiusActive - m_movementDirection.length());
-        if (m_processingObstacleCollision && !lastCollisionState) {
+        if (newCollision) {
             // weak constant force pushing the handle into the the wall so that the user gets force feedback at their fingertip
-            error = m_movementDirection.normalize() * 10;   
+            error = m_movementDirection.normalize() * 10;
         }
         auto tetherForce = getTetherForce(error);
 
@@ -231,7 +233,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
     }
 
     bool foundCollision;
-
+    u_short numCollisions = 0;
     // 2. check if collisions are present between 2 vectors
     // first vector goes from god object to handle and the
     // second vector is the potential collision edge
@@ -287,6 +289,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
                     continue;
                 }
                 foundCollision = true;
+                numCollisions++;
                 shortestMovementRatio = movementRatio;
                 closestEdgeFirst = edgeFirst;
                 closestEdgeFirstMinusSecond = firstMinusSecond;
@@ -330,7 +333,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
         }
         // there can be multiple collisions, that's why we have to loop as well over the other possible collisions
     } while (foundCollision);
-
+    m_numCollisions = numCollisions;
     return targetPoint;
 }
 

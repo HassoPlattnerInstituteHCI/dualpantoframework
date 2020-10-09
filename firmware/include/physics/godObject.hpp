@@ -35,6 +35,7 @@ private:
     Hashtable m_hashtable;
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
+    u_short m_numCollisions = 0; // for speed control; when the speed is controlled and a collision with multiple walls occurs (in a corner) then the 2nd collision must also be feelable
     bool m_doneColliding;
     Vector2D m_lastError;
     std::set<IndexedEdge>* m_possibleCollisions;
