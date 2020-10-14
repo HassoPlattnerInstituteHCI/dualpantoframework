@@ -116,7 +116,7 @@ public:
     int getEncoderRequests();
     int getEncoderErrorCounts(int i);
     int getEncoderRequestsCounts(int i);
-    bool getInTransition();
+    uint8_t getPantoIndex();
     void setInTransition(bool inTransition);
 };
 

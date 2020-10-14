@@ -196,6 +196,13 @@ void Panto::inverseKinematics()
 
         m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
         m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
+
+        if(m_filteredX==m_targetX && m_filteredY == m_targetY && m_inTransition){
+            m_inTransition = false;
+            DPSerial::sendInstantDebugLog("Transition ended %d", getPantoIndex()); 
+            DPSerial::sendTransitionEnded(getPantoIndex());
+        }
+
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
         //TODO: constant velocity here.
@@ -203,10 +210,7 @@ void Panto::inverseKinematics()
         // DPSerial::sendInstantDebugLog("step = %f, %f", m_filteredX, m_filteredY);
         // float stepValue = m_tweeningStep;
         m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
-        if(m_filteredX==m_targetX && m_filteredY == m_targetY){
-            m_inTransition = false;
-            DPSerial::sendTransitionEnded(getPantoIndex());
-        }
+        
     }
 };
 
@@ -321,19 +325,17 @@ void Panto::actuateMotors()
 {
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
-        if (isnan(m_targetAngle[localIndex]) || !m_inTransition)
+        if (isnan(m_targetAngle[localIndex]))
         {
             // free motor
             setMotor(localIndex, false, 0);
-        }
-        else if (m_isforceRendering)
+        } else if (m_isforceRendering)
         {
             setMotor(
                 localIndex,
                 m_targetAngle[localIndex] < 0,
                 fabs(m_targetAngle[localIndex]) * forceFactor);
-        }
-        else
+        } else
         {
             auto error =
                 m_targetAngle[localIndex] - m_actuationAngle[localIndex];
@@ -600,9 +602,10 @@ int Panto::getEncoderRequestsCounts(int i){
     return res;
 }
 
-bool Panto::getInTransition(){
-    return m_inTransition;
+uint8_t Panto::getPantoIndex(){
+    return c_pantoIndex;
 }
+
 void Panto::setInTransition(bool inTransition){
     m_inTransition = inTransition;
 }

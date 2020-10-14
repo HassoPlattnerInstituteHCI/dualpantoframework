@@ -392,12 +392,13 @@ void DPSerial::receiveDisableObstacle()
 
 void DPSerial::receiveFreeze(){
     auto pantoIndex = receiveUInt8();
-    
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantos[i].setInTransition(true);
+            const auto target = pantos[i].getPosition();
+            pantos[i].setRotation(NAN);
+            pantos[i].setTarget(target, 0);
         }
     }
 }
@@ -408,6 +409,8 @@ void DPSerial::receiveFree(){
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
+            pantos[i].setTarget(Vector2D(NAN, NAN), 0);
+            pantos[i].setRotation(NAN);
             pantos[i].setInTransition(false);
         }
     }
