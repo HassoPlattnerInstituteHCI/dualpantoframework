@@ -29,7 +29,10 @@ std::map<MessageType, ReceiveHandler>
         {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
         {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable},
         {CREATE_PASSABLE_OBSTACLE, DPSerial::receiveCreatePassableObstacle},
-        {CREATE_RAIL, DPSerial::receiveCreateRail}};
+        {CREATE_RAIL, DPSerial::receiveCreateRail},
+        {FREEZE, DPSerial::receiveFreeze},
+        {FREE, DPSerial::receiveFree}
+        };
 
 // === private ===
 
@@ -219,6 +222,8 @@ void DPSerial::receiveMotor()
     const auto pantoIndex = receiveUInt8();
 
     const auto target = Vector2D(receiveFloat(), receiveFloat());
+    pantos[pantoIndex].setInTransition(true);
+    DPSerial::sendInstantDebugLog("In Transition");
     pantos[pantoIndex].setRotation(receiveFloat());
     pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
@@ -385,6 +390,29 @@ void DPSerial::receiveDisableObstacle()
     }
 }
 
+void DPSerial::receiveFreeze(){
+    auto pantoIndex = receiveUInt8();
+    
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantos[i].setInTransition(true);
+        }
+    }
+}
+
+void DPSerial::receiveFree(){
+    auto pantoIndex = receiveUInt8();
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantos[i].setInTransition(false);
+        }
+    }
+}
+
 void DPSerial::receiveCalibrationRequest()
 {
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
@@ -490,6 +518,16 @@ void DPSerial::sendQueuedDebugLog(const char* message, ...)
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
     s_debugLogQueue.emplace(reinterpret_cast<char*>(s_debugLogBuffer), length);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendTransitionEnded(int panto)
+{
+    // signal when tweening is over
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(TRANSITION_ENDED, 4); // five values per panto, 4 bytes each
+    sendInt32(panto);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 

@@ -122,6 +122,8 @@ void CppLib::poll()
             positionHandler((uint64_t)s_handle, positionCoords);
         }
     }
+
+    
 }
 
 void CppLib::sendSyncAck()
@@ -158,6 +160,24 @@ void CppLib::sendSpeed(uint8_t pantoIndex, float speed)
     uint16_t offset = 0;
     sendUInt8(pantoIndex, offset);
     sendFloat(speed, offset);
+    sendPacket();
+}
+
+void CppLib::sendFree(uint8_t pantoIndex)
+{
+    s_header.MessageType = FREE;
+    s_header.PayloadSize = 1;
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
+    sendPacket();
+}
+
+void CppLib::sendFreeze(uint8_t pantoIndex)
+{
+    s_header.MessageType = FREEZE;
+    s_header.PayloadSize = 1;
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
     sendPacket();
 }
 
@@ -337,11 +357,18 @@ void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed){
     CppLib::sendSpeed(pantoIndex, speed);
 }
 
-void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex)
+void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t pantoIndex)
 {
     CppLib::setActiveHandle(handle);
-    CppLib::sendMotor(controlMethod, pantoIndex, NULL, NULL, NULL);
+    CppLib::sendFree(pantoIndex);
 }
+
+void SERIAL_EXPORT FreezeMotor(uint64_t handle, uint8_t pantoIndex)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::sendFreeze(pantoIndex);
+}
+
 
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
