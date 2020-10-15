@@ -33,7 +33,7 @@ void PantoPhysics::step()
     m_godObject->update();
 
     m_currentPosition = m_panto->getPosition();
-    bool isTweening = m_panto->getTweeningState();
+    bool isTweening = m_panto->getInTransition();
 
     auto difference = m_currentPosition - m_godObject->getPosition();
     m_godObject->setMovementDirection(difference);

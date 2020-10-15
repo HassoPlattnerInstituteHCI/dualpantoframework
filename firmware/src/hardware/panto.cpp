@@ -608,3 +608,7 @@ uint8_t Panto::getPantoIndex(){
 void Panto::setInTransition(bool inTransition){
     m_inTransition = inTransition;
 }
+
+bool Panto::getInTransition(){
+    return m_inTransition;
+}
