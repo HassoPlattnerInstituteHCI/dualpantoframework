@@ -40,6 +40,9 @@ typedef void (*positionHandler_t)(uint64_t, double*);
 extern positionHandler_t positionHandler;
 typedef void (*loggingHandler_t)(char*);
 extern loggingHandler_t loggingHandler;
+typedef void (*transitionHandler_t)(uint8_t);
+extern transitionHandler_t transitionHandler;
+
 void logString(char* msg);
 
 // can't export any member functions, not even static ones
@@ -52,6 +55,7 @@ extern "C"
     void SERIAL_EXPORT SetHeartbeatHandler(heartbeatHandler_t handler);
     void SERIAL_EXPORT SetPositionHandler(positionHandler_t handler);
     void SERIAL_EXPORT SetLoggingHandler(loggingHandler_t handler);
+    void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler);
     uint64_t SERIAL_EXPORT Open(char* port);
     void SERIAL_EXPORT Close(uint64_t handle);
     void SERIAL_EXPORT Poll(uint64_t handle);

@@ -41,7 +41,9 @@ void CppLib::poll()
     bool receivedSync = false;
     bool receivedHeartbeat = false;
     bool receivedPosition = false;
+    bool receivedTransition = false;
     double positionCoords[2 * 5];
+    uint8_t pantoIndex;
 
     while (getAvailableByteCount(s_handle))
     {
@@ -82,6 +84,10 @@ void CppLib::poll()
         case DEBUG_LOG:
             logString((char *)s_packetBuffer);
             break;
+        case TRANSITION_ENDED:
+            receivedTransition = true;
+            pantoIndex = DPSerial::receiveUInt8(offset);
+            break;
         default:
             break;
         }
@@ -120,6 +126,19 @@ void CppLib::poll()
         else
         {
             positionHandler((uint64_t)s_handle, positionCoords);
+        }
+    }
+
+    if (receivedTransition)
+    {
+        // transition (tweening) ended
+        if(transitionHandler == nullptr)
+        {
+            logString("Received transition ended, but handler not set up");
+        }
+        else
+        {
+            transitionHandler(pantoIndex);
         }
     }
 
@@ -276,6 +295,7 @@ syncHandler_t syncHandler;
 heartbeatHandler_t heartbeatHandler;
 positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
+transitionHandler_t transitionHandler;
 
 void logString(char* msg)
 {
@@ -315,6 +335,12 @@ void SERIAL_EXPORT SetLoggingHandler(loggingHandler_t handler)
 {
     loggingHandler = handler;
     loggingHandler("Logging from plugin is enabled");
+}
+
+void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler)
+{
+    transitionHandler = handler;
+    logString("Transition handler set");
 }
 
 uint64_t SERIAL_EXPORT Open(char* port)

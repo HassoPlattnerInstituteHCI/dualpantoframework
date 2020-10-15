@@ -524,13 +524,13 @@ void DPSerial::sendQueuedDebugLog(const char* message, ...)
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendTransitionEnded(int panto)
+void DPSerial::sendTransitionEnded(uint8_t panto)
 {
     // signal when tweening is over
     portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
-    sendHeader(TRANSITION_ENDED, 4); // five values per panto, 4 bytes each
-    sendInt32(panto);
+    sendHeader(TRANSITION_ENDED, 1); // 1 byte for the panto index is enough
+    sendUInt8(panto);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 

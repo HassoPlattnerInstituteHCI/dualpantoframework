@@ -92,7 +92,7 @@ public:
 
     // send
     static void sendPosition();
-    static void sendTransitionEnded(int panto);
+    static void sendTransitionEnded(uint8_t panto);
     static void sendInstantDebugLog(const char* message, ...);
     static void sendQueuedDebugLog(const char* message, ...);
     static void processDebugLogQueue();

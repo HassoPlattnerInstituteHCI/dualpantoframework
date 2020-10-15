@@ -199,7 +199,6 @@ void Panto::inverseKinematics()
 
         if(m_filteredX==m_targetX && m_filteredY == m_targetY && m_inTransition){
             m_inTransition = false;
-            DPSerial::sendInstantDebugLog("Transition ended %d", getPantoIndex()); 
             DPSerial::sendTransitionEnded(getPantoIndex());
         }
 
