@@ -51,6 +51,8 @@ The available values for messages from the framework to the hardware are:
   - [0xA5 Calibrate panto](#0xA5-Calibrate-panto) - This message specifies a calibration request.
   - [0xA6 Create passable obstacle](#0xA6-Create-passable-obstacle) - This message specifies a passable obstacle to be added.
   - [0xA7 Create rail](#0xA7-Create-rail) - This message specifies a haptic guide to be added. A haptic guide is also an obstacle and hence also needs to be enabled and can be disabled. A haptic guide also has a displacement area around it that the user needs to pass to overcome it. That way the strength of the guide can be specified.
+  - [0xA8 Freeze](#0xA8-Freeze) - Freeze the handle
+  - [0xA9 Free](#0xA8-Free) - Free the handle
 - 0xC0 to 0xCF - Debug tools
     [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' hashtable.
 
