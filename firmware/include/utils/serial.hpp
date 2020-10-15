@@ -76,6 +76,8 @@ private:
     static void receiveCalibrationRequest();
     static void receiveDumpHashtable();
     static void receiveInvalid();
+    static void receiveFreeze();
+    static void receiveFree();
 
     // map of receive handlers
     static std::map<MessageType, ReceiveHandler> s_receiveHandlers;
@@ -90,6 +92,7 @@ public:
 
     // send
     static void sendPosition();
+    static void sendTransitionEnded(uint8_t panto);
     static void sendInstantDebugLog(const char* message, ...);
     static void sendQueuedDebugLog(const char* message, ...);
     static void processDebugLogQueue();

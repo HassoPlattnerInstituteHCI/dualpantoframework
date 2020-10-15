@@ -86,7 +86,7 @@ private:
     float delta = 0.01;
     float velocity = 1.0f;
     bool m_isforceRendering = false;
-    bool m_isTweening = false;
+    bool m_inTransition = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
 
     bool m_isCalibrating = false;
@@ -116,7 +116,9 @@ public:
     int getEncoderRequests();
     int getEncoderErrorCounts(int i);
     int getEncoderRequestsCounts(int i);
-    bool getTweeningState();
+    uint8_t getPantoIndex();
+    bool getInTransition();
+    void setInTransition(bool inTransition);
 };
 
 extern std::vector<Panto> pantos;

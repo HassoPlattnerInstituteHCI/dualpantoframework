@@ -150,7 +150,7 @@ void Panto::inverseKinematics()
         m_targetAngle[c_localLeftIndex] = NAN;
         m_targetAngle[c_localRightIndex] = NAN;
     }
-    else if (m_isforceRendering && !m_isTweening)
+    else if (m_isforceRendering)
     {
         m_targetAngle[c_localLeftIndex] =
             m_jacobian[0][0] * m_targetX +
@@ -197,6 +197,12 @@ void Panto::inverseKinematics()
 
         m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
         m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
+
+        if(m_filteredX==m_targetX && m_filteredY == m_targetY && m_inTransition){
+            m_inTransition = false;
+            DPSerial::sendTransitionEnded(getPantoIndex());
+        }
+
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
         //TODO: constant velocity here.
@@ -204,10 +210,7 @@ void Panto::inverseKinematics()
         // DPSerial::sendInstantDebugLog("step = %f, %f", m_filteredX, m_filteredY);
         // float stepValue = m_tweeningStep;
         m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
-        if(m_filteredX==m_targetX && m_filteredY == m_targetY){
-            m_isTweening = false;
-            DPSerial::sendInstantDebugLog("Tweening over");
-        }
+        
     }
 };
 
@@ -324,16 +327,15 @@ void Panto::actuateMotors()
     {
         if (isnan(m_targetAngle[localIndex]))
         {
+            // free motor
             setMotor(localIndex, false, 0);
-        }
-        else if (m_isforceRendering)
+        } else if (m_isforceRendering)
         {
             setMotor(
                 localIndex,
                 m_targetAngle[localIndex] < 0,
                 fabs(m_targetAngle[localIndex]) * forceFactor);
-        }
-        else
+        } else
         {
             auto error =
                 m_targetAngle[localIndex] - m_actuationAngle[localIndex];
@@ -445,7 +447,6 @@ Panto::Panto(uint8_t pantoIndex)
         if(motorPwmPinForwards[globalIndex] == dummyPin) {
             pinMode(motorPwmPin[globalIndex], OUTPUT);
 
-            delay(30);
             ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
             ledcAttachPin(motorPwmPin[globalIndex], globalIndex);
         }
@@ -552,10 +553,6 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     m_isforceRendering = isForceRendering;
     m_targetX = target.x;
     m_targetY = target.y;
-    /*if (!m_isforceRendering && (isnan(m_targetX) || isnan(m_targetY)) && m_isTweening){
-        m_isTweening = false;
-        
-    }*/
     m_startX = m_handleX;
     m_startY = m_handleY;
     m_filteredX = m_startX;
@@ -574,8 +571,6 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
 
 void Panto::setSpeed(const float _speed){
     m_tweeningSpeed = _speed;
-    m_isTweening = true;
-    DPSerial::sendInstantDebugLog("Tweening");
 }
 
 void Panto::setRotation(const float rotation)
@@ -606,6 +601,14 @@ int Panto::getEncoderRequestsCounts(int i){
     return res;
 }
 
-bool Panto::getTweeningState(){
-    return m_isTweening;
+uint8_t Panto::getPantoIndex(){
+    return c_pantoIndex;
+}
+
+bool Panto::getInTransition(){
+    return m_inTransition;
+}
+
+void Panto::setInTransition(bool inTransition){
+    m_inTransition = inTransition;
 }

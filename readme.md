@@ -95,3 +95,8 @@ The `examples` dir contains multiple example programs, as well as programs for c
   - `svgConverter` - \[JavaScript\] Converts a `svg` file of a level into a `prototype.js` script. Use the [svgToJs command](#Available-Scripts).
   - `viDeb` - \[JavaScript\] Implements a emulated device.
   - `voiceCommand` - \[JavaScript\] Voice input plugin used by the framework.
+  
+## Troubleshooting
+
+OSX: if you want to upload a new firmware version to a device you have to make sure the `upload_port` of platformio is set correctly in the firmware/platformio.ini file like this:
+`upload_port = /dev/cu.SLAB_USBtoUART` 
