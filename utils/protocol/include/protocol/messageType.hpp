@@ -11,6 +11,7 @@ enum MessageType
     MOTOR = 0x90,
     PID = 0x91,
     SPEED = 0x92,
+    TRANSITION_ENDED = 0x93,
     CREATE_OBSTACLE = 0xA0,
     ADD_TO_OBSTACLE = 0xA1,
     REMOVE_OBSTACLE = 0xA2,
@@ -19,5 +20,7 @@ enum MessageType
     CALIBRATE_PANTO = 0xA5,
     CREATE_PASSABLE_OBSTACLE = 0xA6,
     CREATE_RAIL = 0xA7,
+    FREEZE = 0xA8,
+    FREE = 0xA9,
     DUMP_HASHTABLE = 0xC0
 };

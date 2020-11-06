@@ -41,7 +41,9 @@ void CppLib::poll()
     bool receivedSync = false;
     bool receivedHeartbeat = false;
     bool receivedPosition = false;
+    bool receivedTransition = false;
     double positionCoords[2 * 5];
+    uint8_t pantoIndex;
 
     while (getAvailableByteCount(s_handle))
     {
@@ -81,6 +83,10 @@ void CppLib::poll()
             break;
         case DEBUG_LOG:
             logString((char *)s_packetBuffer);
+            break;
+        case TRANSITION_ENDED:
+            receivedTransition = true;
+            pantoIndex = DPSerial::receiveUInt8(offset);
             break;
         default:
             break;
@@ -122,6 +128,21 @@ void CppLib::poll()
             positionHandler((uint64_t)s_handle, positionCoords);
         }
     }
+
+    if (receivedTransition)
+    {
+        // transition (tweening) ended
+        if(transitionHandler == nullptr)
+        {
+            logString("Received transition ended, but handler not set up");
+        }
+        else
+        {
+            transitionHandler(pantoIndex);
+        }
+    }
+
+    
 }
 
 void CppLib::sendSyncAck()
@@ -158,6 +179,24 @@ void CppLib::sendSpeed(uint8_t pantoIndex, float speed)
     uint16_t offset = 0;
     sendUInt8(pantoIndex, offset);
     sendFloat(speed, offset);
+    sendPacket();
+}
+
+void CppLib::sendFree(uint8_t pantoIndex)
+{
+    s_header.MessageType = FREE;
+    s_header.PayloadSize = 1;
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
+    sendPacket();
+}
+
+void CppLib::sendFreeze(uint8_t pantoIndex)
+{
+    s_header.MessageType = FREEZE;
+    s_header.PayloadSize = 1;
+    uint16_t offset = 0;
+    sendUInt8(pantoIndex, offset);
     sendPacket();
 }
 
@@ -256,6 +295,7 @@ syncHandler_t syncHandler;
 heartbeatHandler_t heartbeatHandler;
 positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
+transitionHandler_t transitionHandler;
 
 void logString(char* msg)
 {
@@ -295,6 +335,12 @@ void SERIAL_EXPORT SetLoggingHandler(loggingHandler_t handler)
 {
     loggingHandler = handler;
     loggingHandler("Logging from plugin is enabled");
+}
+
+void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler)
+{
+    transitionHandler = handler;
+    logString("Transition handler set");
 }
 
 uint64_t SERIAL_EXPORT Open(char* port)
@@ -337,11 +383,18 @@ void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed){
     CppLib::sendSpeed(pantoIndex, speed);
 }
 
-void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t controlMethod, uint8_t pantoIndex)
+void SERIAL_EXPORT FreeMotor(uint64_t handle, uint8_t pantoIndex)
 {
     CppLib::setActiveHandle(handle);
-    CppLib::sendMotor(controlMethod, pantoIndex, NULL, NULL, NULL);
+    CppLib::sendFree(pantoIndex);
 }
+
+void SERIAL_EXPORT FreezeMotor(uint64_t handle, uint8_t pantoIndex)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::sendFreeze(pantoIndex);
+}
+
 
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
