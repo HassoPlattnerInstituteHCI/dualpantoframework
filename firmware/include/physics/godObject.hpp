@@ -13,12 +13,23 @@
 #include "physics/hashtable.hpp"
 #include "utils/vector.hpp"
 
+/*
+The speed control is in detail described in our Dropbox (Interaction Techniques Haptic in Unity): 
+https://www.dropbox.com/scl/fi/uljoe140fet2b53bjhr4y/DualPanto-Speed-Control.pptx?dl=0&rlkey=6k77wrfnb3oaxg186489tpinj
+*/
+
 enum TetherState {Inner, Active, Outer}; 
 /* the handle can be in 3 states:
-    1. in the "free movement zone" (given by the inner tether radius): here no force holds the handle back
-    2. in the active force field (between the inner and the outer tether radius): here the applied user force pushes the handle back towards the new go position
-    3. out of the tether field (Outer): here the handle can freely move again and the applied collision force is calculated from collisions between the handle position and objects; 
-    the godobject just moves towards the position of the handle at max tether speed
+    1. Inner: the acceleration of the god object is proportional to the distance between god object and handle
+    2. Active: the distance between the handle and the god object is in between the inner and the outer tether radius. The god object movement is now at max speed.
+    3. Outer: out of outer tether radius. Multiple strategies to treat this scenario are described below.
+*/
+
+enum OutOfTetherStrategy {Penalize, Pause, Leash};
+/* possible strategies when the handle is pushed out of the outer tether radius. 
+    Penalize: the player e.g. loses health points when moving out of the tether (in FPS). Unity needs to take care of auditory cues to inform the user when out of the tether radius. For the firmware this doesn't matter.
+    Pause: the god object position doesn't update anymore (speed control is disabled) but the handle can still collide with obstacles.
+    Leash: the handle is "on leash" and can collide with obstacles. The god object is moving at max speed to the position of the handle (along the direct vector between both points). A weak constant pulling force indicates where the god object is.
 */
 
 class GodObject
@@ -43,13 +54,14 @@ private:
     
     // tether related properties
     bool m_tethered = true;
-    float m_tetherFactor = 0.01;
+    double m_tetherFactor = 0.01;
     Vector2D m_lastErrorTether;
-    double m_tetherInnerRadius = 0;
+    double m_tetherInnerRadius = 1;
     double m_tetherOuterRadius = 2;
     TetherState m_tetherState = Inner;
     double m_tetherSafeZonePadding = 0; // padding on the inner border to avoid that the tether gets pushed into the free moving zone immediately once the inner radius is passed
-    
+    OutOfTetherStrategy m_tetherStrategy = Penalize;
+    bool m_tetherPockEnabled = true;
 
 public:
     GodObject(Vector2D position = Vector2D());
@@ -73,4 +85,5 @@ public:
     bool getProcessingObstacleCollision();
     bool getDoneColliding();
     bool tethered();
+    void setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy);
 };
