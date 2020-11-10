@@ -20,15 +20,15 @@ https://www.dropbox.com/scl/fi/uljoe140fet2b53bjhr4y/DualPanto-Speed-Control.ppt
 
 enum TetherState {Inner, Active, Outer}; 
 /* the handle can be in 3 states:
-    1. Inner: the acceleration of the god object is proportional to the distance between god object and handle
-    2. Active: the distance between the handle and the god object is in between the inner and the outer tether radius. The god object movement is now at max speed.
+    1. Inner: the handle can freely move within a close radius around the god object without triggering speed control (otherwise there would always be force rendered, even if the player was just standing around).
+    2. Active: the god object is under speed control. Its acceleration is proportional to the distance between god object and handle.
     3. Outer: out of outer tether radius. Multiple strategies to treat this scenario are described below.
 */
 
-enum OutOfTetherStrategy {Penalize, Pause, Leash};
+enum OutOfTetherStrategy {MaxSpeed, Exploration, Leash};
 /* possible strategies when the handle is pushed out of the outer tether radius. 
-    Penalize: the player e.g. loses health points when moving out of the tether (in FPS). Unity needs to take care of auditory cues to inform the user when out of the tether radius. For the firmware this doesn't matter.
-    Pause: the god object position doesn't update anymore (speed control is disabled) but the handle can still collide with obstacles.
+    MaxSpeed: the god object continues to move at max speed and the handle gets pushed back to the new god object position player. On the Unity side there could be an additional penalization (with auditory cues), e.g. that the player loses health points when moving out of the tether (in FPS).
+    Exploration: the god object position doesn't update anymore and the game is paused (speed control is disabled). The handle can still collide with obstacles and is in exploration mode.
     Leash: the handle is "on leash" and can collide with obstacles. The god object is moving at max speed to the position of the handle (along the direct vector between both points). A weak constant pulling force indicates where the god object is.
 */
 
@@ -36,7 +36,8 @@ class GodObject
 {
 private:
     static constexpr double c_resolveDistance = 0.00001;
-    static constexpr double c_tetherForcePullingBack = -0.2;
+    static constexpr double c_tetherForcePullingBack = -0.5;
+    static constexpr double c_tetherPockDistance = 500; // when tethered and collision with wall happens push the handle this far into the wall (along the direction of movement)
     
     Vector2D m_position;
     Vector2D m_tetherPosition;
@@ -57,10 +58,10 @@ private:
     double m_tetherFactor = 0.01;
     Vector2D m_lastErrorTether;
     double m_tetherInnerRadius = 1;
-    double m_tetherOuterRadius = 2;
+    double m_tetherOuterRadius = 3;
     TetherState m_tetherState = Inner;
     double m_tetherSafeZonePadding = 0; // padding on the inner border to avoid that the tether gets pushed into the free moving zone immediately once the inner radius is passed
-    OutOfTetherStrategy m_tetherStrategy = Penalize;
+    OutOfTetherStrategy m_tetherStrategy = Leash;
     bool m_tetherPockEnabled = true;
 
 public:
