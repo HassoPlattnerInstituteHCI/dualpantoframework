@@ -86,5 +86,5 @@ public:
     bool getProcessingObstacleCollision();
     bool getDoneColliding();
     bool tethered();
-    void setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy);
+    void setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy, bool pockEnabled); 
 };

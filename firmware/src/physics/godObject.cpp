@@ -121,7 +121,7 @@ bool GodObject::move(bool isTweening)
         // this is the default case
         godObjectPos = checkCollisions(nextGoPosition, m_position);
     }
-    if (m_processingObstacleCollision && m_tetherState == Outer) {
+    if (m_tethered && m_processingObstacleCollision && m_tetherState == Outer && m_tetherStrategy != MaxSpeed) {
         // tether state can't be outer when god object collides
         m_tetherState = Active;
     }
@@ -430,11 +430,12 @@ bool GodObject::tethered()
     return m_tethered;
 }
 
-void GodObject::setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy)
+void GodObject::setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy, bool pockEnabled)
 {
     m_tethered = active;
     m_tetherFactor = tetherFactor;
     m_tetherInnerRadius = innerTetherRadius;
     m_tetherOuterRadius = outerTetherRadius;
     m_tetherStrategy = strategy;
+    m_tetherPockEnabled = pockEnabled;
 }
