@@ -332,6 +332,8 @@ FFFFFFFF // second vector, y
 
 Enable / disable the speed control (tethering).
 
+Details about the speed control configuration can be found here: https://www.dropbox.com/scl/fi/uljoe140fet2b53bjhr4y/DualPanto-Speed-Control.pptx?dl=0&rlkey=6k77wrfnb3oaxg186489tpinj
+
 Example message for setting the global speed control:
 ```
 4450     // magic number
