@@ -122,16 +122,27 @@ bool GodObject::move(bool isTweening)
         godObjectPos = checkCollisions(nextGoPosition, m_position);
     }
     if (m_tethered && m_processingObstacleCollision && m_tetherState == Outer && m_tetherStrategy != MaxSpeed) {
-        // tether state can't be outer when god object collides
+        // for the Exploration and Leash mode the tether state can't be outer once the god object collides 
+        // (otherwise the wall force will be weaker when the handle moves further into the wall)
         m_tetherState = Active;
     }
-    /*if (m_processingObstacleCollision && m_tetherState == Active) {
-        // extra collision check to make sure we can jump passable obstacles and guides
-        m_position = checkCollisions(handlePosition, m_position);
+
+    // check if collision with a passable obstacle or a haptic guide is present
+    if (m_tethered && m_processingObstacleCollision && m_tetherState == Active) {
+        m_processingObstacleCollision = false;
+        nextGoPosition = m_position + (m_movementDirection.normalize() * movementStepLength * c_railsTetherFactor);
+        auto pos = checkCollisions(nextGoPosition, m_position);
+        // if the handle is already past the obstacle (no more collision present) then the god object jumps to its position
+        if (!m_processingObstacleCollision) {
+            m_position = pos;
+        } else {
+            m_position = godObjectPos;
+        }
     } else {
         m_position = godObjectPos;
-    }*/
-    m_position = godObjectPos;
+    }
+
+    //m_position = godObjectPos;
     if (m_tethered && m_tetherState == Outer && !isTweening && m_tetherStrategy != MaxSpeed) 
     {
         m_tetherPosition = checkCollisions(handlePosition, m_tetherPosition);
@@ -297,7 +308,9 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
                     continue;
                 }
                 foundCollision = true;
-                numCollisions++;
+                if (!ob->passable){
+                    numCollisions++;
+                }
                 shortestMovementRatio = movementRatio;
                 closestEdgeFirst = edgeFirst;
                 closestEdgeFirstMinusSecond = firstMinusSecond;

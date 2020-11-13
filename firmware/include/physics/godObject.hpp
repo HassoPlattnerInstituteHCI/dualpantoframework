@@ -38,7 +38,8 @@ private:
     static constexpr double c_resolveDistance = 0.00001;
     static constexpr double c_tetherForcePullingBack = -0.5;
     static constexpr double c_tetherPockDistance = 500; // when tethered and collision with wall happens push the handle this far into the wall (along the direction of movement)
-    
+    static constexpr double c_railsTetherFactor = 0.75; // if speed control is enabled and the god object collides with a wall: move the god object by this factor along the vector between handle and god object. This enables jumping rails under speed control.
+
     Vector2D m_position;
     Vector2D m_tetherPosition;
     Vector2D m_movementDirection;
