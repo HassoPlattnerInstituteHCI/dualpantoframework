@@ -6,6 +6,7 @@
 #include <fstream>
 #include <regex>
 #include <sstream>
+#include "libInterface.hpp"
 
 const std::string CrashAnalyzer::c_rebootString = "Rebooting...";
 const std::string CrashAnalyzer::c_backtraceString = "Backtrace:";
@@ -68,6 +69,7 @@ std::string exec(const char* cmd) {
     #define popen _popen
     #define pclose _pclose
     #endif
+    loggingHandler((char*)cmd);
     #ifdef __APPLE__
     #define popen popen
     #define pclose pclose
@@ -90,6 +92,8 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
 {
     std::cout << std::endl << "===== STACKTRACE BEGIN =====" << std::endl;
 
+    loggingHandler("===== STACKTRACE BEGIN =====");
+    #define ADDR2LINE_PATH "/Users/julio/.platformio/packages/toolchain-xtensa32/bin/xtensa-esp32-elf-addr2line"
     #ifdef ADDR2LINE_PATH
     std::ostringstream command;
     command
@@ -101,12 +105,13 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
         command << " " << address;
     }
 
-    const auto result = exec(command.str().c_str());
+    auto result = exec(command.str().c_str());
 
-    std::cout
-        << "Stacktrace (most recent call first):" << std::endl
+    std::ostringstream out;
+    out << "Stacktrace (most recent call first):" << std::endl
         << result;
     #else
+    loggingHandler("Path to addr2line executable not set. Can't analyze stacktrace.");
     std::cout
         << "Path to addr2line executable not set. Can't analyze stacktrace."
         << std::endl;
@@ -138,7 +143,18 @@ void CrashAnalyzer::checkOutput()
         std::cout << "Reboot detected, but no backtrace found." << std::endl;
         return;
     }
-    
+    char out[c_bufferLength + 1];
+    //std::memcpy(out, s_buffer, c_bufferLength);
+    out[c_bufferLength] = '\0';
+    for (int i=0;i<c_bufferLength;i++){
+        char x = s_buffer[i];
+        if (x < 32 || x > 126){
+            // space
+            x = 32;
+        }
+        out[i]=x;
+    }
+    loggingHandler(out); 
     auto addresses = getBacktraceAddresses(
         backtraceOffset - c_backtraceString.length() - 1,
         rebootOffset);
