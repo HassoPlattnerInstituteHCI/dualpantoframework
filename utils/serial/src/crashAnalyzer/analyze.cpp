@@ -64,7 +64,7 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
     return result;
 }
 
-std::string exec(const char* cmd) {
+char * exec(const char* cmd) {
     #ifdef WINDOWS
     #define popen _popen
     #define pclose _pclose
@@ -75,17 +75,22 @@ std::string exec(const char* cmd) {
     #define pclose pclose
     #endif
 
-    std::array<char, 128> buffer;
+    std::array<char, 1024> buffer;
     std::string result;
-
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
     if (!pipe) {
+        loggingHandler("Popen failed");
         return "popen() failed!";
     }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != NULL) {
+        loggingHandler(buffer.data());
+        //result += buffer.data();
     }
-    return result;
+    char *cstr = new char[result.length() + 1];
+    strcpy(cstr, result.c_str());
+    // do stuff
+    delete [] cstr;
+    return cstr;
 }
 
 void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
@@ -93,18 +98,21 @@ void CrashAnalyzer::addr2line(std::vector<std::string> addresses)
     std::cout << std::endl << "===== STACKTRACE BEGIN =====" << std::endl;
 
     loggingHandler("===== STACKTRACE BEGIN =====");
-    #define ADDR2LINE_PATH "/Users/julio/.platformio/packages/toolchain-xtensa32/bin/xtensa-esp32-elf-addr2line"
+    #ifdef __APPLE__
+    #define ADDR2LINE_PATH "~/.platformio/packages/toolchain-xtensa32/bin/xtensa-esp32-elf-addr2line"
+    #endif
     #ifdef ADDR2LINE_PATH
     std::ostringstream command;
     command
         << ADDR2LINE_PATH
-        << " -e ./firmware/.pio/build/esp32dev/firmware.elf"
+        << " -e /Users/julio/Documents/Uni/5_Master/HCI_Project_Seminar/dualpantoframework/firmware/.pio/build/esp32dev/firmware.elf"
         << " -fpCis"; // see https://linux.die.net/man/1/addr2line
     for (const auto &address : addresses)
     {
         command << " " << address;
     }
 
+    command << " 2>&1";
     auto result = exec(command.str().c_str());
 
     std::ostringstream out;
