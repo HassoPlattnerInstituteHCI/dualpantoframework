@@ -152,7 +152,7 @@ void CrashAnalyzer::checkOutput()
         return;
     }
     char out[c_bufferLength + 1];
-    //std::memcpy(out, s_buffer, c_bufferLength);
+    std::memcpy(out, s_buffer, c_bufferLength);
     out[c_bufferLength] = '\0';
     for (int i=0;i<c_bufferLength;i++){
         char x = s_buffer[i];
@@ -162,6 +162,7 @@ void CrashAnalyzer::checkOutput()
         }
         out[i]=x;
     }
+    loggingHandler("ERROR!");
     loggingHandler(out); 
     auto addresses = getBacktraceAddresses(
         backtraceOffset - c_backtraceString.length() - 1,
