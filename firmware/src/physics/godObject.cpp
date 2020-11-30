@@ -44,6 +44,7 @@ void GodObject::update()
         }
         case GO_REMOVE_OBSTACLE:
         {
+            delete m_obstacles.at(action->m_data.m_obstacleId);
             m_obstacles.erase(action->m_data.m_obstacleId);
             break;
         }
