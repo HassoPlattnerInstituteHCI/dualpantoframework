@@ -198,7 +198,7 @@ void Panto::inverseKinematics()
         m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
         m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
 
-        if(m_filteredX==m_targetX && m_filteredY == m_targetY && m_inTransition){
+        if(abs(m_filteredX - m_targetX) + abs(m_filteredY - m_targetY) < 0.01f && m_inTransition){
             m_inTransition = false;
             DPSerial::sendTransitionEnded(getPantoIndex());
         }
