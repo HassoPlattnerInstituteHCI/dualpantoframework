@@ -200,6 +200,21 @@ void CppLib::sendFreeze(uint8_t pantoIndex)
     sendPacket();
 }
 
+void CppLib::sendSpeedControl(uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)
+{
+    s_header.MessageType = SPEED_CONTROL;
+    s_header.PayloadSize = 15; // 1 for index, 4 for tether factor, 4 each for the tether radii, 1 for tether strategy and 1 for pock 
+    uint16_t offset = 0;
+    sendUInt8(tethered, offset);
+    sendFloat(tetherFactor, offset);
+    sendFloat(tetherInnerRadius, offset);
+    sendFloat(tetherOuterRadius, offset);
+    sendUInt8(strategy, offset);
+    sendUInt8(pockEnabled, offset);
+    sendPacket();
+}
+
+
 void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
     s_header.MessageType = CREATE_OBSTACLE;
@@ -436,4 +451,9 @@ void SERIAL_EXPORT DisableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t
 {
     CppLib::setActiveHandle(handle);
     CppLib::disableObstacle(pantoIndex, obstacleId);
+}
+
+void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)
+{
+    CppLib::sendSpeedControl(tethered, tetherFactor, tetherInnerRadius, tetherOuterRadius, strategy, pockEnabled);
 }

@@ -31,7 +31,8 @@ std::map<MessageType, ReceiveHandler>
         {CREATE_PASSABLE_OBSTACLE, DPSerial::receiveCreatePassableObstacle},
         {CREATE_RAIL, DPSerial::receiveCreateRail},
         {FREEZE, DPSerial::receiveFreeze},
-        {FREE, DPSerial::receiveFree}
+        {FREE, DPSerial::receiveFree},
+        {SPEED_CONTROL, DPSerial::receiveSpeedControl}
         };
 
 // === private ===
@@ -416,6 +417,34 @@ void DPSerial::receiveFree(){
     }
 }
 
+void DPSerial::receiveSpeedControl(){
+    auto tethered = receiveUInt8(); //0 or 1
+    auto tetherFactor = receiveFloat();
+    auto tetherInnerRadius = receiveFloat();
+    auto tetherOuterRadius = receiveFloat();
+    auto tetherStrategy = receiveUInt8(); // 0 for MaxSpeed, 1 for Exploration, 2 for Leash
+    OutOfTetherStrategy strategy;
+    switch (tetherStrategy)
+    {
+    case 0:
+        strategy = MaxSpeed;
+        break;
+    case 1:
+        strategy = Exploration;
+        break;
+    case 2:
+        strategy = Leash;
+        break;
+    default:
+        break;
+    }
+    auto pockEnabled = receiveUInt8(); //0 or 1
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        pantoPhysics[i].godObject()->setSpeedControl(tethered, tetherFactor, tetherInnerRadius, tetherOuterRadius, strategy, pockEnabled);
+    }
+}
+
 void DPSerial::receiveCalibrationRequest()
 {
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
@@ -447,6 +476,7 @@ void DPSerial::receiveInvalid()
 
 void DPSerial::init()
 {
+    Serial.flush();
     Serial.begin(c_baudRate); 
     Serial.setRxBufferSize(4 * c_maxPayloadSize);
 }

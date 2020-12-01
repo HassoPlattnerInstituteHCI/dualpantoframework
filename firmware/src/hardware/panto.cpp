@@ -161,6 +161,7 @@ void Panto::inverseKinematics()
     }
     else
     {
+        // tweening
         const auto leftBaseToTargetX = m_filteredX - c_leftBaseX;
         const auto leftBaseToTargetY = m_filteredY - c_leftBaseY;
         const auto rightBaseToTargetX = m_filteredX - c_rightBaseX;
@@ -565,7 +566,6 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     const float velocity = 0.001 * m_tweeningSpeed; //[mm / s] maybe?
 
     m_tweeningStep = velocity / d;
-
     inverseKinematics();
 };
 
@@ -607,4 +607,8 @@ uint8_t Panto::getPantoIndex(){
 
 void Panto::setInTransition(bool inTransition){
     m_inTransition = inTransition;
+}
+
+bool Panto::getInTransition(){
+    return m_inTransition;
 }

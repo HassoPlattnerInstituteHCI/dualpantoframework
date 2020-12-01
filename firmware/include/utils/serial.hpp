@@ -78,6 +78,7 @@ private:
     static void receiveInvalid();
     static void receiveFreeze();
     static void receiveFree();
+    static void receiveSpeedControl();
 
     // map of receive handlers
     static std::map<MessageType, ReceiveHandler> s_receiveHandlers;

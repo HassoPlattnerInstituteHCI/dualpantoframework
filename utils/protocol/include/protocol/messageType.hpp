@@ -22,5 +22,6 @@ enum MessageType
     CREATE_RAIL = 0xA7,
     FREEZE = 0xA8,
     FREE = 0xA9,
-    DUMP_HASHTABLE = 0xC0
+    SPEED_CONTROL = 0xAA,
+    DUMP_HASHTABLE = 0xC0,
 };
