@@ -266,7 +266,6 @@ void DPSerial::receiveCreateObstacle()
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createObstacle(id, path, false);
-            DPSerial::sendInstantDebugLog("Created obstacle %d",id);
         }
     }
 }
@@ -291,7 +290,6 @@ void DPSerial::receiveCreatePassableObstacle()
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createObstacle(id, path, true);
-            DPSerial::sendInstantDebugLog("Created passable obstacle %d",id);
         }
     }
 }
@@ -306,8 +304,6 @@ void DPSerial::receiveCreateRail()
     std::vector<Vector2D> path;
     path.reserve(vecCount);
 
-    DPSerial::sendInstantDebugLog("Received create rail %d",id);
-
     for(auto i = 0; i < vecCount; ++i)
     {
         path.emplace_back((double)receiveFloat(), (double)receiveFloat());
@@ -320,7 +316,6 @@ void DPSerial::receiveCreateRail()
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createRail(id, path, displacement);
-            DPSerial::sendInstantDebugLog("Created rail %d",id);
         }
     }
 }
@@ -353,7 +348,6 @@ void DPSerial::receiveRemoveObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-    DPSerial::sendInstantDebugLog("=== Received remove obstacle ===");
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
@@ -381,7 +375,6 @@ void DPSerial::receiveDisableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-    DPSerial::sendInstantDebugLog("=== Received disable obstacle ===");
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
