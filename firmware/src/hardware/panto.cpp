@@ -205,11 +205,8 @@ void Panto::inverseKinematics()
 
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
-        //TODO: constant velocity here.
-        float stepValue = 1.8 * 0.000001 * tweening_dt * m_tweeningSpeed; //2.4 == unity tweening speed
-        // DPSerial::sendInstantDebugLog("step = %f, %f", m_filteredX, m_filteredY);
-        // float stepValue = m_tweeningStep;
-        m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
+        float stepValue = 0.000001 * tweening_dt * m_tweeningSpeed; 
+        m_tweeningValue=min(m_tweeningValue+stepValue, 1.0f);
         
     }
 };
