@@ -149,14 +149,14 @@ void CppLib::sendSyncAck()
 {
     s_header.MessageType = SYNC_ACK;
     s_header.PayloadSize = 0;
-    sendPacket();
+    sendInstantPacket();
 }
 
 void CppLib::sendHeartbeatAck()
 {
     s_header.MessageType = HEARTBEAT_ACK;
     s_header.PayloadSize = 0;
-    sendPacket();
+    sendInstantPacket();
 }
 
 void CppLib::sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation)
@@ -227,7 +227,6 @@ void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vecto
     sendFloat(vector2x, offset);
     sendFloat(vector2y, offset);
     sendPacket();
-    dumpBuffersToFile();
 }
 
 void CppLib::createPassableObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
@@ -303,6 +302,16 @@ void CppLib::disableObstacle(uint8_t pantoIndex, uint16_t obstacleId)
     sendUInt8(pantoIndex, offset);
     sendUInt16(obstacleId, offset);
     sendPacket();
+}
+
+uint32_t CppLib::checkSendQueue(uint32_t maxPackets)
+{
+    return DPSerial::checkSendQueue(maxPackets);
+}
+
+void CppLib::reset()
+{
+    DPSerial::reset();
 }
 
 // handlers
@@ -456,4 +465,14 @@ void SERIAL_EXPORT DisableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t
 void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)
 {
     CppLib::sendSpeedControl(tethered, tetherFactor, tetherInnerRadius, tetherOuterRadius, strategy, pockEnabled);
+}
+
+uint32_t SERIAL_EXPORT CheckQueuedPackets(uint32_t maxPackets)
+{
+    return CppLib::checkSendQueue(maxPackets);
+}
+
+void SERIAL_EXPORT Reset()
+{
+    CppLib::reset();
 }
