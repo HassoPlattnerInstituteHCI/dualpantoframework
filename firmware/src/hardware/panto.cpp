@@ -609,3 +609,10 @@ void Panto::setInTransition(bool inTransition){
 bool Panto::getInTransition(){
     return m_inTransition;
 }
+
+bool Panto::getIsFrozen(){
+    return m_isFrozen;
+}
+void Panto::setIsFrozen(bool isFrozen){
+    m_isFrozen = isFrozen;
+}

@@ -66,7 +66,7 @@ void GodObject::dumpHashtable()
 }
 
 // returns if force is applied or not
-bool GodObject::move(bool isTweening)
+bool GodObject::move(bool isTweening, bool isFrozen)
 {
     auto lastState = m_processingObstacleCollision;
     // if the number of collisions increased since the last frame then we ran into a corner
@@ -74,8 +74,13 @@ bool GodObject::move(bool isTweening)
     
     m_processingObstacleCollision = false;
 
+
     Vector2D nextGoPosition;
     Vector2D handlePosition = m_position + m_movementDirection;
+    if (isFrozen){
+        renderForce(getCollisionForce(m_position, handlePosition), Vector2D(0,0));
+        return true;
+    }
     if (isTweening) {
         m_position = handlePosition;
         if (m_tethered) {
