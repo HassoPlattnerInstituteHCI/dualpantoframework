@@ -4,7 +4,7 @@
 
 version 0.3
 
-dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner, Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
+dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner, Julius Rudolph, Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
 firstname.lastname@hpi.de
 
