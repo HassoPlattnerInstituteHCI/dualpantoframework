@@ -29,6 +29,8 @@ public:
     static void sendFree(uint8_t pantoIndex);
     static void sendFreeze(uint8_t pantoIndex);
     static void sendSpeedControl(uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled);
+    static uint32_t checkSendQueue(uint32_t maxPackets);
+    static void reset();
 };
 
 // handlers
@@ -74,4 +76,6 @@ extern "C"
     void SERIAL_EXPORT EnableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId);
     void SERIAL_EXPORT DisableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId);
     void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled);
+    uint32_t SERIAL_EXPORT CheckQueuedPackets(uint32_t maxPackets);
+    void SERIAL_EXPORT Reset();
 };
