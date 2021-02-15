@@ -253,7 +253,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
     For more information check Lukas Wagners MT (section 4.3.1): https://www.dropbox.com/home/2018%20CHI%20Dueling%20Pantographs/Layer%202%20Firmware%20(Lukas%20Wagner)?preview=2019_09_07+ESP+Firmware+for+God+Haptic+Objects+%3D+Masterarbeit+(Lukas+Wagner).pdf
     */
 
-    if (currentPosition == targetPoint)
+    if (currentPosition == targetPoint || !m_hashtable)
     {
         return targetPoint;
     }

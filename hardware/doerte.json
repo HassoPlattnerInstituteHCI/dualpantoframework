@@ -7,7 +7,7 @@
     "dummyPin": 40,
     "usesSpi": true,
     "forcePidFactor": [0.375, 0, 0],
-    "hashtableMemory": 50000,
+    "hashtableMemory": 100000,
     "obstacleChangesPerFrame": 1,
     "range": {
         "minX": -175,
