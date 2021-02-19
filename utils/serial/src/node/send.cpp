@@ -188,7 +188,7 @@ napi_value Node::send(napi_env env, napi_callback_info info)
     }
 
     s_header.PayloadSize = offset;
-    sendPacket();
+    sendInstantPacket();
 
     #ifdef DEBUG_LOGGING
     dumpBuffers();

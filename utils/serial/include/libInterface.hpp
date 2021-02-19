@@ -3,7 +3,8 @@
 #include <cstdint>
 
 #include "serial.hpp"
-#include "serial_export.hpp"
+#define SERIAL_EXPORT
+//#include "serial_export.hpp"
 
 // class stuff
 
@@ -42,7 +43,7 @@ extern heartbeatHandler_t heartbeatHandler;
 typedef void (*positionHandler_t)(uint64_t, double*);
 extern positionHandler_t positionHandler;
 typedef void (*loggingHandler_t)(char*);
-extern loggingHandler_t loggingHandler;
+//extern loggingHandler_t loggingHandler;
 typedef void (*transitionHandler_t)(uint8_t);
 extern transitionHandler_t transitionHandler;
 

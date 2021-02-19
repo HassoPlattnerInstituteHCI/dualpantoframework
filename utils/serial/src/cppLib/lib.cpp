@@ -5,7 +5,8 @@
 #ifdef _WIN32
 #define FILEPTR void*
 #else
-#define FILEPTR FILE*
+//#define FILEPTR FILE*
+#define FILEPTR int
 #endif
 
 // class stuff
@@ -125,6 +126,7 @@ void CppLib::poll()
         }
         else
         {
+            std::cout << "sending pos" << std::endl;
             positionHandler((uint64_t)s_handle, positionCoords);
         }
     }

@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-#define FILEHANDLE FILE*
+#define FILEHANDLE int
 #endif
 
 class QueuedPacket {

@@ -11,6 +11,11 @@
 const std::string CrashAnalyzer::c_rebootString = "Rebooting...";
 const std::string CrashAnalyzer::c_backtraceString = "Backtrace:";
 
+void loggingHandler(const char *msg)
+{
+    printf("%s", msg);
+}
+
 bool CrashAnalyzer::findString(
         uint16_t startOffset,
         uint16_t endOffset,

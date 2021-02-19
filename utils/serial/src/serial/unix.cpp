@@ -6,8 +6,9 @@
 uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
     uint32_t available = 0;
-    if (ioctl(fileno(s_handle), FIONREAD, &available) < 0)
+    if (ioctl(s_handle, FIONREAD, &available) < 0)
     {
+        std::cout << "nothing to read" << std::endl;
         return 0;
     }
     return available;
@@ -15,16 +16,27 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 
 void DPSerial::tearDown()
 {
-    fclose(s_handle);
+    close(s_handle);
 }
 
-bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
+bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
-    const uint32_t result = fread(target, 1, length, s_handle);
-    const bool valid = result == length;
+    ssize_t num_read = 0;
+    do
+    {
+        ssize_t l = read(s_handle, ((uint8_t *)target) + num_read, length - num_read);
+        if (l <= 0)
+        {
+            num_read = l;
+            break;
+        }
+        num_read += l;
+    } while (num_read < length);
+
+    const bool valid = num_read == length;
     if (!valid)
     {
-        if (feof(s_handle))
+        if (num_read == 0)
         {
             std::cout
                 << "Read end of file from serial, trying to reconnect."
@@ -32,17 +44,19 @@ bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
             tearDown();
             setup(s_path);
         }
-        else if (ferror(s_handle))
+        else if (num_read == -1)
         {
-            perror("Error while reading from serial");
+            printf("Error while reading\n");
+            exit(1);
         }
+        std::cout << "no valid read: " << num_read << " vs " << length << std::endl;
     }
     return valid;
 }
 
-void DPSerial::write(const uint8_t* const data, const uint32_t length)
+void DPSerial::write(const uint8_t *const data, const uint32_t length)
 {
-    ::write(fileno(s_handle), data, length);
+    ::write(s_handle, data, length);
 }
 
 bool DPSerial::setup(std::string path)
@@ -69,6 +83,7 @@ bool DPSerial::setup(std::string path)
     {
         return false;
     }
-    s_handle = fdopen(fd, "rw");
+
+    s_handle = fd;
     return true;
 }

@@ -16,7 +16,8 @@ napi_value Node::open(napi_env env, napi_callback_info info)
         napi_throw_error(env, NULL, "open failed");
     }
     napi_value result;
-    napi_create_int64(env, reinterpret_cast<int64_t>(s_handle), &result);
+    //napi_create_int64(env, reinterpret_cast<int64_t>(s_handle), &result);
+    napi_create_int64(env, (int64_t)s_handle, &result);
     return result;
 }
 
