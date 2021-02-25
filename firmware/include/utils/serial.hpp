@@ -23,7 +23,7 @@ private:
 
     // multithreading safety
     static portMUX_TYPE s_serialMutex;
-    
+
     static ReceiveState s_receiveState;
 
     // connection
@@ -43,7 +43,7 @@ private:
     static void sendMessageType(MessageType data);
     static void sendMagicNumber();
     static void sendHeader(MessageType messageType, uint16_t payloadSize);
-    
+
     // send
     static void sendSync();
     static void sendHeartbeat();
@@ -64,8 +64,11 @@ private:
     static void receiveSyncAck();
     static void receiveHearbeatAck();
     static void receiveMotor();
+    static void receiveSpeed();
     static void receivePID();
     static void receiveCreateObstacle();
+    static void receiveCreatePassableObstacle();
+    static void receiveCreateRail();
     static void receiveAddToObstacle();
     static void receiveRemoveObstacle();
     static void receiveEnableObstacle();
@@ -73,9 +76,13 @@ private:
     static void receiveCalibrationRequest();
     static void receiveDumpHashtable();
     static void receiveInvalid();
+    static void receiveFreeze();
+    static void receiveFree();
+    static void receiveSpeedControl();
 
     // map of receive handlers
     static std::map<MessageType, ReceiveHandler> s_receiveHandlers;
+
 public:
     // delete contructor - this class only contains static members
     DPSerial() = delete;
@@ -86,6 +93,7 @@ public:
 
     // send
     static void sendPosition();
+    static void sendTransitionEnded(uint8_t panto);
     static void sendInstantDebugLog(const char* message, ...);
     static void sendQueuedDebugLog(const char* message, ...);
     static void processDebugLogQueue();

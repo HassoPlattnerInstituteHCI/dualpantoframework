@@ -2,6 +2,8 @@ utils/serial/*
 !utils/serial/include
 !utils/serial/src
 !utils/serial/binding.gyp
+!utils/serial/CMakeLists.txt
+!utils/serial/unity
 !utils/voiceCommand/build/build-release.js
 build/
 node_modules/
@@ -59,3 +61,5 @@ bld/
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+firmware/src/config
+firmware/include/config

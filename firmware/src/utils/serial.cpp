@@ -20,14 +20,20 @@ std::map<MessageType, ReceiveHandler>
         {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
         {MOTOR, DPSerial::receiveMotor},
         {PID, DPSerial::receivePID},
+        {SPEED, DPSerial::receiveSpeed},
         {CREATE_OBSTACLE, DPSerial::receiveCreateObstacle},
         {ADD_TO_OBSTACLE, DPSerial::receiveAddToObstacle},
         {REMOVE_OBSTACLE, DPSerial::receiveRemoveObstacle},
         {ENABLE_OBSTACLE, DPSerial::receiveEnableObstacle},
         {DISABLE_OBSTACLE, DPSerial::receiveDisableObstacle},
         {CALIBRATE_PANTO, DPSerial::receiveCalibrationRequest},
-        {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable}
-    };
+        {DUMP_HASHTABLE, DPSerial::receiveDumpHashtable},
+        {CREATE_PASSABLE_OBSTACLE, DPSerial::receiveCreatePassableObstacle},
+        {CREATE_RAIL, DPSerial::receiveCreateRail},
+        {FREEZE, DPSerial::receiveFreeze},
+        {FREE, DPSerial::receiveFree},
+        {SPEED_CONTROL, DPSerial::receiveSpeedControl}
+        };
 
 // === private ===
 
@@ -217,6 +223,8 @@ void DPSerial::receiveMotor()
     const auto pantoIndex = receiveUInt8();
 
     const auto target = Vector2D(receiveFloat(), receiveFloat());
+    pantos[pantoIndex].setInTransition(true);
+    DPSerial::sendInstantDebugLog("In Transition");
     pantos[pantoIndex].setRotation(receiveFloat());
     pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
@@ -229,6 +237,13 @@ void DPSerial::receivePID()
     {
         pidFactor[motorIndex][i] = receiveFloat();
     }
+};
+
+void DPSerial::receiveSpeed()
+{
+    auto pantoIndex = receiveUInt8(); //0 or 1
+    auto speed = receiveFloat();
+    pantos[pantoIndex].setSpeed(speed);
 };
 
 void DPSerial::receiveCreateObstacle()
@@ -250,7 +265,57 @@ void DPSerial::receiveCreateObstacle()
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
-            pantoPhysics[i].godObject()->createObstacle(id, path);
+            pantoPhysics[i].godObject()->createObstacle(id, path, false);
+        }
+    }
+}
+
+void DPSerial::receiveCreatePassableObstacle()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
+
+    std::vector<Vector2D> path;
+    path.reserve(vecCount);
+
+    for(auto i = 0; i < vecCount; ++i)
+    {
+        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
+    }
+
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->createObstacle(id, path, true);
+        }
+    }
+}
+
+void DPSerial::receiveCreateRail()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
+
+    std::vector<Vector2D> path;
+    path.reserve(vecCount);
+
+    for(auto i = 0; i < vecCount; ++i)
+    {
+        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
+    }
+
+    auto displacement = (double)receiveFloat();
+
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->createRail(id, path, displacement);
         }
     }
 }
@@ -283,7 +348,6 @@ void DPSerial::receiveRemoveObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
@@ -297,7 +361,7 @@ void DPSerial::receiveEnableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-
+    
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
@@ -311,13 +375,68 @@ void DPSerial::receiveDisableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-
     for(auto i = 0; i < pantoPhysics.size(); ++i)
     {
         if(pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->enableObstacle(id, false);
         }
+    }
+}
+
+void DPSerial::receiveFreeze(){
+    auto pantoIndex = receiveUInt8();
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            const auto target = pantos[i].getPosition();
+            pantos[i].setRotation(NAN);
+            pantos[i].setTarget(target, 0);
+            pantos[i].setIsFrozen(true);
+        }
+    }
+}
+
+void DPSerial::receiveFree(){
+    auto pantoIndex = receiveUInt8();
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if(pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantos[i].setTarget(Vector2D(NAN, NAN), 0);
+            pantos[i].setRotation(NAN);
+            pantos[i].setInTransition(false);
+            pantos[i].setIsFrozen(false);
+        }
+    }
+}
+
+void DPSerial::receiveSpeedControl(){
+    auto tethered = receiveUInt8(); //0 or 1
+    auto tetherFactor = receiveFloat();
+    auto tetherInnerRadius = receiveFloat();
+    auto tetherOuterRadius = receiveFloat();
+    auto tetherStrategy = receiveUInt8(); // 0 for MaxSpeed, 1 for Exploration, 2 for Leash
+    OutOfTetherStrategy strategy;
+    switch (tetherStrategy)
+    {
+    case 0:
+        strategy = MaxSpeed;
+        break;
+    case 1:
+        strategy = Exploration;
+        break;
+    case 2:
+        strategy = Leash;
+        break;
+    default:
+        break;
+    }
+    auto pockEnabled = receiveUInt8(); //0 or 1
+    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        pantoPhysics[i].godObject()->setSpeedControl(tethered, tetherFactor, tetherInnerRadius, tetherOuterRadius, strategy, pockEnabled);
     }
 }
 
@@ -352,6 +471,7 @@ void DPSerial::receiveInvalid()
 
 void DPSerial::init()
 {
+    Serial.flush();
     Serial.begin(c_baudRate); 
     Serial.setRxBufferSize(4 * c_maxPayloadSize);
 }
@@ -410,7 +530,7 @@ void DPSerial::sendInstantDebugLog(const char* message, ...)
     va_start(args, message);
     uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
-    length = constrain(length, 0, c_debugLogBufferSize);
+    length = constrain(length + 1, 0, c_debugLogBufferSize);
     sendMagicNumber();
     sendHeader(DEBUG_LOG, length);
     Serial.write(s_debugLogBuffer, length);
@@ -429,6 +549,16 @@ void DPSerial::sendQueuedDebugLog(const char* message, ...)
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
+void DPSerial::sendTransitionEnded(uint8_t panto)
+{
+    // signal when tweening is over
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(TRANSITION_ENDED, 1); // 1 byte for the panto index is enough
+    sendUInt8(panto);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
 void DPSerial::processDebugLogQueue()
 {
     portENTER_CRITICAL(&s_serialMutex);
@@ -440,7 +570,7 @@ void DPSerial::processDebugLogQueue()
             if(!s_debugLogQueue.empty())
             {
                 auto& msg = s_debugLogQueue.front();
-                auto length = msg.length();
+                auto length = msg.length() + 1;
                 sendMagicNumber();
                 sendHeader(DEBUG_LOG, length);
                 Serial.write(
@@ -490,8 +620,6 @@ void DPSerial::receive()
 
     if (s_receiveState == FOUND_HEADER && !payloadReady())
     {
-        if(s_header.MessageType == ADD_TO_OBSTACLE)
-            sendQueuedDebugLog("Only %i of %i bytes available", Serial.available(), s_header.PayloadSize);
         return;
     }
 

@@ -48,7 +48,7 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
             {
                 std::cout
                     << "Received invalid revision id " << receivedRevision
-                    << " (expected " << c_revision << ")." << std::endl;
+                    << " (expected " << c_revision << "). Maybe try reset the device?" << std::endl;
             }
             break;
         }

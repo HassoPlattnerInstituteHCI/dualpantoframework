@@ -34,20 +34,27 @@ void PantoPhysics::step()
 
     m_currentPosition = m_panto->getPosition();
 
+    bool isTweening = m_panto->getInTransition();
+
     auto difference = m_currentPosition - m_godObject->getPosition();
     m_godObject->setMovementDirection(difference);
     // PERFMON_STOP("[baa] Physics::step::prep");
     // PERFMON_START("[bab] Physics::step::move");
-    m_godObject->move();
+    bool isForceActive = m_godObject->move(isTweening, m_panto->getIsFrozen());
     // PERFMON_STOP("[bab] Physics::step::move");
     // PERFMON_START("[bac] Physics::step::motor");
-    if(m_godObject->getProcessingObstacleCollision())
+    
+    // force is active when frozen, tethering is enabled or collision is detected
+    if(isForceActive )
     {
         m_panto->setTarget(m_godObject->getActiveForce(), true);
     }
-    else if(m_godObject->getDoneColliding())
+    else
     {
-        m_panto->setTarget(Vector2D(NAN, NAN), false);
+        if (!isTweening){
+            // TODO: is there actually another case?
+            m_panto->setTarget(Vector2D(NAN, NAN), false);
+        }
     }
     // PERFMON_STOP("[bac] Physics::step::motor");
     // PERFMON_STOP("[ba] Physics::step");

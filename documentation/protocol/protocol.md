@@ -42,12 +42,18 @@ The available values for messages from the framework to the hardware are:
 - 0x90 to 0xAF - Data messages
   - [0x90 Motor](#0x90-Motor) - This message contains a motor movement.
   - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one 
+  - [0x92 Speed](#0x92-Speed) - This message specifies the speed to use for tweening positions 
   - [0xA0 Create obstacle](#0xA0-Create-obstacle) - This message specifies an obstacle to be added to one or both handles. Note: The obstacle isn't enabled automatically after creation. An enable message is required to enable it.
   - [0xA1 Add to obstacle](#0xA1-Add-to-obstacle) - This message specifies positions to be appended to an obstacle.
   - [0xA2 Remove obstacle](#0xA2-Remove-obstacle) - This message specifies an obstacle to remove.
   - [0xA3 Enable obstacle](#0xA3-Enable-obstacle) - This message specifies an obstacle to enable.
   - [0xA4 Disable obstacle](#0xA4-Disable-obstacle) - This message specifies an obstacle to disable.
   - [0xA5 Calibrate panto](#0xA5-Calibrate-panto) - This message specifies a calibration request.
+  - [0xA6 Create passable obstacle](#0xA6-Create-passable-obstacle) - This message specifies a passable obstacle to be added.
+  - [0xA7 Create rail](#0xA7-Create-rail) - This message specifies a haptic guide to be added. A haptic guide is also an obstacle and hence also needs to be enabled and can be disabled. A haptic guide also has a displacement area around it that the user needs to pass to overcome it. That way the strength of the guide can be specified.
+  - [0xA8 Freeze](#0xA8-Freeze) - Freeze the handle
+  - [0xA9 Free](#0xA9-Free) - Free the handle
+  - [0xAA Set Speed Control](#0xAA-SpeedControl) - Enable or disable speed control with different configuration options
 - 0xC0 to 0xCF - Debug tools
     [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' hashtable.
 
@@ -190,6 +196,20 @@ FFFFFFFF // I value
 FFFFFFFF // D value
 ```
 
+
+### 0x92 Speed
+
+This message contains the pantograph index encoded as an 8 bit unsigned integer, followed by the speed value encoded as 32 bit float.
+
+Example message for setting the speed on both handles:
+```
+4450     // magic number
+92       // message type: PID values
+0005     // payload lenght: 1 byte for index, 4 for speed value
+FF       // pantograph index - both handles
+FFFFFFFF // speed
+```
+
 ### 0xA0 Create obstacle
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer, the obstacle ID, encoded as a 16 bit unsigned integer, and multiple 2D vectors, each encoded as a pair of 32 bit floats.
@@ -282,6 +302,52 @@ A5       // message type: Calibrate panto
 0000     // payload lenght: 0
 ```
 
+### 0xA6 Create passable obstacle
+
+Works the same way as 'create obstacle' just that the obstacle will be overcomeable
+
+### 0xA7 Create rail
+
+Add a haptic rail (guide)
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the obstacle ID, encoded as a 16 bit unsigned integer, and 2 2D vectors, both encoded as a pair of 32 bit floats.
+
+Setting the pantograph index to 0xFF creates the obstacle for both handles.
+
+Example message for adding an obstacle to both handles:
+```
+4450     // magic number
+A7       // message type: Create rail
+0013     // payload length: 1 byte for index, 2 for ID, 4*4 for values
+FF       // pantograph index - both handles
+0023     // obstacle ID
+FFFFFFFF // first vector, x
+FFFFFFFF // first vector, y
+FFFFFFFF // second vector, x
+FFFFFFFF // second vector, y
+```
+
+
+### 0xAA Set speed control
+
+Enable / disable the speed control (tethering).
+
+Details about the speed control configuration can be found here: https://www.dropbox.com/scl/fi/uljoe140fet2b53bjhr4y/DualPanto-Speed-Control.pptx?dl=0&rlkey=6k77wrfnb3oaxg186489tpinj
+
+Example message for setting the global speed control:
+```
+4450     // magic number
+AA       // message type: Create rail
+0015     // payload length: 1 byte for enable/disable, 4 for tether factor, 2x4 for the tether radius, 1 for the tether strategy when the handle moves out of the outer tether radius, 1 for pock enabled/disabled
+01       // tether enabled
+0000000000000000 // tether factor (value between 0 and 1; examples: 0.005, 0.01, 0.05)
+0000000000000000 // inner radius (value between 0 and 3)
+0000000000000000 // outer radius (value between 0 and 10)
+01       // tether strategy (one out of 0,1,2)
+01       // "pock" enabled
+```
+
+
 ### 0xC0 Dump hashtable
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer.
@@ -295,3 +361,4 @@ C0       // message type: Dump hashtable
 0001     // payload lenght: 1 byte for index
 FF       // pantograph index - both handles
 ```
+

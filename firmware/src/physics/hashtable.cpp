@@ -8,6 +8,7 @@
 #include "utils/serial.hpp"
 #include "utils/utils.hpp"
 
+
 int32_t Hashtable::get1dIndex(double value, double min, double step)
 {
     return (int32_t)std::floor((value - min) / step);
@@ -109,7 +110,7 @@ Hashtable::Hashtable()
     DPSerial::sendQueuedDebugLog(
         "Hashtable settings:");
     DPSerial::sendQueuedDebugLog(
-        "Avaiable memory of %i bytes can hold %i cells",
+        "Available memory of %i bytes can hold %i cells",
         hashtableMaxMemory,
         hashtableMaxCells);
     DPSerial::sendQueuedDebugLog(
@@ -142,7 +143,7 @@ void Hashtable::add(AnnotatedEdge* edge)
 
 void Hashtable::remove(AnnotatedEdge* edge)
 {
-    for(auto&& cellIndex : getCellIndices(*(edge->m_edge)))
+    for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
         auto& cell = m_cells[cellIndex];
         auto it = std::find(
@@ -152,6 +153,7 @@ void Hashtable::remove(AnnotatedEdge* edge)
         if(it != cell.end())
         {
             cell.erase(it);
+            cell.shrink_to_fit();
         }
     }
     edge->destroy();
@@ -172,6 +174,7 @@ void Hashtable::getPossibleCollisions(
         get1dIndex(movement.m_first.y, rangeMinY, hashtableStepSizeY);
     const auto startIndex = startX * hashtableStepsY + startY;
     ASSERT_GE(startIndex, 0);
+
     ASSERT_LT(startIndex, hashtableNumCells);
     const auto endX =
         get1dIndex(movement.m_second.x, rangeMinX, hashtableStepSizeX);

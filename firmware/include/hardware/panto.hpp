@@ -55,11 +55,18 @@ private:
     #endif
     Encoder* m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
+    float m_previousAngle[c_dofCount];
+    float m_previousAngles[c_dofCount][5];
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
     uint32_t m_prevTime = 0;
 
+    int m_previousAnglesCount = 0;
+    int m_encoderErrorCount = 0;
+    int m_encoderErrorCounts[4] = {0,0,0,0};
+    int m_encoderRequestCount = 0;
+    int m_encoderRequestCounts[4] = {0,0,0,0};
     float m_leftInnerAngle = 0;
     float m_rightInnerAngle = 0;
     float m_pointingAngle = 0;
@@ -67,9 +74,21 @@ private:
     float m_handleY = 0;
     float m_targetX = 0;
     float m_targetY = 0;
+    float m_startX = 0;
+    float m_startY = 0;
+    float m_filteredX = 0;
+    float m_filteredY = 0;
+    float m_tweeningValue = 0.0f;
+    float m_tweeningStep = 0.00001f;
+    float m_tweeningSpeed = 1.0f;
+    uint32_t m_tweeningPrevtime = 0;
+    float m_dt = 0.0001f;
+    float delta = 0.01;
+    float velocity = 1.0f;
     bool m_isforceRendering = false;
+    bool m_inTransition = false;
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
-
+    bool m_isFrozen = false;
     bool m_isCalibrating = false;
 
     void inverseKinematics();
@@ -83,6 +102,7 @@ public:
     float getRotation() const;
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
+    void setSpeed(const float speed);
     void setRotation(const float rotation);
     bool getCalibrationState();
     void calibrateEncoders();
@@ -92,6 +112,15 @@ public:
     void readEncoders();
     void forwardKinematics();
     void actuateMotors();
+    int getEncoderErrorCount();
+    int getEncoderRequests();
+    int getEncoderErrorCounts(int i);
+    int getEncoderRequestsCounts(int i);
+    uint8_t getPantoIndex();
+    bool getInTransition();
+    void setInTransition(bool inTransition);
+    bool getIsFrozen();
+    void setIsFrozen(bool isFrozen);
 };
 
 extern std::vector<Panto> pantos;

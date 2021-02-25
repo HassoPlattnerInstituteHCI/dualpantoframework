@@ -24,3 +24,4 @@ void __fail(
 #define ASSERT_LE(val1, val2) __CHECK(<=, val1, val2)
 #define ASSERT_GT(val1, val2) __CHECK(>, val1, val2)
 #define ASSERT_GE(val1, val2) __CHECK(>=, val1, val2)
+#define ASSERT_NE(val1, val2) __CHECK(!=, val1, val2)

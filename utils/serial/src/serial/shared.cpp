@@ -10,7 +10,27 @@ std::string DPSerial::s_path;
 uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
 Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_packetBuffer[c_packetSize];
+std::queue<QueuedPacket> DPSerial::queued_packets;
 FILEHANDLE DPSerial::s_handle;
+
+void DPSerial::sendQueuedPacket(QueuedPacket &packet) {
+    s_headerBuffer[0] = packet.header.MessageType;
+    s_headerBuffer[1] = packet.header.PayloadSize >> 8;
+    s_headerBuffer[2] = packet.header.PayloadSize & 255;
+
+    write(c_magicNumber, c_magicNumberSize);
+    write(s_headerBuffer, c_headerSize);
+    write(packet.payload, packet.header.PayloadSize);
+}
+
+uint32_t DPSerial::checkSendQueue(uint32_t maxPackets) {
+    while (!queued_packets.empty() && maxPackets--) {
+        QueuedPacket &p = queued_packets.front();
+        sendQueuedPacket(p);
+        queued_packets.pop();
+    }
+    return (uint32_t) queued_packets.size();
+}
 
 void DPSerial::receivePacket()
 {
@@ -27,7 +47,9 @@ void DPSerial::receivePacket()
         else
         {
             std::cout << received;
+            #ifndef SKIP_ANALYZER
             CrashAnalyzer::push_back(received);
+            #endif
             index = 0;
         }
     }
@@ -45,15 +67,20 @@ void DPSerial::receivePacket()
     readBytesFromSerial(s_packetBuffer, s_header.PayloadSize);
 }
 
+void DPSerial::sendInstantPacket()
+{
+    QueuedPacket packet;
+    packet.header = s_header;
+    memcpy(packet.payload, s_packetBuffer, s_header.PayloadSize);
+    sendQueuedPacket(packet);
+}
+
 void DPSerial::sendPacket()
 {
-    s_headerBuffer[0] = s_header.MessageType;
-    s_headerBuffer[1] = s_header.PayloadSize >> 8;
-    s_headerBuffer[2] = s_header.PayloadSize & 255;
-
-    write(c_magicNumber, c_magicNumberSize);
-    write(s_headerBuffer, c_headerSize);
-    write(s_packetBuffer, s_header.PayloadSize);
+    QueuedPacket queued;
+    queued.header = s_header;
+    memcpy(queued.payload, s_packetBuffer, s_header.PayloadSize);
+    queued_packets.push(queued);
 }
 
 uint8_t DPSerial::receiveUInt8(uint16_t& offset)
@@ -133,6 +160,13 @@ void DPSerial::sendUInt32(uint32_t value, uint16_t& offset)
 void DPSerial::sendFloat(float value, uint16_t& offset)
 {
     sendInt32(*reinterpret_cast<int32_t*>(&value), offset);
+}
+
+void DPSerial::reset()
+{
+    while (!queued_packets.empty()) {
+        queued_packets.pop();
+    }
 }
 
 void dumpBuffer(uint8_t* begin, uint32_t size)

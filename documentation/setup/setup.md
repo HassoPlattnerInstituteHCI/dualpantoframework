@@ -8,7 +8,7 @@ Follow the dependency setup guide for the platform you're working on: [Windows](
 
 There are a couple useful scripts defined in `package.json`. The most important is the `install` script. You can use it by running `npm install --production` or `npm i --production`. If you are planing on developing for the dualpantoframework, please use `npm i` to also install the linter and the pre-commit hook.
 
-Note for Windows users: You'll need to run the scripts from an Visual Stutio developer command line, otherwise the compiler won't be accessable. E.g. when using Visual Studio 2017, search for `x64 Native Tools Command Prompt for VS 2017` or `x64 Native Tools-Eingabeaufforderung für VS 2017` (depending on your OS's language) using the Windows search and navigate to the dualpantoframework directory afterwards.
+Note for Windows users: You'll need to run the scripts from an Visual Studio developer command line, otherwise the compiler won't be accessable. E.g. when using Visual Studio 2017, search for `x64 Native Tools Command Prompt for VS 2017` or `x64 Native Tools-Eingabeaufforderung für VS 2017` (depending on your OS's language) using the Windows search and navigate to the dualpantoframework directory afterwards.
 
 ## Install the ESP32 driver
 
@@ -18,6 +18,10 @@ Note for Windows users: You'll need to run the scripts from an Visual Stutio dev
 ## Uploading the Firmware
 
 In order to upload the firmware to the device, connect it and run `npm run platformio upload`.
+
+## Changing the device configuration 
+
+If you change the device version you're working with you have to edit it in the `utils/scripts/run.js` file. Search for either *doerte* or *ember* and replace it with the version you're working with. Run `npm i` afterwards.
 
 ## Calibration
 
