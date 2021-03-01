@@ -69,7 +69,7 @@ std::vector<std::string> CrashAnalyzer::getBacktraceAddresses(
     return result;
 }
 
-char *exec(const char *cmd)
+const char *exec(const char *cmd)
 {
 #ifdef WINDOWS
 #define popen _popen

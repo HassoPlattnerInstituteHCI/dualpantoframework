@@ -5,12 +5,11 @@
 
 uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
-    if (!s_handle) {
+    if (!s_handle)
         return 0;
-    }
 
     uint32_t available = 0;
-    if (ioctl(s_handle, FIONREAD, &available) < 0)
+    if (ioctl(fileno(s_handle), FIONREAD, &available) < 0)
     {
         std::cout << "nothing to read" << std::endl;
         return 0;
@@ -20,31 +19,21 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 
 void DPSerial::tearDown()
 {
-    close(s_handle);
+    if (s_handle)
+        fclose(s_handle);
 }
 
 bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
-    if (!s_handle) {
+    if (!s_handle)
         return false;
-    }
 
-    ssize_t num_read = 0;
-    do
-    {
-        ssize_t l = read(s_handle, ((uint8_t *)target) + num_read, length - num_read);
-        if (l <= 0)
-        {
-            num_read = l;
-            break;
-        }
-        num_read += l;
-    } while (num_read < length);
-
+    const size_t num_read = fread(target, 1, length, s_handle);
     const bool valid = num_read == length;
+
     if (!valid)
     {
-        if (num_read == 0)
+        if (feof(s_handle))
         {
             std::cout
                 << "Read end of file from serial, trying to reconnect."
@@ -52,7 +41,7 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
             tearDown();
             setup(s_path);
         }
-        else if (num_read == -1)
+        else
         {
             printf("Error while reading\n");
             exit(1);
@@ -64,30 +53,35 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 
 void DPSerial::write(const uint8_t *const data, const uint32_t length)
 {
-    if (s_handle) {
-        ::write(s_handle, data, length);
-    } else {
-        fprintf(stderr, "trying to write to invalid socket\n");
+    if (s_handle)
+    {
+        if (::write(fileno(s_handle), data, length) != length)
+        {
+            fprintf(stderr, "Not all data could be written\n");
+        }
     }
 }
-
 
 bool DPSerial::setup(std::string path)
 {
     s_path = path;
     int fd = open(path.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         return false;
     }
 
     struct termios tty;
     std::memset(&tty, 0, sizeof(tty));
-    if (tcgetattr(fd, &tty) == 0) {
+    if (tcgetattr(fd, &tty) == 0)
+    {
         // ioctl(hComm, TIOCEXCL);
         int flags = fcntl(fd, F_GETFL, 0);
         flags &= ~O_NDELAY;
         fcntl(fd, F_SETFL, flags);
-    } else {
+    }
+    else
+    {
         fprintf(stderr, "Error %i from tcgetattr: %s\n", errno, strerror(errno));
         close(fd);
         return false;
@@ -97,26 +91,27 @@ bool DPSerial::setup(std::string path)
 
     // Set in/out baud rate
     const speed_t speed = c_baudRate;
-    if (cfsetispeed(&tty, speed) < 0 || cfsetospeed(&tty, speed) < 0) {
+    if (cfsetispeed(&tty, speed) < 0 || cfsetospeed(&tty, speed) < 0)
+    {
         fprintf(stderr, "Could not set baud rate.");
         close(fd);
         return false;
     }
 
     tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
-    tty.c_cflag &= ~CSIZE; // Clear all bits that set the data size 
-    tty.c_cflag |= CS8; // 8 bits per byte (most common)
+    tty.c_cflag &= ~CSIZE;  // Clear all bits that set the data size
+    tty.c_cflag |= CS8;     // 8 bits per byte (most common)
 
     tty.c_cflag |= (CREAD | CLOCAL);
     tty.c_cflag &= ~CRTSCTS;
     tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ECHOCTL | ECHOPRT | ECHOKE | ISIG | IEXTEN);
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY | INPCK | IGNPAR | PARMRK | ISTRIP | IGNBRK | BRKINT | INLCR | IGNCR| ICRNL);
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY | INPCK | IGNPAR | PARMRK | ISTRIP | IGNBRK | BRKINT | INLCR | IGNCR | ICRNL);
     tty.c_oflag &= ~OPOST;
 
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 0;
 
-    tty.c_cflag &= ~(PARENB | PARODD);//Clear parity settings
+    tty.c_cflag &= ~(PARENB | PARODD); //Clear parity settings
 
     ///////////// OLD VERSION
 #if 0
@@ -149,30 +144,39 @@ bool DPSerial::setup(std::string path)
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 1;
 #endif
-    if (tcsetattr(fd, TCSANOW, &tty) < 0) {
+    if (tcsetattr(fd, TCSANOW, &tty) < 0)
+    {
         fprintf(stderr, "Could not apply serial settings\n");
         return false;
     }
 
     int lineStatus;
-    if (ioctl(fd, TIOCMGET, &lineStatus) >= 0) {
-        if (true){
+    if (ioctl(fd, TIOCMGET, &lineStatus) >= 0)
+    {
+        if (true)
+        {
             lineStatus |= TIOCM_RTS;
-        } else {
+        }
+        else
+        {
             lineStatus &= ~TIOCM_RTS;
         }
 
-        if (true){
+        if (true)
+        {
             lineStatus |= TIOCM_DTR;
-        } else {
+        }
+        else
+        {
             lineStatus &= ~TIOCM_DTR;
         }
 
-        if (ioctl(fd, TIOCMSET, &lineStatus) < 0){
+        if (ioctl(fd, TIOCMSET, &lineStatus) < 0)
+        {
             fprintf(stderr, "Could not set serial line status\n");
         }
     }
 
-    s_handle = fd;
+    s_handle = fdopen(fd, "rw");
     return true;
 }

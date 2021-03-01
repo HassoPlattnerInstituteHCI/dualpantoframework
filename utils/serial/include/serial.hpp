@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-#define FILEHANDLE int
+#define FILEHANDLE FILE *
 #endif
 
 #define TRACE 1

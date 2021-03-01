@@ -3,10 +3,9 @@
 #include <iostream>
 
 #ifdef _WIN32
-#define FILEPTR void*
+#define FILEPTR void *
 #else
-//#define FILEPTR FILE*
-#define FILEPTR int
+#define FILEPTR FILE *
 #endif
 
 // class stuff
@@ -16,20 +15,27 @@ uint32_t CppLib::getRevision()
     return c_revision;
 }
 
-uint64_t CppLib::open(char* port)
+uint64_t CppLib::open(char *port)
 {
-    if(!setup(port))
+    if (!setup(port))
     {
         logString("Open failed");
         return 0;
     }
     logString("Open successfull");
-    return (uint64_t) s_handle;
+    return (uint64_t)s_handle;
 }
 
 void CppLib::setActiveHandle(uint64_t handle)
 {
-    s_handle = (FILEPTR) handle;
+    // TODO: this would in theory allow multiple pantos to co-exist.
+    //       In practice, right now, the handle might change without
+    //       unity knowing, thus we may work with an invalid handle.
+    //
+    //       Leaving this commented out will mean that the serial.so
+    //       is the only one responsible for setting s_handle and keeping
+    //       it up-to-date.
+    // s_handle = (FILEPTR)handle;
 }
 
 void CppLib::close()
@@ -39,6 +45,9 @@ void CppLib::close()
 
 void CppLib::poll()
 {
+    if (!s_handle)
+        return;
+
     bool receivedSync = false;
     bool receivedHeartbeat = false;
     bool receivedPosition = false;
@@ -94,9 +103,9 @@ void CppLib::poll()
         }
     }
 
-    if(receivedSync)
+    if (receivedSync)
     {
-        if(syncHandler == nullptr)
+        if (syncHandler == nullptr)
         {
             logString("Received sync, but handler not set up");
         }
@@ -106,9 +115,9 @@ void CppLib::poll()
         }
     }
 
-    if(receivedHeartbeat)
+    if (receivedHeartbeat)
     {
-        if(heartbeatHandler == nullptr)
+        if (heartbeatHandler == nullptr)
         {
             logString("Received heartbeat, but handler not set up");
         }
@@ -120,7 +129,7 @@ void CppLib::poll()
 
     if (receivedPosition)
     {
-        if(positionHandler == nullptr)
+        if (positionHandler == nullptr)
         {
             logString("Received position, but handler not set up");
         }
@@ -134,7 +143,7 @@ void CppLib::poll()
     if (receivedTransition)
     {
         // transition (tweening) ended
-        if(transitionHandler == nullptr)
+        if (transitionHandler == nullptr)
         {
             logString("Received transition ended, but handler not set up");
         }
@@ -143,8 +152,6 @@ void CppLib::poll()
             transitionHandler(pantoIndex);
         }
     }
-
-    
 }
 
 void CppLib::sendSyncAck()
@@ -205,7 +212,7 @@ void CppLib::sendFreeze(uint8_t pantoIndex)
 void CppLib::sendSpeedControl(uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)
 {
     s_header.MessageType = SPEED_CONTROL;
-    s_header.PayloadSize = 15; // 1 for index, 4 for tether factor, 4 each for the tether radii, 1 for tether strategy and 1 for pock 
+    s_header.PayloadSize = 15; // 1 for index, 4 for tether factor, 4 each for the tether radii, 1 for tether strategy and 1 for pock
     uint16_t offset = 0;
     sendUInt8(tethered, offset);
     sendFloat(tetherFactor, offset);
@@ -215,7 +222,6 @@ void CppLib::sendSpeedControl(uint8_t tethered, float tetherFactor, float tether
     sendUInt8(pockEnabled, offset);
     sendPacket();
 }
-
 
 void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
@@ -323,9 +329,9 @@ positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
 transitionHandler_t transitionHandler;
 
-void logString(char* msg)
+void logString(const char *msg)
 {
-    if(loggingHandler != nullptr)
+    if (loggingHandler != nullptr)
     {
         loggingHandler(msg);
     }
@@ -369,7 +375,7 @@ void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler)
     logString("Transition handler set");
 }
 
-uint64_t SERIAL_EXPORT Open(char* port)
+uint64_t SERIAL_EXPORT Open(char *port)
 {
     return CppLib::open(port);
 }
@@ -404,7 +410,8 @@ void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pan
     CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
 }
 
-void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed){
+void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed)
+{
     CppLib::setActiveHandle(handle);
     CppLib::sendSpeed(pantoIndex, speed);
 }
@@ -420,7 +427,6 @@ void SERIAL_EXPORT FreezeMotor(uint64_t handle, uint8_t pantoIndex)
     CppLib::setActiveHandle(handle);
     CppLib::sendFreeze(pantoIndex);
 }
-
 
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
