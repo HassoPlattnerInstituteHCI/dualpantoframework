@@ -135,7 +135,6 @@ void CppLib::poll()
         }
         else
         {
-            std::cout << "sending pos" << std::endl;
             positionHandler((uint64_t)s_handle, positionCoords);
         }
     }

@@ -44,7 +44,6 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
         else
         {
             printf("Error while reading\n");
-            exit(1);
         }
         std::cout << "no valid read: " << num_read << " vs " << length << std::endl;
     }
@@ -86,14 +85,14 @@ bool DPSerial::setup(std::string path)
         close(fd);
         return false;
     }
-#if 1
+
     // adapted from https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#full-example-standard-baud-rates and https://github.com/java-native/jssc/blob/master/src/main/cpp/_nix_based/jssc.cpp
 
     // Set in/out baud rate
-    const speed_t speed = c_baudRate;
+    const speed_t speed = B115200; // FIXME: doesn't work? c_baudRate;
     if (cfsetispeed(&tty, speed) < 0 || cfsetospeed(&tty, speed) < 0)
     {
-        fprintf(stderr, "Could not set baud rate.");
+        perror("Could not set baud rate");
         close(fd);
         return false;
     }
@@ -109,41 +108,10 @@ bool DPSerial::setup(std::string path)
     tty.c_oflag &= ~OPOST;
 
     tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 0;
+    tty.c_cc[VTIME] = 10;
 
     tty.c_cflag &= ~(PARENB | PARODD); //Clear parity settings
 
-    ///////////// OLD VERSION
-#if 0
-    tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
-    tty.c_cflag &= ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
-    tty.c_cflag |= CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
-
-    tty.c_lflag &= ~ICANON;
-    tty.c_lflag &= ~ECHO; // Disable echo
-    tty.c_lflag &= ~ECHOE; // Disable erasure
-    tty.c_lflag &= ~ECHONL; // Disable new-line echo
-    tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
-    tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
-
-    tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
-    tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
-    // tty.c_oflag &= ~OXTABS; // Prevent conversion of tabs to spaces (NOT PRESENT ON LINUX)
-    // tty.c_oflag &= ~ONOEOT; // Prevent removal of C-d chars (0x004) in output (NOT PRESENT ON LINUX)
-
-    tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 1;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
-#endif
-
-#else
-    const speed_t speed = c_baudRate;
-    cfsetospeed(&tty, speed);
-    cfsetispeed(&tty, speed);
-    cfmakeraw(&tty);
-    tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 1;
-#endif
     if (tcsetattr(fd, TCSANOW, &tty) < 0)
     {
         fprintf(stderr, "Could not apply serial settings\n");
@@ -174,6 +142,8 @@ bool DPSerial::setup(std::string path)
         if (ioctl(fd, TIOCMSET, &lineStatus) < 0)
         {
             fprintf(stderr, "Could not set serial line status\n");
+            close(fd);
+            return false;
         }
     }
 
