@@ -32,6 +32,7 @@ set(private_headers
     ${protocol_include_dir}/protocol/messageType.hpp)
 
 if (WIN32)
+add_compile_definitions(SKIP_ANALYZER 1)
 set(sources
     ${serial_source_dir}/cppLib/lib.cpp
     ${serial_source_dir}/serial/shared.cpp
