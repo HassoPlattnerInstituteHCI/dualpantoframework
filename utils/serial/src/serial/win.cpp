@@ -2,6 +2,8 @@
 
 uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 {
+    if (!s_handle)
+        return 0;
     DWORD commerr;
     COMSTAT comstat;
     if (!ClearCommError(s_handle, &commerr, &comstat))
@@ -13,20 +15,27 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 
 void DPSerial::tearDown()
 {
-    CloseHandle(s_handle);
+    if (s_handle)
+        CloseHandle(s_handle);
 }
 
-bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
+bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
+    if (!s_handle)
+        return false;
+
     DWORD bytesRead;
     ReadFile(s_handle, target, length, &bytesRead, NULL);
     return bytesRead == length;
 }
 
-void DPSerial::write(const uint8_t* const data, const uint32_t length)
+void DPSerial::write(const uint8_t *const data, const uint32_t length)
 {
-    DWORD bytesWritten = 0;
-    WriteFile(s_handle, data, length, &bytesWritten, NULL);
+    if (s_handle)
+    {
+        DWORD bytesWritten = 0;
+        WriteFile(s_handle, data, length, &bytesWritten, NULL);
+    }
 }
 
 bool DPSerial::setup(std::string path)
