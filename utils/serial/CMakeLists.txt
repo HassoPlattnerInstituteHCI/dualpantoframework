@@ -32,9 +32,24 @@ set(private_headers
     ${protocol_include_dir}/protocol/messageType.hpp)
 
 if (WIN32)
-add_compile_definitions(SKIP_ANALYZER 1)
+# set path vars
+set(addr2line "$ENV{USERPROFILE}\\.platformio\\packages\\toolchain-xtensa32\\bin\\xtensa-esp32-elf-addr2line.exe")
+set(firmware_rel "..\\..\\firmware\\.pio\\build\\esp32dev\\firmware.elf")
+get_filename_component(firmware_abs ${firmware_rel} ABSOLUTE)
+# escape backslashes
+string(REPLACE "\\" "\\\\" addr2line ${addr2line})
+string(REPLACE "/" "\\\\" firmware_abs ${firmware_abs})
+message(STATUS "addr2line: ${addr2line}")
+message(STATUS "firmware (rel): ${firmware_rel}")
+message(STATUS "firmware (abs): ${firmware_abs}")
+# set defines
+add_compile_definitions(WINDOWS)
+add_compile_definitions(ADDR2LINE_PATH="${addr2line}")
+add_compile_definitions(FIRMWARE_PATH="${firmware_abs}")
 set(sources
     ${serial_source_dir}/cppLib/lib.cpp
+    ${serial_source_dir}/crashAnalyzer/analyze.cpp
+    ${serial_source_dir}/crashAnalyzer/buffer.cpp
     ${serial_source_dir}/serial/shared.cpp
     ${serial_source_dir}/serial/win.cpp
     ${protocol_source_dir}/protocol.cpp)
