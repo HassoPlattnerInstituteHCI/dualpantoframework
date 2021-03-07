@@ -116,7 +116,7 @@ function clean(target) {
 
 function config(target) {
   if (target === undefined) {
-    target = 'doerte';
+    target = 'ember';
   }
   log(`Generating config ${target}`, color.green);
   return exec('node', ['utils/scripts/generateHardwareConfig.js', target]);
@@ -191,7 +191,7 @@ if (process.platform == 'win32') {
     cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   } else {
-    cppExec = 'clang++';
+    cppExec = 'g++';
     cppDefinePrefix = '-D';
     cppArgs = ['-std=c++11'];
   }

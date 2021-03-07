@@ -7,13 +7,15 @@
 void SPIEncoderChain::begin()
 {
     m_spi.beginTransaction(m_settings);
-    digitalWrite(c_hspiSsPin, LOW);
+    digitalWrite(c_hspiSsPin1, LOW);
 }
 
 void SPIEncoderChain::end()
 {
-    digitalWrite(c_hspiSsPin, HIGH);
+    digitalWrite(c_hspiSsPin1, HIGH);
     m_spi.endTransaction();
+
+    delay(1);
 }
 
 void SPIEncoderChain::transfer(uint16_t transmission)
@@ -59,74 +61,100 @@ SPIEncoderChain::SPIEncoderChain(uint32_t numberOfEncoders)
 , m_spi(HSPI)
 , m_numberOfEncoders(numberOfEncoders)
 , m_encoders(numberOfEncoders, &m_spi)
+, m_values(2 * 2)
+, m_zeros(m_numberOfEncoders)
 {
     m_spi.begin();
-    pinMode(c_hspiSsPin, OUTPUT);
+    pinMode(c_hspiSsPin1, OUTPUT);
+    pinMode(c_hspiSsPin2, OUTPUT);
+    pinMode(13, OUTPUT);
     clearError();
+    __setZeros();
     update();
+}
+
+void SPIEncoderChain::__setZeros(){
+    for(int i=0 ; i < 4; i++)m_zeros[i]=0;
+    update();
+    for(int i=0 ; i < 4; i++){
+        m_zeros[i] = m_encoders[i].m_lastValidAngle;
+    }
+    Serial.println("Zeros");
+
+    DPSerial::sendQueuedDebugLog("Zeros");
+   
+    for(int i=0 ; i < 4; i++){
+        // Serial.println(m_zeros[i]);
+        DPSerial::sendQueuedDebugLog("zero %u reported=%u", m_zeros[i], m_encoders[i].m_lastValidAngle);
+    }
 }
 
 void SPIEncoderChain::update()
 {
-    while(m_currentTry < m_maxTries) {
-        m_currentTry += 1;
-    // first pass - request position
-    transfer(SPICommands::c_readAngle);
+    update(0);
+    update(1);
+}
 
-    // second pass - receive position, just send nop
-    transfer(SPICommands::c_nop);
-
-    bool allValid = true;
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
+void SPIEncoderChain::update(int channel)
+{
+    uint16_t buf = 0;
+    m_spi.beginTransaction(m_settings);
+    //pinMode(13, OUTPUT);
+    digitalWrite(13, HIGH);
+    if(channel == 0) digitalWrite(c_hspiSsPin1, LOW);
+    else if(channel == 1) digitalWrite(c_hspiSsPin2, LOW);
+    for(auto i = 0; i < m_values.size()/2; ++i)
     {
-        allValid &= m_encoders[i].m_lastPacket.m_valid;
-        if(m_encoders[i].m_lastPacket.m_valid)
-        {
-            m_encoders[i].m_lastValidAngle = m_encoders[i].m_lastPacket.m_data;
-        }
-        else
-        {
-            errors += 1;
-            //DPSerial::sendQueuedDebugLog("Encoder %i received %04x", i, m_encoders[i].m_lastPacket.m_transmission);
-        }
+        m_spi.transfer16(c_readAngle);
     }
-    requests += m_numberOfEncoders;
-    //todo add retry
+    digitalWrite(c_hspiSsPin1, HIGH);
+    digitalWrite(c_hspiSsPin2, HIGH);
 
-    if(!allValid)
+    delayMicroseconds(1);
+
+    if(channel == 0) digitalWrite(c_hspiSsPin1, LOW);
+    else if(channel == 1) digitalWrite(c_hspiSsPin2, LOW);
+    for(auto i = 0; i < m_values.size()/2; ++i)
     {
-        //DPSerial::sendQueuedDebugLog("Transmission error - resetting error register...");
-        clearError();
+        buf = m_spi.transfer16(c_nop);
+        m_values[i + channel*2] = buf & c_dataMask;
+      //  Serial.printf("m_values%d\t%d\n", i, m_values[i + channel*2]);
+      //  Serial.println();
     }
-    else {
-        m_currentTry = 0;
-        break;
-    }
+    digitalWrite(c_hspiSsPin1, HIGH);
+    digitalWrite(c_hspiSsPin2, HIGH);
+
+    m_spi.endTransaction();
+
+    for(int i=0; i < 4; i++){
+        m_encoders[i].m_lastValidAngle = m_values[i];
+        // DPSerial::sendQueuedDebugLog("zero %u reported=%u", m_zeros[i], m_encoders[i].m_lastValidAngle);
     }
 }
 
 void SPIEncoderChain::clearError()
 {
-    // first pass - request clear, don't care about return value
-    transfer(SPICommands::c_clearError);
-
-    // second pass - don't care about request, return value contains error flags
-    transfer(SPICommands::c_nop);
-
-    bool parityError;
-    bool commandInvalidError;
-    bool framingError;
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    m_spi.beginTransaction(m_settings);
+    digitalWrite(c_hspiSsPin1, LOW);
+    for(auto i = 0; i < m_values.size(); ++i)
     {
-        parityError = m_encoders[i].m_lastPacket.parityError();
-        commandInvalidError = m_encoders[i].m_lastPacket.commandInvalidError();
-        framingError = m_encoders[i].m_lastPacket.framingError();
-
-        if(parityError || commandInvalidError || framingError)
-        {
-            //DPSerial::sendQueuedDebugLog("Encoder %u reported parity=%u, command=%u, framing=%u", i, parityError, commandInvalidError, framingError);
-        }
+        m_spi.transfer16(c_clearError);
     }
+    digitalWrite(c_hspiSsPin1, HIGH);
+
+
+    //Serial.println("Error registers:");
+    digitalWrite(c_hspiSsPin1, LOW);
+    for(auto i = 0; i < m_values.size(); ++i)
+    {
+        m_spi.transfer16(c_nop);
+        m_spi.transfer16(c_nop);
+        //Serial.println(m_spi.transfer16(c_nop));
+        //Serial.println(m_spi.transfer16(c_nop));
+    }
+    digitalWrite(c_hspiSsPin1, HIGH);
+    m_spi.endTransaction();
+
 }
 
 std::vector<uint16_t> SPIEncoderChain::getZero() //getZero returns 0 everytime power == off.

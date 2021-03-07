@@ -10,4 +10,9 @@ void SPIEncoder::transfer(uint16_t transmission)
 uint32_t SPIEncoder::getAngle()
 {
     return m_lastValidAngle;
+    
 }
+// uint32_t SPIEncoder::getAngle(uint32_t index)
+// {
+//     return m_values[index];// & c_dataMask;
+// }
