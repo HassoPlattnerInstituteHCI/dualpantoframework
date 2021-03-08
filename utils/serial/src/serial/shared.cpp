@@ -1,5 +1,6 @@
 #include "serial.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -7,204 +8,177 @@
 #include "crashAnalyzer.hpp"
 
 std::string DPSerial::s_path;
-uint8_t DPSerial::s_headerBuffer[DPSerial::c_headerSize];
-Header DPSerial::s_header = Header();
-uint8_t DPSerial::s_packetBuffer[c_packetSize];
-std::queue<QueuedPacket> DPSerial::queued_packets;
 FILEHANDLE DPSerial::s_handle;
+// std::thread DPSerial::s_worker;
 
-void DPSerial::sendQueuedPacket(QueuedPacket &packet) {
-    s_headerBuffer[0] = packet.header.MessageType;
-    s_headerBuffer[1] = packet.header.PayloadSize >> 8;
-    s_headerBuffer[2] = packet.header.PayloadSize & 255;
+std::queue<Packet> DPSerial::s_highPrioSendQueue;
+std::queue<Packet> DPSerial::s_lowPrioSendQueue;
+std::queue<Packet> DPSerial::s_receiveQueue;
 
-    write(c_magicNumber, c_magicNumberSize);
-    write(s_headerBuffer, c_headerSize);
-    write(packet.payload, packet.header.PayloadSize);
-}
+bool DPSerial::s_pantoReady = true;
+uint32_t DPSerial::s_magicReceiveIndex = 0;
+ReceiveState DPSerial::s_receiveState = NONE;
+Header DPSerial::s_receiveHeader;
 
-uint32_t DPSerial::checkSendQueue(uint32_t maxPackets) {
-    while (!queued_packets.empty() && maxPackets--) {
-        QueuedPacket &p = queued_packets.front();
-        sendQueuedPacket(p);
-        queued_packets.pop();
-    }
-    return (uint32_t) queued_packets.size();
-}
-
-void DPSerial::receivePacket()
+void DPSerial::startWorker()
 {
-    uint8_t received;
-    uint32_t index = 0;
-
-    while (index < c_magicNumberSize)
-    {
-        readBytesFromSerial(&received, 1);
-        if (received == c_magicNumber[index])
-        {
-            ++index;
-        }
-        else
-        {
-            std::cout << received;
-            #ifndef SKIP_ANALYZER
-            CrashAnalyzer::push_back(received);
-            #endif
-            index = 0;
-        }
-    }
-
-    readBytesFromSerial(s_headerBuffer, c_headerSize);
-
-    s_header.MessageType = s_headerBuffer[0];
-    s_header.PayloadSize = s_headerBuffer[1] << 8 | s_headerBuffer[2];
-
-    if(s_header.PayloadSize > c_maxPayloadSize)
-    {
-        return;
-    }
-
-    readBytesFromSerial(s_packetBuffer, s_header.PayloadSize);
+    // s_worker = std::thread(update);
 }
 
-void DPSerial::sendInstantPacket()
+void DPSerial::sendInstantPacket(Packet p)
 {
-    QueuedPacket packet;
-    packet.header = s_header;
-    memcpy(packet.payload, s_packetBuffer, s_header.PayloadSize);
-    sendQueuedPacket(packet);
+    s_highPrioSendQueue.push(p);
 }
 
-void DPSerial::sendPacket()
+void DPSerial::sendPacket(Packet p)
 {
-    QueuedPacket queued;
-    queued.header = s_header;
-    memcpy(queued.payload, s_packetBuffer, s_header.PayloadSize);
-    queued_packets.push(queued);
-}
-
-uint8_t DPSerial::receiveUInt8(uint16_t& offset)
-{
-    return s_packetBuffer[offset++];
-}
-
-int16_t DPSerial::receiveInt16(uint16_t& offset)
-{
-    uint8_t temp[2];
-    for (auto i = 0; i < 2; ++i)
-    {
-        temp[i] = s_packetBuffer[offset + i];
-    }
-    offset += 2;
-    return temp[0] << 8 | temp[1];
-}
-
-uint16_t DPSerial::receiveUInt16(uint16_t& offset)
-{
-    auto temp = receiveInt16(offset);
-    return *reinterpret_cast<uint16_t*>(&temp);
-}
-
-int32_t DPSerial::receiveInt32(uint16_t& offset)
-{
-    uint8_t temp[4];
-    for (auto i = 0; i < 4; ++i)
-    {
-        temp[i] = s_packetBuffer[offset + i];
-    }
-    offset += 4;
-    return temp[0] << 24 | temp[1] << 16 | temp[2] << 8 | temp[3];
-}
-
-uint32_t DPSerial::receiveUInt32(uint16_t& offset)
-{
-    auto temp = receiveInt32(offset);
-    return *reinterpret_cast<uint32_t*>(&temp);
-}
-
-float DPSerial::receiveFloat(uint16_t& offset)
-{
-    auto temp = receiveInt32(offset);
-    return *reinterpret_cast<float*>(&temp);
-}
-
-void DPSerial::sendUInt8(uint8_t value, uint16_t& offset)
-{
-    s_packetBuffer[offset++] = value;
-}
-
-void DPSerial::sendInt16(int16_t value, uint16_t& offset)
-{
-    s_packetBuffer[offset++] = value >> 8;
-    s_packetBuffer[offset++] = value & 255;
-}
-
-void DPSerial::sendUInt16(uint16_t value, uint16_t& offset)
-{
-    sendInt16(*reinterpret_cast<int16_t*>(&value), offset);
-}
-
-void DPSerial::sendInt32(int32_t value, uint16_t& offset)
-{
-    s_packetBuffer[offset++] = value >> 24;
-    s_packetBuffer[offset++] = (value >> 16) & 255;
-    s_packetBuffer[offset++] = (value >> 8) & 255;
-    s_packetBuffer[offset++] = value & 255;
-}
-
-void DPSerial::sendUInt32(uint32_t value, uint16_t& offset)
-{
-    sendInt32(*reinterpret_cast<int32_t*>(&value), offset);
-}
-
-void DPSerial::sendFloat(float value, uint16_t& offset)
-{
-    sendInt32(*reinterpret_cast<int32_t*>(&value), offset);
+    s_lowPrioSendQueue.push(p);
 }
 
 void DPSerial::reset()
 {
-    while (!queued_packets.empty()) {
-        queued_packets.pop();
-    }
+    std::queue<Packet> emptyHP;
+    std::swap(s_highPrioSendQueue, emptyHP);
+    std::queue<Packet> emptyLP;
+    std::swap(s_lowPrioSendQueue, emptyLP);
+    std::queue<Packet> emptyRec;
+    std::swap(s_receiveQueue, emptyRec);
 }
 
-void dumpBuffer(uint8_t* begin, uint32_t size)
+void DPSerial::update()
 {
-    const uint32_t bytesPerLine = 16;
-    uint32_t index = 0;
-
-    std::cout << std::hex << std::uppercase << std::setfill('0');
-
-    while (index < size)
+    while (true)
     {
-        std::cout << "0x" << std::setw(8) << index << " |";
-        for (auto i = 0u; i < bytesPerLine && index + i < size; ++i)
+        const auto outPackets = 5;
+        for (auto i = 0u; i < outPackets; i++)
         {
-            std::cout << " " << std::setw(2) << (int)begin[index + i];
+            processOutput();
         }
-        std::cout << std::endl;
-        index += bytesPerLine;
+
+        processInput();
+
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
-void DPSerial::dumpBuffers()
+void DPSerial::processOutput()
 {
-    std::cout << "===== HEADER =====" << std::endl;
-    dumpBuffer(s_headerBuffer, c_headerSize);
-    std::cout << "===== PACKET =====" << std::endl;
-    dumpBuffer(s_packetBuffer, s_header.PayloadSize);
+    // if (!s_pantoReady)
+    // {
+    //     return;
+    // }
+
+    Packet packet;
+    if (!s_highPrioSendQueue.empty())
+    {
+        packet = s_highPrioSendQueue.front();
+        s_highPrioSendQueue.pop();
+    }
+    else if (!s_lowPrioSendQueue.empty())
+    {
+        packet = s_lowPrioSendQueue.front();
+        s_lowPrioSendQueue.pop();
+    }
+    else
+    {
+        return;
+    }
+
+    uint8_t header[c_headerSize];
+    header[0] = packet.header.MessageType;
+    header[1] = packet.header.PayloadSize >> 8;
+    header[2] = packet.header.PayloadSize & 255;
+
+    write(c_magicNumber, c_magicNumberSize);
+    write(header, c_headerSize);
+    write(packet.payload, packet.header.PayloadSize);
 }
 
-void dumpBufferToFile(uint8_t* begin, uint32_t size, std::string file)
+void DPSerial::processInput()
 {
-    std::ofstream out;
-    out.open(file, std::ios::out | std::ios::binary);
-    out.write(reinterpret_cast<char*>(begin), size);
+    switch (s_receiveState)
+    {
+    case NONE:
+        if (readMagicNumber())
+        {
+            s_receiveState = FOUND_MAGIC;
+        }
+        break;
+    case FOUND_MAGIC:
+        if (readHeader())
+        {
+            s_receiveState = FOUND_HEADER;
+        }
+        break;
+    case FOUND_HEADER:
+        if (readPayload())
+        {
+            s_receiveState = NONE;
+        }
+        break;
+    default:
+        break;
+    }
 }
 
-void DPSerial::dumpBuffersToFile()
+bool DPSerial::readMagicNumber()
 {
-    dumpBufferToFile(s_headerBuffer, c_headerSize, "dumpheader.bin");
-    dumpBufferToFile(s_packetBuffer, c_packetSize, "dumppacket.bin");
+    uint8_t received;
+    while (s_magicReceiveIndex < c_magicNumberSize &&
+           readBytesIfAvailable(&received, 1))
+    {
+        if (received == c_magicNumber[s_magicReceiveIndex])
+        {
+            ++s_magicReceiveIndex;
+        }
+        else
+        {
+            std::cout << received;
+            s_magicReceiveIndex = 0;
+#ifndef SKIP_ANALYZER
+            CrashAnalyzer::push_back(received);
+#endif
+        }
+    }
+    return s_magicReceiveIndex == c_magicNumberSize;
+}
+
+bool DPSerial::readHeader()
+{
+    uint8_t received[c_headerSize];
+    if (!readBytesFromSerial(received, c_headerSize))
+    {
+        return false;
+    }
+
+    // insert send stop here
+
+    s_receiveHeader.MessageType = received[0];
+    s_receiveHeader.PayloadSize = received[1] << 8 | received[2];
+    return true;
+}
+
+bool DPSerial::readPayload()
+{
+    const auto size = s_receiveHeader.PayloadSize;
+    std::vector<char> received;
+    received.reserve(size);
+    if (!readBytesFromSerial(received.data(), size))
+    {
+        return false;
+    }
+
+    auto p = Packet(s_receiveHeader.MessageType, size);
+    memcpy(p.payload, received.data(), size);
+    s_receiveQueue.push(p);
+    return true;
+}
+
+bool DPSerial::readBytesIfAvailable(void *target, uint32_t length)
+{
+    if (getAvailableByteCount(s_handle) > length)
+    {
+        return false;
+    }
+    return readBytesFromSerial(target, length);
 }

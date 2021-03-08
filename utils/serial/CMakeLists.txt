@@ -26,6 +26,7 @@ set(public_headers
 
 set(private_headers
     ${serial_include_dir}/serial.hpp
+    ${serial_include_dir}/packet.hpp
     ${serial_include_dir}/crashAnalyzer.hpp
     ${protocol_include_dir}/protocol/protocol.hpp
     ${protocol_include_dir}/protocol/header.hpp
@@ -51,6 +52,7 @@ set(sources
     ${serial_source_dir}/crashAnalyzer/analyze.cpp
     ${serial_source_dir}/crashAnalyzer/buffer.cpp
     ${serial_source_dir}/serial/shared.cpp
+    ${serial_source_dir}/serial/packet.cpp
     ${serial_source_dir}/serial/win.cpp
     ${protocol_source_dir}/protocol.cpp)
 elseif (UNIX)
@@ -59,6 +61,7 @@ set(sources
     ${serial_source_dir}/crashAnalyzer/analyze.cpp
     ${serial_source_dir}/crashAnalyzer/buffer.cpp
     ${serial_source_dir}/serial/shared.cpp
+    ${serial_source_dir}/serial/packet.cpp
     ${serial_source_dir}/serial/unix.cpp
     ${protocol_source_dir}/protocol.cpp)
 else()
