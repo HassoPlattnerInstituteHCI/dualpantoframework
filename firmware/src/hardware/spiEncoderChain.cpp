@@ -18,35 +18,100 @@ void SPIEncoderChain::end()
     delay(1);
 }
 
+// void SPIEncoderChain::transfer(uint16_t transmission)
+// {
+//     begin();
+//     for(auto i = 0; i < m_numberOfEncoders; ++i)
+//     {
+//         m_encoders[i].transfer(transmission);
+//     }
+//     end();
+// }
+
 void SPIEncoderChain::transfer(uint16_t transmission)
 {
-    begin();
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
+
+    //upperhandle
+    digitalWrite(c_hspiSsPin1, HIGH);
+    digitalWrite(c_hspiSsPin2, HIGH);
+	m_spi.beginTransaction(m_settings);
+	digitalWrite(c_hspiSsPin1, LOW);
+    for(auto i = 0; i < m_numberOfEncoders/2; ++i)
     {
         m_encoders[i].transfer(transmission);
     }
-    end();
+	digitalWrite(c_hspiSsPin1, HIGH);
+	// m_spi.endTransaction();
+
+    //lower handle
+	// m_spi.beginTransaction(m_settings);
+	digitalWrite(c_hspiSsPin2, LOW);
+	for (auto i = 0; i < m_numberOfEncoders / 2; ++i)
+	{
+		m_encoders[i+2].transfer(transmission);
+	}
+	digitalWrite(c_hspiSsPin2, HIGH);
+	m_spi.endTransaction();
 }
 
 void SPIEncoderChain::setZero(std::vector<uint16_t> newZero)
 {
     transfer(SPICommands::c_highZeroWrite);
 
-    begin();
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
+
+    // begin();
+    // for(auto i = 0; i < m_numberOfEncoders; ++i)
+    // {
+    //     m_encoders[i].transfer(SPIPacket(0, newZero[i] >> 6).m_transmission);
+    // }
+    // end();
+    //upperhandle
+	m_spi.beginTransaction(m_settings);
+	digitalWrite(c_hspiSsPin1, LOW);
+    for(auto i = 0; i < m_numberOfEncoders/2; ++i)
     {
         m_encoders[i].transfer(SPIPacket(0, newZero[i] >> 6).m_transmission);
     }
-    end();
+	digitalWrite(c_hspiSsPin1, HIGH);
+	// m_spi.endTransaction();
+
+    //lower handle
+	// m_spi.beginTransaction(m_settings);
+	digitalWrite(c_hspiSsPin2, LOW);
+	for (auto i = 0; i < m_numberOfEncoders / 2; ++i)
+	{
+		m_encoders[i+2].transfer(SPIPacket(0, newZero[i+2] >> 6).m_transmission);
+	}
+	digitalWrite(c_hspiSsPin2, HIGH);
+	m_spi.endTransaction();
 
     transfer(SPICommands::c_lowZeroWrite);
 
-    begin();
-    for(auto i = 0; i < m_numberOfEncoders; ++i)
+    // begin();
+    // for(auto i = 0; i < m_numberOfEncoders; ++i)
+    // {
+    //     m_encoders[i].transfer(SPIPacket(0, newZero[i] & 0b111111).m_transmission);
+    // }
+    // end();
+
+    m_spi.beginTransaction(m_settings);
+	digitalWrite(c_hspiSsPin1, LOW);
+    for(auto i = 0; i < m_numberOfEncoders/2; ++i)
     {
         m_encoders[i].transfer(SPIPacket(0, newZero[i] & 0b111111).m_transmission);
     }
-    end();
+	digitalWrite(c_hspiSsPin1, HIGH);
+	// m_spi.endTransaction();
+
+    //lower handle
+	// m_spi.beginTransaction(m_settings);
+	digitalWrite(c_hspiSsPin2, LOW);
+	for (auto i = 0; i < m_numberOfEncoders / 2; ++i)
+	{
+		m_encoders[i+2].transfer(SPIPacket(0, newZero[i+2] & 0b111111).m_transmission);
+	}
+	digitalWrite(c_hspiSsPin2, HIGH);
+	m_spi.endTransaction();
 
     // for(auto i = 0; i < m_numberOfEncoders; ++i)
     // {
