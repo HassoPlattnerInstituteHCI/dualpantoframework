@@ -16,7 +16,7 @@ jobs:
           command: |
             sudo apt-get update; sudo apt-get upgrade
             sudo apt-get install build-essential libudev-dev
-            sudo apt-get install python-pip
+            sudo apt-get install python3-pip
             sudo pip install -U platformio
       - run:
           name: Run npm install
