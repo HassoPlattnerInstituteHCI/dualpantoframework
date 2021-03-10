@@ -22,7 +22,7 @@ jobs:
             ./configure
             sudo make -j 8; sudo make install
             cd ../
-            pip3.8 install platformio
+            sudo pip3.8 install platformio
       - run:
           name: Run npm install
           command: npm i
