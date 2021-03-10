@@ -19,6 +19,10 @@ Note for Windows users: You'll need to run the scripts from an Visual Studio dev
 
 In order to upload the firmware to the device, connect it and run `npm run platformio upload`.
 
+## Changing the device configuration 
+
+If you change the device version you're working with you have to edit it in the `utils/scripts/run.js` file. Search for either *doerte* or *ember* and replace it with the version you're working with. Run `npm i` afterwards.
+
 ## Calibration
 
 TODO - will be added here

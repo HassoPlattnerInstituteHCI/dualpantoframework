@@ -32,6 +32,7 @@ set(private_headers
     ${protocol_include_dir}/protocol/messageType.hpp)
 
 if (WIN32)
+add_compile_definitions(SKIP_ANALYZER 1)
 set(sources
     ${serial_source_dir}/cppLib/lib.cpp
     ${serial_source_dir}/serial/shared.cpp
@@ -54,7 +55,6 @@ endif()
 include_directories(${generated_header_dir})
 include_directories(${serial_include_dir})
 include_directories(${protocol_include_dir})
-add_compile_definitions(SKIP_ANALYZER)
 #add_compile_definitions(ADDR2LINE_PATH)
 add_library(serial SHARED ${public_headers} ${private_headers} ${sources})
 

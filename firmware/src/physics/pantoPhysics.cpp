@@ -40,16 +40,19 @@ void PantoPhysics::step()
     m_godObject->setMovementDirection(difference);
     // PERFMON_STOP("[baa] Physics::step::prep");
     // PERFMON_START("[bab] Physics::step::move");
-    bool isForceActive = m_godObject->move(isTweening);
+    bool isForceActive = m_godObject->move(isTweening, m_panto->getIsFrozen());
     // PERFMON_STOP("[bab] Physics::step::move");
     // PERFMON_START("[bac] Physics::step::motor");
-    if(isForceActive)
+    
+    // force is active when frozen, tethering is enabled or collision is detected
+    if(isForceActive )
     {
         m_panto->setTarget(m_godObject->getActiveForce(), true);
     }
     else
     {
         if (!isTweening){
+            // TODO: is there actually another case?
             m_panto->setTarget(Vector2D(NAN, NAN), false);
         }
     }

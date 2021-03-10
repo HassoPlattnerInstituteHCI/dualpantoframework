@@ -18,6 +18,15 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
+Hashtable& GodObject::hashtable()
+{
+    if (!m_hashtable)
+    {
+        m_hashtable = new Hashtable();
+    }
+    return *m_hashtable;
+}
+
 void GodObject::update()
 {
     if (m_actionQueue.empty())
@@ -34,16 +43,17 @@ void GodObject::update()
         {
         case HT_ENABLE_EDGE:
         {
-            m_hashtable.add(action->m_data.m_annotatedEdge);
+            hashtable().add(action->m_data.m_annotatedEdge);
             break;
         }
         case HT_DISABLE_EDGE:
         {
-            m_hashtable.remove(action->m_data.m_annotatedEdge);
+            hashtable().remove(action->m_data.m_annotatedEdge);
             break;
         }
         case GO_REMOVE_OBSTACLE:
         {
+            delete m_obstacles.at(action->m_data.m_obstacleId);
             m_obstacles.erase(action->m_data.m_obstacleId);
             break;
         }
@@ -60,12 +70,12 @@ void GodObject::update()
 void GodObject::dumpHashtable()
 {
     portENTER_CRITICAL(&m_obstacleMutex);
-    m_hashtable.print();
+    hashtable().print();
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
 // returns if force is applied or not
-bool GodObject::move(bool isTweening)
+bool GodObject::move(bool isTweening, bool isFrozen)
 {
     auto lastState = m_processingObstacleCollision;
     // if the number of collisions increased since the last frame then we ran into a corner
@@ -73,8 +83,13 @@ bool GodObject::move(bool isTweening)
     
     m_processingObstacleCollision = false;
 
+
     Vector2D nextGoPosition;
     Vector2D handlePosition = m_position + m_movementDirection;
+    if (isFrozen){
+        renderForce(getCollisionForce(m_position, handlePosition), Vector2D(0,0));
+        return true;
+    }
     if (isTweening) {
         m_position = handlePosition;
         if (m_tethered) {
@@ -238,13 +253,13 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
     For more information check Lukas Wagners MT (section 4.3.1): https://www.dropbox.com/home/2018%20CHI%20Dueling%20Pantographs/Layer%202%20Firmware%20(Lukas%20Wagner)?preview=2019_09_07+ESP+Firmware+for+God+Haptic+Objects+%3D+Masterarbeit+(Lukas+Wagner).pdf
     */
 
-    if (currentPosition == targetPoint)
+    if (currentPosition == targetPoint || !m_hashtable)
     {
         return targetPoint;
     }
     // 1. select collision candidates
     m_possibleCollisions->clear();
-    m_hashtable.getPossibleCollisions(
+    hashtable().getPossibleCollisions(
         Edge(currentPosition, targetPoint), m_possibleCollisions);
     if (m_possibleCollisions->empty())
     {
@@ -349,7 +364,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
             
             // check for the new point if there is another collision with any other edge
             m_possibleCollisions->clear();
-            m_hashtable.getPossibleCollisions(
+            hashtable().getPossibleCollisions(
                 Edge(currentPosition, targetPoint), m_possibleCollisions);
         }
         // there can be multiple collisions, that's why we have to loop as well over the other possible collisions

@@ -1,10 +1,10 @@
-# DualpantoFramework
+# Dualpanto Firmware & JS Framework
 
 [![CircleCI](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework.svg?style=svg&circle-token=32b766f8a9d2c9a0c612d215322a6dab4aec813d)](https://circleci.com/gh/HassoPlattnerInstituteHCI/dualpantoframework)
 
 version 0.3
 
-dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner, Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
+dev : Jonas Bounama, Lukas Wagner, Daniel-Amadeus Johannes Glöckner, Julius Rudolph, Oliver Schneider, Jotaro Shigeyama, Alexander Meißner, Nico Böckhoff
 
 firstname.lastname@hpi.de
 
@@ -96,6 +96,29 @@ The `examples` dir contains multiple example programs, as well as programs for c
   - `viDeb` - \[JavaScript\] Implements a emulated device.
   - `voiceCommand` - \[JavaScript\] Voice input plugin used by the framework.
   
+
+## Generating new serial libraries for Unity
+
+Whenever the interface between Unity and the firmware changes, you need to generate a Serial.dll (Windows) and a libserial.dylib (OSX) file that need to be added to the unity-dualpanto-framework that should be a sub-repo of your project. 
+
+Unfortunately, the Serial.dll can only be generated on Windows and the libserial.dylib needs to be generated on a Mac.
+
+To generate them follow these steps:
+
+`cd utils/serial`
+
+`cmake .`
+
+`make`
+
+`cd ../..`
+
+`sudo utils/serial/unity/mac.sh` or `utils\serial\unity\win.bat`
+
+This generates a utils/serial/cppLibBuild/Release folder that contains the Serial.dll or libserial.dylib.
+
+Copy it over to your unity-dualpanto-framework sub-repo and restart Unity.
+
 ## Troubleshooting
 
 OSX: if you want to upload a new firmware version to a device you have to make sure the `upload_port` of platformio is set correctly in the firmware/platformio.ini file like this:
