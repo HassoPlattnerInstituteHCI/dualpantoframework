@@ -20,7 +20,7 @@ jobs:
             tar -xf Python-3.8.0.tgz
             cd Python-3.8.0
             ./configure
-            make -j 8; make install
+            sudo make -j 8; sudo make install
             cd ../
             pip3.8 install platformio
       - run:
