@@ -1,15 +1,15 @@
 #include "serial.hpp"
 
-#include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
 #include "crashAnalyzer.hpp"
+#include "libInterface.hpp"
 
 std::string DPSerial::s_path;
 FILEHANDLE DPSerial::s_handle;
-// std::thread DPSerial::s_worker;
+std::thread DPSerial::s_worker;
 
 std::queue<Packet> DPSerial::s_highPrioSendQueue;
 std::queue<Packet> DPSerial::s_lowPrioSendQueue;
@@ -18,11 +18,11 @@ std::queue<Packet> DPSerial::s_receiveQueue;
 bool DPSerial::s_pantoReady = true;
 uint32_t DPSerial::s_magicReceiveIndex = 0;
 ReceiveState DPSerial::s_receiveState = NONE;
-Header DPSerial::s_receiveHeader;
+Header DPSerial::s_receiveHeader = {0, 0};
 
 void DPSerial::startWorker()
 {
-    // s_worker = std::thread(update);
+    s_worker = std::thread(update);
 }
 
 void DPSerial::sendInstantPacket(Packet p)
@@ -49,15 +49,8 @@ void DPSerial::update()
 {
     while (true)
     {
-        const auto outPackets = 5;
-        for (auto i = 0u; i < outPackets; i++)
-        {
-            processOutput();
-        }
-
+        processOutput();
         processInput();
-
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
@@ -102,6 +95,7 @@ void DPSerial::processInput()
         if (readMagicNumber())
         {
             s_receiveState = FOUND_MAGIC;
+            s_magicReceiveIndex = 0;
         }
         break;
     case FOUND_MAGIC:
@@ -160,7 +154,7 @@ bool DPSerial::readHeader()
 
 bool DPSerial::readPayload()
 {
-    const auto size = s_receiveHeader.PayloadSize;
+    const uint16_t size = s_receiveHeader.PayloadSize;
     std::vector<char> received;
     received.reserve(size);
     if (!readBytesFromSerial(received.data(), size))
@@ -176,7 +170,7 @@ bool DPSerial::readPayload()
 
 bool DPSerial::readBytesIfAvailable(void *target, uint32_t length)
 {
-    if (getAvailableByteCount(s_handle) > length)
+    if (getAvailableByteCount(s_handle) < length)
     {
         return false;
     }

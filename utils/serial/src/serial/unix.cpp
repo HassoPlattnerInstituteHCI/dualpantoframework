@@ -70,7 +70,7 @@ bool DPSerial::setup(std::string path)
         return false;
     }
     s_handle = fdopen(fd, "rw");
-    return true;
 
     startWorker();
+    return true;
 }

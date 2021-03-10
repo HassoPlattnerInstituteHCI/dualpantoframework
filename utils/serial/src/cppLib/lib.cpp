@@ -52,10 +52,10 @@ void CppLib::poll()
         auto packet = s_receiveQueue.front();
         s_receiveQueue.pop();
 
-        // if (packet.header.PayloadSize > c_maxPayloadSize)
-        // {
-        //     continue;
-        // }
+        if (packet.header.PayloadSize > c_maxPayloadSize)
+        {
+            continue;
+        }
 
         switch (packet.header.MessageType)
         {

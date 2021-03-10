@@ -2,7 +2,7 @@
 
 #include <string>
 #include <queue>
-// #include <thread>
+#include <thread>
 
 #include <protocol/header.hpp>
 #include <protocol/messageType.hpp>
@@ -35,7 +35,7 @@ protected:
     static std::string s_path;
     static const uint32_t c_packetSize = 0xFF;
     static FILEHANDLE s_handle;
-    // static std::thread s_worker;
+    static std::thread s_worker;
 
     static std::queue<Packet> s_highPrioSendQueue;
     static std::queue<Packet> s_lowPrioSendQueue;

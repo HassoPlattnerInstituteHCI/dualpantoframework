@@ -59,7 +59,12 @@ bool DPSerial::setup(std::string path)
     timeouts.ReadTotalTimeoutMultiplier = 10;
     timeouts.WriteTotalTimeoutConstant = 50;
     timeouts.WriteTotalTimeoutMultiplier = 10;
-    return SetCommTimeouts(s_handle, &timeouts) && SetCommMask(s_handle, EV_RXCHAR);
+    if (!SetCommTimeouts(s_handle, &timeouts) ||
+        !SetCommMask(s_handle, EV_RXCHAR))
+    {
+        return false;
+    }
 
     startWorker();
+    return true;
 }
