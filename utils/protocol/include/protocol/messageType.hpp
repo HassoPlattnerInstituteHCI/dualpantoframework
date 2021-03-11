@@ -4,6 +4,8 @@ enum MessageType
 {
     SYNC = 0x00,
     HEARTBEAT = 0x01,
+    BUFFER_CRITICAL = 0x02,
+    BUFFER_READY = 0x03,
     POSITION = 0x10,
     DEBUG_LOG = 0x20,
     SYNC_ACK = 0x80,

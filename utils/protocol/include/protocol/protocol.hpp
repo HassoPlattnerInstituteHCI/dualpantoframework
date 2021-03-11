@@ -22,4 +22,8 @@ protected:
     // data size
     static const uint8_t c_headerSize = 3;
     static const uint16_t c_maxPayloadSize = 256;
+
+    // combined maximal size of packet
+    static const uint16_t c_maxPacketSize =
+        c_maxPayloadSize + c_magicNumberSize + c_headerSize;
 };
