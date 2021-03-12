@@ -58,11 +58,11 @@ void DPSerial::update()
 {
     while (s_workerRunning)
     {
-        processOutput();
         while (processInput())
             ;
+        processOutput();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
@@ -96,6 +96,12 @@ void DPSerial::processOutput()
     header[0] = packet.header.MessageType;
     header[1] = packet.header.PayloadSize >> 8;
     header[2] = packet.header.PayloadSize & 255;
+
+    if (packet.payloadIndex != packet.header.PayloadSize)
+    {
+        logString("INVALID PACKET");
+        return;
+    }
 
     write(c_magicNumber, c_magicNumberSize);
     write(header, c_headerSize);

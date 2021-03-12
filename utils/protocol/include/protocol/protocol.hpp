@@ -13,7 +13,7 @@ protected:
     static const uint32_t c_revision = 5;
 
     // connection info
-    static const uint32_t c_baudRate = 57600;
+    static const uint32_t c_baudRate = 115200;
 
     // magic number
     static const uint8_t c_magicNumber[];
