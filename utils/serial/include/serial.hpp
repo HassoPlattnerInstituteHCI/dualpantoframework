@@ -36,6 +36,7 @@ protected:
     static const uint32_t c_packetSize = 0xFF;
     static FILEHANDLE s_handle;
     static std::thread s_worker;
+    static bool s_workerRunning;
 
     static std::queue<Packet> s_highPrioSendQueue;
     static std::queue<Packet> s_lowPrioSendQueue;
@@ -47,6 +48,7 @@ protected:
     static Header s_receiveHeader;
 
     static void startWorker();
+    static void stopWorker();
     static void tearDown();
     static void reset();
     static void update();

@@ -196,8 +196,9 @@ bool DPSerial::receiveMagicNumber()
     // as long as enough data is available to find the magic number
     while (Serial.available() >= c_magicNumberSize)
     {
+        const uint8_t read = Serial.read();
         // does next byte fit expected by of magic number?
-        if (Serial.read() == c_magicNumber[magicNumberProgress])
+        if (read == c_magicNumber[magicNumberProgress])
         {
             // yes - increase index. If check complete, return true.
             if (++magicNumberProgress == c_magicNumberSize)
@@ -210,6 +211,8 @@ bool DPSerial::receiveMagicNumber()
         {
             // no - reset search progress
             magicNumberProgress = 0;
+            sendInstantDebugLog("Read %x, aborting.", read);
+            abort();
         }
     }
 
@@ -516,6 +519,8 @@ bool DPSerial::ensureConnection()
     if (!s_connected)
     {
         sendSync();
+        // delay to avoid spamming sync messages
+        delay(10);
         return false;
     }
 

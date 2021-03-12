@@ -15,9 +15,9 @@ class DPSerial : DPProtocol
 {
 private:
     // receive buffer limits
-    static const uint16_t c_rxBufferSize = 10 * c_maxPacketSize;
-    static const uint16_t c_rxBufferCriticalThreshold = 6 * c_maxPacketSize;
-    static const uint16_t c_rxBufferReadyThreshold = 3 * c_maxPacketSize;
+    static const uint16_t c_rxBufferSize = 50 * c_maxPacketSize;
+    static const uint16_t c_rxBufferCriticalThreshold = 5 * c_maxPacketSize;
+    static const uint16_t c_rxBufferReadyThreshold = 2 * c_maxPacketSize;
     static bool s_rxBufferCritical;
 
     // data storage

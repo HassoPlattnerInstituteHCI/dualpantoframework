@@ -1,5 +1,6 @@
 #include "serial.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -10,6 +11,7 @@
 std::string DPSerial::s_path;
 FILEHANDLE DPSerial::s_handle;
 std::thread DPSerial::s_worker;
+bool DPSerial::s_workerRunning = false;
 
 std::queue<Packet> DPSerial::s_highPrioSendQueue;
 std::queue<Packet> DPSerial::s_lowPrioSendQueue;
@@ -22,7 +24,14 @@ Header DPSerial::s_receiveHeader = {0, 0};
 
 void DPSerial::startWorker()
 {
+    s_workerRunning = true;
     s_worker = std::thread(update);
+}
+
+void DPSerial::stopWorker()
+{
+    s_workerRunning = false;
+    s_worker.join();
 }
 
 void DPSerial::sendInstantPacket(Packet p)
@@ -47,31 +56,36 @@ void DPSerial::reset()
 
 void DPSerial::update()
 {
-    while (true)
+    while (s_workerRunning)
     {
         processOutput();
         processInput();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
 void DPSerial::processOutput()
 {
-    // if (!s_pantoReady)
-    // {
-    //     return;
-    // }
-
     Packet packet;
+    // always send high prio packets (sync/heartbeat)
     if (!s_highPrioSendQueue.empty())
     {
         packet = s_highPrioSendQueue.front();
         s_highPrioSendQueue.pop();
     }
+    // otherwise, check if panto buffer is critical
+    else if (!s_pantoReady)
+    {
+        return;
+    }
+    // otherwise, send a low prio packet
     else if (!s_lowPrioSendQueue.empty())
     {
         packet = s_lowPrioSendQueue.front();
         s_lowPrioSendQueue.pop();
     }
+    // no packets, nothing to do
     else
     {
         return;
@@ -89,6 +103,7 @@ void DPSerial::processOutput()
 
 void DPSerial::processInput()
 {
+    // TODO: move state switches to functions, use return value to loop processInput (has higher prio then output)
     switch (s_receiveState)
     {
     case NONE:
@@ -145,11 +160,24 @@ bool DPSerial::readHeader()
         return false;
     }
 
-    // insert send stop here
-
     s_receiveHeader.MessageType = received[0];
     s_receiveHeader.PayloadSize = received[1] << 8 | received[2];
-    return true;
+
+    switch (s_receiveHeader.MessageType)
+    {
+    case BUFFER_CRITICAL:
+        s_pantoReady = false;
+        s_receiveState = NONE;
+        logString("BUFFER_CRITICAL");
+        return false;
+    case BUFFER_READY:
+        s_pantoReady = true;
+        s_receiveState = NONE;
+        logString("BUFFER_READY");
+        return false;
+    default:
+        return true;
+    }
 }
 
 bool DPSerial::readPayload()

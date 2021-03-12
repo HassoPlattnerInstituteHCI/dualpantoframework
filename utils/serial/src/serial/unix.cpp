@@ -15,6 +15,7 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 
 void DPSerial::tearDown()
 {
+    stopWorker();
     fclose(s_handle);
 }
 
