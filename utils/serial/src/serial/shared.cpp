@@ -59,7 +59,8 @@ void DPSerial::update()
     while (s_workerRunning)
     {
         processOutput();
-        processInput();
+        while (processInput())
+            ;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -101,32 +102,18 @@ void DPSerial::processOutput()
     write(packet.payload, packet.header.PayloadSize);
 }
 
-void DPSerial::processInput()
+bool DPSerial::processInput()
 {
-    // TODO: move state switches to functions, use return value to loop processInput (has higher prio then output)
     switch (s_receiveState)
     {
     case NONE:
-        if (readMagicNumber())
-        {
-            s_receiveState = FOUND_MAGIC;
-            s_magicReceiveIndex = 0;
-        }
-        break;
+        return readMagicNumber();
     case FOUND_MAGIC:
-        if (readHeader())
-        {
-            s_receiveState = FOUND_HEADER;
-        }
-        break;
+        return readHeader();
     case FOUND_HEADER:
-        if (readPayload())
-        {
-            s_receiveState = NONE;
-        }
-        break;
+        return readPayload();
     default:
-        break;
+        return false;
     }
 }
 
@@ -149,7 +136,13 @@ bool DPSerial::readMagicNumber()
 #endif
         }
     }
-    return s_magicReceiveIndex == c_magicNumberSize;
+    if (s_magicReceiveIndex != c_magicNumberSize)
+    {
+        return false;
+    };
+    s_receiveState = FOUND_MAGIC;
+    s_magicReceiveIndex = 0;
+    return true;
 }
 
 bool DPSerial::readHeader()
@@ -169,15 +162,14 @@ bool DPSerial::readHeader()
         s_pantoReady = false;
         s_receiveState = NONE;
         logString("BUFFER_CRITICAL");
-        return false;
     case BUFFER_READY:
         s_pantoReady = true;
         s_receiveState = NONE;
         logString("BUFFER_READY");
-        return false;
     default:
-        return true;
+        s_receiveState = FOUND_HEADER;
     }
+    return true;
 }
 
 bool DPSerial::readPayload()
@@ -193,6 +185,7 @@ bool DPSerial::readPayload()
     auto p = Packet(s_receiveHeader.MessageType, size);
     memcpy(p.payload, received.data(), size);
     s_receiveQueue.push(p);
+    s_receiveState = NONE;
     return true;
 }
 

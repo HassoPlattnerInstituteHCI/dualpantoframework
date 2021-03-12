@@ -53,7 +53,7 @@ protected:
     static void reset();
     static void update();
     static void processOutput();
-    static void processInput();
+    static bool processInput();
 
     static void sendPacket(Packet p);
     static void sendInstantPacket(Packet p);
