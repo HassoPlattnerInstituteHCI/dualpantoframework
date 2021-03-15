@@ -393,6 +393,7 @@ void DPSerial::receiveFreeze(){
             const auto target = pantos[i].getPosition();
             pantos[i].setRotation(NAN);
             pantos[i].setTarget(target, 0);
+            pantos[i].setIsFrozen(true);
         }
     }
 }
@@ -406,6 +407,7 @@ void DPSerial::receiveFree(){
             pantos[i].setTarget(Vector2D(NAN, NAN), 0);
             pantos[i].setRotation(NAN);
             pantos[i].setInTransition(false);
+            pantos[i].setIsFrozen(false);
         }
     }
 }

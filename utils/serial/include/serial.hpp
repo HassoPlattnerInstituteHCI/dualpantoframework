@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <queue>
 
 #include <protocol/header.hpp>
 #include <protocol/messageType.hpp>
@@ -18,6 +19,12 @@
 #define FILEHANDLE FILE*
 #endif
 
+class QueuedPacket {
+    public:
+        Header header;
+        uint8_t payload[255];
+};
+
 class DPSerial : public DPProtocol
 {
 protected:
@@ -28,7 +35,8 @@ protected:
     static uint8_t s_packetBuffer[c_packetSize];
     static FILEHANDLE s_handle;
     static void tearDown();
-    
+    static std::queue<QueuedPacket> queued_packets;
+
     static void receivePacket();
 
     static void write(const uint8_t* const data, const uint32_t length);
@@ -36,6 +44,10 @@ protected:
     static uint32_t getAvailableByteCount(FILEHANDLE s_handle);
     static bool readBytesFromSerial(void* target, uint32_t length);
     static void sendPacket();
+    static void sendInstantPacket();
+    static uint32_t checkSendQueue(uint32_t maxPackets);
+    static void sendQueuedPacket(QueuedPacket &packet);
+    static void reset();
 
     static uint8_t receiveUInt8(uint16_t& offset);
     static int16_t receiveInt16(uint16_t& offset);

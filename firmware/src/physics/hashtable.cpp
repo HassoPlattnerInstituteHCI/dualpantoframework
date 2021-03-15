@@ -110,7 +110,7 @@ Hashtable::Hashtable()
     DPSerial::sendQueuedDebugLog(
         "Hashtable settings:");
     DPSerial::sendQueuedDebugLog(
-        "Avaiable memory of %i bytes can hold %i cells",
+        "Available memory of %i bytes can hold %i cells",
         hashtableMaxMemory,
         hashtableMaxCells);
     DPSerial::sendQueuedDebugLog(

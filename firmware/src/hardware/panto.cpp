@@ -198,18 +198,15 @@ void Panto::inverseKinematics()
         m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
         m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
 
-        if(m_filteredX==m_targetX && m_filteredY == m_targetY && m_inTransition){
+        if(abs(m_filteredX - m_targetX) + abs(m_filteredY - m_targetY) < 0.01f && m_inTransition){
             m_inTransition = false;
             DPSerial::sendTransitionEnded(getPantoIndex());
         }
 
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
-        //TODO: constant velocity here.
-        float stepValue = 1.8 * 0.000001 * tweening_dt * m_tweeningSpeed; //2.4 == unity tweening speed
-        // DPSerial::sendInstantDebugLog("step = %f, %f", m_filteredX, m_filteredY);
-        // float stepValue = m_tweeningStep;
-        m_tweeningValue=min(m_tweeningValue+m_tweeningStep, 1.0f);
+        float stepValue = 0.000001 * tweening_dt * m_tweeningSpeed; 
+        m_tweeningValue=min(m_tweeningValue+stepValue, 1.0f);
         
     }
 };
@@ -611,4 +608,11 @@ void Panto::setInTransition(bool inTransition){
 
 bool Panto::getInTransition(){
     return m_inTransition;
+}
+
+bool Panto::getIsFrozen(){
+    return m_isFrozen;
+}
+void Panto::setIsFrozen(bool isFrozen){
+    m_isFrozen = isFrozen;
 }
