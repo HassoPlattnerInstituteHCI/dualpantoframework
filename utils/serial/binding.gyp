@@ -12,6 +12,7 @@
             "./src/node/receiveHelpers.cpp",
             "./src/node/sendHelpers.cpp",
             "./src/serial/shared.cpp",
+            "./src/cppLib/lib.cpp",
             "./src/crashAnalyzer/buffer.cpp",
             "./src/crashAnalyzer/analyze.cpp",
             "../protocol/src/protocol/protocol.cpp"
