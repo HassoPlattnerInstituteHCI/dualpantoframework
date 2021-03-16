@@ -30,6 +30,7 @@ const buildHandlers = {
           'utils/serial/src/standalone/main.cpp',
           'utils/serial/src/standalone/standalone.cpp',
           'utils/serial/src/serial/shared.cpp',
+          'utils/serial/src/cppLib/lib.cpp',
           'utils/serial/src/crashAnalyzer/analyze.cpp',
           'utils/serial/src/crashAnalyzer/buffer.cpp',
           process.platform == 'win32' ?
