@@ -94,7 +94,7 @@
                     "bPin": 34,
                     "steps": 136,
                     "flipped": true,
-                    "setup": -0.25
+                    "setup": 0
                 }
             }
         },
@@ -172,7 +172,7 @@
                     "bPin": 39,
                     "steps": 136,
                     "flipped": false,
-                    "setup": -0.25
+                    "setup": 0
                 }
             }
         }
