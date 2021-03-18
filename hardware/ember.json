@@ -6,7 +6,11 @@
     "forceFactor": 0.0085,
     "dummyPin": 40,
     "usesSpi": true,
-    "forcePidFactor": [0.375, 0, 0],
+    "forcePidFactor": [
+        0.375,
+        0,
+        0
+    ],
     "hashtableMemory": 200000,
     "obstacleChangesPerFrame": 1,
     "range": {
@@ -29,8 +33,12 @@
                     "pwmPinBackwards": 4,
                     "flipped": false,
                     "powerLimit": 0.2,
-                    "powerLimitForce":0.6,
-                    "pidFactor": [6, 0, 600]
+                    "powerLimitForce": 0.6,
+                    "pidFactor": [
+                        6,
+                        0,
+                        600
+                    ]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -51,8 +59,12 @@
                     "pwmPinBackwards": 17,
                     "flipped": false,
                     "powerLimit": 0.2,
-                    "powerLimitForce":0.6,
-                    "pidFactor": [6, 0, 600]
+                    "powerLimitForce": 0.6,
+                    "pidFactor": [
+                        6,
+                        0,
+                        600
+                    ]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -62,16 +74,20 @@
                 }
             },
             "handle": {
-                "linkage":{
-                    "handleMount":1
+                "linkage": {
+                    "handleMount": 1
                 },
                 "motor": {
                     "pwmPin": 25,
                     "dirAPin": 32,
                     "flipped": true,
                     "powerLimit": 0.2,
-                    "powerLimitForce":0.2,
-                    "pidFactor": [0.5, 0, 30]
+                    "powerLimitForce": 0.2,
+                    "pidFactor": [
+                        0.5,
+                        0,
+                        30
+                    ]
                 },
                 "encoder": {
                     "aPin": 35,
@@ -91,12 +107,16 @@
                     "baseY": 0
                 },
                 "motor": {
-                    "pwmPinForwards":22, 
+                    "pwmPinForwards": 22,
                     "pwmPinBackwards": 21,
                     "flipped": false,
                     "powerLimit": 0.2,
-                    "powerLimitForce":0.6,
-                    "pidFactor": [6, 0, 600]
+                    "powerLimitForce": 0.6,
+                    "pidFactor": [
+                        6,
+                        0,
+                        600
+                    ]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -117,8 +137,12 @@
                     "pwmPinBackwards": 18,
                     "flipped": false,
                     "powerLimit": 0.2,
-                    "powerLimitForce":0.6,
-                    "pidFactor": [6, 0, 600]
+                    "powerLimitForce": 0.6,
+                    "pidFactor": [
+                        6,
+                        0,
+                        600
+                    ]
                 },
                 "encoder": {
                     "steps": 16384,
@@ -128,16 +152,20 @@
                 }
             },
             "handle": {
-                "linkage":{
-                    "handleMount":0
+                "linkage": {
+                    "handleMount": 0
                 },
                 "motor": {
                     "pwmPin": 23,
                     "dirAPin": 26,
-                    "flipped": true,
+                    "flipped": false,
                     "powerLimit": 0.2,
-                    "powerLimitForce":0.2,
-                    "pidFactor": [0.5, 0, 30]
+                    "powerLimitForce": 0.2,
+                    "pidFactor": [
+                        0.5,
+                        0,
+                        30
+                    ]
                 },
                 "encoder": {
                     "aPin": 36,
