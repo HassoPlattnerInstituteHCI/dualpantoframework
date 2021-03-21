@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 enum MessageType
 {
     SYNC = 0x00,
@@ -30,3 +32,5 @@ enum MessageType
     SPEED_CONTROL = 0xAA,
     DUMP_HASHTABLE = 0xC0,
 };
+
+extern std::set<MessageType> TrackedMessageTypes;

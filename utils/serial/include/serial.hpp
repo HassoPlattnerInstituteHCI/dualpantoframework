@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <queue>
 #include <thread>
@@ -42,6 +43,14 @@ protected:
     static std::queue<Packet> s_lowPrioSendQueue;
     static std::queue<Packet> s_receiveQueue;
 
+    static uint8_t s_nextTrackedPacketId;
+    static bool s_haveUnacknowledgedTrackedPacket;
+    static Packet s_lastTrackedPacket;
+    static std::chrono::time_point<std::chrono::steady_clock>
+        s_lastTrackedPacketSendTime;
+    static const std::chrono::milliseconds c_trackedPacketTimeout;
+    static bool s_pantoReportedInvalidData;
+
     static bool s_pantoReady;
     static uint32_t s_magicReceiveIndex;
     static ReceiveState s_receiveState;
@@ -55,6 +64,7 @@ protected:
     static void processOutput();
     static bool processInput();
 
+    static bool getPacketFromQueue(std::queue<Packet> queue, Packet &packet);
     static void sendPacket(Packet p);
     static void sendInstantPacket(Packet p);
     static void write(const uint8_t *const data, const uint32_t length);

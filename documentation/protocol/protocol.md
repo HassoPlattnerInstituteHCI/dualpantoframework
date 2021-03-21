@@ -143,14 +143,16 @@ Example message:
 
 ### 0x05 Invalid packet ID
 
-This message type does not require a payload.
+The message contains the expected and the received packet ID.
 
 Example message:
 ```
 4450     // magic number
 05       // message type: invalid packet ID
 00       // packet ID: not utilized
-0000     // payload length: no payload
+0002     // payload length: 1 per included ID
+14       // expected packet ID 14
+15       // received packet ID 15 -> a packet got dropped
 ```
 
 ### 0x06 Invalid data

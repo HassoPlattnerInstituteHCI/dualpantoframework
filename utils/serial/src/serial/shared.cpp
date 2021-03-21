@@ -16,6 +16,13 @@ bool DPSerial::s_workerRunning = false;
 std::queue<Packet> DPSerial::s_highPrioSendQueue;
 std::queue<Packet> DPSerial::s_lowPrioSendQueue;
 std::queue<Packet> DPSerial::s_receiveQueue;
+uint8_t DPSerial::s_nextTrackedPacketId = 1;
+bool DPSerial::s_haveUnacknowledgedTrackedPacket = false;
+Packet DPSerial::s_lastTrackedPacket;
+std::chrono::time_point<std::chrono::steady_clock>
+    DPSerial::s_lastTrackedPacketSendTime;
+const std::chrono::milliseconds DPSerial::c_trackedPacketTimeout(100);
+bool DPSerial::s_pantoReportedInvalidData = false;
 
 bool DPSerial::s_pantoReady = true;
 uint32_t DPSerial::s_magicReceiveIndex = 0;
@@ -62,46 +69,83 @@ void DPSerial::update()
             ;
         processOutput();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+}
+
+bool DPSerial::getPacketFromQueue(std::queue<Packet> q, Packet &p)
+{
+    if (q.empty())
+    {
+        return false;
+    }
+    p = std::move(q.front());
+    q.pop();
+    return true;
 }
 
 void DPSerial::processOutput()
 {
+    bool havePacket = false;
     Packet packet;
-    // always send high prio packets (sync/heartbeat)
-    if (!s_highPrioSendQueue.empty())
+
+    auto delta = std::chrono::steady_clock::now() - s_lastTrackedPacketSendTime;
+    auto timeout = delta > c_trackedPacketTimeout;
+    bool resend =
+        s_pantoReportedInvalidData ||
+        (s_haveUnacknowledgedTrackedPacket && timeout);
+    s_pantoReportedInvalidData = false;
+
+    // check if the last tracked message has to be resent
+    if (resend)
     {
-        packet = s_highPrioSendQueue.front();
-        s_highPrioSendQueue.pop();
+        packet = s_lastTrackedPacket;
+        havePacket = true;
+    }
+    // send high prio packets (sync/heartbeat)
+    if (!havePacket)
+    {
+        havePacket |= getPacketFromQueue(s_highPrioSendQueue, packet);
     }
     // otherwise, check if panto buffer is critical
-    else if (!s_pantoReady)
+    if (!havePacket && !s_pantoReady)
     {
         return;
     }
     // otherwise, send a low prio packet
-    else if (!s_lowPrioSendQueue.empty())
+    if (!havePacket)
     {
-        packet = s_lowPrioSendQueue.front();
-        s_lowPrioSendQueue.pop();
+        havePacket |= getPacketFromQueue(s_lowPrioSendQueue, packet);
     }
     // no packets, nothing to do
-    else
+    if (!havePacket)
     {
         return;
     }
-
-    uint8_t header[c_headerSize];
-    header[0] = packet.header.MessageType;
-    header[1] = packet.header.PayloadSize >> 8;
-    header[2] = packet.header.PayloadSize & 255;
 
     if (packet.payloadIndex != packet.header.PayloadSize)
     {
         logString("INVALID PACKET");
         return;
     }
+
+    if (TrackedMessageTypes.find((MessageType)packet.header.MessageType) !=
+        TrackedMessageTypes.end())
+    {
+        if (!resend)
+        {
+            packet.header.PacketId = s_nextTrackedPacketId++;
+            s_haveUnacknowledgedTrackedPacket = true;
+            s_lastTrackedPacket = packet;
+        }
+        s_lastTrackedPacketSendTime = std::chrono::steady_clock::now();
+    }
+
+    uint8_t header[c_headerSize];
+    header[0] = packet.header.MessageType;
+    header[1] = packet.header.PayloadSize >> 8;
+    header[2] = packet.header.PayloadSize & 255;
+    header[3] = packet.header.PacketId;
 
     write(c_magicNumber, c_magicNumberSize);
     write(header, c_headerSize);
@@ -162,18 +206,27 @@ bool DPSerial::readHeader()
     s_receiveHeader.MessageType = received[0];
     s_receiveHeader.PayloadSize = received[1] << 8 | received[2];
 
+    // handle no-payload low level messages instantly
     switch (s_receiveHeader.MessageType)
     {
     case BUFFER_CRITICAL:
         s_pantoReady = false;
         s_receiveState = NONE;
         logString("BUFFER_CRITICAL");
+        break;
     case BUFFER_READY:
         s_pantoReady = true;
         s_receiveState = NONE;
         logString("BUFFER_READY");
+        break;
+    case INVALID_DATA:
+        s_receiveState = NONE;
+        s_pantoReportedInvalidData = true;
+        break;
+        logString("INVALID_DATA");
     default:
         s_receiveState = FOUND_HEADER;
+        break;
     }
     return true;
 }
@@ -188,9 +241,32 @@ bool DPSerial::readPayload()
         return false;
     }
 
-    auto p = Packet(s_receiveHeader.MessageType, size);
-    memcpy(p.payload, received.data(), size);
-    s_receiveQueue.push(p);
+    // handle payload low level messages instantly
+    switch (s_receiveHeader.MessageType)
+    {
+    case PACKET_ACK:
+        if (!s_haveUnacknowledgedTrackedPacket)
+        {
+            logString("Received unexpected PACKET_ACK");
+        }
+        else if (received[0] != s_lastTrackedPacket.header.PacketId)
+        {
+            logString("Received PACKET_ACK for wrong packet");
+        }
+        else
+        {
+            s_haveUnacknowledgedTrackedPacket = false;
+        }
+    case INVALID_PACKET_ID:
+        logString("INVALID_PACKET_ID");
+        break;
+    default:
+        auto p = Packet(s_receiveHeader.MessageType, size);
+        memcpy(p.payload, received.data(), size);
+        s_receiveQueue.push(p);
+        break;
+    }
+
     s_receiveState = NONE;
     return true;
 }
