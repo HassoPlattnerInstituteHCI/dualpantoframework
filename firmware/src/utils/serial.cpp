@@ -12,6 +12,7 @@ uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
 std::queue<std::string> DPSerial::s_debugLogQueue;
 portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
 ReceiveState DPSerial::s_receiveState = NONE;
+uint8_t DPSerial::s_expectedPacketId = 1;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
 uint16_t DPSerial::s_unacknowledgedHeartbeats = 0;
@@ -131,6 +132,33 @@ void DPSerial::sendBufferReady()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
+void DPSerial::sendPacketAck(uint8_t id)
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(PACKET_ACK, 1);
+    sendUInt8(id);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendInvalidPacketId(uint8_t expected, uint8_t received)
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(INVALID_PACKET_ID, 2);
+    sendUInt8(expected);
+    sendUInt8(received);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendInvalidData()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(INVALID_DATA, 0);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
 // receive helper
 
 uint8_t DPSerial::receiveUInt8()
@@ -193,6 +221,8 @@ bool DPSerial::receiveMagicNumber()
 {
     int magicNumberProgress = 0;
 
+    bool invalidData = false;
+
     // as long as enough data is available to find the magic number
     while (Serial.available() >= c_magicNumberSize)
     {
@@ -211,12 +241,18 @@ bool DPSerial::receiveMagicNumber()
         else
         {
             // no - reset search progress
-            sendInstantDebugLog(
-                "Error: expected %x, read %x. State might by faulty!",
-                expected,
-                read);
+            // sendInstantDebugLog(
+            //     "Error: expected %x, read %x. State might by faulty!",
+            //     expected,
+            //     read);
+            invalidData = true;
             magicNumberProgress = 0;
         }
+    }
+
+    if (invalidData)
+    {
+        sendInvalidData();
     }
 
     // ran out of available data before finding complete number - return false
@@ -687,6 +723,24 @@ void DPSerial::receive()
     else
     {
         handler->second();
+    }
+
+    if (TrackedMessageTypes.find((MessageType)s_header.MessageType) !=
+        TrackedMessageTypes.end())
+    {
+        if (s_header.PacketId == s_expectedPacketId)
+        {
+            s_expectedPacketId++;
+            if (s_expectedPacketId == 0)
+            {
+                s_expectedPacketId++;
+            }
+        }
+        else
+        {
+            sendInvalidPacketId(s_expectedPacketId, s_header.PacketId);
+        }
+        sendPacketAck(s_header.PacketId);
     }
 
     s_receiveState = NONE;
