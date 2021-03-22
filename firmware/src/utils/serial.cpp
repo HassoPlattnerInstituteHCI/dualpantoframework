@@ -93,6 +93,7 @@ void DPSerial::sendMagicNumber()
 void DPSerial::sendHeader(MessageType messageType, uint16_t payloadSize)
 {
     sendMessageType(messageType);
+    sendUInt8(0); // no panto -> fw tracked packages
     sendUInt16(payloadSize);
 };
 
@@ -268,6 +269,7 @@ bool DPSerial::receiveHeader()
     }
 
     s_header.MessageType = receiveUInt8();
+    s_header.PacketId = receiveUInt8();
     s_header.PayloadSize = receiveUInt16();
     s_receiveState = FOUND_HEADER;
     return true;
@@ -539,7 +541,11 @@ void DPSerial::receiveDumpHashtable()
 
 void DPSerial::receiveInvalid()
 {
-    sendQueuedDebugLog("Received invalid message: %02X", s_header.MessageType);
+    sendQueuedDebugLog(
+        "Received invalid message: [%02X, %02X, %04X] %",
+        s_header.MessageType,
+        s_header.PacketId,
+        s_header.PayloadSize);
 };
 
 // === public ===
@@ -711,7 +717,30 @@ void DPSerial::receive()
         {
             Serial.read();
         }
+        sendInstantDebugLog(
+            "Not connected, ignoring [%X %i %i]",
+            s_header.MessageType,
+            s_header.PacketId,
+            s_header.PayloadSize);
         return;
+    }
+
+    s_receiveState = NONE;
+
+    if (s_header.PacketId > 0)
+    {
+        if (s_header.PacketId != s_expectedPacketId)
+        {
+            sendInvalidPacketId(s_expectedPacketId, s_header.PacketId);
+            return;
+        }
+
+        sendPacketAck(s_header.PacketId);
+        s_expectedPacketId++;
+        if (s_expectedPacketId == 0)
+        {
+            s_expectedPacketId++;
+        }
     }
 
     auto handler = s_receiveHandlers.find((MessageType)(s_header.MessageType));
@@ -724,24 +753,4 @@ void DPSerial::receive()
     {
         handler->second();
     }
-
-    if (TrackedMessageTypes.find((MessageType)s_header.MessageType) !=
-        TrackedMessageTypes.end())
-    {
-        if (s_header.PacketId == s_expectedPacketId)
-        {
-            s_expectedPacketId++;
-            if (s_expectedPacketId == 0)
-            {
-                s_expectedPacketId++;
-            }
-        }
-        else
-        {
-            sendInvalidPacketId(s_expectedPacketId, s_header.PacketId);
-        }
-        sendPacketAck(s_header.PacketId);
-    }
-
-    s_receiveState = NONE;
 };

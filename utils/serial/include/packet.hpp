@@ -10,7 +10,6 @@ public:
     uint8_t payload[256];
     uint8_t payloadIndex = 0;
 
-    Packet();
     Packet(uint8_t messageType, uint16_t payloadSize);
 
     uint8_t receiveUInt8();

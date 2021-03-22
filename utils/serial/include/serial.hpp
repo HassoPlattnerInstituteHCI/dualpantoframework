@@ -64,7 +64,8 @@ protected:
     static void processOutput();
     static bool processInput();
 
-    static bool getPacketFromQueue(std::queue<Packet> queue, Packet &packet);
+    static bool isTracked(uint8_t t);
+    static bool checkQueue(std::queue<Packet> &q);
     static void sendPacket(Packet p);
     static void sendInstantPacket(Packet p);
     static void write(const uint8_t *const data, const uint32_t length);

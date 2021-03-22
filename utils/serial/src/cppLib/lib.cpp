@@ -1,6 +1,7 @@
 #include "libInterface.hpp"
 
 #include <iostream>
+#include <sstream>
 
 #include "packet.hpp"
 
@@ -68,7 +69,10 @@ void CppLib::poll()
             }
             else
             {
-                logString("Revision id not matching. Maybe try reset the device?");
+                std::ostringstream oss;
+                oss << "Revision id not matching. Expected " << c_revision
+                    << ", received " << receivedRevision << "." << std::endl;
+                logString((char *)oss.str().c_str());
             }
             break;
         }
