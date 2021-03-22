@@ -1,11 +1,5 @@
 #include "packet.hpp"
 
-Packet::Packet()
-{
-    header.MessageType = 0;
-    header.PayloadSize = 0;
-}
-
 Packet::Packet(uint8_t messageType, uint16_t payloadSize)
 {
     header.MessageType = messageType;

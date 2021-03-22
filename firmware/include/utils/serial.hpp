@@ -31,6 +31,7 @@ private:
     static portMUX_TYPE s_serialMutex;
 
     static ReceiveState s_receiveState;
+    static uint8_t s_expectedPacketId;
 
     // connection
     static bool s_connected;
@@ -55,6 +56,9 @@ private:
     static void sendHeartbeat();
     static void sendBufferCritical();
     static void sendBufferReady();
+    static void sendPacketAck(uint8_t id);
+    static void sendInvalidPacketId(uint8_t expected, uint8_t received);
+    static void sendInvalidData();
 
     // receive helper
     static uint8_t receiveUInt8();

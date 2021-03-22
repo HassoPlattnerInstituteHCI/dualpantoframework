@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 
 #include "crashAnalyzer.hpp"
 #include "libInterface.hpp"
@@ -16,6 +17,13 @@ bool DPSerial::s_workerRunning = false;
 std::queue<Packet> DPSerial::s_highPrioSendQueue;
 std::queue<Packet> DPSerial::s_lowPrioSendQueue;
 std::queue<Packet> DPSerial::s_receiveQueue;
+uint8_t DPSerial::s_nextTrackedPacketId = 1;
+bool DPSerial::s_haveUnacknowledgedTrackedPacket = false;
+Packet DPSerial::s_lastTrackedPacket(0, 0);
+std::chrono::time_point<std::chrono::steady_clock>
+    DPSerial::s_lastTrackedPacketSendTime;
+const std::chrono::milliseconds DPSerial::c_trackedPacketTimeout(10);
+bool DPSerial::s_pantoReportedInvalidData = false;
 
 bool DPSerial::s_pantoReady = true;
 uint32_t DPSerial::s_magicReceiveIndex = 0;
@@ -24,6 +32,7 @@ Header DPSerial::s_receiveHeader = {0, 0};
 
 void DPSerial::startWorker()
 {
+    reset();
     s_workerRunning = true;
     s_worker = std::thread(update);
 }
@@ -61,16 +70,32 @@ void DPSerial::update()
         while (processInput())
             ;
         processOutput();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+}
+
+bool DPSerial::isTracked(uint8_t t)
+{
+    auto it = TrackedMessageTypes.find((MessageType)t);
+    return it != TrackedMessageTypes.end();
+}
+
+bool DPSerial::checkQueue(std::queue<Packet> &q)
+{
+    if (q.empty())
+    {
+        return false;
+    }
+    auto tracked = isTracked(q.front().header.MessageType);
+    return !tracked || !s_haveUnacknowledgedTrackedPacket;
 }
 
 void DPSerial::processOutput()
 {
-    Packet packet;
-    // always send high prio packets (sync/heartbeat)
-    if (!s_highPrioSendQueue.empty())
+    bool resend = false;
+    Packet packet(255, 0);
+
+    // send high prio packets (sync/heartbeat)
+    if (checkQueue(s_highPrioSendQueue))
     {
         packet = s_highPrioSendQueue.front();
         s_highPrioSendQueue.pop();
@@ -80,8 +105,17 @@ void DPSerial::processOutput()
     {
         return;
     }
+    // check if the last tracked message has to be resent
+    else if (
+        s_haveUnacknowledgedTrackedPacket &&
+        std::chrono::steady_clock::now() - s_lastTrackedPacketSendTime >
+            c_trackedPacketTimeout)
+    {
+        logString("Packet timed out, resending");
+        packet = s_lastTrackedPacket;
+    }
     // otherwise, send a low prio packet
-    else if (!s_lowPrioSendQueue.empty())
+    else if (checkQueue(s_lowPrioSendQueue))
     {
         packet = s_lowPrioSendQueue.front();
         s_lowPrioSendQueue.pop();
@@ -92,16 +126,32 @@ void DPSerial::processOutput()
         return;
     }
 
-    uint8_t header[c_headerSize];
-    header[0] = packet.header.MessageType;
-    header[1] = packet.header.PayloadSize >> 8;
-    header[2] = packet.header.PayloadSize & 255;
-
     if (packet.payloadIndex != packet.header.PayloadSize)
     {
         logString("INVALID PACKET");
         return;
     }
+
+    if (isTracked(packet.header.MessageType))
+    {
+        if (packet.header.PacketId == 0)
+        {
+            packet.header.PacketId = s_nextTrackedPacketId++;
+            if (s_nextTrackedPacketId == 0)
+            {
+                s_nextTrackedPacketId++;
+            }
+        }
+        s_haveUnacknowledgedTrackedPacket = true;
+        s_lastTrackedPacket = packet;
+        s_lastTrackedPacketSendTime = std::chrono::steady_clock::now();
+    }
+
+    uint8_t header[c_headerSize];
+    header[0] = packet.header.MessageType;
+    header[1] = packet.header.PacketId;
+    header[2] = packet.header.PayloadSize >> 8;
+    header[3] = packet.header.PayloadSize & 255;
 
     write(c_magicNumber, c_magicNumberSize);
     write(header, c_headerSize);
@@ -160,20 +210,30 @@ bool DPSerial::readHeader()
     }
 
     s_receiveHeader.MessageType = received[0];
-    s_receiveHeader.PayloadSize = received[1] << 8 | received[2];
+    s_receiveHeader.PacketId = received[1];
+    s_receiveHeader.PayloadSize = received[2] << 8 | received[3];
 
+    // handle no-payload low level messages instantly
     switch (s_receiveHeader.MessageType)
     {
     case BUFFER_CRITICAL:
         s_pantoReady = false;
         s_receiveState = NONE;
-        logString("BUFFER_CRITICAL");
+        logString("Panto buffer critical");
+        break;
     case BUFFER_READY:
         s_pantoReady = true;
         s_receiveState = NONE;
-        logString("BUFFER_READY");
+        logString("Panto buffer ready");
+        break;
+    case INVALID_DATA:
+        s_receiveState = NONE;
+        s_pantoReportedInvalidData = true;
+        logString("Panto received invalid data");
+        break;
     default:
         s_receiveState = FOUND_HEADER;
+        break;
     }
     return true;
 }
@@ -188,10 +248,48 @@ bool DPSerial::readPayload()
         return false;
     }
 
-    auto p = Packet(s_receiveHeader.MessageType, size);
-    memcpy(p.payload, received.data(), size);
-    s_receiveQueue.push(p);
+    auto packet = Packet(s_receiveHeader.MessageType, size);
+    memcpy(packet.payload, received.data(), size);
     s_receiveState = NONE;
+
+    // handle payload low level messages instantly
+    switch (s_receiveHeader.MessageType)
+    {
+    case PACKET_ACK:
+    {
+        auto id = packet.receiveUInt8();
+        if (!s_haveUnacknowledgedTrackedPacket)
+        {
+            logString("Received unexpected PACKET_ACK");
+        }
+        else if (id != s_lastTrackedPacket.header.PacketId)
+        {
+            std::ostringstream oss;
+            oss << "Received PACKET_ACK for wrong packet. Expected "
+                << (int)s_lastTrackedPacket.header.PacketId << ", received "
+                << (int)id << std::endl;
+            logString((char *)oss.str().c_str());
+        }
+        else
+        {
+            s_haveUnacknowledgedTrackedPacket = false;
+        }
+        break;
+    }
+    case INVALID_PACKET_ID:
+    {
+        std::ostringstream oss;
+        oss << "Panto reports INVALID_PACKET_ID. Expected "
+            << (int)packet.receiveUInt8() << ", received "
+            << (int)packet.receiveUInt8() << std::endl;
+        logString((char *)oss.str().c_str());
+        break;
+    }
+    default:
+        s_receiveQueue.push(packet);
+        break;
+    }
+
     return true;
 }
 

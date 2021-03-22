@@ -1,11 +1,16 @@
 #pragma once
 
+#include <set>
+
 enum MessageType
 {
     SYNC = 0x00,
     HEARTBEAT = 0x01,
     BUFFER_CRITICAL = 0x02,
     BUFFER_READY = 0x03,
+    PACKET_ACK = 0x04,
+    INVALID_PACKET_ID = 0x05,
+    INVALID_DATA = 0x06,
     POSITION = 0x10,
     DEBUG_LOG = 0x20,
     SYNC_ACK = 0x80,
@@ -27,3 +32,5 @@ enum MessageType
     SPEED_CONTROL = 0xAA,
     DUMP_HASHTABLE = 0xC0,
 };
+
+extern std::set<MessageType> TrackedMessageTypes;

@@ -32,6 +32,15 @@ set(private_headers
     ${protocol_include_dir}/protocol/header.hpp
     ${protocol_include_dir}/protocol/messageType.hpp)
 
+set(shared_sources
+    ${serial_source_dir}/cppLib/lib.cpp
+    ${serial_source_dir}/crashAnalyzer/analyze.cpp
+    ${serial_source_dir}/crashAnalyzer/buffer.cpp
+    ${serial_source_dir}/serial/shared.cpp
+    ${serial_source_dir}/serial/packet.cpp
+    ${protocol_source_dir}/protocol.cpp
+    ${protocol_source_dir}/messageType.cpp)
+
 if (WIN32)
 # set path vars
 set(addr2line "$ENV{USERPROFILE}\\.platformio\\packages\\toolchain-xtensa32\\bin\\xtensa-esp32-elf-addr2line.exe")
@@ -48,22 +57,12 @@ add_compile_definitions(WINDOWS)
 add_compile_definitions(ADDR2LINE_PATH="${addr2line}")
 add_compile_definitions(FIRMWARE_PATH="${firmware_abs}")
 set(sources
-    ${serial_source_dir}/cppLib/lib.cpp
-    ${serial_source_dir}/crashAnalyzer/analyze.cpp
-    ${serial_source_dir}/crashAnalyzer/buffer.cpp
-    ${serial_source_dir}/serial/shared.cpp
-    ${serial_source_dir}/serial/packet.cpp
-    ${serial_source_dir}/serial/win.cpp
-    ${protocol_source_dir}/protocol.cpp)
+    ${shared_sources}
+    ${serial_source_dir}/serial/win.cpp)
 elseif (UNIX)
 set(sources
-    ${serial_source_dir}/cppLib/lib.cpp
-    ${serial_source_dir}/crashAnalyzer/analyze.cpp
-    ${serial_source_dir}/crashAnalyzer/buffer.cpp
-    ${serial_source_dir}/serial/shared.cpp
-    ${serial_source_dir}/serial/packet.cpp
-    ${serial_source_dir}/serial/unix.cpp
-    ${protocol_source_dir}/protocol.cpp)
+    ${shared_sources}
+    ${serial_source_dir}/serial/unix.cpp)
 else()
     message(FATAL_ERROR "System is neither WIN32 nor UNIX.")
 endif()
