@@ -53,8 +53,13 @@ void GodObject::update()
         }
         case GO_REMOVE_OBSTACLE:
         {
+            try{
+
             delete m_obstacles.at(action->m_data.m_obstacleId);
             m_obstacles.erase(action->m_data.m_obstacleId);
+            } catch (const std::out_of_range &oor){
+                DPSerial::sendInstantDebugLog("Could not remove obstacle");
+            }
             break;
         }
         default:

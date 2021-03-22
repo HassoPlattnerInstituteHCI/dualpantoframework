@@ -107,16 +107,21 @@ To generate them follow these steps:
 
 `cd utils/serial`
 
+`rm CMakeCache.txt`
+
 `cmake .`
 
 `make`
 
-`cd ../..`
+OSX: 
 
-`sudo utils/serial/unity/mac.sh` or `utils\serial\unity\win.bat`
+Copy the libserial.dylib to the unity-dualpanto-framework sub-repo and restart Unity to reimport the Assets.
 
-This generates a utils/serial/cppLibBuild/Release folder that contains the Serial.dll or libserial.dylib.
+Windows:
 
+run `unity\win.bat`
+
+This generates the Serial.dll in the folder cppLibBuild/Release.
 Copy it over to your unity-dualpanto-framework sub-repo and restart Unity.
 
 ## Troubleshooting
