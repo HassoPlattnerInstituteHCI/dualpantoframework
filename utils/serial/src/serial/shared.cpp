@@ -22,7 +22,7 @@ bool DPSerial::s_haveUnacknowledgedTrackedPacket = false;
 Packet DPSerial::s_lastTrackedPacket(0, 0);
 std::chrono::time_point<std::chrono::steady_clock>
     DPSerial::s_lastTrackedPacketSendTime;
-const std::chrono::milliseconds DPSerial::c_trackedPacketTimeout(100);
+const std::chrono::milliseconds DPSerial::c_trackedPacketTimeout(10);
 bool DPSerial::s_pantoReportedInvalidData = false;
 
 bool DPSerial::s_pantoReady = true;
@@ -70,8 +70,6 @@ void DPSerial::update()
         while (processInput())
             ;
         processOutput();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -147,9 +145,6 @@ void DPSerial::processOutput()
         s_haveUnacknowledgedTrackedPacket = true;
         s_lastTrackedPacket = packet;
         s_lastTrackedPacketSendTime = std::chrono::steady_clock::now();
-        // logString(
-        //     (char *)("PACKET_SND " + std::to_string(packet.header.PacketId))
-        //         .c_str());
     }
 
     uint8_t header[c_headerSize];
@@ -157,17 +152,6 @@ void DPSerial::processOutput()
     header[1] = packet.header.PacketId;
     header[2] = packet.header.PayloadSize >> 8;
     header[3] = packet.header.PayloadSize & 255;
-
-    // if (header[0] == 0)
-    // {
-    //     std::ostringstream oss;
-    //     oss << "SEND:"
-    //         << " mt " << std::to_string(packet.header.MessageType)
-    //         << " id " << std::to_string(packet.header.PacketId)
-    //         << " ps " << std::to_string(packet.header.PayloadSize)
-    //         << std::endl;
-    //     logString((char *)oss.str().c_str());
-    // }
 
     write(c_magicNumber, c_magicNumberSize);
     write(header, c_headerSize);
@@ -274,7 +258,6 @@ bool DPSerial::readPayload()
     case PACKET_ACK:
     {
         auto id = packet.receiveUInt8();
-        // logString((char *)("PACKET_ACK " + std::to_string(id)).c_str());
         if (!s_haveUnacknowledgedTrackedPacket)
         {
             logString("Received unexpected PACKET_ACK");
