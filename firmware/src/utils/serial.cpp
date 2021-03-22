@@ -298,8 +298,11 @@ void DPSerial::receiveMotor()
     const auto pantoIndex = receiveUInt8();
 
     const auto target = Vector2D(receiveFloat(), receiveFloat());
-    pantos[pantoIndex].setInTransition(true);
-    DPSerial::sendInstantDebugLog("In Transition");
+    if (!isnan(target.x) && !isnan(target.y))
+    {
+        pantos[pantoIndex].setInTransition(true);
+        DPSerial::sendInstantDebugLog("In Transition");
+    }
     pantos[pantoIndex].setRotation(receiveFloat());
     pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
