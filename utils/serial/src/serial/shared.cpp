@@ -22,8 +22,8 @@ bool DPSerial::s_haveUnacknowledgedTrackedPacket = false;
 Packet DPSerial::s_lastTrackedPacket(0, 0);
 std::chrono::time_point<std::chrono::steady_clock>
     DPSerial::s_lastTrackedPacketSendTime;
-const std::chrono::milliseconds DPSerial::c_trackedPacketTimeout(10);
 bool DPSerial::s_pantoReportedInvalidData = false;
+const std::chrono::milliseconds DPSerial::c_trackedPacketTimeout(10);
 
 bool DPSerial::s_pantoReady = true;
 uint32_t DPSerial::s_magicReceiveIndex = 0;
@@ -61,6 +61,14 @@ void DPSerial::reset()
     std::swap(s_lowPrioSendQueue, emptyLP);
     std::queue<Packet> emptyRec;
     std::swap(s_receiveQueue, emptyRec);
+    s_nextTrackedPacketId = 1;
+    s_haveUnacknowledgedTrackedPacket = false;
+    s_lastTrackedPacketSendTime;
+    s_pantoReportedInvalidData = false;
+    s_pantoReady = true;
+    s_magicReceiveIndex = 0;
+    s_receiveState = NONE;
+    s_receiveHeader = {0, 0};
 }
 
 void DPSerial::update()
