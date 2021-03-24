@@ -13,17 +13,18 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 
 void DPSerial::tearDown()
 {
+    stopWorker();
     CloseHandle(s_handle);
 }
 
-bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
+bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
     DWORD bytesRead;
     ReadFile(s_handle, target, length, &bytesRead, NULL);
     return bytesRead == length;
 }
 
-void DPSerial::write(const uint8_t* const data, const uint32_t length)
+void DPSerial::write(const uint8_t *const data, const uint32_t length)
 {
     DWORD bytesWritten = 0;
     WriteFile(s_handle, data, length, &bytesWritten, NULL);
@@ -59,5 +60,12 @@ bool DPSerial::setup(std::string path)
     timeouts.ReadTotalTimeoutMultiplier = 10;
     timeouts.WriteTotalTimeoutConstant = 50;
     timeouts.WriteTotalTimeoutMultiplier = 10;
-    return SetCommTimeouts(s_handle, &timeouts) && SetCommMask(s_handle, EV_RXCHAR);
+    if (!SetCommTimeouts(s_handle, &timeouts) ||
+        !SetCommMask(s_handle, EV_RXCHAR))
+    {
+        return false;
+    }
+
+    startWorker();
+    return true;
 }
