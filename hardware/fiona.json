@@ -76,7 +76,7 @@
                 "encoder": {
                     "aPin": 35,
                     "bPin": 34,
-                    "steps": TODO,
+                    "steps": 70,
                     "flipped": true,
                     "setup": -0.25
                 }
@@ -142,7 +142,7 @@
                 "encoder": {
                     "aPin": 36,
                     "bPin": 39,
-                    "steps": TODO,
+                    "steps": 70,
                     "flipped": false,
                     "setup": -0.25
                 }
