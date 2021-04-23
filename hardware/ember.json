@@ -134,7 +134,7 @@
         "motor": {
           "pwmPin": 23,
           "dirAPin": 26,
-          "flipped": false,
+          "flipped": true,
           "powerLimit": 0.2,
           "powerLimitForce": 0.2,
           "pidFactor": [0.5, 0, 30]
@@ -142,8 +142,8 @@
         "encoder": {
           "aPin": 36,
           "bPin": 39,
-          "steps": 136,
-          "flipped": false,
+          "steps": 260,
+          "flipped": true,
           "setup": 0
         }
       }
