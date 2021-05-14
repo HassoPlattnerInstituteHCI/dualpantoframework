@@ -117,7 +117,7 @@ function clean(target) {
 
 function config(target) {
   if (target === undefined) {
-    target = 'ember';
+    target = 'fiona';
   }
   log(`Generating config ${target}`, color.green);
   return exec('node', ['utils/scripts/generateHardwareConfig.js', target]);

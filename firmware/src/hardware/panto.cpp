@@ -86,7 +86,7 @@ void Panto::forwardKinematics()
     m_rightInnerAngle = rightElbowTotalAngle;
     m_pointingAngle =
         handleAngle +
-        (encoderFlipped[c_globalHandleIndex]==1? 1 : -1)* //sign changes when encoder is flipped
+        (encoderFlipped[c_globalHandleIndex]==1? -1 : 1)* //sign changes when encoder is flipped
         (c_handleMountedOnRightArm==1 ?       
         (rightElbowTotalAngle) :
         (-leftElbowTotalAngle));

@@ -134,7 +134,7 @@
         "motor": {
           "pwmPin": 23,
           "dirAPin": 26,
-          "flipped": false,
+          "flipped": true,
           "powerLimit": 0.2,
           "powerLimitForce": 0.2,
           "pidFactor": [0.5, 0, 30]
