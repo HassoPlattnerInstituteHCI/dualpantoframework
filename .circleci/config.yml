@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:9-stretch
+      - image: cimg/node:16.1.0
 
     steps:
       - checkout
