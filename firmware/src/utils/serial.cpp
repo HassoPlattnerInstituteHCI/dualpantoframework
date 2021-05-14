@@ -6,15 +6,17 @@
 #include "physics/pantoPhysics.hpp"
 #include "utils/vector.hpp"
 
+bool DPSerial::s_rxBufferCritical = false;
 Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
 std::queue<std::string> DPSerial::s_debugLogQueue;
 portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
 ReceiveState DPSerial::s_receiveState = NONE;
+uint8_t DPSerial::s_expectedPacketId = 1;
 bool DPSerial::s_connected = false;
 unsigned long DPSerial::s_lastHeartbeatTime = 0;
 uint16_t DPSerial::s_unacknowledgedHeartbeats = 0;
-std::map<MessageType, ReceiveHandler> 
+std::map<MessageType, ReceiveHandler>
     DPSerial::s_receiveHandlers = {
         {SYNC_ACK, DPSerial::receiveSyncAck},
         {HEARTBEAT_ACK, DPSerial::receiveHearbeatAck},
@@ -32,8 +34,7 @@ std::map<MessageType, ReceiveHandler>
         {CREATE_RAIL, DPSerial::receiveCreateRail},
         {FREEZE, DPSerial::receiveFreeze},
         {FREE, DPSerial::receiveFree},
-        {SPEED_CONTROL, DPSerial::receiveSpeedControl}
-        };
+        {SPEED_CONTROL, DPSerial::receiveSpeedControl}};
 
 // === private ===
 
@@ -52,7 +53,7 @@ void DPSerial::sendInt16(int16_t data)
 
 void DPSerial::sendUInt16(uint16_t data)
 {
-    sendInt16(reinterpret_cast<int16_t&>(data));
+    sendInt16(reinterpret_cast<int16_t &>(data));
 }
 
 void DPSerial::sendInt32(int32_t data)
@@ -65,15 +66,15 @@ void DPSerial::sendInt32(int32_t data)
 
 void DPSerial::sendUInt32(uint32_t data)
 {
-    sendInt32(reinterpret_cast<int32_t&>(data));
+    sendInt32(reinterpret_cast<int32_t &>(data));
 }
 
 void DPSerial::sendFloat(float data)
 {
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-    sendInt32(reinterpret_cast<int32_t&>(data));
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+    sendInt32(reinterpret_cast<int32_t &>(data));
+#pragma GCC diagnostic pop
 }
 
 void DPSerial::sendMessageType(MessageType data)
@@ -92,6 +93,7 @@ void DPSerial::sendMagicNumber()
 void DPSerial::sendHeader(MessageType messageType, uint16_t payloadSize)
 {
     sendMessageType(messageType);
+    sendUInt8(0); // no panto -> fw tracked packages
     sendUInt16(payloadSize);
 };
 
@@ -115,6 +117,49 @@ void DPSerial::sendHeartbeat()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
+void DPSerial::sendBufferCritical()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(BUFFER_CRITICAL, 0);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendBufferReady()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(BUFFER_READY, 0);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendPacketAck(uint8_t id)
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(PACKET_ACK, 1);
+    sendUInt8(id);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendInvalidPacketId(uint8_t expected, uint8_t received)
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(INVALID_PACKET_ID, 2);
+    sendUInt8(expected);
+    sendUInt8(received);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
+void DPSerial::sendInvalidData()
+{
+    portENTER_CRITICAL(&s_serialMutex);
+    sendMagicNumber();
+    sendHeader(INVALID_DATA, 0);
+    portEXIT_CRITICAL(&s_serialMutex);
+};
+
 // receive helper
 
 uint8_t DPSerial::receiveUInt8()
@@ -130,7 +175,7 @@ int16_t DPSerial::receiveInt16()
 uint16_t DPSerial::receiveUInt16()
 {
     auto temp = receiveInt16();
-    return reinterpret_cast<uint16_t&>(temp);
+    return reinterpret_cast<uint16_t &>(temp);
 }
 
 int32_t DPSerial::receiveInt32()
@@ -141,16 +186,16 @@ int32_t DPSerial::receiveInt32()
 uint32_t DPSerial::receiveUInt32()
 {
     auto temp = receiveInt32();
-    return reinterpret_cast<uint32_t&>(temp);
+    return reinterpret_cast<uint32_t &>(temp);
 }
 
 float DPSerial::receiveFloat()
 {
     auto temp = receiveInt32();
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-    return reinterpret_cast<float&>(temp);
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+    return reinterpret_cast<float &>(temp);
+#pragma GCC diagnostic pop
 }
 
 MessageType DPSerial::receiveMessageType()
@@ -158,15 +203,34 @@ MessageType DPSerial::receiveMessageType()
     return static_cast<MessageType>(Serial.read());
 }
 
+void DPSerial::checkBuffer()
+{
+    const auto available = Serial.available();
+    if (available > c_rxBufferCriticalThreshold && !s_rxBufferCritical)
+    {
+        s_rxBufferCritical = true;
+        sendBufferCritical();
+    }
+    if (available < c_rxBufferReadyThreshold && s_rxBufferCritical)
+    {
+        s_rxBufferCritical = false;
+        sendBufferReady();
+    }
+}
+
 bool DPSerial::receiveMagicNumber()
 {
     int magicNumberProgress = 0;
 
+    bool invalidData = false;
+
     // as long as enough data is available to find the magic number
     while (Serial.available() >= c_magicNumberSize)
     {
+        const uint8_t read = Serial.read();
+        const uint8_t expected = c_magicNumber[magicNumberProgress];
         // does next byte fit expected by of magic number?
-        if (Serial.read() == c_magicNumber[magicNumberProgress])
+        if (read == expected)
         {
             // yes - increase index. If check complete, return true.
             if (++magicNumberProgress == c_magicNumberSize)
@@ -178,8 +242,18 @@ bool DPSerial::receiveMagicNumber()
         else
         {
             // no - reset search progress
+            // sendInstantDebugLog(
+            //     "Error: expected %x, read %x. State might by faulty!",
+            //     expected,
+            //     read);
+            invalidData = true;
             magicNumberProgress = 0;
         }
+    }
+
+    if (invalidData)
+    {
+        sendInvalidData();
     }
 
     // ran out of available data before finding complete number - return false
@@ -195,6 +269,7 @@ bool DPSerial::receiveHeader()
     }
 
     s_header.MessageType = receiveUInt8();
+    s_header.PacketId = receiveUInt8();
     s_header.PayloadSize = receiveUInt16();
     s_receiveState = FOUND_HEADER;
     return true;
@@ -223,8 +298,11 @@ void DPSerial::receiveMotor()
     const auto pantoIndex = receiveUInt8();
 
     const auto target = Vector2D(receiveFloat(), receiveFloat());
-    pantos[pantoIndex].setInTransition(true);
-    DPSerial::sendInstantDebugLog("In Transition");
+    if (!isnan(target.x) && !isnan(target.y))
+    {
+        pantos[pantoIndex].setInTransition(true);
+        DPSerial::sendInstantDebugLog("In Transition");
+    }
     pantos[pantoIndex].setRotation(receiveFloat());
     pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
@@ -256,14 +334,14 @@ void DPSerial::receiveCreateObstacle()
     std::vector<Vector2D> path;
     path.reserve(vecCount);
 
-    for(auto i = 0; i < vecCount; ++i)
+    for (auto i = 0; i < vecCount; ++i)
     {
         path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createObstacle(id, path, false);
         }
@@ -280,14 +358,14 @@ void DPSerial::receiveCreatePassableObstacle()
     std::vector<Vector2D> path;
     path.reserve(vecCount);
 
-    for(auto i = 0; i < vecCount; ++i)
+    for (auto i = 0; i < vecCount; ++i)
     {
         path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createObstacle(id, path, true);
         }
@@ -304,16 +382,16 @@ void DPSerial::receiveCreateRail()
     std::vector<Vector2D> path;
     path.reserve(vecCount);
 
-    for(auto i = 0; i < vecCount; ++i)
+    for (auto i = 0; i < vecCount; ++i)
     {
         path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
     auto displacement = (double)receiveFloat();
 
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->createRail(id, path, displacement);
         }
@@ -330,14 +408,14 @@ void DPSerial::receiveAddToObstacle()
     std::vector<Vector2D> path;
     path.reserve(vecCount);
 
-    for(auto i = 0; i < vecCount; ++i)
+    for (auto i = 0; i < vecCount; ++i)
     {
         path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->addToObstacle(id, path);
         }
@@ -348,9 +426,9 @@ void DPSerial::receiveRemoveObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->removeObstacle(id);
         }
@@ -361,10 +439,10 @@ void DPSerial::receiveEnableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-    
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->enableObstacle(id);
         }
@@ -375,34 +453,36 @@ void DPSerial::receiveDisableObstacle()
 {
     auto pantoIndex = receiveUInt8();
     auto id = receiveUInt16();
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->enableObstacle(id, false);
         }
     }
 }
 
-void DPSerial::receiveFreeze(){
+void DPSerial::receiveFreeze()
+{
     auto pantoIndex = receiveUInt8();
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             const auto target = pantos[i].getPosition();
-            pantos[i].setRotation(NAN);
             pantos[i].setTarget(target, 0);
+            pantos[i].setRotation(pantos[i].getRotation());
             pantos[i].setIsFrozen(true);
         }
     }
 }
 
-void DPSerial::receiveFree(){
+void DPSerial::receiveFree()
+{
     auto pantoIndex = receiveUInt8();
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantos[i].setTarget(Vector2D(NAN, NAN), 0);
             pantos[i].setRotation(NAN);
@@ -412,7 +492,8 @@ void DPSerial::receiveFree(){
     }
 }
 
-void DPSerial::receiveSpeedControl(){
+void DPSerial::receiveSpeedControl()
+{
     auto tethered = receiveUInt8(); //0 or 1
     auto tetherFactor = receiveFloat();
     auto tetherInnerRadius = receiveFloat();
@@ -434,7 +515,7 @@ void DPSerial::receiveSpeedControl(){
         break;
     }
     auto pockEnabled = receiveUInt8(); //0 or 1
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
         pantoPhysics[i].godObject()->setSpeedControl(tethered, tetherFactor, tetherInnerRadius, tetherOuterRadius, strategy, pockEnabled);
     }
@@ -443,7 +524,8 @@ void DPSerial::receiveSpeedControl(){
 void DPSerial::receiveCalibrationRequest()
 {
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
-    for(auto i = 0; i < pantoCount; ++i){
+    for (auto i = 0; i < pantoCount; ++i)
+    {
         pantos[i].calibratePanto();
     }
 }
@@ -451,9 +533,9 @@ void DPSerial::receiveCalibrationRequest()
 void DPSerial::receiveDumpHashtable()
 {
     auto pantoIndex = receiveUInt8();
-    for(auto i = 0; i < pantoPhysics.size(); ++i)
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
-        if(pantoIndex == 0xFF || i == pantoIndex)
+        if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->dumpHashtable();
         }
@@ -462,7 +544,11 @@ void DPSerial::receiveDumpHashtable()
 
 void DPSerial::receiveInvalid()
 {
-    sendQueuedDebugLog("Received invalid message: %02X", s_header.MessageType);
+    sendQueuedDebugLog(
+        "Received invalid message: [%02X, %02X, %04X] %",
+        s_header.MessageType,
+        s_header.PacketId,
+        s_header.PayloadSize);
 };
 
 // === public ===
@@ -472,8 +558,8 @@ void DPSerial::receiveInvalid()
 void DPSerial::init()
 {
     Serial.flush();
-    Serial.begin(c_baudRate); 
-    Serial.setRxBufferSize(4 * c_maxPayloadSize);
+    Serial.begin(c_baudRate);
+    Serial.setRxBufferSize(c_rxBufferSize);
 }
 
 bool DPSerial::ensureConnection()
@@ -481,6 +567,8 @@ bool DPSerial::ensureConnection()
     if (!s_connected)
     {
         sendSync();
+        // delay to avoid spamming sync messages
+        delay(10);
         return false;
     }
 
@@ -509,7 +597,7 @@ void DPSerial::sendPosition()
     sendMagicNumber();
     sendHeader(POSITION, pantoCount * 5 * 4); // five values per panto, 4 bytes each
 
-    for(auto i = 0; i < pantoCount; ++i)
+    for (auto i = 0; i < pantoCount; ++i)
     {
         const auto panto = pantos[i];
         const auto pos = panto.getPosition();
@@ -523,12 +611,12 @@ void DPSerial::sendPosition()
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendInstantDebugLog(const char* message, ...)
+void DPSerial::sendInstantDebugLog(const char *message, ...)
 {
     portENTER_CRITICAL(&s_serialMutex);
     va_list args;
     va_start(args, message);
-    uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length + 1, 0, c_debugLogBufferSize);
     sendMagicNumber();
@@ -537,15 +625,15 @@ void DPSerial::sendInstantDebugLog(const char* message, ...)
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendQueuedDebugLog(const char* message, ...)
+void DPSerial::sendQueuedDebugLog(const char *message, ...)
 {
     portENTER_CRITICAL(&s_serialMutex);
     va_list args;
     va_start(args, message);
-    uint16_t length = vsnprintf(reinterpret_cast<char*>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
+    uint16_t length = vsnprintf(reinterpret_cast<char *>(s_debugLogBuffer), c_debugLogBufferSize, message, args);
     va_end(args);
     length = constrain(length, 0, c_debugLogBufferSize);
-    s_debugLogQueue.emplace(reinterpret_cast<char*>(s_debugLogBuffer), length);
+    s_debugLogQueue.emplace(reinterpret_cast<char *>(s_debugLogBuffer), length);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
@@ -563,18 +651,18 @@ void DPSerial::processDebugLogQueue()
 {
     portENTER_CRITICAL(&s_serialMutex);
     // quick check to avoid loop if not necessary
-    if(!s_debugLogQueue.empty())
+    if (!s_debugLogQueue.empty())
     {
-        for(auto i = 0; i < c_processedQueuedMessagesPerFrame; ++i)
+        for (auto i = 0; i < c_processedQueuedMessagesPerFrame; ++i)
         {
-            if(!s_debugLogQueue.empty())
+            if (!s_debugLogQueue.empty())
             {
-                auto& msg = s_debugLogQueue.front();
+                auto &msg = s_debugLogQueue.front();
                 auto length = msg.length() + 1;
                 sendMagicNumber();
                 sendHeader(DEBUG_LOG, length);
                 Serial.write(
-                    reinterpret_cast<const uint8_t*>(msg.c_str()),
+                    reinterpret_cast<const uint8_t *>(msg.c_str()),
                     length);
                 s_debugLogQueue.pop();
             }
@@ -588,12 +676,13 @@ void DPSerial::sendDebugData()
     const auto pos0 = pantos[0].getPosition();
     const auto pos1 = pantos[1].getPosition();
     portENTER_CRITICAL(&s_serialMutex);
-    sendInstantDebugLog("[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
+    sendInstantDebugLog(
+        "[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
         degrees(pantos[0].getActuationAngle(0)),
-        degrees(pantos[0].getActuationAngle(1)), 
-        degrees(pantos[0].getActuationAngle(2)), 
-        degrees(pantos[1].getActuationAngle(0)), 
-        degrees(pantos[1].getActuationAngle(1)), 
+        degrees(pantos[0].getActuationAngle(1)),
+        degrees(pantos[0].getActuationAngle(2)),
+        degrees(pantos[1].getActuationAngle(0)),
+        degrees(pantos[1].getActuationAngle(1)),
         degrees(pantos[1].getActuationAngle(2)),
         pos0.x,
         pos0.y,
@@ -608,6 +697,8 @@ void DPSerial::sendDebugData()
 
 void DPSerial::receive()
 {
+    checkBuffer();
+
     if (s_receiveState == NONE && !receiveMagicNumber())
     {
         return;
@@ -629,12 +720,35 @@ void DPSerial::receive()
         {
             Serial.read();
         }
+        sendInstantDebugLog(
+            "Not connected, ignoring [%X %i %i]",
+            s_header.MessageType,
+            s_header.PacketId,
+            s_header.PayloadSize);
         return;
+    }
+
+    s_receiveState = NONE;
+
+    if (s_header.PacketId > 0)
+    {
+        if (s_header.PacketId != s_expectedPacketId)
+        {
+            sendInvalidPacketId(s_expectedPacketId, s_header.PacketId);
+            return;
+        }
+
+        sendPacketAck(s_header.PacketId);
+        s_expectedPacketId++;
+        if (s_expectedPacketId == 0)
+        {
+            s_expectedPacketId++;
+        }
     }
 
     auto handler = s_receiveHandlers.find((MessageType)(s_header.MessageType));
 
-    if(handler == s_receiveHandlers.end())
+    if (handler == s_receiveHandlers.end())
     {
         receiveInvalid();
     }
@@ -642,6 +756,4 @@ void DPSerial::receive()
     {
         handler->second();
     }
-
-    s_receiveState = NONE;
 };

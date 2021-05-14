@@ -8,6 +8,7 @@
 
 struct Header
 {
-    uint8_t MessageType;
-    uint16_t PayloadSize;
+    uint8_t MessageType = 0;
+    uint8_t PacketId = 0;
+    uint16_t PayloadSize = 0;
 };

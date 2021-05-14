@@ -14,6 +14,12 @@
 class DPSerial : DPProtocol
 {
 private:
+    // receive buffer limits
+    static const uint16_t c_rxBufferSize = 10 * c_maxPacketSize;
+    static const uint16_t c_rxBufferCriticalThreshold = 5 * c_maxPacketSize;
+    static const uint16_t c_rxBufferReadyThreshold = 2 * c_maxPacketSize;
+    static bool s_rxBufferCritical;
+
     // data storage
     static Header s_header;
     static const uint16_t c_debugLogBufferSize = 256;
@@ -25,6 +31,7 @@ private:
     static portMUX_TYPE s_serialMutex;
 
     static ReceiveState s_receiveState;
+    static uint8_t s_expectedPacketId;
 
     // connection
     static bool s_connected;
@@ -47,6 +54,11 @@ private:
     // send
     static void sendSync();
     static void sendHeartbeat();
+    static void sendBufferCritical();
+    static void sendBufferReady();
+    static void sendPacketAck(uint8_t id);
+    static void sendInvalidPacketId(uint8_t expected, uint8_t received);
+    static void sendInvalidData();
 
     // receive helper
     static uint8_t receiveUInt8();
@@ -56,6 +68,7 @@ private:
     static uint32_t receiveUInt32();
     static float receiveFloat();
     static MessageType receiveMessageType();
+    static void checkBuffer();
     static bool receiveMagicNumber();
     static bool receiveHeader();
     static bool payloadReady();
@@ -94,8 +107,8 @@ public:
     // send
     static void sendPosition();
     static void sendTransitionEnded(uint8_t panto);
-    static void sendInstantDebugLog(const char* message, ...);
-    static void sendQueuedDebugLog(const char* message, ...);
+    static void sendInstantDebugLog(const char *message, ...);
+    static void sendQueuedDebugLog(const char *message, ...);
     static void processDebugLogQueue();
     static void sendDebugData();
 

@@ -1,11 +1,14 @@
 #include "libInterface.hpp"
 
 #include <iostream>
+#include <sstream>
+
+#include "packet.hpp"
 
 #ifdef _WIN32
-#define FILEPTR void*
+#define FILEPTR void *
 #else
-#define FILEPTR FILE*
+#define FILEPTR FILE *
 #endif
 
 // class stuff
@@ -15,20 +18,20 @@ uint32_t CppLib::getRevision()
     return c_revision;
 }
 
-uint64_t CppLib::open(char* port)
+uint64_t CppLib::open(char *port)
 {
-    if(!setup(port))
+    if (!setup(port))
     {
         logString("Open failed");
         return 0;
     }
     logString("Open successfull");
-    return (uint64_t) s_handle;
+    return (uint64_t)s_handle;
 }
 
 void CppLib::setActiveHandle(uint64_t handle)
 {
-    s_handle = (FILEPTR) handle;
+    s_handle = (FILEPTR)handle;
 }
 
 void CppLib::close()
@@ -45,28 +48,31 @@ void CppLib::poll()
     double positionCoords[2 * 5];
     uint8_t pantoIndex;
 
-    while (getAvailableByteCount(s_handle))
+    while (s_receiveQueue.size() > 0)
     {
-        receivePacket();
+        auto packet = s_receiveQueue.front();
+        s_receiveQueue.pop();
 
-        if (s_header.PayloadSize > c_maxPayloadSize)
+        if (packet.header.PayloadSize > c_maxPayloadSize)
         {
             continue;
         }
 
-        uint16_t offset = 0;
-        switch (s_header.MessageType)
+        switch (packet.header.MessageType)
         {
         case SYNC:
         {
-            auto receivedRevision = DPSerial::receiveUInt32(offset);
+            auto receivedRevision = packet.receiveUInt32();
             if (receivedRevision == c_revision)
             {
                 receivedSync = true;
             }
             else
             {
-                logString("Revision id not matching. Maybe try reset the device?");
+                std::ostringstream oss;
+                oss << "Revision id not matching. Expected " << c_revision
+                    << ", received " << receivedRevision << "." << std::endl;
+                logString((char *)oss.str().c_str());
             }
             break;
         }
@@ -75,27 +81,27 @@ void CppLib::poll()
             break;
         case POSITION:
             receivedPosition = true;
-            while (offset < s_header.PayloadSize)
+            while (packet.payloadIndex < packet.header.PayloadSize)
             {
-                uint8_t index = offset / 4;
-                positionCoords[index] = DPSerial::receiveFloat(offset);
+                uint8_t index = packet.payloadIndex / 4;
+                positionCoords[index] = packet.receiveFloat();
             }
             break;
         case DEBUG_LOG:
-            logString((char *)s_packetBuffer);
+            logString((char *)packet.payload);
             break;
         case TRANSITION_ENDED:
             receivedTransition = true;
-            pantoIndex = DPSerial::receiveUInt8(offset);
+            pantoIndex = packet.receiveUInt8();
             break;
         default:
             break;
         }
     }
 
-    if(receivedSync)
+    if (receivedSync)
     {
-        if(syncHandler == nullptr)
+        if (syncHandler == nullptr)
         {
             logString("Received sync, but handler not set up");
         }
@@ -105,9 +111,9 @@ void CppLib::poll()
         }
     }
 
-    if(receivedHeartbeat)
+    if (receivedHeartbeat)
     {
-        if(heartbeatHandler == nullptr)
+        if (heartbeatHandler == nullptr)
         {
             logString("Received heartbeat, but handler not set up");
         }
@@ -119,7 +125,7 @@ void CppLib::poll()
 
     if (receivedPosition)
     {
-        if(positionHandler == nullptr)
+        if (positionHandler == nullptr)
         {
             logString("Received position, but handler not set up");
         }
@@ -132,7 +138,7 @@ void CppLib::poll()
     if (receivedTransition)
     {
         // transition (tweening) ended
-        if(transitionHandler == nullptr)
+        if (transitionHandler == nullptr)
         {
             logString("Received transition ended, but handler not set up");
         }
@@ -141,172 +147,133 @@ void CppLib::poll()
             transitionHandler(pantoIndex);
         }
     }
-
-    
 }
 
 void CppLib::sendSyncAck()
 {
-    s_header.MessageType = SYNC_ACK;
-    s_header.PayloadSize = 0;
-    sendInstantPacket();
+    DPSerial::sendInstantPacket(Packet(SYNC_ACK, 0));
 }
 
 void CppLib::sendHeartbeatAck()
 {
-    s_header.MessageType = HEARTBEAT_ACK;
-    s_header.PayloadSize = 0;
-    sendInstantPacket();
+    DPSerial::sendInstantPacket(Packet(HEARTBEAT_ACK, 0));
 }
 
 void CppLib::sendMotor(uint8_t controlMethod, uint8_t pantoIndex, float positionX, float positionY, float rotation)
 {
-    s_header.MessageType = MOTOR;
-    s_header.PayloadSize = 14; // 1 for control, 1 for index, 3 * 4 for position
-    uint16_t offset = 0;
-    sendUInt8(controlMethod, offset);
-    sendUInt8(pantoIndex, offset);
-    sendFloat(positionX, offset);
-    sendFloat(positionY, offset);
-    sendFloat(rotation, offset);
-    sendPacket();
+    auto p = Packet(MOTOR, 14); // 1 for control, 1 for index, 3 * 4 for pos
+    p.sendUInt8(controlMethod);
+    p.sendUInt8(pantoIndex);
+    p.sendFloat(positionX);
+    p.sendFloat(positionY);
+    p.sendFloat(rotation);
+    sendPacket(p);
 }
 
 void CppLib::sendSpeed(uint8_t pantoIndex, float speed)
 {
-    s_header.MessageType = SPEED;
-    s_header.PayloadSize = 5; // 1 for index, 1 * 4 for position
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendFloat(speed, offset);
-    sendPacket();
+    auto p = Packet(SPEED, 5); // 1 for index, 1 * 4 for position
+    p.sendUInt8(pantoIndex);
+    p.sendFloat(speed);
+    sendPacket(p);
 }
 
 void CppLib::sendFree(uint8_t pantoIndex)
 {
-    s_header.MessageType = FREE;
-    s_header.PayloadSize = 1;
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendPacket();
+    auto p = Packet(FREE, 1);
+    p.sendUInt8(pantoIndex);
+    sendPacket(p);
 }
 
 void CppLib::sendFreeze(uint8_t pantoIndex)
 {
-    s_header.MessageType = FREEZE;
-    s_header.PayloadSize = 1;
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendPacket();
+    auto p = Packet(FREEZE, 1);
+    p.sendUInt8(pantoIndex);
+    sendPacket(p);
 }
 
 void CppLib::sendSpeedControl(uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)
 {
-    s_header.MessageType = SPEED_CONTROL;
-    s_header.PayloadSize = 15; // 1 for index, 4 for tether factor, 4 each for the tether radii, 1 for tether strategy and 1 for pock 
-    uint16_t offset = 0;
-    sendUInt8(tethered, offset);
-    sendFloat(tetherFactor, offset);
-    sendFloat(tetherInnerRadius, offset);
-    sendFloat(tetherOuterRadius, offset);
-    sendUInt8(strategy, offset);
-    sendUInt8(pockEnabled, offset);
-    sendPacket();
+    auto p = Packet(SPEED_CONTROL, 15); // 1 for index, 4 for tether factor, 4 each for the tether radii, 1 for tether strategy and 1 for pock
+    p.sendUInt8(tethered);
+    p.sendFloat(tetherFactor);
+    p.sendFloat(tetherInnerRadius);
+    p.sendFloat(tetherOuterRadius);
+    p.sendUInt8(strategy);
+    p.sendUInt8(pockEnabled);
+    sendPacket(p);
 }
-
 
 void CppLib::createObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
-    s_header.MessageType = CREATE_OBSTACLE;
-    s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendFloat(vector1x, offset);
-    sendFloat(vector1y, offset);
-    sendFloat(vector2x, offset);
-    sendFloat(vector2y, offset);
-    sendPacket();
+    auto p = Packet(CREATE_OBSTACLE, 19); // 1 for index, 2 for id, 2 * 2 * 4 for vectors
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(obstacleId);
+    p.sendFloat(vector1x);
+    p.sendFloat(vector1y);
+    p.sendFloat(vector2x);
+    p.sendFloat(vector2y);
+    sendPacket(p);
 }
 
 void CppLib::createPassableObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
-    s_header.MessageType = CREATE_PASSABLE_OBSTACLE;
-    s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendFloat(vector1x, offset);
-    sendFloat(vector1y, offset);
-    sendFloat(vector2x, offset);
-    sendFloat(vector2y, offset);
-    sendPacket();
-    dumpBuffersToFile();
+    auto p = Packet(CREATE_PASSABLE_OBSTACLE, 19); // 1 for index, 2 for id, 2 * 2 * 4 for vectors
+    p.sendUInt16(obstacleId);
+    p.sendFloat(vector1x);
+    p.sendFloat(vector1y);
+    p.sendFloat(vector2x);
+    p.sendFloat(vector2y);
+    sendPacket(p);
 }
 
 void CppLib::createRail(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y, float displacement)
 {
-    s_header.MessageType = CREATE_RAIL;
-    s_header.PayloadSize = 23; // 1 for index, 2 for id, 2 * 2 * 4 for vectors, 4 for displacement
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendFloat(vector1x, offset);
-    sendFloat(vector1y, offset);
-    sendFloat(vector2x, offset);
-    sendFloat(vector2y, offset);
-    sendFloat(displacement, offset);
-    sendPacket();
-    dumpBuffersToFile();
+    auto p = Packet(CREATE_RAIL, 23); // 1 for index, 2 for id, 2 * 2 * 4 for vectors, 4 for displacement
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(obstacleId);
+    p.sendFloat(vector1x);
+    p.sendFloat(vector1y);
+    p.sendFloat(vector2x);
+    p.sendFloat(vector2y);
+    p.sendFloat(displacement);
+    sendPacket(p);
 }
 
 void CppLib::addToObstacle(uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
-    s_header.MessageType = ADD_TO_OBSTACLE;
-    s_header.PayloadSize = 19; // 1 for index, 2 for id, 2 * 2 * 4 for vectors
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendFloat(vector1x, offset);
-    sendFloat(vector1y, offset);
-    sendFloat(vector2x, offset);
-    sendFloat(vector2y, offset);
-    sendPacket();
+    auto p = Packet(ADD_TO_OBSTACLE, 19); // 1 for index, 2 for id, 2 * 2 * 4 for vectors
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(obstacleId);
+    p.sendFloat(vector1x);
+    p.sendFloat(vector1y);
+    p.sendFloat(vector2x);
+    p.sendFloat(vector2y);
+    sendPacket(p);
 }
 
 void CppLib::removeObstacle(uint8_t pantoIndex, uint16_t obstacleId)
 {
-    s_header.MessageType = REMOVE_OBSTACLE;
-    s_header.PayloadSize = 3; // 1 for index, 2 for id
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendPacket();
+    auto p = Packet(REMOVE_OBSTACLE, 3); // 1 for index, 2 for id
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(obstacleId);
+    sendPacket(p);
 }
 
 void CppLib::enableObstacle(uint8_t pantoIndex, uint16_t obstacleId)
 {
-    s_header.MessageType = ENABLE_OBSTACLE;
-    s_header.PayloadSize = 3; // 1 for index, 2 for id
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendPacket();
+    auto p = Packet(ENABLE_OBSTACLE, 3); // 1 for index, 2 for id
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(obstacleId);
+    sendPacket(p);
 }
 
 void CppLib::disableObstacle(uint8_t pantoIndex, uint16_t obstacleId)
 {
-    s_header.MessageType = DISABLE_OBSTACLE;
-    s_header.PayloadSize = 3; // 1 for index, 2 for id
-    uint16_t offset = 0;
-    sendUInt8(pantoIndex, offset);
-    sendUInt16(obstacleId, offset);
-    sendPacket();
-}
-
-uint32_t CppLib::checkSendQueue(uint32_t maxPackets)
-{
-    return DPSerial::checkSendQueue(maxPackets);
+    auto p = Packet(DISABLE_OBSTACLE, 3); // 1 for index, 2 for id
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(obstacleId);
+    sendPacket(p);
 }
 
 void CppLib::reset()
@@ -321,9 +288,9 @@ positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
 transitionHandler_t transitionHandler;
 
-void logString(char* msg)
+void logString(char *msg)
 {
-    if(loggingHandler != nullptr)
+    if (loggingHandler != nullptr)
     {
         loggingHandler(msg);
     }
@@ -367,7 +334,7 @@ void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler)
     logString("Transition handler set");
 }
 
-uint64_t SERIAL_EXPORT Open(char* port)
+uint64_t SERIAL_EXPORT Open(char *port)
 {
     return CppLib::open(port);
 }
@@ -402,7 +369,8 @@ void SERIAL_EXPORT SendMotor(uint64_t handle, uint8_t controlMethod, uint8_t pan
     CppLib::sendMotor(controlMethod, pantoIndex, positionX, positionY, rotation);
 }
 
-void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed){
+void SERIAL_EXPORT SendSpeed(uint64_t handle, uint8_t pantoIndex, float speed)
+{
     CppLib::setActiveHandle(handle);
     CppLib::sendSpeed(pantoIndex, speed);
 }
@@ -418,7 +386,6 @@ void SERIAL_EXPORT FreezeMotor(uint64_t handle, uint8_t pantoIndex)
     CppLib::setActiveHandle(handle);
     CppLib::sendFreeze(pantoIndex);
 }
-
 
 void SERIAL_EXPORT CreateObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId, float vector1x, float vector1y, float vector2x, float vector2y)
 {
@@ -469,7 +436,7 @@ void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float teth
 
 uint32_t SERIAL_EXPORT CheckQueuedPackets(uint32_t maxPackets)
 {
-    return CppLib::checkSendQueue(maxPackets);
+    return 0;
 }
 
 void SERIAL_EXPORT Reset()

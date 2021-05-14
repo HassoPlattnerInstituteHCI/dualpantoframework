@@ -15,10 +15,11 @@ uint32_t DPSerial::getAvailableByteCount(FILEHANDLE s_handle)
 
 void DPSerial::tearDown()
 {
+    stopWorker();
     fclose(s_handle);
 }
 
-bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
+bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
 {
     const uint32_t result = fread(target, 1, length, s_handle);
     const bool valid = result == length;
@@ -40,7 +41,7 @@ bool DPSerial::readBytesFromSerial(void* target, uint32_t length)
     return valid;
 }
 
-void DPSerial::write(const uint8_t* const data, const uint32_t length)
+void DPSerial::write(const uint8_t *const data, const uint32_t length)
 {
     ::write(fileno(s_handle), data, length);
 }
@@ -70,5 +71,7 @@ bool DPSerial::setup(std::string path)
         return false;
     }
     s_handle = fdopen(fd, "rw");
+
+    startWorker();
     return true;
 }
