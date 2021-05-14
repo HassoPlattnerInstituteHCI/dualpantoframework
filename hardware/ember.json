@@ -142,7 +142,7 @@
         "encoder": {
           "aPin": 36,
           "bPin": 39,
-          "steps": 260,
+          "steps": 136,
           "flipped": true,
           "setup": 0
         }
