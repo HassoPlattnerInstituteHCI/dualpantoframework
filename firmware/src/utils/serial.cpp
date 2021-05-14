@@ -470,8 +470,8 @@ void DPSerial::receiveFreeze()
         if (pantoIndex == 0xFF || i == pantoIndex)
         {
             const auto target = pantos[i].getPosition();
-            pantos[i].setRotation(NAN);
             pantos[i].setTarget(target, 0);
+            pantos[i].setRotation(pantos[i].getRotation());
             pantos[i].setIsFrozen(true);
         }
     }

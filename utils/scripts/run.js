@@ -52,6 +52,12 @@ const buildHandlers = {
 
 function build(target) {
   if (target === undefined) {
+    return build('firmware');
+    // 14.5.21: The js framework is deprecated since this
+    // commit: a045c86fa3754810a9a68b1bc89dcf990d883579
+    // To make it work again we have to implement the acknowledgement
+    // logic, similar to the way it's done in this
+    // commit: faa30310e884784b5d431ac65c05e3186b9bafab
     return build('framework')
          & build('firmware');
   }
