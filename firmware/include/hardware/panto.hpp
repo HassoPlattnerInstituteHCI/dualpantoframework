@@ -25,6 +25,11 @@ private:
     const uint8_t c_localLeftIndex = 0;
     const uint8_t c_localRightIndex = 1;
     const uint8_t c_localHandleIndex = 2;
+    static const uint32_t c_voltageDividerPin = 12; // to read the power usage
+    static const uint16_t PWM_MIN_VOLTAGE = 1900; // make sure that we don't excessively discharge the batteries 
+    // (stop the device if less than 3 V charge per battery => below 9 V in total with 3 cell batteries)
+    // use this calculator https://ohmslawcalculator.com/voltage-divider-calculator to get this value
+    // R1 = 10 kOhm, R2 = 2.2 kOhm
 
     const uint8_t c_pantoIndex;
     const uint8_t c_globalIndexOffset;
@@ -90,6 +95,7 @@ private:
     float m_jacobian[2][2] = {{0.0, 0.0}, {0.0, 0.0}};
     bool m_isFrozen = false;
     bool m_isCalibrating = false;
+    int m_batteryCharge = 0;
 
     void inverseKinematics();
     void setMotor(
