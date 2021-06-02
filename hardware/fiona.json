@@ -28,14 +28,14 @@
           "pwmPinForwards": 16,
           "pwmPinBackwards": 4,
           "flipped": false,
-          "powerLimit": 0.2,
-          "powerLimitForce": 0.6,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
           "pidFactor": [6, 0, 600]
         },
         "encoder": {
           "steps": 16384,
           "flipped": false,
-          "setup": -0.5,
+          "setup": 0.494,
           "spiIndex": 3
         }
       },
@@ -50,14 +50,14 @@
           "pwmPinForwards": 2,
           "pwmPinBackwards": 17,
           "flipped": false,
-          "powerLimit": 0.2,
-          "powerLimitForce": 0.6,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
           "pidFactor": [6, 0, 600]
         },
         "encoder": {
           "steps": 16384,
           "flipped": false,
-          "setup": 0.001,
+          "setup": 0.01,
           "spiIndex": 2
         }
       },
@@ -69,8 +69,8 @@
           "pwmPin": 25,
           "dirAPin": 32,
           "flipped": true,
-          "powerLimit": 0.2,
-          "powerLimitForce": 0.2,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.1,
           "pidFactor": [0.5, 0, 30]
         },
         "encoder": {
@@ -94,14 +94,14 @@
           "pwmPinForwards": 22,
           "pwmPinBackwards": 21,
           "flipped": false,
-          "powerLimit": 0.2,
-          "powerLimitForce": 0.6,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
           "pidFactor": [6, 0, 600]
         },
         "encoder": {
           "steps": 16384,
           "flipped": true,
-          "setup": -0.5,
+          "setup": 0.49,
           "spiIndex": 0
         }
       },
@@ -116,14 +116,14 @@
           "pwmPinForwards": 19,
           "pwmPinBackwards": 18,
           "flipped": false,
-          "powerLimit": 0.2,
-          "powerLimitForce": 0.6,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
           "pidFactor": [6, 0, 600]
         },
         "encoder": {
           "steps": 16384,
           "flipped": true,
-          "setup": 0.001,
+          "setup": 0.006,
           "spiIndex": 1
         }
       },
@@ -135,8 +135,8 @@
           "pwmPin": 23,
           "dirAPin": 26,
           "flipped": true,
-          "powerLimit": 0.2,
-          "powerLimitForce": 0.2,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.1,
           "pidFactor": [0.5, 0, 30]
         },
         "encoder": {
