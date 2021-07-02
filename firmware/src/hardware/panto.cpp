@@ -460,7 +460,15 @@ Panto::Panto(uint8_t pantoIndex)
 
             ledcAttachPin(motorPwmPinForwards[globalIndex], globalIndex);
             ledcAttachPin(motorPwmPinBackwards[globalIndex], globalIndex+6);
-
+            
+            /* 
+               here the motors are acutated briefly, 
+               this is required due to the new motor drivers for
+               ember and fiona devide generations.
+               
+               without this, the first actuation of the motor fails.
+            */
+            
             ledcWrite(globalIndex, 0.1*PWM_MAX);
             delay(10);
             ledcWrite(globalIndex, 0);
@@ -468,11 +476,6 @@ Panto::Panto(uint8_t pantoIndex)
             ledcWrite(globalIndex+6, 0.1*PWM_MAX);
             delay(10);
             ledcWrite(globalIndex+6, 0);
-            /*
-            ledcWrite(globalIndex, 0.2*PWM_MAX);
-            delay(2000);
-            ledcWrite(globalIndex, 0);
-            */
 
         }
         // TODO: Calibration
