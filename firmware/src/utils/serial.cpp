@@ -298,7 +298,7 @@ void DPSerial::receiveMotor()
     const auto controlMethod = receiveUInt8();
     const auto pantoIndex = receiveUInt8();
 
-    const auto target = Vector2D(receiveFloat(), receiveFloat());    
+    auto target = Vector2D(receiveFloat(), receiveFloat());    
     if (!isnan(target.x) && !isnan(target.y))
     {
         // set position. We can't move and rotate at the same time because while the handle is moving it will automatically rotate a bit. 
