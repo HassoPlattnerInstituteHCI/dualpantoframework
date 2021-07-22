@@ -309,6 +309,7 @@ void DPSerial::receiveMotor()
         } else {
             // check collisions between godObjectPos and target 
             GodObject* go = pantoPhysics[pantoIndex].godObject();
+            pantos[pantoIndex].setInTransition(true);
             target = go->checkCollisions(target, go->getPosition());
         }
         pantos[pantoIndex].setTarget(target, controlMethod == 1);
