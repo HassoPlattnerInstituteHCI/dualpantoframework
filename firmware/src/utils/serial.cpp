@@ -302,16 +302,8 @@ void DPSerial::receiveMotor()
     if (!isnan(target.x) && !isnan(target.y))
     {
         // set position. We can't move and rotate at the same time because while the handle is moving it will automatically rotate a bit. 
-        if (controlMethod == 0){
-            // tween to position
-            pantos[pantoIndex].setInTransition(true);
-            DPSerial::sendInstantDebugLog("In Transition");
-        } else {
-            // check collisions between godObjectPos and target 
-            GodObject* go = pantoPhysics[pantoIndex].godObject();
-            pantos[pantoIndex].setInTransition(true);
-            target = go->checkCollisions(target, go->getPosition());
-        }
+        pantos[pantoIndex].setInTransition(true);
+        DPSerial::sendInstantDebugLog("In Transition");
         pantos[pantoIndex].setTarget(target, controlMethod == 1);
     } else {
         // receive rotation

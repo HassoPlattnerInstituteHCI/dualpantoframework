@@ -636,3 +636,7 @@ bool Panto::getIsFrozen(){
 void Panto::setIsFrozen(bool isFrozen){
     m_isFrozen = isFrozen;
 }
+
+bool Panto::getIsForceRendering(){
+    return m_isforceRendering;
+}
