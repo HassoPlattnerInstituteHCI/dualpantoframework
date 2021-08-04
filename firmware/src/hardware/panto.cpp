@@ -152,6 +152,8 @@ void Panto::inverseKinematics()
     }
     else if (m_isforceRendering)
     {
+        // collisions and direct force control using ApplyForce() on Unity
+        // calculate the angles of the linkages
         m_targetAngle[c_localLeftIndex] =
             m_jacobian[0][0] * m_targetX +
             m_jacobian[0][1] * m_targetY;
@@ -633,4 +635,8 @@ bool Panto::getIsFrozen(){
 }
 void Panto::setIsFrozen(bool isFrozen){
     m_isFrozen = isFrozen;
+}
+
+bool Panto::getIsForceRendering(){
+    return m_isforceRendering;
 }

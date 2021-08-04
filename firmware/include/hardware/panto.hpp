@@ -127,6 +127,7 @@ public:
     void setInTransition(bool inTransition);
     bool getIsFrozen();
     void setIsFrozen(bool isFrozen);
+    bool getIsForceRendering();
 };
 
 extern std::vector<Panto> pantos;
