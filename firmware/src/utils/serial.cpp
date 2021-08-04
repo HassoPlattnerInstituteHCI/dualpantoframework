@@ -302,8 +302,9 @@ void DPSerial::receiveMotor()
     {
         pantos[pantoIndex].setInTransition(true);
         DPSerial::sendInstantDebugLog("In Transition");
+    } else {
+        pantos[pantoIndex].setRotation(receiveFloat());
     }
-    pantos[pantoIndex].setRotation(receiveFloat());
     pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
 

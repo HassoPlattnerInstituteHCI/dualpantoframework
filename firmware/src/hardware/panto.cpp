@@ -86,7 +86,7 @@ void Panto::forwardKinematics()
     m_rightInnerAngle = rightElbowTotalAngle;
     m_pointingAngle =
         handleAngle +
-        (encoderFlipped[c_globalHandleIndex]==1? 1 : -1)* //sign changes when encoder is flipped
+        (encoderFlipped[c_globalHandleIndex]==1? -1 : 1)* //sign changes when encoder is flipped
         (c_handleMountedOnRightArm==1 ?       
         (-rightElbowTotalAngle) :
         (leftElbowTotalAngle));
@@ -223,16 +223,28 @@ void Panto::setMotor(
 
     const auto flippedDir = dir ^ motorFlipped[globalIndex];
 
+
+    if (m_batteryCharge < PWM_MIN_VOLTAGE)
+    return;
+
     if(motorPwmPinForwards[globalIndex] != dummyPin)
     {
+        float powerFactor = PWM_MAX / m_batteryCharge; // keep the power constant. The motor power limit is tuned for a fully charged battery.
+        // make sure to use more power if the battery is less charged
+        if (powerFactor * motor_powerLimitForce[globalIndex] > 1 || powerFactor * motorPowerLimit[globalIndex] > 1) {
+            DPSerial::sendQueuedDebugLog("Aborting. Actuating motors with too much power. PowerFactor * powerLimitForceRendering = %f; PowerFactor * powerLimitForceRendering = %f", 
+            powerFactor * motor_powerLimitForce[globalIndex], powerFactor * motorPowerLimit[globalIndex]);
+            return;
+        }
+        
         if(!flippedDir) {
             ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex, min(power, 
+            ledcWrite(globalIndex, powerFactor * min(power, 
             (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         else {
             ledcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex+6, min(power,
+            ledcWrite(globalIndex+6, powerFactor * min(power,
             (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         return;
@@ -246,6 +258,7 @@ void Panto::setMotor(
 
 void Panto::readEncoders()
 {
+
     #ifdef LINKAGE_ENCODER_USE_SPI
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
@@ -320,6 +333,11 @@ void Panto::readEncoders()
 
 void Panto::actuateMotors()
 {
+    m_batteryCharge = analogRead(27);
+    if (m_batteryCharge < PWM_MIN_VOLTAGE){
+        DPSerial::sendQueuedDebugLog("Please charge battery. Battery charge (should be between %d and %d): %d", PWM_MIN_VOLTAGE, PWM_MAX, m_batteryCharge);
+        return;
+    }
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
         if (isnan(m_targetAngle[localIndex]))
