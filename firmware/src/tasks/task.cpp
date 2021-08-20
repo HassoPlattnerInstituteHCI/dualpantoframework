@@ -58,7 +58,7 @@ inline void Task::checkFps()
             }
 
             if(ESP.getHeapSize() != 0){
-                DPSerial::sendQueuedDebugLog("Free heap: %i of %i (%.3f %%). Largest block: %i", ESP.getFreeHeap(), ESP.getHeapSize(), 100*ESP.getFreeHeap()/(float)ESP.getHeapSize(), ESP.getMaxAllocHeap());
+                DPSerial::sendQueuedDebugLog("Free heap: %i of %i (%.3f %%). Largest block: %i. Free PSRAM: %i", ESP.getFreeHeap(), ESP.getHeapSize(), 100*ESP.getFreeHeap()/(float)ESP.getHeapSize(), ESP.getMaxAllocHeap(), ESP.getFreePsram());
             }
 
             #ifdef ENABLE_PERFMON
