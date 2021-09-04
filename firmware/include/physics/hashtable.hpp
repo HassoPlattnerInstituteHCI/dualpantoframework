@@ -7,19 +7,20 @@
 #include "hardware/panto.hpp"
 #include "physics/annotatedEdge.hpp"
 #include "physics/indexedEdge.hpp"
+#include "utils/psramAllocator.hpp"
 
 class Hashtable
 {
 private:
     static int32_t get1dIndex(double value, double min, double step);
 
-    std::vector<IndexedEdge> m_cells[hashtableNumCells];
-    std::vector<uint32_t> getCellIndices(Edge edge);
-    std::set<uint32_t> expand(const std::vector<uint32_t>& edges);
+    std::vector<IndexedEdge,PSRAMAllocator<IndexedEdge>> m_cells[hashtableNumCells];
+    std::vector<uint32_t,PSRAMAllocator<uint32_t>> getCellIndices(Edge edge);
+    std::set<uint32_t,PSRAMAllocator<uint32_t>> expand(const std::vector<uint32_t,PSRAMAllocator<uint32_t>>& edges);
 public:
     Hashtable();
     void add(AnnotatedEdge* edge);
     void remove(AnnotatedEdge* edge);
-    void getPossibleCollisions(Edge movement, std::set<IndexedEdge>* result);
+    void getPossibleCollisions(Edge movement, std::set<IndexedEdge,PSRAMAllocator<IndexedEdge>>* result);
     void print();
 };

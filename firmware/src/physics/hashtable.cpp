@@ -14,9 +14,9 @@ int32_t Hashtable::get1dIndex(double value, double min, double step)
     return (int32_t)std::floor((value - min) / step);
 }
 
-std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
+std::vector<uint32_t,PSRAMAllocator<uint32_t>> Hashtable::getCellIndices(Edge edge)
 {
-    std::vector<uint32_t> result;
+    std::vector<uint32_t,PSRAMAllocator<uint32_t>> result;
 
     // http://www.cse.yorku.ca/~amana/research/grid.pdf
     const auto startX = edge.m_first.x;
@@ -75,9 +75,9 @@ std::vector<uint32_t> Hashtable::getCellIndices(Edge edge)
     return result;
 }
 
-std::set<uint32_t> Hashtable::expand(const std::vector<uint32_t>& edges)
+std::set<uint32_t,PSRAMAllocator<uint32_t>> Hashtable::expand(const std::vector<uint32_t,PSRAMAllocator<uint32_t>>& edges)
 {
-    std::set<uint32_t> result;
+    std::set<uint32_t,PSRAMAllocator<uint32_t>> result;
     uint32_t x, y;
     for (const auto& edge : edges)
     {
@@ -160,7 +160,7 @@ void Hashtable::remove(AnnotatedEdge* edge)
 }
 
 void Hashtable::getPossibleCollisions(
-    Edge movement, std::set<IndexedEdge>* result)
+    Edge movement, std::set<IndexedEdge,PSRAMAllocator<IndexedEdge>>* result)
 {
     if(movement.m_first.x == 0 && movement.m_first.y == 0)
     {

@@ -10,7 +10,7 @@ void setup()
     DPSerial::init();
 
     DPSerial::sendInstantDebugLog("========== START ==========");
-
+    DPSerial::sendInstantDebugLog("Free PSRAM: %d", ESP.getFreePsram());
     Tasks.emplace(
         std::piecewise_construct,
         std::forward_as_tuple("I/O"), 
