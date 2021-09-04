@@ -16,11 +16,11 @@ private:
 
     std::vector<IndexedEdge,PSRAMAllocator<IndexedEdge>> m_cells[hashtableNumCells];
     std::vector<uint32_t,PSRAMAllocator<uint32_t>> getCellIndices(Edge edge);
-    std::set<uint32_t,PSRAMAllocator<uint32_t>> expand(const std::vector<uint32_t,PSRAMAllocator<uint32_t>>& edges);
+    std::set<uint32_t> expand(const std::vector<uint32_t,PSRAMAllocator<uint32_t>>& edges);
 public:
     Hashtable();
     void add(AnnotatedEdge* edge);
     void remove(AnnotatedEdge* edge);
-    void getPossibleCollisions(Edge movement, std::set<IndexedEdge,PSRAMAllocator<IndexedEdge>>* result);
+    void getPossibleCollisions(Edge movement, std::set<IndexedEdge>* result);
     void print();
 };

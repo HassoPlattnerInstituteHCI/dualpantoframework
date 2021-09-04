@@ -75,9 +75,9 @@ std::vector<uint32_t,PSRAMAllocator<uint32_t>> Hashtable::getCellIndices(Edge ed
     return result;
 }
 
-std::set<uint32_t,PSRAMAllocator<uint32_t>> Hashtable::expand(const std::vector<uint32_t,PSRAMAllocator<uint32_t>>& edges)
+std::set<uint32_t> Hashtable::expand(const std::vector<uint32_t,PSRAMAllocator<uint32_t>>& edges)
 {
-    std::set<uint32_t,PSRAMAllocator<uint32_t>> result;
+    std::set<uint32_t> result;
     uint32_t x, y;
     for (const auto& edge : edges)
     {
@@ -160,7 +160,7 @@ void Hashtable::remove(AnnotatedEdge* edge)
 }
 
 void Hashtable::getPossibleCollisions(
-    Edge movement, std::set<IndexedEdge,PSRAMAllocator<IndexedEdge>>* result)
+    Edge movement, std::set<IndexedEdge>* result)
 {
     if(movement.m_first.x == 0 && movement.m_first.y == 0)
     {
