@@ -248,6 +248,7 @@ bool DPSerial::readHeader()
 
 bool DPSerial::readPayload()
 {
+    logString("Received some payload");
     const uint16_t size = s_receiveHeader.PayloadSize;
     std::vector<char> received;
     received.reserve(size);
