@@ -26,6 +26,7 @@ uint64_t CppLib::open(char *port)
         return 0;
     }
     logString("Open successfull");
+    // logString("Free heap: %i of %i (%.3f %%). Largest block: %i", ESP.getFreeHeap(), ESP.getHeapSize(), 100*ESP.getFreeHeap()/(float)ESP.getHeapSize(), ESP.getMaxAllocHeap());
     return (uint64_t)s_handle;
 }
 
@@ -40,7 +41,7 @@ void CppLib::close()
 }
 
 void CppLib::poll()
-{
+{ 
     bool receivedSync = false;
     bool receivedHeartbeat = false;
     bool receivedPosition = false;
@@ -50,6 +51,7 @@ void CppLib::poll()
 
     while (s_receiveQueue.size() > 0)
     {
+        logString("Received some data....");
         auto packet = s_receiveQueue.front();
         s_receiveQueue.pop();
 

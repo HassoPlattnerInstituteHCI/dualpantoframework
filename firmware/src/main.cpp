@@ -1,16 +1,31 @@
 #include <utility>
-
+#include <Arduino.h> //do we need this?
 #include "ioMain.hpp"
 #include "physicsMain.hpp"
 #include "tasks/taskRegistry.hpp"
 #include "utils/serial.hpp"
 
+#include <cstdlib>
+#include <new>
+
+void *operator new(size_t size) noexcept { return ps_malloc(size); }
+void operator delete(void *p) noexcept { free(p); }
+void *operator new[](size_t size) noexcept { return operator new(size); }
+void operator delete[](void *p) noexcept { operator delete(p); }
+void *operator new(size_t size, std::nothrow_t) noexcept { return operator new(size); }
+void operator delete(void *p, std::nothrow_t) noexcept { operator delete(p); }
+void *operator new[](size_t size, std::nothrow_t) noexcept { return operator new(size); }
+void operator delete[](void *p, std::nothrow_t) noexcept { operator delete(p); }
+
+
 void setup()
 {
+    psramInit();
+    Serial.begin(115200);
+    bool ramFound = psramInit();
+    log_d("Ram found %d", ramFound);
     DPSerial::init();
-
     DPSerial::sendInstantDebugLog("========== START ==========");
-
     Tasks.emplace(
         std::piecewise_construct,
         std::forward_as_tuple("I/O"), 
