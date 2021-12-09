@@ -126,5 +126,13 @@ Copy it over to your unity-dualpanto-framework sub-repo and restart Unity.
 
 ## Troubleshooting
 
-OSX: if you want to upload a new firmware version to a device you have to make sure the `upload_port` of platformio is set correctly in the firmware/platformio.ini file like this:
+### Mac OS
+
+**Setting the upload port** 
+If you want to upload a new firmware version to a device you have to make sure the `upload_port` of platformio is set correctly in the firmware/platformio.ini file like this:
 `upload_port = /dev/cu.SLAB_USBtoUART` 
+
+**Upgrading to Mac OS 11 (Big Sur) **
+There is a chance that the serial port cu.SlAB_USBtoUART is not shown anymore after upgrading to Mac OS 11 ([see this issue](https://github.com/espressif/arduino-esp32/issues/1084)). In that case you have to reinstall the [bridge drivers from Silicon Labs](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers).
+Also after upgrading to OS 11 you might notice that platformio times out when it tries to upload the firmware as it can't connect to the ESP (when running `npm run platformio upload`). To still upload the firmware press the boot-button (the right button on the back of the ESP) when your computer is trying to connect to the ESP. 
+Also when running a game in Unity it might not start immediately. Similarly to the upload issue you have to press the reset button on the ESP after starting the game in Unity to make it work.
