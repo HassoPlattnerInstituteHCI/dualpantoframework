@@ -80,8 +80,11 @@ void GodObject::dumpHashtable()
 }
 
 // returns if force is applied or not
-bool GodObject::move(bool isTweening, bool isFrozen)
+bool GodObject::move(bool isTweening, bool isForceRendering, bool isFrozen)
 {
+    // if isForceRendering is true then the ApplyForce function was called on the Unity end. In that case 
+    // we want to check for collisions to make sure that colliders work within force fields.
+
     auto lastState = m_processingObstacleCollision;
     // if the number of collisions increased since the last frame then we ran into a corner
     auto lastNumCollisions = m_numCollisions;
@@ -95,7 +98,7 @@ bool GodObject::move(bool isTweening, bool isFrozen)
         renderForce(getCollisionForce(m_position, handlePosition), Vector2D(0,0));
         return true;
     }
-    if (isTweening) {
+    if (isTweening && !isForceRendering) {
         m_position = handlePosition;
         if (m_tethered) {
             m_tetherPosition = handlePosition;
@@ -266,6 +269,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
     m_possibleCollisions->clear();
     hashtable().getPossibleCollisions(
         Edge(currentPosition, targetPoint), m_possibleCollisions);
+
     if (m_possibleCollisions->empty())
     {
         return targetPoint;

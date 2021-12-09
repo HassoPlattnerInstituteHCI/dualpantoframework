@@ -294,17 +294,21 @@ void DPSerial::receiveHearbeatAck()
 
 void DPSerial::receiveMotor()
 {
+    // controlMethod = 1 for ApplyForce and 0 for Tweening/Rotation
     const auto controlMethod = receiveUInt8();
     const auto pantoIndex = receiveUInt8();
 
-    const auto target = Vector2D(receiveFloat(), receiveFloat());
+    auto target = Vector2D(receiveFloat(), receiveFloat());    
     if (!isnan(target.x) && !isnan(target.y))
     {
+        // set position. We can't move and rotate at the same time because while the handle is moving it will automatically rotate a bit. 
         pantos[pantoIndex].setInTransition(true);
         DPSerial::sendInstantDebugLog("In Transition");
+        pantos[pantoIndex].setTarget(target, controlMethod == 1);
+    } else {
+        // receive rotation
+        pantos[pantoIndex].setRotation(receiveFloat());
     }
-    pantos[pantoIndex].setRotation(receiveFloat());
-    pantos[pantoIndex].setTarget(target, controlMethod == 1);
 };
 
 void DPSerial::receivePID()

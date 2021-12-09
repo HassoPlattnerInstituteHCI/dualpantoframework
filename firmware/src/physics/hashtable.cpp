@@ -190,13 +190,6 @@ void Hashtable::getPossibleCollisions(
         const auto* cell = begin + startIndex;
         result->insert(cell->begin(), cell->end());
     }
-    else if(dist == 1)
-    {
-        auto* cell = begin + startIndex;
-        result->insert(cell->begin(), cell->end());
-        cell = begin + endIndex;
-        result->insert(cell->begin(), cell->end());
-    }
     else
     {
         for(auto&& cellIndex : getCellIndices(movement))

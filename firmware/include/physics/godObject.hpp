@@ -73,7 +73,7 @@ public:
     void setMovementDirection(Vector2D movementDirection);
     void update();
     void dumpHashtable();
-    bool move(bool isTweening, bool isFrozen);
+    bool move(bool isTweening, bool isForceRendering, bool isFrozen);
     Vector2D checkCollisions(Vector2D targetPoint, Vector2D currentPosition);
     void createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
     void createRail(uint16_t id, std::vector<Vector2D> points, double displacement);

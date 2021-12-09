@@ -1,0 +1,152 @@
+{
+  "firmware": "ESP32",
+  "opMinDist": 65,
+  "opMaxDist": 210,
+  "opAngle": 2.2,
+  "forceFactor": 0.0085,
+  "dummyPin": 40,
+  "usesSpi": true,
+  "forcePidFactor": [0.375, 0, 0],
+  "hashtableMemory": 200000,
+  "obstacleChangesPerFrame": 1,
+  "range": {
+    "minX": -180,
+    "minY": -205,
+    "maxX": 180,
+    "maxY": 5
+  },
+  "pantos": {
+    "upper": {
+      "left": {
+        "linkage": {
+          "innerLength": 95.07,
+          "outerLength": 119.79,
+          "baseX": -23.7,
+          "baseY": 0
+        },
+        "motor": {
+          "pwmPinForwards": 16,
+          "pwmPinBackwards": 4,
+          "flipped": false,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
+          "pidFactor": [6, 0, 600]
+        },
+        "encoder": {
+          "steps": 16384,
+          "flipped": false,
+          "setup": 0.494,
+          "spiIndex": 3
+        }
+      },
+      "right": {
+        "linkage": {
+          "innerLength": 57.71,
+          "outerLength": 119.79,
+          "baseX": 61.1,
+          "baseY": 0
+        },
+        "motor": {
+          "pwmPinForwards": 2,
+          "pwmPinBackwards": 17,
+          "flipped": false,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
+          "pidFactor": [6, 0, 600]
+        },
+        "encoder": {
+          "steps": 16384,
+          "flipped": false,
+          "setup": 0.01,
+          "spiIndex": 2
+        }
+      },
+      "handle": {
+        "linkage": {
+          "handleMount": 1
+        },
+        "motor": {
+          "pwmPin": 25,
+          "dirAPin": 32,
+          "flipped": true,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.1,
+          "pidFactor": [0.5, 0, 30]
+        },
+        "encoder": {
+          "aPin": 35,
+          "bPin": 34,
+          "steps": 260,
+          "flipped": false,
+          "setup": 0
+        }
+      }
+    },
+    "lower": {
+      "left": {
+        "linkage": {
+          "innerLength": 57.71,
+          "outerLength": 119.79,
+          "baseX": -61.1,
+          "baseY": 0
+        },
+        "motor": {
+          "pwmPinForwards": 22,
+          "pwmPinBackwards": 21,
+          "flipped": false,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
+          "pidFactor": [6, 0, 600]
+        },
+        "encoder": {
+          "steps": 16384,
+          "flipped": true,
+          "setup": 0.49,
+          "spiIndex": 0
+        }
+      },
+      "right": {
+        "linkage": {
+          "innerLength": 95.07,
+          "outerLength": 119.79,
+          "baseX": 23.7,
+          "baseY": 0
+        },
+        "motor": {
+          "pwmPinForwards": 19,
+          "pwmPinBackwards": 18,
+          "flipped": false,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.3,
+          "pidFactor": [6, 0, 600]
+        },
+        "encoder": {
+          "steps": 16384,
+          "flipped": true,
+          "setup": 0.006,
+          "spiIndex": 1
+        }
+      },
+      "handle": {
+        "linkage": {
+          "handleMount": 0
+        },
+        "motor": {
+          "pwmPin": 23,
+          "dirAPin": 26,
+          "flipped": true,
+          "powerLimit": 0.1,
+          "powerLimitForce": 0.1,
+          "pidFactor": [0.5, 0, 30]
+        },
+        "encoder": {
+          "aPin": 36,
+          "bPin": 39,
+          "steps": 260,
+          "flipped": true,
+          "setup": 0
+        }
+      }
+    }
+  }
+}

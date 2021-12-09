@@ -40,7 +40,7 @@ void PantoPhysics::step()
     m_godObject->setMovementDirection(difference);
     // PERFMON_STOP("[baa] Physics::step::prep");
     // PERFMON_START("[bab] Physics::step::move");
-    bool isForceActive = m_godObject->move(isTweening, m_panto->getIsFrozen());
+    bool isForceActive = m_godObject->move(isTweening, m_panto->getIsForceRendering(), m_panto->getIsFrozen());
     // PERFMON_STOP("[bab] Physics::step::move");
     // PERFMON_START("[bac] Physics::step::motor");
     
