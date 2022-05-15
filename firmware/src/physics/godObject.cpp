@@ -190,11 +190,25 @@ bool GodObject::move(bool isTweening, bool isForceRendering, bool isFrozen)
 }
 
 Vector2D GodObject::getCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition){
-    // the PID error is the difference between the virtual object and the handle position
-    // the virtual object can either be a) the godobject or b) the tether
-    auto error = godObjectPosition - handlePosition;
-    auto force = error * forcePidFactor[0][0] + (error - m_lastError) * forcePidFactor[0][2];
-    m_lastError = error;
+
+    // TODO:
+    // Given a position of god-object and the position of the handle,
+    // calculate rendering force.
+
+    // Variables given:
+    // Vector2D godObjectPosition, handlePosition : position of god-object and handle.
+    // float K : proportional gain for force used in the god-object rendering.
+    
+    // Returns:
+    // Vector2D force, rendering force that you will apply to the device.
+
+    const float K = forcePidFactor[0][0];
+    Vector2D force = Vector2D(0,0);
+
+    // YOUR CODE STARTS
+
+
+    // YOUR CODE ENDS
     return force;
 }
 
