@@ -6,6 +6,11 @@ Follow the dependency setup guide for the platform you're working on: [Windows](
 
 ## Initial Setup
 
+### VScode and PlatformIO
+ - [VScode] (https://code.visualstudio.com/)
+ - [PlatformIO](https://platformio.org/platformio-ide)
+
+### npm
 There are a couple useful scripts defined in `package.json`. The most important is the `install` script. You can use it by running `npm install --production` or `npm i --production`. If you are planing on developing for the dualpantoframework, please use `npm i` to also install the linter and the pre-commit hook.
 
 Note for Windows users: You'll need to run the scripts from an Visual Studio developer command line, otherwise the compiler won't be accessable. E.g. when using Visual Studio 2017, search for `x64 Native Tools Command Prompt for VS 2017` or `x64 Native Tools-Eingabeaufforderung für VS 2017` (depending on your OS's language) using the Windows search and navigate to the dualpantoframework directory afterwards.
