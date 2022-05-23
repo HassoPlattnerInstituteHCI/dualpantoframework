@@ -1,6 +1,7 @@
 #include "hardware/panto.hpp"
 
 #include <vector>
+#include <stdint.h>
 
 #include "utils/performanceMonitor.hpp"
 #include "utils/serial.hpp"

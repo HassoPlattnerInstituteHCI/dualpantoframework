@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <stdint.h>
 
 #include "physics/edge.hpp"
 #include "utils/vector.hpp"
