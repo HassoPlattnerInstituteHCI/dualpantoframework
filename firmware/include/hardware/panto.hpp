@@ -2,6 +2,9 @@
 
 #include <Encoder.h>
 
+#include <vector>
+#include <stdint.h>
+
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
