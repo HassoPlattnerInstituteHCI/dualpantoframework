@@ -1,0 +1,3 @@
+Use this project to play around with the PSRAM on the ESP
+
+Just open this folder (ESP32_PSRAM_Test) as a separate project in vs code. Platformio should recognise the folder as a platformio project. Upload the project to the panto and monitor the output. You should see that the PSRAM is correctly initialised and can be used. 
