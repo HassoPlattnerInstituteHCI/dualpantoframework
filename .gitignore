@@ -63,3 +63,7 @@ bld/
 .history
 firmware/src/config
 firmware/include/config
+
+legacy/
+.idea
+.vscode
