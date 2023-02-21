@@ -1,8 +1,0 @@
-{
-    "recommendations": [
-        "platformio.platformio-ide",
-        "ms-vscode.cpptools",
-        "austin.code-gnu-global",
-        "dbaeumer.vscode-eslint"
-    ]
-}
