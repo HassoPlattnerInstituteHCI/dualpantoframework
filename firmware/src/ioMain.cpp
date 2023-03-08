@@ -26,20 +26,8 @@ void ioLoop()
     //                                               ... pantoPhysics[i].godObject()->createObstacle(id, path, true);
     // DO IT HERE TO TEST FIRMWARE WITHOUT UNITY (i = 0, 1)
     //
-    // Questions: 
-    //   what is CREATE, ADD_TO, REMOVE, ENABLE, DISABLE OBSTACLE?
-    //   what is id? does it matter here
-    //   how is force field implemented? PASSABLE_OBSTACLE?
-    //
     // range of X: ([-180, 180])
     // range of Y: ([5, -205])
-    
-    /******************************************/
-    // std::vector<vector2D> path{vector2D(-20, -100), vector2D(20, -100)};
-    // uint16_t id = 8888;
-    // pantoPhysics[0].godObject()->createObstacle(id, path, false);
-    // pantoPhysics[0].godObject()->enableObstacle(id, true);
-    /******************************************/
     auto connected = DPSerial::ensureConnection();
     PERFMON_STOP("[a] Receive serial");
 
