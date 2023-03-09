@@ -11,13 +11,21 @@ PantoPhysics::PantoPhysics(Panto* panto) : m_panto(panto)
     try
     {
         m_godObject = new GodObject(m_currentPosition);
-        //createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
-        std::vector<Vector2D> rect(4);
-        rect.push_back(Vector2D(-50,-20));
-        rect.push_back(Vector2D(50,-20));
-        rect.push_back(Vector2D(50,-40));
-        rect.push_back(Vector2D(-50,-40));
-        m_godObject->createObstacle(0, rect, false);
+        /*
+        // createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable);
+        std::vector<Vector2D> rect;
+        rect.emplace_back((double)-10, (double)-20);
+        rect.emplace_back((double)10, (double)-20);
+        rect.emplace_back((double)10, (double)-10);
+        rect.emplace_back((double)-10, (double)-10);
+        //rect.push_back(Vector2D(-50.0, -40.0));
+        //rect.push_back(Vector2D(50.0, -40.0));
+        //rect.push_back(Vector2D(50.0, -20.0));
+        //rect.push_back(Vector2D(-50.0, -20.0));
+        m_godObject->createObstacle(10, rect, false);
+        // void GodObject::enableObstacle(uint16_t id, bool enable)
+        m_godObject->enableObstacle(10);
+        */
     }
     catch(const std::bad_alloc& e)
     {

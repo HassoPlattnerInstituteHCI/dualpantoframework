@@ -67,8 +67,49 @@ void physicsSetup()
     }
 }
 
+int test_timer = 0;
+
 void physicsLoop()
 {
+    test_timer++;
+    /*
+    // oscillate y
+    if((test_timer / 400) % 2 == 0)
+    {
+        pantos[0].setTarget(Vector2D(0, 0.5), true);
+    }    
+    else
+    { 
+        pantos[0].setTarget(Vector2D(0, -0.5), true);   
+    }
+    pantos[0].actuateMotors();
+    
+    // oscillate x
+    if((test_timer / 400) % 2 == 0)
+    {
+        pantos[0].setTarget(Vector2D(0.5, 0), true);
+    }    
+    else
+    { 
+        pantos[0].setTarget(Vector2D(-0.5, 0), true);   
+    }
+    pantos[0].actuateMotors();
+    
+    // rotate panto angle
+    pantos[0].setRotation(pantos[0].getRotation() + 0.2);   
+    pantos[0].actuateMotors();
+    
+    // follow panto angle
+    // pantos[0].setRotation(pantos[1].getRotation());
+    pantos[1].setRotation(pantos[0].getRotation());
+    */
+     
+    pantos[0].setSpeed(20);
+    pantos[0].setTarget(Vector2D(10, -50), false);
+    pantos[0].forwardKinematics();
+    pantos[0].actuateMotors();
+    // try reading from one, let the other follow
+    
     PERFMON_START("[a] Read encoders");
     // PERFMON_START("[aa] Query SPI");
     #ifdef LINKAGE_ENCODER_USE_SPI
