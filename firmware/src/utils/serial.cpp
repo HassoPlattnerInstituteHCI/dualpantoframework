@@ -605,8 +605,7 @@ void DPSerial::sendPosition()
         sendFloat(pos.y);
         sendFloat(panto.getRotation());
         auto goPos = pantoPhysics[i].godObject()->getPosition();
-        sendFloat(goPos.x);
-        sendFloat(goPos.y);
+        // TODO BIS: send god object positions as well
     }
     portEXIT_CRITICAL(&s_serialMutex);
 };

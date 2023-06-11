@@ -84,7 +84,11 @@ void CppLib::poll()
             while (packet.payloadIndex < packet.header.PayloadSize)
             {
                 uint8_t index = packet.payloadIndex / 4;
-                positionCoords[index] = packet.receiveFloat();
+                /** TODO BIS: parse the coordinate (one per loop iteration) from the packet
+                 * Hint: look at TRANSITION_ENDED how data gets pulled from packet
+                 * But here we need floats....
+                **/
+                positionCoords[index] = 0.0f;
             }
             break;
         case DEBUG_LOG:
@@ -131,7 +135,9 @@ void CppLib::poll()
         }
         else
         {
-            positionHandler((uint64_t)s_handle, positionCoords);
+            // TODO BIS: There is a position handler, but it does not get called
+            // Call it and pass the positionCoords
+            // Hint: Look at the other handlers to get an idea how its done
         }
     }
 
