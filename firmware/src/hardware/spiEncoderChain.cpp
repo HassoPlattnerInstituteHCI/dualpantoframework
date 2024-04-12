@@ -144,7 +144,7 @@ void SPIEncoderChain::__setZeros(){
     for(int i=0 ; i < 4; i++){
         m_zeros[i] = m_encoders[i].m_lastValidAngle;
     }
-    Serial.println("Zeros");
+    // Serial.println("Zeros");
 
     DPSerial::sendQueuedDebugLog("Zeros");
    
