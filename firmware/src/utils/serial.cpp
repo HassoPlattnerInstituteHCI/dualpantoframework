@@ -10,7 +10,7 @@ bool DPSerial::s_rxBufferCritical = false;
 Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
 std::queue<std::string> DPSerial::s_debugLogQueue;
-portMUX_TYPE DPSerial::s_serialMutex = {portMUX_FREE_VAL, 0};
+portMUX_TYPE DPSerial::s_serialMutex = portMUX_INITIALIZER_UNLOCKED;
 ReceiveState DPSerial::s_receiveState = NONE;
 uint8_t DPSerial::s_expectedPacketId = 1;
 bool DPSerial::s_connected = false;
