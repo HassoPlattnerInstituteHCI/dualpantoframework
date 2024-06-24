@@ -298,10 +298,10 @@ void DPSerial::receiveMotor()
     const auto controlMethod = receiveUInt8();
     const auto pantoIndex = receiveUInt8();
 
-    auto target = Vector2D(receiveFloat(), receiveFloat());    
+    auto target = Vector2D(receiveFloat(), receiveFloat());
     if (!isnan(target.x) && !isnan(target.y))
     {
-        // set position. We can't move and rotate at the same time because while the handle is moving it will automatically rotate a bit. 
+        // set position. We can't move and rotate at the same time because while the handle is moving it will automatically rotate a bit.
         pantos[pantoIndex].setInTransition(true);
         DPSerial::sendInstantDebugLog("In Transition");
         pantos[pantoIndex].setTarget(target, controlMethod == 1);
