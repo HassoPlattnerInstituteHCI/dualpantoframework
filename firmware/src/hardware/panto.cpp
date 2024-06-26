@@ -87,10 +87,10 @@ void Panto::forwardKinematics()
     m_pointingAngle =
         handleAngle +
         (encoderFlipped[c_globalHandleIndex]==1? -1 : 1)* //sign changes when encoder is flipped
-        (c_handleMountedOnRightArm==1 ?       
+        (c_handleMountedOnRightArm==1 ?
         (-rightElbowTotalAngle) :
         (leftElbowTotalAngle));
-    
+
     // PERFMON_STOP("[abbi] store angles");
 
     // some weird diffs and their sinuses
@@ -205,9 +205,9 @@ void Panto::inverseKinematics()
 
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
         m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
-        float stepValue = 0.000001 * tweening_dt * m_tweeningSpeed; 
+        float stepValue = 0.000001 * tweening_dt * m_tweeningSpeed;
         m_tweeningValue=min(m_tweeningValue+stepValue, 1.0f);
-        
+
     }
 };
 
@@ -227,7 +227,7 @@ void Panto::setMotor(
     {
         if(!flippedDir) {
             ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex, min(power, 
+            ledcWrite(globalIndex, min(power,
             (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         else {
@@ -259,7 +259,7 @@ void Panto::readEncoders()
         m_encoderRequestCounts[localIndex]++;
     }
     m_actuationAngle[c_localHandleIndex] =
-        (m_encoder[c_localHandleIndex]) ? 
+        (m_encoder[c_localHandleIndex]) ?
         (encoderFlipped[c_globalHandleIndex] *
         TWO_PI * m_encoder[c_localHandleIndex]->read() /
         encoderSteps[c_globalHandleIndex]) :
@@ -279,12 +279,12 @@ void Panto::readEncoders()
     #endif
 
     m_previousAngle[c_localHandleIndex] = m_actuationAngle[c_localHandleIndex];
-    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+//    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
         if(m_previousAngle[localIndex]==0)return;
     }
-    if(m_previousAnglesCount>4){
+    if(m_previousAnglesCount>2){
         m_previousAnglesCount=0;
         for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
         {
@@ -292,12 +292,13 @@ void Panto::readEncoders()
             float mean = 0.0f;
             for(int i = 0; i < 5; i++){
                 mean+=m_previousAngles[localIndex][i];
-            }mean/=5.0f;
+            }mean/=3.0f;
             for(int i = 0; i < 5; i++){
                 std+=(m_previousAngles[localIndex][i]-mean)*(m_previousAngles[localIndex][i]-mean);
             }std /=5.0f;
             if(std < 1.0f){
-                m_actuationAngle[localIndex] = m_previousAngles[localIndex][4];
+                std::sort(m_previousAngles[localIndex],m_previousAngles[localIndex] + sizeof(m_previousAngles[localIndex])/sizeof(m_previousAngles[localIndex][0]));
+                m_actuationAngle[localIndex] = m_previousAngles[localIndex][2];
             }
             else{
                 m_encoderErrorCounts[localIndex]++;
@@ -455,7 +456,7 @@ Panto::Panto(uint8_t pantoIndex)
             // TODO: initiate the PWM channels independent from globalIndex
             ledcSetup(globalIndex, c_ledcFrequency, c_ledcResolution);
             ledcSetup(globalIndex+6, c_ledcFrequency, c_ledcResolution);
-            
+
             //DPSerial::sendInstantDebugLog("attaching gi %i to pwm %i and pwm %i\n", globalIndex, motorPwmPinForwards[globalIndex], motorPwmPinBackwards[globalIndex]);
 
             ledcAttachPin(motorPwmPinForwards[globalIndex], globalIndex);
@@ -484,7 +485,7 @@ Panto::Panto(uint8_t pantoIndex)
 void Panto::calibrateEncoders(){
     #ifdef LINKAGE_ENCODER_USE_SPI
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
-    {   
+    {
         //Write encoder values to EEPROM
         EEPROM.writeInt((3*c_pantoIndex*sizeof(uint32_t)+localIndex*sizeof(uint32_t)),m_angleAccessors[localIndex]());
     }
