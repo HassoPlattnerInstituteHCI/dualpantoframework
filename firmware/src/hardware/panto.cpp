@@ -284,7 +284,7 @@ void Panto::readEncoders()
     {
         if(m_previousAngle[localIndex]==0)return;
     }
-    if(m_previousAnglesCount>2){
+    if(m_previousAnglesCount>4){
         m_previousAnglesCount=0;
         for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
         {
