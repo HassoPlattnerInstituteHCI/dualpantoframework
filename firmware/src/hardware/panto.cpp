@@ -292,7 +292,7 @@ void Panto::readEncoders()
             float mean = 0.0f;
             for(int i = 0; i < 5; i++){
                 mean+=m_previousAngles[localIndex][i];
-            }mean/=3.0f;
+            }mean/=5.0f;
             for(int i = 0; i < 5; i++){
                 std+=(m_previousAngles[localIndex][i]-mean)*(m_previousAngles[localIndex][i]-mean);
             }std /=5.0f;
