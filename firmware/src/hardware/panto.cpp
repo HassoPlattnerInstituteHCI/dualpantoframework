@@ -5,6 +5,8 @@
 #include "utils/performanceMonitor.hpp"
 #include "utils/serial.hpp"
 
+
+
 std::vector<Panto> pantos;
 
 void Panto::forwardKinematics()
@@ -72,6 +74,32 @@ void Panto::forwardKinematics()
     m_handleY =
         fmaf(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
     // PERFMON_STOP("[abbg] handle position");
+
+
+    //Kalman Filter
+
+    T_period = millis()-T;
+    DT = (T_period)/1000.0;
+    T = millis();
+
+
+    K.F = {1.0,0.0, DT, 0.0,
+           0.0, 1.0, 0.0,DT,
+           0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0};
+
+    state(0) = m_handleX;
+    state(1) = m_handleY;
+    state(2) = (m_handleX-m_prev_handleX)/T_period;
+    state(3) = (m_handleY-m_prev_handleY)/T_period;
+
+    obs = K.H * state;
+    K.update(obs);
+
+    m_handleX = K.x(0);
+    m_handleY = K.x(1);
+
+
 
     // right elbow angles
     // PERFMON_START("[abbh] right elbow angles");
@@ -278,6 +306,8 @@ void Panto::readEncoders()
     }
     #endif
 
+
+
     m_previousAngle[c_localHandleIndex] = m_actuationAngle[c_localHandleIndex];
 //    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
@@ -288,26 +318,8 @@ void Panto::readEncoders()
         m_previousAnglesCount=0;
         for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
         {
-            float std = 0.0f;
-            float mean = 0.0f;
-            for(int i = 0; i < 5; i++){
-                mean+=m_previousAngles[localIndex][i];
-            }mean/=5.0f;
-            for(int i = 0; i < 5; i++){
-                std+=(m_previousAngles[localIndex][i]-mean)*(m_previousAngles[localIndex][i]-mean);
-            }std /=5.0f;
-            if(std < 1.0f){
-                std::sort(m_previousAngles[localIndex],m_previousAngles[localIndex] + sizeof(m_previousAngles[localIndex])/sizeof(m_previousAngles[localIndex][0]));
-                m_actuationAngle[localIndex] = m_previousAngles[localIndex][2];
-            }
-            else{
-                m_encoderErrorCounts[localIndex]++;
-                // DPSerial::sendQueuedDebugLog("jumps at [panto %d][motor %d] (std>1.0f) mean = %f",c_pantoIndex, localIndex, mean);
-                // for(int i = 0; i < 5; i++){
-                //  DPSerial::sendQueuedDebugLog("previousAngles[%d][%d]=%f",localIndex, i, m_previousAngles[localIndex][i]);
-                // }
-                // m_actuationAngle[localIndex] = m_previousAngle[localIndex];
-            }
+            std::sort(m_previousAngles[localIndex],m_previousAngles[localIndex] + sizeof(m_previousAngles[localIndex])/sizeof(m_previousAngles[localIndex][0]));
+            m_actuationAngle[localIndex] = m_previousAngles[localIndex][2];
         }
     }
     else{
@@ -419,6 +431,10 @@ Panto::Panto(uint8_t pantoIndex)
 {
     m_targetX = NAN;
     m_targetY = NAN;
+
+
+
+
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
@@ -480,7 +496,30 @@ Panto::Panto(uint8_t pantoIndex)
         // Use encoder index pin and actuate the motors to reach it
         setMotor(localIndex, false, 0);
     }
+    //Kalman
+    setKalman();
 };
+
+void Panto::setKalman() {
+    // time evolution matrix (whatever... it will be updated inloop)
+    K.F = {1.0, 0.0, 0.0,0.0,
+           0.0, 1.0, 0.0, 0.0,
+           0.0, 0.0, 1.0, 0.0,
+           0.0, 0.0, 0.0, 1.0};
+
+    // measurement matrix n the position (e.g. GPS) and acceleration (e.g. accelerometer)
+    K.H = {1.0, 0.0, 0.0, 0.0,
+           0.0, 1.0, 0.0, 0.0};
+    // measurement covariance matrix
+    K.R = {n_p*n_p,   0.0,
+           0.0, n_a*n_a};
+    // model covariance matrix
+    K.Q = {1.0, 0.0, 0.0,0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0};
+
+}
 
 void Panto::calibrateEncoders(){
     #ifdef LINKAGE_ENCODER_USE_SPI

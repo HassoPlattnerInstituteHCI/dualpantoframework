@@ -8,6 +8,7 @@
 #include "utils/framerateLimiter.hpp"
 #include "utils/serial.hpp"
 
+
 FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 
 #ifdef LINKAGE_ENCODER_USE_SPI
@@ -19,13 +20,13 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi = new SPIEncoderChain(numberOfSpiEncoders);
     #endif
-    
+
     for (auto i = 0; i < pantoCount; ++i)
     {
         pantos.emplace_back(i);
     }
     delay(1000);
-    
+
     xTaskNotifyGive(Tasks.at("I/O").getHandle());
 
     #ifdef LINKAGE_ENCODER_USE_SPI
@@ -34,7 +35,7 @@ void physicsSetup()
 
     EEPROM.begin(sizeof(uint32_t)*numberOfSpiEncoders);
 
-    //calibrateEncoders; Comment if not needed 
+    //calibrateEncoders; Comment if not needed
     // for (auto i = 0; i < pantoCount; ++i)
     // { pantos[i].calibrateEncoders(i);}
 
@@ -60,7 +61,7 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     spi->setPosition(startPositions);
     #endif
-    
+
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
@@ -115,7 +116,7 @@ void physicsLoop()
         // }
         // spi->resetErrors();
     }
-  
+
     PERFMON_START("[d] Calibrate Pantos");
     bool flag = false;
     for(auto i = 0; i < pantoCount; ++i){

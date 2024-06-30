@@ -6,6 +6,7 @@
 #include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
 #include <EEPROM.h>
+#include "hardware/Kalman.h"
 
 // make sure results are in range -270° ~ 0° ~ +90°
 #define ensureAngleRange(angle) \
@@ -14,6 +15,8 @@
     angle < -(PI + HALF_PI) ? \
         angle + TWO_PI : \
         angle
+
+
 
 class Panto
 {
@@ -62,6 +65,24 @@ private:
     float m_integral[c_dofCount];
     uint32_t m_prevTime = 0;
 
+//    kalman
+    #define Nstate 4 // positionX,positionY, speedX,speedY
+    #define Nobs 2 // positionX, positionY
+    // measurement std of the noise
+    #define n_p 0.3 // position measurement noise
+    #define n_a 5.0 // acceleration measurement noise
+
+
+    BLA::Matrix<Nobs> obs;
+    BLA::Matrix<Nstate> state;
+    KALMAN<Nstate, Nobs> K;
+    unsigned long T; // current time
+    unsigned long T_period;
+    float DT; // delay between two updates of the filter
+
+
+
+
     int m_previousAnglesCount = 0;
     int m_encoderErrorCount = 0;
     int m_encoderErrorCounts[4] = {0,0,0,0};
@@ -72,6 +93,10 @@ private:
     float m_pointingAngle = 0;
     float m_handleX = 0;
     float m_handleY = 0;
+
+    float m_prev_handleX = 0;
+    float m_prev_handleY = 0;
+
     float m_targetX = 0;
     float m_targetY = 0;
     float m_startX = 0;
@@ -121,6 +146,9 @@ public:
     void setInTransition(bool inTransition);
     bool getIsFrozen();
     void setIsFrozen(bool isFrozen);
+
+    void setKalman();
 };
 
 extern std::vector<Panto> pantos;
+

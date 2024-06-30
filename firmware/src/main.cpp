@@ -4,6 +4,7 @@
 #include "physicsMain.hpp"
 #include "tasks/taskRegistry.hpp"
 #include "utils/serial.hpp"
+#include <BasicLinearAlgebra.h>
 
 void setup()
 {
@@ -13,7 +14,7 @@ void setup()
 
     Tasks.emplace(
         std::piecewise_construct,
-        std::forward_as_tuple("I/O"), 
+        std::forward_as_tuple("I/O"),
         std::forward_as_tuple(&ioSetup, &ioLoop, "I/O", 0));
     Tasks.at("I/O").run();
     Tasks.at("I/O").setLogFps();
@@ -22,7 +23,7 @@ void setup()
         std::forward_as_tuple("Physics"),
         std::forward_as_tuple(&physicsSetup, &physicsLoop, "Physics", 1));
     Tasks.at("Physics").run();
-    
+
     TaskHandle_t defaultTask = xTaskGetCurrentTaskHandle();
     DPSerial::sendInstantDebugLog("default task handle is %i", defaultTask);
     vTaskSuspend(NULL);

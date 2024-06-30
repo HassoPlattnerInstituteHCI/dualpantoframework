@@ -14,11 +14,11 @@
 #include "utils/vector.hpp"
 
 /*
-The speed control is in detail described in our Dropbox (Interaction Techniques Haptic in Unity): 
+The speed control is in detail described in our Dropbox (Interaction Techniques Haptic in Unity):
 https://www.dropbox.com/scl/fi/uljoe140fet2b53bjhr4y/DualPanto-Speed-Control.pptx?dl=0&rlkey=6k77wrfnb3oaxg186489tpinj
 */
 
-enum TetherState {Inner, Active, Outer}; 
+enum TetherState {Inner, Active, Outer};
 /* the handle can be in 3 states:
     1. Inner: the handle can freely move within a close radius around the god object without triggering speed control (otherwise there would always be force rendered, even if the player was just standing around).
     2. Active: the god object is under speed control. Its acceleration is proportional to the distance between god object and handle.
@@ -26,7 +26,7 @@ enum TetherState {Inner, Active, Outer};
 */
 
 enum OutOfTetherStrategy {MaxSpeed, Exploration, Leash};
-/* possible strategies when the handle is pushed out of the outer tether radius. 
+/* possible strategies when the handle is pushed out of the outer tether radius.
     MaxSpeed: the god object continues to move at max speed and the handle gets pushed back to the new god object position player. On the Unity side there could be an additional penalization (with auditory cues), e.g. that the player loses health points when moving out of the tether (in FPS).
     Exploration: the god object position doesn't update anymore and the game is paused (speed control is disabled). The handle can still collide with obstacles and is in exploration mode.
     Leash: the handle is "on leash" and can collide with obstacles. The god object is moving at max speed to the position of the handle (along the direct vector between both points). A weak constant pulling force indicates where the god object is.
@@ -53,7 +53,7 @@ private:
     Vector2D m_lastError;
     std::set<IndexedEdge>* m_possibleCollisions;
     std::deque<GodObjectAction*> m_actionQueue;
-    
+
     // tether related properties
     bool m_tethered = true;
     double m_tetherFactor = 0.01;
@@ -89,5 +89,5 @@ public:
     bool getProcessingObstacleCollision();
     bool getDoneColliding();
     bool tethered();
-    void setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy, bool pockEnabled); 
+    void setSpeedControl(bool active, double tetherFactor, double innerTetherRadius, double outerTetherRadius, OutOfTetherStrategy strategy, bool pockEnabled);
 };

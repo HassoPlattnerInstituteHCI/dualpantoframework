@@ -85,7 +85,7 @@ bool GodObject::move(bool isTweening, bool isFrozen)
     auto lastState = m_processingObstacleCollision;
     // if the number of collisions increased since the last frame then we ran into a corner
     auto lastNumCollisions = m_numCollisions;
-    
+
     m_processingObstacleCollision = false;
 
 
@@ -119,7 +119,7 @@ bool GodObject::move(bool isTweening, bool isFrozen)
         }
         // the speed of the god object increases proportionally with the distance bw handle and go. The max speed of the go is dependent on the outer tether radius.
         movementStepLength = min(m_tetherOuterRadius, distHandleToGo);
-        
+
         // this is the movement of the god object that follows the tether
         if (distHandleToGo != 0)
         {
@@ -130,7 +130,7 @@ bool GodObject::move(bool isTweening, bool isFrozen)
     } else {
         nextGoPosition = handlePosition;
     }
-    
+
     // no matter what the tether state is we need to check if the god object is colliding with an obstacle
     Vector2D godObjectPos;
     portENTER_CRITICAL(&m_obstacleMutex);
@@ -142,7 +142,7 @@ bool GodObject::move(bool isTweening, bool isFrozen)
         godObjectPos = checkCollisions(nextGoPosition, m_position);
     }
     if (m_tethered && m_processingObstacleCollision && m_tetherState == Outer && m_tetherStrategy != MaxSpeed) {
-        // for the Exploration and Leash mode the tether state can't be outer once the god object collides 
+        // for the Exploration and Leash mode the tether state can't be outer once the god object collides
         // (otherwise the wall force will be weaker when the handle moves further into the wall)
         m_tetherState = Active;
     }
@@ -163,14 +163,14 @@ bool GodObject::move(bool isTweening, bool isFrozen)
     }
 
     //m_position = godObjectPos;
-    if (m_tethered && m_tetherState == Outer && !isTweening && m_tetherStrategy != MaxSpeed) 
+    if (m_tethered && m_tetherState == Outer && !isTweening && m_tetherStrategy != MaxSpeed)
     {
         m_tetherPosition = checkCollisions(handlePosition, m_tetherPosition);
     } else {
         m_tetherPosition = handlePosition;
     }
     portEXIT_CRITICAL(&m_obstacleMutex);
-    
+
     m_doneColliding = lastState && !m_processingObstacleCollision;
 
     if (!m_tethered) {
@@ -235,7 +235,7 @@ bool GodObject::processTetheringForce(Vector2D handlePosition, bool newCollision
         } else {
             if (!m_doneColliding) {
                 // regular tether force active that pushes the handle back to the inner tether radius
-                
+
                 renderForce(Vector2D(0,0), tetherForce);
             }
             return !m_doneColliding;
@@ -252,7 +252,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
     2. The actual collision detection.
     3. If a collision is detected calculate the new god object position.
 
-    If a collision is detected the collision detection is repeated with the new target position. This way we can check if the new position is accessible at all or not. 
+    If a collision is detected the collision detection is repeated with the new target position. This way we can check if the new position is accessible at all or not.
 
     Added by Julius on 30.09.20
     For more information check Lukas Wagners MT (section 4.3.1): https://www.dropbox.com/home/2018%20CHI%20Dueling%20Pantographs/Layer%202%20Firmware%20(Lukas%20Wagner)?preview=2019_09_07+ESP+Firmware+for+God+Haptic+Objects+%3D+Masterarbeit+(Lukas+Wagner).pdf
@@ -317,7 +317,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
             }
 
             // we have a collision!
-            if (!foundCollision || movementRatio < shortestMovementRatio) // I think the second condition never gets called because the movementRatio loop 
+            if (!foundCollision || movementRatio < shortestMovementRatio) // I think the second condition never gets called because the movementRatio loop
             // would already continue if the movementRatio was below 0 (which is the shortestMovementRatio)
             {
                 // if a collision with a passable object is detected (e.g. a haptic rail) and the handle is not within the bounds of the colliding object,
@@ -341,7 +341,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
         if (foundCollision)
         {
             m_processingObstacleCollision = true;
-            
+
             // god object slides along the colliding edge according to the handle movement but with tethered speed
 
             if (m_tethered) {
@@ -366,7 +366,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
             // c_resolveDistance is super small --> we need to add a tiny padding between the godobject and the edge so that it's not getting stuck in the edge
             targetPoint = targetPoint - (resolveVec * ((resolveLength + c_resolveDistance) / resolveLength));
 
-            
+
             // check for the new point if there is another collision with any other edge
             m_possibleCollisions->clear();
             hashtable().getPossibleCollisions(
@@ -394,7 +394,7 @@ void GodObject::createRail(uint16_t id, std::vector<Vector2D> points, double dis
     m_obstacles.emplace(id, rail);
     portEXIT_CRITICAL(&m_obstacleMutex);
     return;
-    
+
 }
 
 void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
@@ -435,7 +435,7 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
         }
         it->second->enable(enable);
         portEXIT_CRITICAL(&m_obstacleMutex);
-    } 
+    }
 }
 
 Vector2D GodObject::getPosition()
