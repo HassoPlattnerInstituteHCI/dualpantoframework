@@ -76,7 +76,7 @@ void Panto::forwardKinematics()
     // PERFMON_STOP("[abbg] handle position");
 
 
-    //Kalman Filter
+    //Kalman FIlter
 
     T_period = millis()-T;
     DT = (T_period)/1000.0;
@@ -96,10 +96,8 @@ void Panto::forwardKinematics()
     obs = K.H * state;
     K.update(obs);
 
-    m_handleX = K.x(0);
-    m_handleY = K.x(1);
-
-
+//    m_handleX = K.x(0);
+//    m_handleY = K.x(1);
 
     // right elbow angles
     // PERFMON_START("[abbh] right elbow angles");
