@@ -276,20 +276,33 @@ void Panto::readEncoders()
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;
+        //TODO filter out zero value of raw encoder value
+
+        if (m_angleAccessors[localIndex]() == 0)
+        {
+            m_actualAngleAccessors[localIndex] = m_prevAngleAccessors[localIndex];
+        }else{
+            m_actualAngleAccessors[localIndex] = m_angleAccessors[localIndex]();
+        }
+
+        m_prevAngleAccessors[localIndex] = m_angleAccessors[localIndex]();
+
         m_previousAngle[localIndex] =
             ensureAngleRange(
                 encoderFlipped[globalIndex] *
-                TWO_PI * m_angleAccessors[localIndex]() /
+                TWO_PI * m_actualAngleAccessors[localIndex] /
                 encoderSteps[globalIndex]);
         m_encoderRequestCount++;
         m_encoderRequestCounts[localIndex]++;
+
     }
-    m_actuationAngle[c_localHandleIndex] =
-        (m_encoder[c_localHandleIndex]) ?
-        (encoderFlipped[c_globalHandleIndex] *
-        TWO_PI * m_encoder[c_localHandleIndex]->read() /
-        encoderSteps[c_globalHandleIndex]) :
-        NAN;
+//    m_actuationAngle[c_localHandleIndex] =
+//        (m_encoder[c_localHandleIndex]) ?
+//        (encoderFlipped[c_globalHandleIndex] *
+//        TWO_PI * m_encoder[c_localHandleIndex]->read() /
+//        encoderSteps[c_globalHandleIndex]) :
+//        NAN;
+
     #else
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
@@ -516,6 +529,8 @@ void Panto::setKalman() {
                 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0,
                 0.0, 0.0, 0.0, 1.0};
+    state.Fill(0.0);
+    obs.Fill(0.0);
 
 }
 

@@ -55,6 +55,8 @@ private:
 
     #ifdef LINKAGE_ENCODER_USE_SPI
     AngleAccessor m_angleAccessors[2];
+    uint32_t m_prevAngleAccessors[2];
+    uint32_t m_actualAngleAccessors[2];
     #endif
     Encoder* m_encoder[c_dofCount];
     float m_actuationAngle[c_dofCount];
@@ -79,8 +81,6 @@ private:
     unsigned long T; // current time
     unsigned long T_period;
     float DT; // delay between two updates of the filter
-
-
 
 
     int m_previousAnglesCount = 0;

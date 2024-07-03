@@ -177,7 +177,7 @@ void KALMAN<Nstate,Nobs,Ncom,MemF>::_update(BLA::Matrix<Nobs> obs, BLA::Matrix<N
     BLA::Matrix<Nstate,Nobs> K; // Kalman gain matrix
     // UPDATE
     this->x = this->F * this->x + comstate;
-    this->P = this->F * this->P * (~ this->F) + this->Q;
+    this->P = this->F * this->P * (~this->F) + this->Q;
     // ESTIMATION
     S = this->H * this->P * (~ this->H) + this->R;
     bool is_nonsingular = Invert(S); // inverse inplace (S <- S^{-1})
