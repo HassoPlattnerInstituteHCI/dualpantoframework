@@ -296,12 +296,12 @@ void Panto::readEncoders()
         m_encoderRequestCounts[localIndex]++;
 
     }
-//    m_actuationAngle[c_localHandleIndex] =
-//        (m_encoder[c_localHandleIndex]) ?
-//        (encoderFlipped[c_globalHandleIndex] *
-//        TWO_PI * m_encoder[c_localHandleIndex]->read() /
-//        encoderSteps[c_globalHandleIndex]) :
-//        NAN;
+    m_actuationAngle[c_localHandleIndex] =
+        (m_encoder[c_localHandleIndex]) ?
+        (encoderFlipped[c_globalHandleIndex] *
+        TWO_PI * m_encoder[c_localHandleIndex]->read() /
+        encoderSteps[c_globalHandleIndex]) :
+        NAN;
 
     #else
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
