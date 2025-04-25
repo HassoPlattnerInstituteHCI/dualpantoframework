@@ -96,8 +96,11 @@ void Panto::forwardKinematics()
     obs = K.H * state;
     K.update(obs);
 
+//    uncomment for kalman filtering of handle position
 //    m_handleX = K.x(0);
 //    m_handleY = K.x(1);
+//    m_prev_handleX = m_handleX;
+//    m_prev_handleY = m_handleY;
 
     // right elbow angles
     // PERFMON_START("[abbh] right elbow angles");
