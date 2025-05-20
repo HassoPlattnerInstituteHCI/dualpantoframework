@@ -381,20 +381,45 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable)
 {
     // create obstacle or passable obstacle
-    auto ob = new Obstacle(points, passable);
+    //auto ob = new Obstacle(points, passable);
+    //portENTER_CRITICAL(&m_obstacleMutex);
+    //m_obstacles.emplace(id, ob);
+    //portEXIT_CRITICAL(&m_obstacleMutex);
+
     portENTER_CRITICAL(&m_obstacleMutex);
+
+    auto it = m_obstacles.find(id);
+    if (it != m_obstacles.end()) {
+        delete it->second;
+        m_obstacles.erase(it);
+    }
+
+    auto ob = new Obstacle(points, passable);
     m_obstacles.emplace(id, ob);
+
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
 void GodObject::createRail(uint16_t id, std::vector<Vector2D> points, double displacement)
 {
+    //portENTER_CRITICAL(&m_obstacleMutex);
+    //Rail* rail = new Rail(points, displacement);
+    //m_obstacles.emplace(id, rail);
+    //portEXIT_CRITICAL(&m_obstacleMutex);
+    //return;
+
     portENTER_CRITICAL(&m_obstacleMutex);
+
+    auto it = m_obstacles.find(id);
+    if (it != m_obstacles.end()) {
+        delete it->second;
+        m_obstacles.erase(it);
+    }
+
     Rail* rail = new Rail(points, displacement);
     m_obstacles.emplace(id, rail);
-    portEXIT_CRITICAL(&m_obstacleMutex);
-    return;
 
+    portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
 void GodObject::addToObstacle(uint16_t id, std::vector<Vector2D> points)
@@ -471,4 +496,31 @@ void GodObject::setSpeedControl(bool active, double tetherFactor, double innerTe
     m_tetherOuterRadius = outerTetherRadius;
     m_tetherStrategy = strategy;
     m_tetherPockEnabled = pockEnabled;
+}
+
+void GodObject::reset()
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+
+    // Delete all obstacles
+    for (auto it = m_obstacles.begin(); it != m_obstacles.end(); ++it) {
+        delete it->second;
+    }
+    m_obstacles.clear();
+
+    // Clear queues and states
+    m_actionQueue.clear();
+    m_possibleCollisions->clear();
+    m_processingObstacleCollision = false;
+    m_doneColliding = false;
+    m_tethered = false;
+    m_tetherState = Inner;
+
+    // Reset hashtable
+    if (m_hashtable) {
+        delete m_hashtable;
+        m_hashtable = nullptr;
+    }
+
+    portEXIT_CRITICAL(&m_obstacleMutex);
 }

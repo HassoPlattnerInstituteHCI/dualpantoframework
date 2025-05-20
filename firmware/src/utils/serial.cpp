@@ -285,6 +285,13 @@ bool DPSerial::payloadReady()
 void DPSerial::receiveSyncAck()
 {
     s_connected = true;
+
+    // Clear god object state
+    for (auto& physics : pantoPhysics) {
+        if (physics.godObject()) {
+            physics.godObject()->reset();
+        }
+    }
 };
 
 void DPSerial::receiveHearbeatAck()
@@ -577,6 +584,9 @@ bool DPSerial::ensureConnection()
         sendQueuedDebugLog("Disconnected due to too many unacklowledged heartbeats.");
         s_unacknowledgedHeartbeats = 0;
         s_connected = false;
+        Serial.flush();
+        delay(10);
+        ESP.restart();
         return false;
     }
 
