@@ -181,39 +181,13 @@ void Panto::inverseKinematics()
     }
     else if (m_isforceRendering)
     {
-        // previous implementation (non inverted matrix):
-        // m_targetAngle[c_localLeftIndex] =
-        //     m_jacobian[0][0] * m_targetX +
-        //     m_jacobian[0][1] * m_targetY;
-        // m_targetAngle[c_localRightIndex] =
-        //     m_jacobian[1][0] * m_targetX +
-        //     m_jacobian[1][1] * m_targetY;
-    
-        // compute inverse matrix
-        float a = m_jacobian[0][0]; 
-        float b = m_jacobian[0][1];
-        float c = m_jacobian[1][0];
-        float d = m_jacobian[1][1];
+     m_targetAngle[c_localLeftIndex] =
+            m_jacobian[0][0] * m_targetX +
+            m_jacobian[0][1] * m_targetY;
+        m_targetAngle[c_localRightIndex] =
+            m_jacobian[1][0] * m_targetX +
+            m_jacobian[1][1] * m_targetY;
 
-        float det = a * d - b * c;
-
-        if (fabs(det) > 1e-6f) {  
-            float invDet = 1.0f / det;
-
-            float jInv00 =  d * invDet;
-            float jInv01 = -b * invDet;
-            float jInv10 = -c * invDet;
-            float jInv11 =  a * invDet;
-
-            // apply inverse jacobian
-            m_targetAngle[c_localLeftIndex] = jInv00 * m_targetX + jInv01 * m_targetY;
-            m_targetAngle[c_localRightIndex] = jInv10 * m_targetX + jInv11 * m_targetY;
-    } else {
-        m_targetAngle[c_localLeftIndex] = 0;
-        m_targetAngle[c_localRightIndex] = 0;
-    }
-        m_targetAngle[c_localLeftIndex] = ensureAngleRange(m_targetAngle[c_localLeftIndex]);
-        m_targetAngle[c_localRightIndex] = ensureAngleRange(m_targetAngle[c_localRightIndex]);
     }
     else
     {
