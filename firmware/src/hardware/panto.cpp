@@ -324,7 +324,7 @@ void Panto::readEncoders()
 
 
     m_previousAngle[c_localHandleIndex] = m_actuationAngle[c_localHandleIndex];
-//    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
+    m_actuationAngle[c_localHandleIndex] = fmod(m_actuationAngle[c_localHandleIndex], TWO_PI);
     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
     {
         if(m_previousAngle[localIndex]==0)return;
