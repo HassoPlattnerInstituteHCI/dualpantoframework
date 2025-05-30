@@ -380,12 +380,6 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
 void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool passable)
 {
-    // create obstacle or passable obstacle
-    //auto ob = new Obstacle(points, passable);
-    //portENTER_CRITICAL(&m_obstacleMutex);
-    //m_obstacles.emplace(id, ob);
-    //portEXIT_CRITICAL(&m_obstacleMutex);
-
     portENTER_CRITICAL(&m_obstacleMutex);
 
     auto it = m_obstacles.find(id);
@@ -402,12 +396,6 @@ void GodObject::createObstacle(uint16_t id, std::vector<Vector2D> points, bool p
 
 void GodObject::createRail(uint16_t id, std::vector<Vector2D> points, double displacement)
 {
-    //portENTER_CRITICAL(&m_obstacleMutex);
-    //Rail* rail = new Rail(points, displacement);
-    //m_obstacles.emplace(id, rail);
-    //portEXIT_CRITICAL(&m_obstacleMutex);
-    //return;
-
     portENTER_CRITICAL(&m_obstacleMutex);
 
     auto it = m_obstacles.find(id);
