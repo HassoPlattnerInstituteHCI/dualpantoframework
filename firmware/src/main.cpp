@@ -2,6 +2,7 @@
 
 #include "ioMain.hpp"
 #include "physicsMain.hpp"
+#include "bluetoothMain.hpp"
 #include "tasks/taskRegistry.hpp"
 #include "utils/serial.hpp"
 #include <BasicLinearAlgebra.h>
@@ -11,7 +12,7 @@ void setup()
     DPSerial::init();
 
     DPSerial::sendInstantDebugLog("========== START ==========");
-
+    setup_bluetooth(); // Comment this out to disable Bluetooth functionality
     Tasks.emplace(
         std::piecewise_construct,
         std::forward_as_tuple("I/O"),
@@ -28,6 +29,7 @@ void setup()
     DPSerial::sendInstantDebugLog("default task handle is %i", defaultTask);
     vTaskSuspend(NULL);
     taskYIELD();
+
     DPSerial::sendInstantDebugLog("setup - this should not be printed");
 }
 
