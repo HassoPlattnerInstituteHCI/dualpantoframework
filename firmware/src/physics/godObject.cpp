@@ -289,7 +289,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
         if (posMinusTarget == Vector2D(0, 0))
         {
-            return targetPoint;
+            return targetPoint; // redundant, we already check this in 261
         }
 
         for (auto&& indexedEdge : *m_possibleCollisions)
@@ -303,18 +303,20 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
             auto movementRatio =
                 -Vector2D::determinant(firstMinusSecond, firstMinusPos) /
-                divisor;
+                divisor; // this is the ratio of the movement vector that is inside the edge vector
             if (movementRatio < 0 || movementRatio > 1)
             {
                 continue;
             }
 
             auto edgeRatio =
-                Vector2D::determinant(firstMinusPos, posMinusTarget) / divisor;
+                Vector2D::determinant(firstMinusPos, posMinusTarget) / divisor; // this is the ratio of the edge vector that is inside the movement vector
             if (edgeRatio < 0 || edgeRatio > 1)
             {
                 continue;
             }
+
+            // ratios are completely irrelevant for collision calculation, were just checking if movement and edge are indeed intersecting or not
 
             // we have a collision!
             if (!foundCollision || movementRatio < shortestMovementRatio) // I think the second condition never gets called because the movementRatio loop
@@ -346,6 +348,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
             if (m_tethered) {
                 // if the movement is tethered the targetPoint can not be further away from the current position than the outer tether radius
+                // tethered just means we cannot move further than the outer tether radius bc we're locked/moving controlled externally
                 const Vector2D movementVector = targetPoint - currentPosition;
                 double movementLength = min(m_tetherOuterRadius, movementVector.length());
                 targetPoint = currentPosition + (movementVector.normalize() * movementLength);
