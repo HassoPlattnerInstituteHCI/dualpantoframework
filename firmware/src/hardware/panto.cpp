@@ -181,12 +181,14 @@ void Panto::inverseKinematics()
     }
     else if (m_isforceRendering)
     {
-     m_targetAngle[c_localLeftIndex] =
+        // Use the Jacobian transpose to compute joint torques from
+        // the target force vector in cartesian space
+        m_targetAngle[c_localLeftIndex] =
             m_jacobian[0][0] * m_targetX +
-            m_jacobian[0][1] * m_targetY;
+            m_jacobian[1][0] * m_targetY;  // dx/dθ₁ and dy/dθ₁
         m_targetAngle[c_localRightIndex] =
-            m_jacobian[1][0] * m_targetX +
-            m_jacobian[1][1] * m_targetY;
+            m_jacobian[0][1] * m_targetX +
+            m_jacobian[1][1] * m_targetY;  // dx/dθ₂ and dy/dθ₂
 
     }
     else
