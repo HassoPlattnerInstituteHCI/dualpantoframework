@@ -95,13 +95,13 @@ bool GodObject::move(bool isTweening, bool isFrozen)
         renderForce(getCollisionForce(m_position, handlePosition), Vector2D(0,0));
         return true;
     }
-    if (isTweening) {
-        m_position = handlePosition;
-        if (m_tethered) {
-            m_tetherPosition = handlePosition;
-        }
-        return false;
-    }
+//    if (isTweening) {
+//        m_position = handlePosition;
+//        if (m_tethered) {
+//            m_tetherPosition = handlePosition;
+//        }
+//        return false;
+//    }
     float movementStepLength = m_movementDirection.length(); // only used for tethering
     if (m_tethered && !isTweening) {
         double distHandleToGo = m_movementDirection.length();
