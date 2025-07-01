@@ -7,6 +7,33 @@
 #include "physics/pantoPhysics.hpp"
 #include "utils/vector.hpp"
 
+uint16_t scaleMotorPwm12bitDEBUG(uint16_t pwmCmd, uint16_t battAdcInt)
+{
+    // --- ADC → Voltage (linear fit from your CSV) -----------------------
+    constexpr float kSlope     = 0.00454755f;   // V per ADC count
+    constexpr float kIntercept = 0.7637567f;    // V offset
+
+    // --- Target voltage at 25 % SoC -------------------------------------
+    constexpr float ref_Voltage       = 8.0f;        // output scaled so that it'd be at this voltage
+    const auto battAdc = static_cast<float>(battAdcInt);
+    const float vBatt = kSlope * battAdc + kIntercept;
+    if (vBatt < 11.0f) {
+        return 0;
+    }
+
+    float scale = ref_Voltage / vBatt;
+    if (scale > 1.0f) scale = 1.0f;
+
+    // 12-bit range is 4096 discrete steps → multiply by 4095
+    constexpr float kPwmMax = 4095.0f;
+    uint32_t pwmScaled = static_cast<uint32_t>(pwmCmd * scale + 0.5f);
+
+    // Safety clamp in case the caller passed something out of bounds
+    if (pwmScaled > kPwmMax) pwmScaled = kPwmMax;
+
+    return static_cast<uint16_t>(pwmScaled);
+}
+
 bool DPSerial::s_rxBufferCritical = false;
 Header DPSerial::s_header = Header();
 uint8_t DPSerial::s_debugLogBuffer[c_debugLogBufferSize];
@@ -687,11 +714,15 @@ void DPSerial::sendDebugData()
     const auto pos0 = pantos[0].getPosition();
     const auto pos1 = pantos[1].getPosition();
     portENTER_CRITICAL(&s_serialMutex);
-    // auto a = analogRead(BATTERY_PIN);
+    const auto a = static_cast<float>(analogRead(BATTERY_PIN));
+    constexpr float kSlope     = 0.00454755f;   // V per ADC count
+    constexpr float kIntercept = 0.7637567f;    // V offset
+    auto vBatt = kSlope * a + kIntercept;        // volts
+    auto converted = scaleMotorPwm12bitDEBUG(4095, a);
     sendInstantDebugLog(
-        "[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
-        degrees(pantos[0].getActuationAngle(0)),
-        degrees(pantos[0].getActuationAngle(1)),
+        "[battery] %+08.3f | %d | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
+        vBatt,
+        converted,
         degrees(pantos[0].getActuationAngle(2)),
         degrees(pantos[1].getActuationAngle(0)),
         degrees(pantos[1].getActuationAngle(1)),

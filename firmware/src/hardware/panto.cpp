@@ -10,6 +10,51 @@
 
 std::vector<Panto> pantos;
 
+
+/**
+ * Scale a raw 12-bit PWM command so the motor never sees > V_25 volts.
+ * (V_25 is the target voltage at 25% SoC, we're cutting power at 30%,
+ * so we should never be lower than this).
+ *
+ * @param pwmCmd   Desired duty-cycle (0-4095) you intend to output
+ * @param battAdc  Latest analogRead() reading of the battery rail
+ * @return         Duty-cycle (0-4095) after head-room compensation
+ */
+
+uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdcInt)
+{
+    // --- ADC → Voltage (linear fit from your CSV) -----------------------
+    constexpr float kSlope     = 0.00454755f;   // V per ADC count
+    constexpr float kIntercept = 0.7637567f;    // V offset
+
+    // --- Target voltage at 25 % SoC -------------------------------------
+    constexpr float ref_Voltage       = 9.0f;        // 100% PWM is this much (tweak this)
+    const auto battAdc = static_cast<float>(battAdcInt);
+    const float vBatt = kSlope * battAdc + kIntercept;
+    if (vBatt < 11.4f) {
+        return 0;
+    }
+
+    float scale = ref_Voltage / vBatt;
+    if (scale > 1.0f) scale = 1.0f;
+
+    // 12-bit range is 4096 discrete steps → multiply by 4095
+    constexpr float kPwmMax = 4095.0f;
+    uint32_t pwmScaled = static_cast<uint32_t>(pwmCmd * scale + 0.5f);
+
+    // Safety clamp in case the caller passed something out of bounds
+    if (pwmScaled > kPwmMax) pwmScaled = kPwmMax;
+
+    return static_cast<uint16_t>(pwmScaled);
+}
+
+void scaledLedcWrite(uint8_t index, uint16_t value)
+{
+    // scale the value to 12 bit
+    auto scaledValue = scaleMotorPwm12bit(value, analogRead(BATTERY_PIN));
+    ledcWrite(index, scaledValue);
+}
+
 void Panto::forwardKinematics()
         {
     // base angles
@@ -167,39 +212,6 @@ void Panto::forwardKinematics()
     inverseKinematics();
 }
 
-/**
- * Scale a raw 12-bit PWM command so the motor never sees > V_25 volts.
- * (V_25 is the target voltage at 25% SoC, we're cutting power at 30%,
- * so we should never be lower than this).
- *
- * @param pwmCmd   Desired duty-cycle (0-4095) you intend to output
- * @param battAdc  Latest analogRead() reading of the battery rail
- * @return         Duty-cycle (0-4095) after head-room compensation
- */
-
-uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdc)
-{
-    // --- ADC → Voltage (linear fit from your CSV) -----------------------
-    constexpr float kSlope     = 0.00454755f;   // V per ADC count
-    constexpr float kIntercept = 0.7637567f;    // V offset
-
-    // --- Target voltage at 25 % SoC -------------------------------------
-    constexpr float ref_Voltage       = 8.0f;        // output scaled so that it'd be at this voltage
-
-    const float vBatt = kSlope * battAdc + kIntercept;
-
-    float scale = ref_Voltage / vBatt;
-    if (scale > 1.0f) scale = 1.0f;
-
-    // 12-bit range is 4096 discrete steps → multiply by 4095
-    constexpr float kPwmMax = 4095.0f;
-    uint32_t pwmScaled = static_cast<uint32_t>(pwmCmd * scale + 0.5f);
-
-    // Safety clamp in case the caller passed something out of bounds
-    if (pwmScaled > kPwmMax) pwmScaled = kPwmMax;
-
-    return static_cast<uint16_t>(pwmScaled);
-}
 
 void Panto::inverseKinematics()
 {
@@ -291,13 +303,13 @@ void Panto::setMotor(
     if(motorPwmPinForwards[globalIndex] != dummyPin)
     {
         if(!flippedDir) {
-            ledcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex, min(power,
+            scaledLedcWrite(globalIndex+6, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            scaledLedcWrite(globalIndex, min(power,
             (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         else {
-            ledcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
-            ledcWrite(globalIndex+6, min(power,
+            scaledLedcWrite(globalIndex, 0);//min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+            scaledLedcWrite(globalIndex+6, min(power,
             (m_isforceRendering) ? motor_powerLimitForce[globalIndex] : motorPowerLimit[globalIndex]) * PWM_MAX);
         }
         return;
@@ -307,8 +319,7 @@ void Panto::setMotor(
     digitalWrite(motorDirAPin[globalIndex], flippedDir);
     digitalWrite(motorDirBPin[globalIndex], !flippedDir);
     auto rawPWM = min(power, motorPowerLimit[globalIndex]) * PWM_MAX;
-    auto scaledPWM = scaleMotorPwm12bit(rawPWM, analogRead(BATTERY_PIN));
-    ledcWrite(globalIndex, scaledPWM); //testing with like 93% battery
+    scaledLedcWrite(globalIndex, rawPWM);
 };
 
 void Panto::readEncoders()
@@ -530,17 +541,17 @@ Panto::Panto(uint8_t pantoIndex)
             ledcAttachPin(motorPwmPinForwards[globalIndex], globalIndex);
             ledcAttachPin(motorPwmPinBackwards[globalIndex], globalIndex+6);
 
-            ledcWrite(globalIndex, 0.1*PWM_MAX);
+            scaledLedcWrite(globalIndex, 0.1*PWM_MAX);
             delay(10);
-            ledcWrite(globalIndex, 0);
+            scaledLedcWrite(globalIndex, 0);
             delay(10);
-            ledcWrite(globalIndex+6, 0.1*PWM_MAX);
+            scaledLedcWrite(globalIndex+6, 0.1*PWM_MAX);
             delay(10);
-            ledcWrite(globalIndex+6, 0);
+            scaledLedcWrite(globalIndex+6, 0);
             /*
-            ledcWrite(globalIndex, 0.2*PWM_MAX);
+            scaledLedcWrite(globalIndex, 0.2*PWM_MAX);
             delay(2000);
-            ledcWrite(globalIndex, 0);
+            scaledLedcWrite(globalIndex, 0);
             */
 
         }
