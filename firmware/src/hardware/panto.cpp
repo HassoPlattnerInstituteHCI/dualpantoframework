@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "physicsMain.hpp"
 #include "utils/performanceMonitor.hpp"
 #include "utils/serial.hpp"
 
@@ -10,7 +11,7 @@
 std::vector<Panto> pantos;
 
 void Panto::forwardKinematics()
-{
+        {
     // base angles
     // PERFMON_START("[abba] base angles");
     const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex];
@@ -166,6 +167,40 @@ void Panto::forwardKinematics()
     inverseKinematics();
 }
 
+/**
+ * Scale a raw 12-bit PWM command so the motor never sees > V_25 volts.
+ * (V_25 is the target voltage at 25% SoC, we're cutting power at 30%,
+ * so we should never be lower than this).
+ *
+ * @param pwmCmd   Desired duty-cycle (0-4095) you intend to output
+ * @param battAdc  Latest analogRead() reading of the battery rail
+ * @return         Duty-cycle (0-4095) after head-room compensation
+ */
+
+uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdc)
+{
+    // --- ADC → Voltage (linear fit from your CSV) -----------------------
+    constexpr float kSlope     = 0.00454755f;   // V per ADC count
+    constexpr float kIntercept = 0.7637567f;    // V offset
+
+    // --- Target voltage at 25 % SoC -------------------------------------
+    constexpr float ref_Voltage       = 8.0f;        // output scaled so that it'd be at this voltage
+
+    const float vBatt = kSlope * battAdc + kIntercept;
+
+    float scale = ref_Voltage / vBatt;
+    if (scale > 1.0f) scale = 1.0f;
+
+    // 12-bit range is 4096 discrete steps → multiply by 4095
+    constexpr float kPwmMax = 4095.0f;
+    uint32_t pwmScaled = static_cast<uint32_t>(pwmCmd * scale + 0.5f);
+
+    // Safety clamp in case the caller passed something out of bounds
+    if (pwmScaled > kPwmMax) pwmScaled = kPwmMax;
+
+    return static_cast<uint16_t>(pwmScaled);
+}
+
 void Panto::inverseKinematics()
 {
 
@@ -271,7 +306,9 @@ void Panto::setMotor(
 
     digitalWrite(motorDirAPin[globalIndex], flippedDir);
     digitalWrite(motorDirBPin[globalIndex], !flippedDir);
-    ledcWrite(globalIndex, min(power, motorPowerLimit[globalIndex]) * PWM_MAX);
+    auto rawPWM = min(power, motorPowerLimit[globalIndex]) * PWM_MAX;
+    auto scaledPWM = scaleMotorPwm12bit(rawPWM, analogRead(BATTERY_PIN));
+    ledcWrite(globalIndex, scaledPWM); //testing with like 93% battery
 };
 
 void Panto::readEncoders()
@@ -449,7 +486,7 @@ Panto::Panto(uint8_t pantoIndex)
 
 
 
-
+    pinMode(BATTERY_PIN, ANALOG);
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;

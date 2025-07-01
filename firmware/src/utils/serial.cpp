@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "physicsMain.hpp"
 #include "hardware/panto.hpp"
 #include "physics/pantoPhysics.hpp"
 #include "utils/vector.hpp"
@@ -686,6 +687,7 @@ void DPSerial::sendDebugData()
     const auto pos0 = pantos[0].getPosition();
     const auto pos1 = pantos[1].getPosition();
     portENTER_CRITICAL(&s_serialMutex);
+    // auto a = analogRead(BATTERY_PIN);
     sendInstantDebugLog(
         "[ang/0] %+08.3f | %+08.3f | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
         degrees(pantos[0].getActuationAngle(0)),
