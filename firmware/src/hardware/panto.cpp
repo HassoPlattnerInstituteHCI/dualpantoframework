@@ -31,6 +31,7 @@ uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdcInt)
     constexpr float ref_Voltage       = 8.5f;        // 100% PWM is this much (tweak this)
     const auto battAdc = static_cast<float>(battAdcInt);
     const float vBatt = kSlope * battAdc + kIntercept;
+    batteryVoltage = vBatt;
     if (vBatt < 11.0f) {
         return 0;
     }

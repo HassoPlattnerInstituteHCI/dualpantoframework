@@ -105,7 +105,7 @@ public:
     static bool ensureConnection();
 
     // send
-    static void sendPosition();
+    static void sendState();
     static void sendTransitionEnded(uint8_t panto);
     static void sendInstantDebugLog(const char *message, ...);
     static void sendQueuedDebugLog(const char *message, ...);

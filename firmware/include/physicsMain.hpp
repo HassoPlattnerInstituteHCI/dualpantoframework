@@ -4,3 +4,5 @@
 
 void physicsSetup();
 void physicsLoop();
+
+extern float batteryVoltage;

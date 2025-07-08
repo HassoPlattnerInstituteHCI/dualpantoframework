@@ -21,14 +21,14 @@ void ioLoop()
     auto connected = DPSerial::ensureConnection();
     PERFMON_STOP("[a] Receive serial");
 
-    PERFMON_START("[b] Send positions");
+    PERFMON_START("[b] Send state");
     //DPSerial::sendDebugData();
     //DPSerial::sendInstantDebugLog("\n");
     if (connected && sendLimiter.step())
     {
-        DPSerial::sendPosition();
+        DPSerial::sendState();
     }
-    PERFMON_STOP("[b] Send positions");
+    PERFMON_STOP("[b] Send state");
     
     PERFMON_START("[c] Send debug logs");
     if (connected)

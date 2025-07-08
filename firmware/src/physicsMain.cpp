@@ -15,6 +15,8 @@ FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 SPIEncoderChain* spi;
 #endif
 
+float batteryVoltage = 0.0f;
+
 void physicsSetup()
 {
     #ifdef LINKAGE_ENCODER_USE_SPI
