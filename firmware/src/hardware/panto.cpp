@@ -12,12 +12,12 @@ std::vector<Panto> pantos;
 
 
 /**
- * Scale a raw 12-bit PWM command so the motor never sees > V_25 volts.
+ * Scale a raw 12-bit PWM command so the motor never sees > ref_Voltage volts.
  * (V_25 is the target voltage at 25% SoC, we're cutting power at 30%,
  * so we should never be lower than this).
  *
  * @param pwmCmd   Desired duty-cycle (0-4095) you intend to output
- * @param battAdc  Latest analogRead() reading of the battery rail
+ * @param battAdcInt  Latest analogRead() reading of the battery rail
  * @return         Duty-cycle (0-4095) after head-room compensation
  */
 
@@ -28,10 +28,10 @@ uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdcInt)
     constexpr float kIntercept = 0.7637567f;    // V offset
 
     // --- Target voltage at 25 % SoC -------------------------------------
-    constexpr float ref_Voltage       = 8.0f;        // 100% PWM is this much (tweak this)
+    constexpr float ref_Voltage       = 8.5f;        // 100% PWM is this much (tweak this)
     const auto battAdc = static_cast<float>(battAdcInt);
     const float vBatt = kSlope * battAdc + kIntercept;
-    if (vBatt < 11.4f) {
+    if (vBatt < 11.0f) {
         return 0;
     }
 
