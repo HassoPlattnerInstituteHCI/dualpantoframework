@@ -35,7 +35,7 @@ The available values for messages from the hardware to the framework are:
   - [0x05 Invalid Packet ID](#0x05-Invalid-packet-id) - Informs the framework of an unexpected packet ID.
   - [0x06 Invalid Data](#0x06-Invalid-data) - Informs the packet of unexpected bytes in the receive buffer.
 - 0x10 to 0x1F - Data messages
-  - [0x10 Position](#0x10-Position) - This message contains the current positions of the handles, as well as the god objects' positions.
+  - [0x10 State](#0x10-State) - This message contains the current positions of the handles, the god objects' positions and the battery voltage.
 - 0x20 to 0x2F - Auxiliary messages
   - [0x20 Debug log](#0x20-Debug-log) - This message contains a user-defined string that is meant as a debug log.
 
@@ -168,16 +168,16 @@ Example message:
 ```
 
 
-### 0x10 Position
+### 0x10 State
 
-The message contains - in this order - the x position, the y position and the rotation of a handle, each encoded as a 32 bit float, followed by the x and y position of the god object. This is repeated for each handle.
+The message contains - in this order - the x position, the y position and the rotation of a handle, each encoded as a 32 bit float, followed by the x and y position of the god object. After the values for all handles a single float with the measured battery voltage follows.
 
 Example message for two handles:
 ```
 4450     // magic number
-10       // message type: position
+10       // message type: state
 00       // packet ID: not utilized
-0028     // payload length: 2 handles, 5 values each, 4 bytes each - 2*5*4 = 40 = 0x28
+002C     // payload length: 2 handles, 5 values each, plus one battery value - 44 bytes = 0x2C
 FFFFFFFF // x position of first handle
 FFFFFFFF // y position of first handle
 FFFFFFFF // rotation of first handle
@@ -188,6 +188,7 @@ FFFFFFFF // y position of second handle
 FFFFFFFF // rotation of second handle
 FFFFFFFF // x position of second handle's god object
 FFFFFFFF // y position of second handle's god object
+FFFFFFFF // battery voltage of the device
 ```
 
 ### 0x20 Debug log

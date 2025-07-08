@@ -26,7 +26,7 @@ void ioLoop()
     //DPSerial::sendInstantDebugLog("\n");
     if (connected && sendLimiter.step())
     {
-        DPSerial::sendPosition();
+        DPSerial::sendState();
     }
     PERFMON_STOP("[b] Send positions");
     

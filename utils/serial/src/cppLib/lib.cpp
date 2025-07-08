@@ -43,9 +43,9 @@ void CppLib::poll()
 {
     bool receivedSync = false;
     bool receivedHeartbeat = false;
-    bool receivedPosition = false;
+    bool receivedState = false;
     bool receivedTransition = false;
-    double positionCoords[2 * 5];
+    double stateValues[2 * 5 + 1];
     uint8_t pantoIndex;
 
     while (s_receiveQueue.size() > 0)
@@ -79,12 +79,12 @@ void CppLib::poll()
         case HEARTBEAT:
             receivedHeartbeat = true;
             break;
-        case POSITION:
-            receivedPosition = true;
+        case STATE:
+            receivedState = true;
             while (packet.payloadIndex < packet.header.PayloadSize)
             {
                 uint8_t index = packet.payloadIndex / 4;
-                positionCoords[index] = packet.receiveFloat();
+                stateValues[index] = packet.receiveFloat();
             }
             break;
         case DEBUG_LOG:
@@ -123,7 +123,7 @@ void CppLib::poll()
         }
     }
 
-    if (receivedPosition)
+    if (receivedState)
     {
         if (positionHandler == nullptr)
         {
@@ -131,7 +131,7 @@ void CppLib::poll()
         }
         else
         {
-            positionHandler((uint64_t)s_handle, positionCoords);
+            positionHandler((uint64_t)s_handle, stateValues);
         }
     }
 

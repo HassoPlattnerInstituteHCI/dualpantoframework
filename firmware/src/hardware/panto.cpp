@@ -6,6 +6,7 @@
 #include "utils/serial.hpp"
 
 std::vector<Panto> pantos;
+float batteryVoltage = 0.0f;
 
 void Panto::forwardKinematics()
 {
@@ -334,6 +335,7 @@ void Panto::readEncoders()
 void Panto::actuateMotors()
 {
     m_batteryCharge = analogRead(27);
+    batteryVoltage = m_batteryCharge * 3.3f / 4095.0f * 5.545f;
     if (m_batteryCharge < PWM_MIN_VOLTAGE){
         DPSerial::sendQueuedDebugLog("Please charge battery. Battery charge (should be between %d and %d): %d", PWM_MIN_VOLTAGE, PWM_MAX, m_batteryCharge);
         return;
@@ -633,4 +635,8 @@ bool Panto::getIsFrozen(){
 }
 void Panto::setIsFrozen(bool isFrozen){
     m_isFrozen = isFrozen;
+}
+
+float Panto::getBatteryVoltage(){
+    return batteryVoltage;
 }

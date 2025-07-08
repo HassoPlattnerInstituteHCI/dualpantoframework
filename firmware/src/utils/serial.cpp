@@ -591,11 +591,11 @@ bool DPSerial::ensureConnection()
 
 // send
 
-void DPSerial::sendPosition()
+void DPSerial::sendState()
 {
     portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
-    sendHeader(POSITION, pantoCount * 5 * 4); // five values per panto, 4 bytes each
+    sendHeader(STATE, pantoCount * 5 * 4 + 4); // five values per panto plus battery voltage
 
     for (auto i = 0; i < pantoCount; ++i)
     {
@@ -608,6 +608,7 @@ void DPSerial::sendPosition()
         sendFloat(goPos.x);
         sendFloat(goPos.y);
     }
+    sendFloat(batteryVoltage);
     portEXIT_CRITICAL(&s_serialMutex);
 };
 

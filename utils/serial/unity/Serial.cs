@@ -7,7 +7,7 @@ using UnityEngine;
 public class Serial : MonoBehaviour {
     public delegate void SyncDelegate(ulong handle);
     public delegate void HeartbeatDelegate(ulong handle);
-    public delegate void PositionDelegate(ulong handle, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.R8, SizeConst = 10)] double[] positions);
+    public delegate void PositionDelegate(ulong handle, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.R8, SizeConst = 11)] double[] positions);
     public delegate void LoggingDelegate(IntPtr msg);
 
     protected ulong Handle;
@@ -45,7 +45,7 @@ public class Serial : MonoBehaviour {
         SendHeartbeatAck(handle);
     }
 
-    private static void PositionHandler(ulong handle, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.R8, SizeConst = 10)] double[] positions)
+    private static void PositionHandler(ulong handle, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.R8, SizeConst = 11)] double[] positions)
     {
         Debug.Log("Received positions: (" + positions[0] + "|" + positions[1] + ")");
         //Debug.Log("Received positions");

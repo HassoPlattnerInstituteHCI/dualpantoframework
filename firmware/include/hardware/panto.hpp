@@ -127,6 +127,8 @@ public:
     void setInTransition(bool inTransition);
     bool getIsFrozen();
     void setIsFrozen(bool isFrozen);
+    float getBatteryVoltage();
 };
 
 extern std::vector<Panto> pantos;
+extern float batteryVoltage;
