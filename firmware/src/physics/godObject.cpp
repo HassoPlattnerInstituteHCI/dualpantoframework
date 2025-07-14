@@ -346,40 +346,28 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
             if (m_tethered) {
                 // if the movement is tethered the targetPoint can not be further away from the current position than the outer tether radius
-                // tethered just means we cannot move further than the outer tether radius bc we're locked/moving controlled externally
                 const Vector2D movementVector = targetPoint - currentPosition;
                 double movementLength = min(m_tetherOuterRadius, movementVector.length());
                 targetPoint = currentPosition + (movementVector.normalize() * movementLength);
             }
 
-            // 1) Compute edgeDir = (edgeSecond − edgeFirst).
-            //    Since we stored: closestEdgeFirstMinusSecond = (edgeFirst − edgeSecond),
-            //    flipping it yields (edgeSecond − edgeFirst):
-            Vector2D edgeDir = closestEdgeFirstMinusSecond * -1.0f;
+            auto perpendicular = Vector2D(
+                -closestEdgeFirstMinusSecond.y,
+                closestEdgeFirstMinusSecond.x);
+            auto resolveRatio =
+                -Vector2D::determinant(
+                    closestEdgeFirstMinusSecond,
+                    closestEdgeFirst - targetPoint) /
+                Vector2D::determinant(
+                    closestEdgeFirstMinusSecond,
+                    perpendicular);
+            auto resolveVec = perpendicular * resolveRatio;
+            auto resolveLength = resolveVec.length();
+            // c_resolveDistance is super small --> we need to add a tiny padding between the godobject and the edge so that it's not getting stuck in the edge
+            targetPoint = targetPoint - (resolveVec * ((resolveLength + c_resolveDistance) / resolveLength));
 
-            // 2) Rotate by +90° to get a raw normal:
-            Vector2D rawNormal(-edgeDir.y, edgeDir.x);
 
-            // 3) Normalize to unit length:
-            Vector2D normal = rawNormal.normalize();
-
-            // 4) Ensure it points outward. Compute
-            //    checkDot = (currentPosition − closestEdgeFirst) · normal
-            Vector2D fromEdgeToGO = currentPosition - closestEdgeFirst;
-            float checkDot = fromEdgeToGO.x * normal.x + fromEdgeToGO.y * normal.y;
-            if (checkDot > 0.0f) {
-                // flip if it points inward:
-                normal = normal * -1.0f;
-            }
-
-            // 5) Compute penetration = (targetPoint − closestEdgeFirst) · normal
-            Vector2D fromEdgeToTarget = targetPoint - closestEdgeFirst;
-            float penetration = fromEdgeToTarget.x * normal.x + fromEdgeToTarget.y * normal.y;
-
-            // 6) Push targetPoint back onto (or just outside) the wall:
-            targetPoint = targetPoint - normal * (penetration + c_resolveDistance);
-
-            // Re‐query for any additional collisions using the adjusted targetPoint:
+            // check for the new point if there is another collision with any other edge
             m_possibleCollisions->clear();
             hashtable().getPossibleCollisions(
                 Edge(currentPosition, targetPoint), m_possibleCollisions);

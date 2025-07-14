@@ -30,8 +30,10 @@ uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdcInt)
     // --- Target voltage at 25 % SoC -------------------------------------
     constexpr float ref_Voltage       = 8.5f;        // 100% PWM is this much (tweak this)
     const auto battAdc = static_cast<float>(battAdcInt);
-    const float vBatt = kSlope * battAdc + kIntercept;
-    batteryVoltage = vBatt;
+    float vBatt = kSlope * battAdc + kIntercept;
+    pwmMetrics->addPWMReading(pwmCmd);
+    pwmMetrics->addVoltageReading(vBatt);
+    vBatt = pwmMetrics->getCurrentVoltage(vBatt);
     if (vBatt < 11.0f) {
         return 0;
     }
@@ -498,7 +500,7 @@ Panto::Panto(uint8_t pantoIndex)
 
 
 
-    pinMode(BATTERY_PIN, ANALOG);
+    pinMode(BATTERY_PIN, ADC_11db);
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
         const auto globalIndex = c_globalIndexOffset + localIndex;

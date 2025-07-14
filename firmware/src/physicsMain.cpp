@@ -16,6 +16,8 @@ SPIEncoderChain* spi;
 #endif
 
 float batteryVoltage = 0.0f;
+PwmMetrics* pwmMetrics = new PwmMetrics();
+
 
 void physicsSetup()
 {
@@ -78,7 +80,6 @@ void physicsLoop()
     spi->update();
     #endif
     // PERFMON_STOP("[aa] Query SPI");
-
     // PERFMON_START("[ab] Calculation loop");
     for (auto i = 0; i < pantoCount; ++i)
     {
