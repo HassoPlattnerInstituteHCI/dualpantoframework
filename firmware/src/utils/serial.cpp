@@ -605,7 +605,6 @@ bool DPSerial::ensureConnection()
 
 void DPSerial::sendState()
 {
-    pwmMetrics->step();
     portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
     sendHeader(STATE, pantoCount * 5 * 4 + 4); // five values per panto, plus battery

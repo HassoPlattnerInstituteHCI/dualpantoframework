@@ -28,7 +28,7 @@ uint16_t scaleMotorPwm12bit(uint16_t pwmCmd, uint16_t battAdcInt)
     constexpr float kIntercept = 0.7637567f;    // V offset
 
     // --- Target voltage at 25 % SoC -------------------------------------
-    constexpr float ref_Voltage       = 8.5f;        // 100% PWM is this much (tweak this)
+    constexpr float ref_Voltage       = 8.7f;        // 100% PWM is this much (tweak this)
     const auto battAdc = static_cast<float>(battAdcInt);
     float vBatt = kSlope * battAdc + kIntercept;
     pwmMetrics->addPWMReading(pwmCmd);

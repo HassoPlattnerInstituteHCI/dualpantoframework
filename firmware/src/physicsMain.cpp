@@ -99,7 +99,7 @@ void physicsLoop()
         pantoPhysics[i].step();
     }
     PERFMON_STOP("[b] Calculate physics");
-
+    pwmMetrics->step();// Moved from serial to avoid race-conditions
     PERFMON_START("[c] Actuate motors");
     for (auto i = 0; i < pantoCount; ++i)
     {
