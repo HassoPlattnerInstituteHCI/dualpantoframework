@@ -7,32 +7,6 @@
 #include "physics/pantoPhysics.hpp"
 #include "utils/vector.hpp"
 
-uint16_t scaleMotorPwm12bitDEBUG(uint16_t pwmCmd, uint16_t battAdcInt)
-{
-    // --- ADC → Voltage (linear fit from your CSV) -----------------------
-    constexpr float kSlope     = 0.00454755f;   // V per ADC count
-    constexpr float kIntercept = 0.7637567f;    // V offset
-
-    // --- Target voltage at 25 % SoC -------------------------------------
-    constexpr float ref_Voltage       = 8.0f;        // output scaled so that it'd be at this voltage
-    const auto battAdc = static_cast<float>(battAdcInt);
-    const float vBatt = kSlope * battAdc + kIntercept;
-    if (vBatt < 11.0f) {
-        return 0;
-    }
-
-    float scale = ref_Voltage / vBatt;
-    if (scale > 1.0f) scale = 1.0f;
-
-    // 12-bit range is 4096 discrete steps → multiply by 4095
-    constexpr float kPwmMax = 4095.0f;
-    uint32_t pwmScaled = static_cast<uint32_t>(pwmCmd * scale + 0.5f);
-
-    // Safety clamp in case the caller passed something out of bounds
-    if (pwmScaled > kPwmMax) pwmScaled = kPwmMax;
-
-    return static_cast<uint16_t>(pwmScaled);
-}
 
 bool DPSerial::s_rxBufferCritical = false;
 Header DPSerial::s_header = Header();
@@ -629,11 +603,11 @@ bool DPSerial::ensureConnection()
 
 // send
 
-void DPSerial::sendPosition()
+void DPSerial::sendState()
 {
     portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
-    sendHeader(POSITION, pantoCount * 5 * 4); // five values per panto, 4 bytes each
+    sendHeader(STATE, pantoCount * 5 * 4 + 4); // five values per panto, plus battery
 
     for (auto i = 0; i < pantoCount; ++i)
     {
@@ -646,6 +620,7 @@ void DPSerial::sendPosition()
         sendFloat(goPos.x);
         sendFloat(goPos.y);
     }
+    sendFloat(pwmMetrics->getCurrentVoltage(12.6));
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
@@ -718,7 +693,7 @@ void DPSerial::sendDebugData()
     constexpr float kSlope     = 0.00454755f;   // V per ADC count
     constexpr float kIntercept = 0.7637567f;    // V offset
     auto vBatt = kSlope * a + kIntercept;        // volts
-    auto converted = scaleMotorPwm12bitDEBUG(4095, a);
+    auto converted = 0;
     sendInstantDebugLog(
         "[battery] %+08.3f | %d | %+08.3f [ang/1] %+08.3f | %+08.3f | %+08.3f [pos/0] %+08.3f | %+08.3f | %+08.3f [pos/1] %+08.3f | %+08.3f | %+08.3f",
         vBatt,

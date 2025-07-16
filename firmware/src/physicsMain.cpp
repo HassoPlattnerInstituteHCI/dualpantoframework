@@ -15,6 +15,10 @@ FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 SPIEncoderChain* spi;
 #endif
 
+float batteryVoltage = 0.0f;
+PwmMetrics* pwmMetrics = new PwmMetrics();
+
+
 void physicsSetup()
 {
     #ifdef LINKAGE_ENCODER_USE_SPI
@@ -76,7 +80,6 @@ void physicsLoop()
     spi->update();
     #endif
     // PERFMON_STOP("[aa] Query SPI");
-
     // PERFMON_START("[ab] Calculation loop");
     for (auto i = 0; i < pantoCount; ++i)
     {
@@ -96,7 +99,7 @@ void physicsLoop()
         pantoPhysics[i].step();
     }
     PERFMON_STOP("[b] Calculate physics");
-
+    pwmMetrics->step();// Moved from serial to avoid race-conditions
     PERFMON_START("[c] Actuate motors");
     for (auto i = 0; i < pantoCount; ++i)
     {

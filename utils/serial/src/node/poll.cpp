@@ -22,8 +22,8 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
     // only keep binary state for packages where only the newest counts
     bool receivedSync = false;
     bool receivedHeartbeat = false;
-    bool receivedPosition = false;
-    double positionCoords[2 * 5];
+    bool receivedState = false;
+    double positionCoords[2 * 5 + 1];
 
     while (getAvailableByteCount(s_handle))
     {
@@ -55,8 +55,8 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
         case HEARTBEAT:
             receivedHeartbeat = true;
             break;
-        case POSITION:
-            receivedPosition = true;
+        case STATE:
+            receivedState = true;
             while (offset < s_header.PayloadSize)
             {
                 uint8_t index = offset / 4;
@@ -83,7 +83,7 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
         napi_call_function(env, argv[1], argv[4], 0, NULL, NULL);
     }
 
-    if (receivedPosition)
+    if (receivedState)
     {
         napi_value result;
         napi_create_array(env, &result);
@@ -113,6 +113,10 @@ napi_value Node::poll(napi_env env, napi_callback_info info)
             NAPI_CHECK(napi_new_instance(env, argv[2], goArgc, goArgv, &vector))
             NAPI_CHECK(napi_set_element(env, result, i * 2 + 1, vector));
         }
+
+        napi_value battVal;
+        napi_create_double(env, positionCoords[10], &battVal);
+        NAPI_CHECK(napi_set_element(env, result, 4, battVal));
 
         NAPI_CHECK(napi_call_function(env, argv[1], argv[5], 1, &result, NULL));
     }

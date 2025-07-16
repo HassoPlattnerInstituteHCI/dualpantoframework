@@ -43,9 +43,9 @@ void CppLib::poll()
 {
     bool receivedSync = false;
     bool receivedHeartbeat = false;
-    bool receivedPosition = false;
+    bool receivedState = false;
     bool receivedTransition = false;
-    double positionCoords[2 * 5];
+    double positionCoords[2 * 5 + 1];
     uint8_t pantoIndex;
 
     while (s_receiveQueue.size() > 0)
@@ -79,8 +79,8 @@ void CppLib::poll()
         case HEARTBEAT:
             receivedHeartbeat = true;
             break;
-        case POSITION:
-            receivedPosition = true;
+        case STATE:
+            receivedState = true;
             while (packet.payloadIndex < packet.header.PayloadSize)
             {
                 uint8_t index = packet.payloadIndex / 4;
@@ -123,11 +123,11 @@ void CppLib::poll()
         }
     }
 
-    if (receivedPosition)
+    if (receivedState)
     {
         if (positionHandler == nullptr)
         {
-            logString("Received position, but handler not set up");
+            logString("Received state, but handler not set up");
         }
         else
         {

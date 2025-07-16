@@ -11,7 +11,7 @@ enum MessageType
     PACKET_ACK = 0x04,
     INVALID_PACKET_ID = 0x05,
     INVALID_DATA = 0x06,
-    POSITION = 0x10,
+    STATE = 0x10,
     DEBUG_LOG = 0x20,
     SYNC_ACK = 0x80,
     HEARTBEAT_ACK = 0x81,
