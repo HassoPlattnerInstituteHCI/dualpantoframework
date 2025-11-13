@@ -5,7 +5,6 @@
 
 #include "physics/edge.hpp"
 #include "utils/assert.hpp"
-#include "utils/serial.hpp"
 #include "utils/utils.hpp"
 
 
@@ -107,6 +106,7 @@ std::set<uint32_t> Hashtable::expand(const std::vector<uint32_t>& edges)
 
 Hashtable::Hashtable()
 {
+    reset();
     DPSerial::sendQueuedDebugLog(
         "Hashtable settings:");
     DPSerial::sendQueuedDebugLog(
@@ -135,8 +135,7 @@ void Hashtable::add(AnnotatedEdge* edge)
 {
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
-        m_cells[cellIndex].emplace_back(
-            edge->m_indexedEdge->m_obstacle, edge->m_indexedEdge->m_index);
+        add_to_cell(cellIndex, *edge->m_indexedEdge);
     }
     edge->destroy();
 }
@@ -145,7 +144,8 @@ void Hashtable::remove(AnnotatedEdge* edge)
 {
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
-        auto& cell = m_cells[cellIndex];
+        remove_from_cell(cellIndex, edge->m_indexedEdge);
+        /*auto& cell = m_cells[cellIndex];
         auto it = std::find(
             cell.begin(), 
             cell.end(), 
@@ -154,7 +154,7 @@ void Hashtable::remove(AnnotatedEdge* edge)
         {
             cell.erase(it);
             cell.shrink_to_fit();
-        }
+        }*/
     }
     edge->destroy();
 }
@@ -185,24 +185,36 @@ void Hashtable::getPossibleCollisions(
     ASSERT_LT(endIndex, hashtableNumCells);
     auto dist = (uint8_t)(startX != endX) + (uint8_t)(startY != endY);
     const auto* begin = &m_cells[0];
+
+    auto gather_cell = [&](uint16_t cellIdx) {
+        for (uint16_t i = m_cells[cellIdx]; i != kNull; i = m_pool[i].next) {
+            //const uint16_t eid = m_pool[i].edge_id;
+            result->insert(m_pool[i].edge);
+        }
+    };
+
     if(dist == 0)
     {
-        const auto* cell = begin + startIndex;
-        result->insert(cell->begin(), cell->end());
+        //const auto* cell = begin + startIndex;
+        //result->insert(cell->begin(), cell->end());
+        gather_cell(startIndex);
     }
     else if(dist == 1)
     {
-        auto* cell = begin + startIndex;
+        /*auto* cell = begin + startIndex;
         result->insert(cell->begin(), cell->end());
         cell = begin + endIndex;
-        result->insert(cell->begin(), cell->end());
+        result->insert(cell->begin(), cell->end());*/
+        gather_cell(startIndex);
+        gather_cell(endIndex);
     }
     else
     {
         for(auto&& cellIndex : getCellIndices(movement))
         {
-            const auto* cell = begin + cellIndex;
-            result->insert(cell->begin(), cell->end());
+            /*const auto* cell = begin + cellIndex;
+            result->insert(cell->begin(), cell->end());*/
+            gather_cell(cellIndex);
         }
     }
 }
@@ -215,9 +227,9 @@ void Hashtable::print()
     {
         for(auto x = 0; x < hashtableStepsX; x++)
         {
-            str << (m_cells[x * hashtableStepsY + y].empty() ? '-' : '#');
+            //str << (m_cells[x * hashtableStepsY + y].empty() ? '-' : '#');
         }
-        DPSerial::sendQueuedDebugLog(str.str().c_str());
+        //DPSerial::sendQueuedDebugLog(str.str().c_str());
         str.str("");
     }
     DPSerial::sendQueuedDebugLog("Printing complete.");

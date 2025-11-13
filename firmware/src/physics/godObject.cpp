@@ -24,6 +24,7 @@ Hashtable& GodObject::hashtable()
     {
         m_hashtable = new Hashtable();
     }
+    //DPSerial::sendQueuedDebugLog("Hashtable size: %d", sizeof(*m_hashtable));
     return *m_hashtable;
 }
 
