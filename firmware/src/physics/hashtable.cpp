@@ -133,18 +133,33 @@ Hashtable::Hashtable()
 
 void Hashtable::add(AnnotatedEdge* edge)
 {
+    int idx;
+    if(m_edges_free.size() == 0){
+        m_edges.push_back(*edge->m_indexedEdge);
+        idx = m_edges.size() - 1;
+    }else{
+        idx = m_edges_free.back();
+        m_edges_free.pop_back();
+        m_edges[idx] = *edge->m_indexedEdge;
+    }
+    
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
-        add_to_cell(cellIndex, *edge->m_indexedEdge);
+        addToCell(cellIndex, idx);
     }
     edge->destroy();
 }
 
 void Hashtable::remove(AnnotatedEdge* edge)
 {
+    uint16_t edgeIdx = -1;
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
-        remove_from_cell(cellIndex, edge->m_indexedEdge);
+        if(edgeIdx == -1){
+            edgeIdx = lookupAndRemoveFromCell(cellIndex, edge->m_indexedEdge);
+        }
+        else
+            removeFromCell(cellIndex, edgeIdx);
         /*auto& cell = m_cells[cellIndex];
         auto it = std::find(
             cell.begin(), 
@@ -156,11 +171,12 @@ void Hashtable::remove(AnnotatedEdge* edge)
             cell.shrink_to_fit();
         }*/
     }
+    m_edges_free.push_back(edgeIdx);
     edge->destroy();
 }
 
 void Hashtable::getPossibleCollisions(
-    Edge movement, std::set<IndexedEdge>* result)
+    Edge movement, std::set<uint16_t>* result)
 {
     if(movement.m_first.x == 0 && movement.m_first.y == 0)
     {
@@ -186,10 +202,10 @@ void Hashtable::getPossibleCollisions(
     auto dist = (uint8_t)(startX != endX) + (uint8_t)(startY != endY);
     const auto* begin = &m_cells[0];
 
-    auto gather_cell = [&](uint16_t cellIdx) {
+    auto gatherCell = [&](uint16_t cellIdx) {
         for (uint16_t i = m_cells[cellIdx]; i != kNull; i = m_pool[i].next) {
             //const uint16_t eid = m_pool[i].edge_id;
-            result->insert(m_pool[i].edge);
+            result->insert(m_pool[i].edge_idx);
         }
     };
 
@@ -197,7 +213,7 @@ void Hashtable::getPossibleCollisions(
     {
         //const auto* cell = begin + startIndex;
         //result->insert(cell->begin(), cell->end());
-        gather_cell(startIndex);
+        gatherCell(startIndex);
     }
     else if(dist == 1)
     {
@@ -205,8 +221,8 @@ void Hashtable::getPossibleCollisions(
         result->insert(cell->begin(), cell->end());
         cell = begin + endIndex;
         result->insert(cell->begin(), cell->end());*/
-        gather_cell(startIndex);
-        gather_cell(endIndex);
+        gatherCell(startIndex);
+        gatherCell(endIndex);
     }
     else
     {
@@ -214,7 +230,7 @@ void Hashtable::getPossibleCollisions(
         {
             /*const auto* cell = begin + cellIndex;
             result->insert(cell->begin(), cell->end());*/
-            gather_cell(cellIndex);
+            gatherCell(cellIndex);
         }
     }
 }

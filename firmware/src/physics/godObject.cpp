@@ -4,7 +4,7 @@
 #include "utils/serial.hpp"
 
 GodObject::GodObject(Vector2D position)
-    : m_position(position), m_tetherPosition(position), m_obstacleMutex(portMUX_INITIALIZER_UNLOCKED), m_possibleCollisions(new std::set<IndexedEdge>())
+    : m_position(position), m_tetherPosition(position), m_obstacleMutex(portMUX_INITIALIZER_UNLOCKED), m_possibleCollisions(new std::set<uint16_t>())
 {
 }
 
@@ -293,8 +293,9 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
             return targetPoint;
         }
 
-        for (auto&& indexedEdge : *m_possibleCollisions)
+        for (auto&& edgeIdx : *m_possibleCollisions)
         {
+            auto indexedEdge = hashtable().getActiveIndexedEdge(edgeIdx);
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
             auto firstMinusPos = edgeFirst - currentPosition;
