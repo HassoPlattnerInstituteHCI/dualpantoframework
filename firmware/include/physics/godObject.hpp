@@ -45,7 +45,6 @@ private:
     Vector2D m_movementDirection;
     Vector2D m_activeForce;
     std::map<uint16_t, Obstacle*> m_obstacles;
-    Hashtable *m_hashtable = nullptr;
     portMUX_TYPE m_obstacleMutex;
     bool m_processingObstacleCollision;
     u_short m_numCollisions = 0; // for speed control; when the speed is controlled and a collision with multiple walls occurs (in a corner) then the 2nd collision must also be feelable
@@ -65,7 +64,7 @@ private:
     OutOfTetherStrategy m_tetherStrategy = Leash;
     bool m_tetherPockEnabled = true;
 
-    Hashtable& hashtable();
+    Hashtable m_hashtable;
 
 public:
     GodObject(Vector2D position = Vector2D());

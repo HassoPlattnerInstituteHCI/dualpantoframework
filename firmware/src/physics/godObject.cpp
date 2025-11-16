@@ -18,16 +18,6 @@ void GodObject::setMovementDirection(Vector2D movementDirection)
     m_movementDirection = movementDirection;
 }
 
-Hashtable& GodObject::hashtable()
-{
-    if (!m_hashtable)
-    {
-        m_hashtable = new Hashtable();
-    }
-    //DPSerial::sendQueuedDebugLog("Hashtable size: %d", sizeof(*m_hashtable));
-    return *m_hashtable;
-}
-
 void GodObject::update()
 {
     if (m_actionQueue.empty())
@@ -44,12 +34,12 @@ void GodObject::update()
         {
         case HT_ENABLE_EDGE:
         {
-            hashtable().add(action->m_data.m_annotatedEdge);
+            m_hashtable.add(action->m_data.m_annotatedEdge);
             break;
         }
         case HT_DISABLE_EDGE:
         {
-            hashtable().remove(action->m_data.m_annotatedEdge);
+            m_hashtable.remove(action->m_data.m_annotatedEdge);
             break;
         }
         case GO_REMOVE_OBSTACLE:
@@ -76,7 +66,7 @@ void GodObject::update()
 void GodObject::dumpHashtable()
 {
     portENTER_CRITICAL(&m_obstacleMutex);
-    hashtable().print();
+    //m_hashtable.print();
     portEXIT_CRITICAL(&m_obstacleMutex);
 }
 
@@ -259,13 +249,13 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
     For more information check Lukas Wagners MT (section 4.3.1): https://www.dropbox.com/home/2018%20CHI%20Dueling%20Pantographs/Layer%202%20Firmware%20(Lukas%20Wagner)?preview=2019_09_07+ESP+Firmware+for+God+Haptic+Objects+%3D+Masterarbeit+(Lukas+Wagner).pdf
     */
 
-    if (currentPosition == targetPoint || !m_hashtable)
+    if (currentPosition == targetPoint)
     {
         return targetPoint;
     }
     // 1. select collision candidates
     m_possibleCollisions->clear();
-    hashtable().getPossibleCollisions(
+    m_hashtable.getPossibleCollisions(
         Edge(currentPosition, targetPoint), m_possibleCollisions);
     if (m_possibleCollisions->empty())
     {
@@ -295,7 +285,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
         for (auto&& edgeIdx : *m_possibleCollisions)
         {
-            auto indexedEdge = hashtable().getActiveIndexedEdge(edgeIdx);
+            auto indexedEdge = m_hashtable.getActiveIndexedEdge(edgeIdx);
             auto edge = indexedEdge.m_obstacle->getEdge(indexedEdge.m_index);
             auto edgeFirst = edge.m_first;
             auto firstMinusPos = edgeFirst - currentPosition;
@@ -371,7 +361,7 @@ Vector2D GodObject::checkCollisions(Vector2D targetPoint, Vector2D currentPositi
 
             // check for the new point if there is another collision with any other edge
             m_possibleCollisions->clear();
-            hashtable().getPossibleCollisions(
+            m_hashtable.getPossibleCollisions(
                 Edge(currentPosition, targetPoint), m_possibleCollisions);
         }
         // there can be multiple collisions, that's why we have to loop as well over the other possible collisions
@@ -443,9 +433,8 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
             {
                 m_actionQueue.push_back(new GodObjectAction(
                     action,
-                    new AnnotatedEdge(
-                        new IndexedEdge(edge.m_obstacle, edge.m_index),
-                        new Edge(edge.getEdge()))));
+                    
+                    new IndexedEdge(edge.m_obstacle, edge.m_index));
             }
         }
         it->second->enable(enable);
@@ -507,10 +496,7 @@ void GodObject::reset()
     m_tetherState = Inner;
 
     // Reset hashtable
-    if (m_hashtable) {
-        delete m_hashtable;
-        m_hashtable = nullptr;
-    }
+    m_hashtable.reset();
 
     portEXIT_CRITICAL(&m_obstacleMutex);
 }

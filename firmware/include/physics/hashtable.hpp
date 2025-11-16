@@ -15,7 +15,7 @@ class Hashtable
 {
 private:
     
-    static constexpr int MAX_MEMBERSHIPS = 15000;
+    static constexpr int MAX_MEMBERSHIPS = 7000;
     static constexpr uint16_t kNull = 0xFFFF;
 
     struct CellEntry{
@@ -37,7 +37,6 @@ private:
     std::set<uint32_t> expand(const std::vector<uint32_t>& edges);
 
     // linked list utility functions
-    void reset();
     uint16_t alloc_entry();
     void free_entry(uint16_t idx);
     void addToCell(uint16_t c, uint16_t edge_idx);
@@ -45,6 +44,8 @@ private:
     int16_t lookupAndRemoveFromCell(uint16_t c, IndexedEdge* e);
 public:
     Hashtable();
+    void reset();
+    uint16_t putIndexedEdge(Obstacle* obstacle, uint32_t index);
     void add(AnnotatedEdge* edge);
     void remove(AnnotatedEdge* edge);
     void getPossibleCollisions(Edge movement, std::set<uint16_t>* result);
