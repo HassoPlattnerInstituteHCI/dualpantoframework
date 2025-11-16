@@ -23,6 +23,7 @@ void setup()
         std::forward_as_tuple("Physics"),
         std::forward_as_tuple(&physicsSetup, &physicsLoop, "Physics", 1));
     Tasks.at("Physics").run();
+    Tasks.at("Physics").setLogFps();
 
     TaskHandle_t defaultTask = xTaskGetCurrentTaskHandle();
     DPSerial::sendInstantDebugLog("default task handle is %i", defaultTask);
