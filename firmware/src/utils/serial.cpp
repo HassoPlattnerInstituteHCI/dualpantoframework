@@ -308,7 +308,7 @@ void DPSerial::receiveMotor()
     if (!isnan(target.x) && !isnan(target.y))
     {
         pantos[pantoIndex].setInTransition(true);
-        DPSerial::sendInstantDebugLog("In Transition");
+        //DPSerial::sendInstantDebugLog("In Transition");
     }
     pantos[pantoIndex].setRotation(receiveFloat());
     pantos[pantoIndex].setTarget(target, controlMethod == 1);
