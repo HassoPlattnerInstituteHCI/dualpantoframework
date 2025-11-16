@@ -57,7 +57,6 @@ inline void Task::checkFps()
                     "Task %s: fps: %i",
                     entry.first,
                     entry.second);
-                //DPSerial::sendQueuedDebugLog("fps: %d", entry.second);
             }
 
             if(ESP.getHeapSize() != 0){
