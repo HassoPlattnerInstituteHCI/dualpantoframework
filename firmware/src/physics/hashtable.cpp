@@ -152,13 +152,13 @@ void Hashtable::add(AnnotatedEdge* edge)
 
 void Hashtable::remove(AnnotatedEdge* edge)
 {
-    uint16_t edgeIdx = -1;
+    int16_t edgeIdx = -1;
     for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
     {
         if(edgeIdx == -1){
             edgeIdx = lookupAndRemoveFromCell(cellIndex, edge->m_indexedEdge);
-        }
-        else
+            if(edgeIdx == -1) DPSerial::sendQueuedDebugLog("Failed to find edge in cell");
+        } else
             removeFromCell(cellIndex, edgeIdx);
         /*auto& cell = m_cells[cellIndex];
         auto it = std::find(

@@ -80,7 +80,7 @@ private:
         }
     }
 
-    uint16_t lookupAndRemoveFromCell(uint16_t c, IndexedEdge* e){
+    int16_t lookupAndRemoveFromCell(uint16_t c, IndexedEdge* e){
         uint16_t* p = &m_cells[c];
         while (*p != kNull) {
             uint16_t i = *p;
