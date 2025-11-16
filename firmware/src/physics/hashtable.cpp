@@ -250,3 +250,65 @@ void Hashtable::print()
     }
     DPSerial::sendQueuedDebugLog("Printing complete.");
 }
+
+// Linked list utility functions
+
+void Hashtable::reset() {
+        m_edges.reserve(500);
+        std::fill(std::begin(m_cells), std::end(m_cells), kNull);
+        for (uint16_t i = 0; i < MAX_MEMBERSHIPS - 1; i++) {
+            m_pool[i].next = i + 1;
+        }
+        m_pool[MAX_MEMBERSHIPS - 1].next = kNull;
+        m_free_head = 0;
+    }
+
+uint16_t Hashtable::alloc_entry() {
+    if (m_free_head == kNull) { 
+        throw new std::runtime_error("All cell entries are in use");
+    }
+    int16_t i = m_free_head;
+    m_free_head = m_pool[i].next;
+    return i;
+}
+
+void Hashtable::free_entry(uint16_t idx) { 
+    m_pool[idx].next = m_free_head;
+    m_free_head = idx;
+}
+
+void Hashtable::addToCell(uint16_t c, uint16_t edge_idx) {
+    uint16_t e = alloc_entry();
+
+    m_pool[e].edge_idx = edge_idx;
+    m_pool[e].next = m_cells[c];
+    m_cells[c] = e;
+}
+
+void Hashtable::removeFromCell(uint16_t c, uint16_t edge_idx) {
+    uint16_t* p = &m_cells[c];
+    while (*p != kNull) {
+        uint16_t i = *p;
+        if (m_pool[i].edge_idx == edge_idx) {
+            *p = m_pool[i].next;
+            free_entry(i);
+            return;
+        }
+        p = &m_pool[i].next;
+    }
+}
+
+int16_t Hashtable::lookupAndRemoveFromCell(uint16_t c, IndexedEdge* e){
+    uint16_t* p = &m_cells[c];
+    while (*p != kNull) {
+        uint16_t i = *p;
+        if (m_edges[m_pool[i].edge_idx] == *e) {
+            *p = m_pool[i].next;
+            free_entry(i);
+            return m_pool[i].edge_idx;
+        }
+        p = &m_pool[i].next;
+    }
+    return -1;
+}
+
