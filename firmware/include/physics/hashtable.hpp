@@ -45,9 +45,9 @@ private:
 public:
     Hashtable();
     void reset();
-    uint16_t putIndexedEdge(Obstacle* obstacle, uint32_t index);
-    void add(AnnotatedEdge* edge);
-    void remove(AnnotatedEdge* edge);
+    uint16_t putIndexedEdge(IndexedEdge edge);
+    void add(uint16_t edgeIdx);
+    void remove(IndexedEdge* indexedEdge);
     void getPossibleCollisions(Edge movement, std::set<uint16_t>* result);
     void print();
     const IndexedEdge& getActiveIndexedEdge(uint16_t idx){ return m_edges[idx]; };

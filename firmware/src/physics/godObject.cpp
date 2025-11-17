@@ -34,12 +34,12 @@ void GodObject::update()
         {
         case HT_ENABLE_EDGE:
         {
-            m_hashtable.add(action->m_data.m_annotatedEdge);
+            m_hashtable.add(action->m_data.m_obstacleId);
             break;
         }
         case HT_DISABLE_EDGE:
         {
-            m_hashtable.remove(action->m_data.m_annotatedEdge);
+            //m_hashtable.remove(action->m_data.m_obstacleId);
             break;
         }
         case GO_REMOVE_OBSTACLE:
@@ -417,24 +417,32 @@ void GodObject::removeObstacle(uint16_t id)
 {
     enableObstacle(id, false);
     m_actionQueue.push_back(new GodObjectAction(GO_REMOVE_OBSTACLE, id));
+
 }
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
+    DPSerial::sendInstantDebugLog("CALLED ENABLE OBSTACLE");
+    DPSerial::sendInstantDebugLog("Obstacle size: %d - %d x %d", m_obstacles.size(), m_obstacles[id]->m_points.size(), sizeof(Vector2D));
     auto it = m_obstacles.find(id);
     if (it != m_obstacles.end())
     {
         portENTER_CRITICAL(&m_obstacleMutex);
         if (enable != it->second->enabled())
         {
-            const auto edges = it->second->getIndexedEdges();
+            auto edges = it->second->getIndexedEdges();
             const auto action = enable ? HT_ENABLE_EDGE : HT_DISABLE_EDGE;
-            for (const auto& edge : edges)
+            for (auto& edge : edges)
             {
-                m_actionQueue.push_back(new GodObjectAction(
-                    action,
-                    
-                    new IndexedEdge(edge.m_obstacle, edge.m_index));
+                if(enable){
+                    uint16_t idx = m_hashtable.putIndexedEdge(edge);
+                    m_hashtable.getActiveIndexedEdge(idx).getEdge();
+                    m_actionQueue.push_back(new GodObjectAction(
+                        action,
+                        idx));
+                } else {
+                    m_hashtable.remove(&edge);
+                }
             }
         }
         it->second->enable(enable);

@@ -7,6 +7,5 @@
 
 union GodObjectActionData
 {
-    AnnotatedEdge* m_annotatedEdge;
     uint16_t m_obstacleId;
 };

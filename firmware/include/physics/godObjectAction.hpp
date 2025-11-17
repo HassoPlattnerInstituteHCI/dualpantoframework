@@ -10,11 +10,6 @@ struct GodObjectAction
     GodObjectActionData m_data;
     GodObjectAction(
         GodObjectActionType type,
-        AnnotatedEdge* data)
-        : m_type(type)
-        , m_data{.m_annotatedEdge = data} { };
-    GodObjectAction(
-        GodObjectActionType type,
         uint16_t data)
         : m_type(type)
         // Intellisense might show an error here, but that's a bug.

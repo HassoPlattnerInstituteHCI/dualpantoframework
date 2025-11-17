@@ -131,9 +131,9 @@ Hashtable::Hashtable()
         hashtableUsedMemory);
 }
 
-void Hashtable::add(AnnotatedEdge* edge)
+void Hashtable::add(uint16_t edgeIndex)
 {
-    int idx;
+    /*int idx;
     if(m_edges_free.size() == 0){
         m_edges.push_back(*edge->m_indexedEdge);
         idx = m_edges.size() - 1;
@@ -141,22 +141,35 @@ void Hashtable::add(AnnotatedEdge* edge)
         idx = m_edges_free.back();
         m_edges_free.pop_back();
         m_edges[idx] = *edge->m_indexedEdge;
-    }
-    
-    for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
+    }*/
+    auto edge = m_edges[edgeIndex].getEdge();
+    for(auto&& cellIndex : expand(getCellIndices(edge)))
     {
-        addToCell(cellIndex, idx);
+        addToCell(cellIndex, edgeIndex);
     }
-    edge->destroy();
 }
 
-void Hashtable::remove(AnnotatedEdge* edge)
+uint16_t Hashtable::putIndexedEdge(IndexedEdge edge){
+    int idx;
+    if(m_edges_free.size() == 0){
+        m_edges.push_back(edge);
+        idx = m_edges.size() - 1;
+    }else{
+        idx = m_edges_free.back();
+        m_edges_free.pop_back();
+        m_edges[idx] = edge;
+    }
+    return idx;
+}
+
+void Hashtable::remove(IndexedEdge* indexedEdge)
 {
     int16_t edgeIdx = -1;
-    for(auto&& cellIndex : expand(getCellIndices(*(edge->m_edge))))
+    auto edge = indexedEdge->getEdge();
+    for(auto&& cellIndex : expand(getCellIndices(edge)))
     {
         if(edgeIdx == -1){
-            edgeIdx = lookupAndRemoveFromCell(cellIndex, edge->m_indexedEdge);
+            edgeIdx = lookupAndRemoveFromCell(cellIndex, indexedEdge);
             if(edgeIdx == -1) DPSerial::sendQueuedDebugLog("Failed to find edge in cell");
         } else
             removeFromCell(cellIndex, edgeIdx);
@@ -172,7 +185,6 @@ void Hashtable::remove(AnnotatedEdge* edge)
         }*/
     }
     m_edges_free.push_back(edgeIdx);
-    edge->destroy();
 }
 
 void Hashtable::getPossibleCollisions(
@@ -254,7 +266,9 @@ void Hashtable::print()
 // Linked list utility functions
 
 void Hashtable::reset() {
-        m_edges.reserve(500);
+        m_edges.clear();
+        m_edges.shrink_to_fit();
+        m_edges.reserve(1000);
         std::fill(std::begin(m_cells), std::end(m_cells), kNull);
         for (uint16_t i = 0; i < MAX_MEMBERSHIPS - 1; i++) {
             m_pool[i].next = i + 1;
