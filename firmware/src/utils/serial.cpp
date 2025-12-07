@@ -339,11 +339,12 @@ void DPSerial::receiveCreateObstacle()
     auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
 
     std::vector<Vector2D> path;
-    path.reserve(vecCount);
+    //path.reserve(vecCount);
 
     for (auto i = 0; i < vecCount; ++i)
     {
-        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
+        receiveFloat(); receiveFloat();
+        //path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
     for (auto i = 0; i < pantoPhysics.size(); ++i)
@@ -363,11 +364,12 @@ void DPSerial::receiveCreatePassableObstacle()
     auto vecCount = (s_header.PayloadSize - 1 - 2) / (4 * 2);
 
     std::vector<Vector2D> path;
-    path.reserve(vecCount);
+    //path.reserve(vecCount);
 
     for (auto i = 0; i < vecCount; ++i)
     {
-        path.emplace_back((double)receiveFloat(), (double)receiveFloat());
+        receiveFloat(); receiveFloat();
+        //path.emplace_back((double)receiveFloat(), (double)receiveFloat());
     }
 
     for (auto i = 0; i < pantoPhysics.size(); ++i)
@@ -421,8 +423,6 @@ void DPSerial::receiveAddToObstacle()
             path.emplace_back((double)receiveFloat(), (double)receiveFloat());
         }
     }
-
-
 
     for (auto i = 0; i < pantoPhysics.size(); ++i)
     {
