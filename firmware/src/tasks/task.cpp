@@ -7,7 +7,7 @@
 #include "utils/performanceMonitor.hpp"
 #include "utils/serial.hpp"
 
-std::map<TaskHandle_t, uint32_t> Task::s_fpsMap;
+std::map<const char*, uint32_t> Task::s_fpsMap;
 FramerateLimiter loggingLimiter = FramerateLimiter::fromSeconds(1);
 
 void Task::taskLoop(void* parameters)
@@ -44,7 +44,7 @@ inline void Task::checkFps()
     ++m_loopCount;
     if (m_fpsCalcLimiter.step())
     {
-        s_fpsMap[m_handle] = m_loopCount * 1000 / m_fpsInterval;
+        s_fpsMap[m_name] = m_loopCount * 1000 / m_fpsInterval;
         m_loopCount = 0;
 
         if(m_logFps && loggingLimiter.step())
@@ -52,8 +52,8 @@ inline void Task::checkFps()
             for(const auto& entry : s_fpsMap)
             {
                 DPSerial::sendQueuedDebugLog(
-                    "Task \"%s\" fps: %i",
-                    pcTaskGetTaskName(entry.first),
+                    "Task %s: fps: %i",
+                    entry.first,
                     entry.second);
             }
 
