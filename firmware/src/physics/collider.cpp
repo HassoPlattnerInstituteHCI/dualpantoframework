@@ -41,6 +41,6 @@ bool Collider::contains(Vector2D point)
 Edge Collider::getEdge(uint32_t index)
 {
     return Edge(
-        m_points[index % m_points.size()], 
-        m_points[(index + 1) % m_points.size()]);
+        m_points[index], 
+        m_points[(index + 1)]);
 }

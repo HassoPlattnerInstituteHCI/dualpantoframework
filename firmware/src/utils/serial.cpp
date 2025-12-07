@@ -417,7 +417,7 @@ void DPSerial::receiveAddToObstacle()
 
     for (auto i = 0; i < vecCount; ++i)
     {
-        if(i == 0){
+        if(i == 0){ 
             path.emplace_back((double)receiveFloat(), (double)receiveFloat());
         }
     }

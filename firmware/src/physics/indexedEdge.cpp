@@ -2,7 +2,7 @@
 
 #include "physics/obstacle.hpp"
 
-IndexedEdge::IndexedEdge(Obstacle* obstacle, uint32_t index)
+IndexedEdge::IndexedEdge(Obstacle* obstacle, uint16_t index)
 : m_obstacle(obstacle)
 , m_index(index)
 {

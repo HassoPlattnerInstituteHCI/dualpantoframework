@@ -1,6 +1,7 @@
 #include "physics/obstacle.hpp"
 
 #include "physics/indexedEdge.hpp"
+#include <cmath>
 
 Obstacle::Obstacle(std::vector<Vector2D> points) : Collider(points) { }
 
@@ -34,7 +35,8 @@ std::vector<IndexedEdge> Obstacle::getIndexedEdges(
     std::vector<IndexedEdge> result;
     for(auto i = first; i <= last; ++i)
     {
-        result.emplace_back(this, i);
+        if(!std::isnan(m_points[i].x) && !std::isnan(m_points[i+1].x))
+            result.emplace_back(this, i);
     }
     return result;
 }

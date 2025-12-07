@@ -15,7 +15,7 @@ class Hashtable
 {
 private:
     
-    static constexpr int MAX_MEMBERSHIPS = 7000;
+    static constexpr int MAX_MEMBERSHIPS = 11500;
     static constexpr uint16_t kNull = 0xFFFF;
 
     struct CellEntry{

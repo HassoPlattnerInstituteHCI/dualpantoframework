@@ -422,8 +422,8 @@ void GodObject::removeObstacle(uint16_t id)
 
 void GodObject::enableObstacle(uint16_t id, bool enable)
 {
-    DPSerial::sendInstantDebugLog("CALLED ENABLE OBSTACLE");
-    DPSerial::sendInstantDebugLog("Obstacle size: %d - %d x %d", m_obstacles.size(), m_obstacles[id]->m_points.size(), sizeof(Vector2D));
+    //DPSerial::sendInstantDebugLog("CALLED ENABLE OBSTACLE");
+    //DPSerial::sendInstantDebugLog("Obstacle size: %d - %d x %d", m_obstacles.size(), m_obstacles[id]->m_points.size(), sizeof(Vector2D));
     auto it = m_obstacles.find(id);
     if (it != m_obstacles.end())
     {
