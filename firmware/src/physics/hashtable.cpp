@@ -173,16 +173,6 @@ void Hashtable::remove(IndexedEdge* indexedEdge)
             if(edgeIdx == -1) DPSerial::sendQueuedDebugLog("Failed to find edge in cell");
         } else
             removeFromCell(cellIndex, edgeIdx);
-        /*auto& cell = m_cells[cellIndex];
-        auto it = std::find(
-            cell.begin(), 
-            cell.end(), 
-            *(edge->m_indexedEdge));
-        if(it != cell.end())
-        {
-            cell.erase(it);
-            cell.shrink_to_fit();
-        }*/
     }
     m_edges_free.push_back(edgeIdx);
 }
@@ -216,15 +206,12 @@ void Hashtable::getPossibleCollisions(
 
     auto gatherCell = [&](uint16_t cellIdx) {
         for (uint16_t i = m_cells[cellIdx]; i != kNull; i = m_pool[i].next) {
-            //const uint16_t eid = m_pool[i].edge_id;
             result->insert(m_pool[i].edge_idx);
         }
     };
 
     if(dist == 0)
     {
-        //const auto* cell = begin + startIndex;
-        //result->insert(cell->begin(), cell->end());
         gatherCell(startIndex);
     }
     else if(dist == 1)
@@ -236,8 +223,6 @@ void Hashtable::getPossibleCollisions(
     {
         for(auto&& cellIndex : getCellIndices(movement))
         {
-            /*const auto* cell = begin + cellIndex;
-            result->insert(cell->begin(), cell->end());*/
             gatherCell(cellIndex);
         }
     }
@@ -247,12 +232,15 @@ void Hashtable::print()
 {
     DPSerial::sendQueuedDebugLog("Printing hashtable...");
     std::ostringstream str;
-    for(auto y = 0; y < hashtableStepsY; ++y)
+    for(auto cellIndex = 0; cellIndex < hashtableNumCells; ++cellIndex)
     {
-        for(auto x = 0; x < hashtableStepsX; x++)
-        {
-            //str << (m_cells[x * hashtableStepsY + y].empty() ? '-' : '#');
+        int count = 0;
+        for (uint16_t i = m_cells[cellIndex]; i != kNull; i = m_pool[i].next) {
+            count++;
         }
+
+        str << count;
+        
         //DPSerial::sendQueuedDebugLog(str.str().c_str());
         str.str("");
     }
