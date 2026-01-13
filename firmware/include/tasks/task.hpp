@@ -30,7 +30,7 @@ private:
     uint32_t m_fpsInterval;
     FramerateLimiter m_fpsCalcLimiter;
     uint32_t m_loopCount;
-    static std::map<TaskHandle_t, uint32_t> s_fpsMap;
+    static std::map<const char*, uint32_t> s_fpsMap;
     bool m_logFps;
 
     // fps counter funcs
