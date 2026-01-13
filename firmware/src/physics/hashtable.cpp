@@ -173,16 +173,6 @@ void Hashtable::remove(IndexedEdge* indexedEdge)
             if(edgeIdx == -1) DPSerial::sendQueuedDebugLog("Failed to find edge in cell");
         } else
             removeFromCell(cellIndex, edgeIdx);
-        /*auto& cell = m_cells[cellIndex];
-        auto it = std::find(
-            cell.begin(), 
-            cell.end(), 
-            *(edge->m_indexedEdge));
-        if(it != cell.end())
-        {
-            cell.erase(it);
-            cell.shrink_to_fit();
-        }*/
     }
     m_edges_free.push_back(edgeIdx);
 }
@@ -216,15 +206,12 @@ void Hashtable::getPossibleCollisions(
 
     auto gatherCell = [&](uint16_t cellIdx) {
         for (uint16_t i = m_cells[cellIdx]; i != kNull; i = m_pool[i].next) {
-            //const uint16_t eid = m_pool[i].edge_id;
             result->insert(m_pool[i].edge_idx);
         }
     };
 
     if(dist == 0)
     {
-        //const auto* cell = begin + startIndex;
-        //result->insert(cell->begin(), cell->end());
         gatherCell(startIndex);
     }
     else if(dist == 1)

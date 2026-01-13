@@ -13,155 +13,94 @@ void Panto::forwardKinematics()
 {
     // base angles
     // PERFMON_START("[abba] base angles");
-    const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex];
-    const auto rightBaseAngle = m_actuationAngle[c_localRightIndex];
-    const auto handleAngle = m_actuationAngle[c_localHandleIndex];
-    // PERFMON_STOP("[abba] base angles");
+    // https://cim.mcgill.ca/~haptic/pub/GC-QW-VH-IROS-05.pdf
+    const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex]; // -pi ~ -180 deg at rest position
+    const auto rightBaseAngle = m_actuationAngle[c_localRightIndex]; // 0 at rest 
 
-    // base angle sin / cos
-    // PERFMON_START("[abbb] base angle sin / cos");
-    const auto leftBaseAngleSin = std::sin(leftBaseAngle);
-    const auto leftBaseAngleCos = std::cos(leftBaseAngle);
-    // PERFMON_STOP("[abbb] base angle sin / cos");
+    const auto theta_1 = leftBaseAngle + M_PI; // 0 at rest posiiton 
+    const auto theta_5 = rightBaseAngle + M_PI; // pi ~ 180 at rest
 
-    // calculate inner positions
-    // PERFMON_START("[abbc] calculate inner positions");
-    const auto leftInnerX =
-        fmaf(leftBaseAngleCos, c_leftInnerLength, c_leftBaseX);
-    const auto leftInnerY =
-        fmaf(leftBaseAngleSin, c_leftInnerLength, c_leftBaseY);
-    const auto rightInnerX =
-        fmaf(std::cos(rightBaseAngle), c_rightInnerLength, c_rightBaseX);
-    const auto rightInnerY =
-        fmaf(std::sin(rightBaseAngle), c_rightInnerLength, c_rightBaseY);
-    // PERFMON_STOP("[abbc] calculate inner positions");
+    const auto a_1 = c_leftInnerLength;
+    const auto a_2 = c_leftOuterLength;
+    const auto a_3 = c_rightOuterLength;
+    const auto a_4 = c_rightInnerLength;
+    const auto a_5 = c_rightBaseX - c_leftBaseX;
 
-    // diagonal between inner positions
-    // PERFMON_START("[abbd] diagonal between inner positions");
-    const auto diagonalX = rightInnerX - leftInnerX;
-    const auto diagonalY = rightInnerY - leftInnerY;
-    const auto diagonalSquared = diagonalX * diagonalX + diagonalY * diagonalY;
-    const auto diagonalLength = std::sqrt(diagonalSquared);
-    // PERFMON_STOP("[abbd] diagonal between inner positions");
+    const auto x_2 = a_1 * cos(theta_1);
+    const auto y_2 = a_1 * sin(theta_1);
+    const auto x_4 = a_4 * cos(theta_5) - a_5;
+    const auto y_4 = a_4  * sin(theta_5);
 
-    // left elbow angles
-    // - inside is between diagonal and linkage
-    // - offset is between zero and diagonal
-    // - total is between zero and linkage
-    // PERFMON_START("[abbe] left elbow angles");
-    const auto leftElbowInsideAngleCos =
-        (diagonalSquared +
-        c_leftOuterLengthSquaredMinusRightOuterLengthSquared) /
-        (2 * diagonalLength * c_leftOuterLength);
-    const auto leftElbowInsideAngle = -std::acos(leftElbowInsideAngleCos);
-    const auto leftElbowOffsetAngle = std::atan2(diagonalY, diagonalX);
-    const auto leftElbowTotalAngle =
-        leftElbowInsideAngle + leftElbowOffsetAngle;
-    // PERFMON_STOP("[abbe] left elbow angles");
+    // ||P4 - P2||
+    const auto dist_p_4_minus_p_2 = sqrt(pow((x_4 - x_2), 2) + pow((y_4 - y_2), 2));
+    const auto dist_p_2_minus_p_4 = sqrt(pow((x_2 - x_4), 2) + pow((y_2 - y_4), 2));
+    // ||P2 - Ph||
+    const auto dist_p_2_minus_p_h = (a_2 * a_2 - a_3 * a_3 + dist_p_4_minus_p_2 * dist_p_4_minus_p_2)/(2*dist_p_4_minus_p_2); 
+    
+    //Ph
+    const auto x_h = x_2 + dist_p_2_minus_p_h/dist_p_2_minus_p_4*(x_4-x_2);
+    const auto y_h = y_2 + dist_p_2_minus_p_h/dist_p_2_minus_p_4*(y_4-y_2);
+    
+    // ||P3 - Ph||
+    const auto dist_p_3_minus_p_h = sqrt(a_2 * a_2 - dist_p_2_minus_p_h * dist_p_2_minus_p_h);
 
-    // left elbow angle sin / cos
-    // PERFMON_START("[abbf] left elbow angle sin / cos");
-    const auto leftElbowTotalAngleSin =
-        std::sin(leftElbowTotalAngle);
-    const auto leftElbowTotalAngleCos =
-        std::cos(leftElbowTotalAngle);
-    // PERFMON_STOP("[abbf] left elbow angle sin / cos");
-
-    // handle position
-    // PERFMON_START("[abbg] handle position");
-    m_handleX =
-        fmaf(leftElbowTotalAngleCos, c_leftOuterLength, leftInnerX);
-    m_handleY =
-        fmaf(leftElbowTotalAngleSin, c_leftOuterLength, leftInnerY);
-    // PERFMON_STOP("[abbg] handle position");
+    const auto x_3 = x_h + dist_p_3_minus_p_h/dist_p_2_minus_p_4 * (y_4 - y_2);
+    const auto y_3 = y_h - dist_p_3_minus_p_h/dist_p_2_minus_p_4 * (x_4 - x_2);
 
 
-    //Kalman FIlter
+    const auto h = sqrt(pow(x_3 - x_h, 2) + pow(y_3 - y_h, 2));
+    const auto d = sqrt(pow(x_2 - x_4, 2) + pow(y_2 - y_4, 2));
+    const auto b = dist_p_2_minus_p_h;
 
-    T_period = millis()-T;
-    DT = (T_period)/1000.0;
-    T = millis();
+    // the derivatives delta_1_x_2 and delta_5_x_4 given in the paper are wrong (missing a minus)
+    const auto delta_1_x_2 = -a_1 * sin(theta_1);
+    const auto delta_1_y_2 = a_1 * cos(theta_1);
+
+    const auto delta_5_x_4 = -a_4 * sin(theta_5);
+    const auto delta_5_y_4 = a_4 * cos(theta_5);
+
+    // yes, this needs to be 0
+    const auto delta_1_y_4 = 0;
+    const auto delta_1_x_4 = 0;
+    const auto delta_5_y_2 = 0;
+    const auto delta_5_x_2 = 0;
 
 
-    K.F = {1.0,0.0, DT, 0.0,
-           0.0, 1.0, 0.0,DT,
-           0.0, 0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0, 1.0};
+    const auto delta_1_d = ((x_4 - x_2) * (delta_1_x_4 - delta_1_x_2) + (y_4 - y_2) * (delta_1_y_4 - delta_1_y_2)) / d;
+    const auto delta_5_d = ((x_4 - x_2) * (delta_5_x_4 - delta_5_x_2) + (y_4 - y_2) * (delta_5_y_4 - delta_5_y_2)) / d;
+    
+    const auto delta_1_b = delta_1_d - (delta_1_d * (a_2 * a_2 - a_3 * a_3 + d * d)) / (2 * d * d);
+    const auto delta_5_b = delta_5_d - (delta_5_d * (a_2 * a_2 - a_3 * a_3 + d * d)) / (2 * d * d);
 
-    state(0) = m_handleX;
-    state(1) = m_handleY;
-    state(2) = (m_handleX-m_prev_handleX)/T_period;
-    state(3) = (m_handleY-m_prev_handleY)/T_period;
 
-    obs = K.H * state;
-    K.update(obs);
+    const auto delta_1_h = -b * delta_1_b / h;
+    const auto delta_5_h = -b * delta_5_b / h;
 
-//    uncomment for kalman filtering of handle position
-//    m_handleX = K.x(0);
-//    m_handleY = K.x(1);
-//    m_prev_handleX = m_handleX;
-//    m_prev_handleY = m_handleY;
 
-    // right elbow angles
-    // PERFMON_START("[abbh] right elbow angles");
-    const auto rightDiffX = m_handleX - rightInnerX;
-    const auto rightDiffY = m_handleY - rightInnerY;
-    const auto rightElbowTotalAngle = std::atan2(rightDiffY, rightDiffX);
-    // PERFMON_STOP("[abbh] right elbow angles");
+    
+    const auto delta_1_x_h = delta_1_x_2 + (delta_1_b * d - delta_1_d * b) / (d * d) * (x_4 - x_2) + b/d * (delta_1_x_4 - delta_1_x_2);
+    const auto delta_5_x_h = delta_5_x_2 + (delta_5_b * d - delta_5_d * b) / (d * d) * (x_4 - x_2) + b/d * (delta_5_x_4 - delta_5_x_2);
 
-    // store angles
-    // PERFMON_START("[abbi] store angles");
-    m_leftInnerAngle = leftElbowTotalAngle;
-    m_rightInnerAngle = rightElbowTotalAngle;
-    m_pointingAngle =
-        handleAngle +
-        (encoderFlipped[c_globalHandleIndex]==1? -1 : 1)* //sign changes when encoder is flipped
-        (c_handleMountedOnRightArm==1 ?
-        (-rightElbowTotalAngle) :
-        (leftElbowTotalAngle));
+    const auto delta_1_y_h = delta_1_y_2 + (delta_1_b * d - delta_1_d * b) / (d * d) * (y_4 - y_2) + b/d * (delta_1_y_4 - delta_1_y_2);
+    const auto delta_5_y_h = delta_5_y_2 + (delta_5_b * d - delta_5_d * b) / (d * d) * (y_4 - y_2) + b/d * (delta_5_y_4 - delta_5_y_2);
 
-    // PERFMON_STOP("[abbi] store angles");
 
-    // some weird diffs and their sinuses
-    // PERFMON_START("[abbj] some weird diffs and their sinuses");
-    const auto rightElbowTotalAngleMinusLeftBaseAngle =
-        rightElbowTotalAngle - leftBaseAngle;
-    const auto rightElbowTotalAngleMinusLeftBaseAngleSin =
-        std::sin(rightElbowTotalAngleMinusLeftBaseAngle);
-    const auto rightElbowTotalAngleMinusRightBaseAngle =
-        rightElbowTotalAngle - rightBaseAngle;
-    const auto rightElbowTotalAngleMinusRightBaseAngleSin =
-        std::sin(rightElbowTotalAngleMinusRightBaseAngle);
-    const auto leftElbowTotalAngleMinusRightElbowTotalAngle =
-        leftElbowTotalAngle - rightElbowTotalAngle;
-    const auto leftElbowTotalAngleMinusRightElbowTotalAngleSin =
-        std::sin(leftElbowTotalAngleMinusRightElbowTotalAngle);
-    // PERFMON_STOP("[abbj] some weird diffs and their sinuses");
 
-    // shared factors for rows/columns
-    // PERFMON_START("[abbk] shared factors for rows/columns");
-    const auto upperRow =
-        c_leftInnerLength * rightElbowTotalAngleMinusLeftBaseAngleSin;
-    const auto lowerRow =
-        c_rightInnerLength * rightElbowTotalAngleMinusRightBaseAngleSin;
-    const auto leftColumn =
-        leftElbowTotalAngleSin /
-        leftElbowTotalAngleMinusRightElbowTotalAngleSin;
-    const auto rightColumn =
-        leftElbowTotalAngleCos /
-        leftElbowTotalAngleMinusRightElbowTotalAngleSin;
-    // PERFMON_STOP("[abbk] shared factors for rows/columns");
+    const auto delta_1_x_3 = delta_1_x_h + h /d * (delta_1_y_4 - delta_1_y_2) + (delta_1_h * d - delta_1_d * h) / (d * d) * (y_4 - y_2);
+    const auto delta_5_x_3 = delta_5_x_h + h /d * (delta_5_y_4 - delta_5_y_2) + (delta_5_h * d - delta_5_d * h) / (d * d) * (y_4 - y_2);
+    
+    const auto delta_1_y_3 = delta_1_y_h - h /d * (delta_1_x_4 - delta_1_x_2) - (delta_1_h * d - delta_1_d * h) / (d * d) * (x_4 - x_2);
+    const auto delta_5_y_3 = delta_5_y_h - h /d * (delta_5_x_4 - delta_5_x_2) - (delta_5_h * d - delta_5_d * h) / (d * d) * (x_4 - x_2);
+
+    m_handleX = -(x_3 - c_leftBaseX);
+    m_handleY = -y_3;
 
     // set jacobian matrix
     // PERFMON_START("[abbl] set jacobian matrix");
-    m_jacobian[0][0] =
-        (-c_leftInnerLength * leftBaseAngleSin) - (upperRow * leftColumn);
-    m_jacobian[0][1] =
-        (c_leftInnerLength * leftBaseAngleCos) + (upperRow * rightColumn);
-    m_jacobian[1][0] =
-        lowerRow * leftColumn;
-    m_jacobian[1][1] =
-        -lowerRow * rightColumn;
+    m_jacobian[0][0] = delta_1_x_3;
+    m_jacobian[0][1] = delta_5_x_3;
+    m_jacobian[1][0] = delta_1_y_3;
+    m_jacobian[1][1] = delta_5_y_3;
     // PERFMON_STOP("[abbl] set jacobian matrix");
     inverseKinematics();
 }
@@ -181,13 +120,27 @@ void Panto::inverseKinematics()
     }
     else if (m_isforceRendering)
     {
-     m_targetAngle[c_localLeftIndex] =
-            m_jacobian[0][0] * m_targetX +
-            m_jacobian[0][1] * m_targetY;
-        m_targetAngle[c_localRightIndex] =
-            m_jacobian[1][0] * m_targetX +
+        // forces in CCW direction
+        auto forceL =
+            -m_jacobian[0][0] * m_targetX -
+            m_jacobian[1][0] * m_targetY;
+
+        auto forceR =
+            -m_jacobian[0][1] * m_targetX -
             m_jacobian[1][1] * m_targetY;
 
+        //normalize to prevent clamping
+        float m = max(abs(forceL), abs(forceR)) * forceFactor;
+        float M = min(motor_powerLimitForce[c_globalIndexOffset + c_localLeftIndex], 
+                     motor_powerLimitForce[c_globalIndexOffset + c_localRightIndex]);
+        if (m > M) {
+            float s = M / m;
+            m_targetAngle[c_localLeftIndex] = s * forceL;
+            m_targetAngle[c_localRightIndex] = s * forceR;
+        } else {
+            m_targetAngle[c_localLeftIndex] = forceL;
+            m_targetAngle[c_localRightIndex] = forceR;
+        }
     }
     else
     {
@@ -230,7 +183,6 @@ void Panto::inverseKinematics()
 
         if(abs(m_filteredX - m_targetX) + abs(m_filteredY - m_targetY) < 0.01f && m_inTransition){
             m_inTransition = false;
-            DPSerial::sendTransitionEnded(getPantoIndex());
         }
 
         m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
