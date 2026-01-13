@@ -14,11 +14,11 @@ void Panto::forwardKinematics()
     // base angles
     // PERFMON_START("[abba] base angles");
     // https://cim.mcgill.ca/~haptic/pub/GC-QW-VH-IROS-05.pdf
-    const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex]; // -pi ~ -180 deg at rest position
+    const auto leftBaseAngle = m_actuationAngle[c_localLeftIndex]; // -pi at rest position
     const auto rightBaseAngle = m_actuationAngle[c_localRightIndex]; // 0 at rest 
 
-    const auto theta_1 = leftBaseAngle + M_PI; // 0 at rest posiiton 
-    const auto theta_5 = rightBaseAngle + M_PI; // pi ~ 180 at rest
+    const auto theta_1 = leftBaseAngle + M_PI; // 0 at rest position 
+    const auto theta_5 = rightBaseAngle + M_PI; // pi at rest position
 
     const auto a_1 = c_leftInnerLength;
     const auto a_2 = c_leftOuterLength;
@@ -26,24 +26,29 @@ void Panto::forwardKinematics()
     const auto a_4 = c_rightInnerLength;
     const auto a_5 = c_rightBaseX - c_leftBaseX;
 
+    // P2
     const auto x_2 = a_1 * cos(theta_1);
     const auto y_2 = a_1 * sin(theta_1);
+
+    // P4
     const auto x_4 = a_4 * cos(theta_5) - a_5;
     const auto y_4 = a_4  * sin(theta_5);
 
     // ||P4 - P2||
     const auto dist_p_4_minus_p_2 = sqrt(pow((x_4 - x_2), 2) + pow((y_4 - y_2), 2));
+    // ||P2 - P4||
     const auto dist_p_2_minus_p_4 = sqrt(pow((x_2 - x_4), 2) + pow((y_2 - y_4), 2));
     // ||P2 - Ph||
     const auto dist_p_2_minus_p_h = (a_2 * a_2 - a_3 * a_3 + dist_p_4_minus_p_2 * dist_p_4_minus_p_2)/(2*dist_p_4_minus_p_2); 
     
-    //Ph
+    // Ph
     const auto x_h = x_2 + dist_p_2_minus_p_h/dist_p_2_minus_p_4*(x_4-x_2);
     const auto y_h = y_2 + dist_p_2_minus_p_h/dist_p_2_minus_p_4*(y_4-y_2);
     
     // ||P3 - Ph||
     const auto dist_p_3_minus_p_h = sqrt(a_2 * a_2 - dist_p_2_minus_p_h * dist_p_2_minus_p_h);
 
+    // P3
     const auto x_3 = x_h + dist_p_3_minus_p_h/dist_p_2_minus_p_4 * (y_4 - y_2);
     const auto y_3 = y_h - dist_p_3_minus_p_h/dist_p_2_minus_p_4 * (x_4 - x_2);
 
@@ -65,26 +70,20 @@ void Panto::forwardKinematics()
     const auto delta_5_y_2 = 0;
     const auto delta_5_x_2 = 0;
 
-
     const auto delta_1_d = ((x_4 - x_2) * (delta_1_x_4 - delta_1_x_2) + (y_4 - y_2) * (delta_1_y_4 - delta_1_y_2)) / d;
     const auto delta_5_d = ((x_4 - x_2) * (delta_5_x_4 - delta_5_x_2) + (y_4 - y_2) * (delta_5_y_4 - delta_5_y_2)) / d;
     
     const auto delta_1_b = delta_1_d - (delta_1_d * (a_2 * a_2 - a_3 * a_3 + d * d)) / (2 * d * d);
     const auto delta_5_b = delta_5_d - (delta_5_d * (a_2 * a_2 - a_3 * a_3 + d * d)) / (2 * d * d);
 
-
     const auto delta_1_h = -b * delta_1_b / h;
     const auto delta_5_h = -b * delta_5_b / h;
 
-
-    
     const auto delta_1_x_h = delta_1_x_2 + (delta_1_b * d - delta_1_d * b) / (d * d) * (x_4 - x_2) + b/d * (delta_1_x_4 - delta_1_x_2);
     const auto delta_5_x_h = delta_5_x_2 + (delta_5_b * d - delta_5_d * b) / (d * d) * (x_4 - x_2) + b/d * (delta_5_x_4 - delta_5_x_2);
 
     const auto delta_1_y_h = delta_1_y_2 + (delta_1_b * d - delta_1_d * b) / (d * d) * (y_4 - y_2) + b/d * (delta_1_y_4 - delta_1_y_2);
     const auto delta_5_y_h = delta_5_y_2 + (delta_5_b * d - delta_5_d * b) / (d * d) * (y_4 - y_2) + b/d * (delta_5_y_4 - delta_5_y_2);
-
-
 
     const auto delta_1_x_3 = delta_1_x_h + h /d * (delta_1_y_4 - delta_1_y_2) + (delta_1_h * d - delta_1_d * h) / (d * d) * (y_4 - y_2);
     const auto delta_5_x_3 = delta_5_x_h + h /d * (delta_5_y_4 - delta_5_y_2) + (delta_5_h * d - delta_5_d * h) / (d * d) * (y_4 - y_2);
@@ -92,6 +91,7 @@ void Panto::forwardKinematics()
     const auto delta_1_y_3 = delta_1_y_h - h /d * (delta_1_x_4 - delta_1_x_2) - (delta_1_h * d - delta_1_d * h) / (d * d) * (x_4 - x_2);
     const auto delta_5_y_3 = delta_5_y_h - h /d * (delta_5_x_4 - delta_5_x_2) - (delta_5_h * d - delta_5_d * h) / (d * d) * (x_4 - x_2);
 
+    // offset by left base and mirror coordinate system across x and y
     m_handleX = -(x_3 - c_leftBaseX);
     m_handleY = -y_3;
 
@@ -120,19 +120,24 @@ void Panto::inverseKinematics()
     }
     else if (m_isforceRendering)
     {
+        // apply transformation J^T(-w), so that w is mirrored across x and y
         // forces in CCW direction
         auto forceL =
-            -m_jacobian[0][0] * m_targetX -
-            m_jacobian[1][0] * m_targetY;
+            m_jacobian[0][0] * -m_targetX +
+            m_jacobian[1][0] * -m_targetY;
 
         auto forceR =
-            -m_jacobian[0][1] * m_targetX -
-            m_jacobian[1][1] * m_targetY;
+            m_jacobian[0][1] * -m_targetX +
+            m_jacobian[1][1] * -m_targetY;
 
-        //normalize to prevent clamping
+        // normalize to prevent clamping
+        // max target force
         float m = max(abs(forceL), abs(forceR)) * forceFactor;
+        // min allowed force
         float M = min(motor_powerLimitForce[c_globalIndexOffset + c_localLeftIndex], 
                      motor_powerLimitForce[c_globalIndexOffset + c_localRightIndex]);
+        
+        // Caution: m_targetAngle is a polar force vector, not actual angles
         if (m > M) {
             float s = M / m;
             m_targetAngle[c_localLeftIndex] = s * forceL;
