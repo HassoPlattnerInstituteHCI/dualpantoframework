@@ -11,6 +11,11 @@
 
 FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 
+float upperHandleInitRotation;
+std::vector<uint16_t> calibrated_zeros;
+bool calibrationFinished = false;
+int printcounter = 0;
+
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
 #endif
@@ -32,13 +37,12 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
-    EEPROM.begin(sizeof(uint32_t)*numberOfSpiEncoders); // is this needed?
+
+    EEPROM.begin(sizeof(uint32_t)*numberOfSpiEncoders);
 
     //calibrateEncoders; Comment if not needed
     // for (auto i = 0; i < pantoCount; ++i)
     // { pantos[i].calibrateEncoders(i);}
-
-    CalibrationData cd = loadCalibrationData();
 
     for (auto i = 0; i < pantoCount; ++i)
     {
@@ -52,32 +56,30 @@ void physicsSetup()
                 startPositions[index] =
                 ((uint16_t)(pantos[i].getActuationAngle(j) /
                 (TWO_PI) *
-                encoderStepsFallback[i * 3 + j]) & 0x3fff);
+                encoderSteps[i * 3 + j]) & 0x3fff);
+
                 pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
             }
-            if (calibrationDataExists())
-            {
-                pantos[i].setHandleEncoderParameters(cd.encoder_steps, cd.inversed);
-            } 
         }
         #endif
     }
     #ifdef LINKAGE_ENCODER_USE_SPI
-    if (calibrationDataExists())
-    {
-        std::vector<uint16_t> zero_vector = {cd.zero_1, cd.zero_2, cd.zero_3, cd.zero_4};
-        spi->setZero(zero_vector);
-    }else
-    {
-        spi->setPosition(startPositions);
-    }
-    
+    spi->setPosition(startPositions);
+    calibrated_zeros = spi->getZero();
+    DPSerial::sendInstantDebugLog("saved zero positions");
+    DPSerial::sendInstantDebugLog("Please rotate the upper handle clockwise");
+    Serial.println("Saved zero Positions");
+    upperHandleInitRotation = pantos[0].getActuationAngle(2);
     #endif
+    //digitalWrite(motorDirAPin[2], 1);
+    //digitalWrite(motorDirBPin[globalIndex], !flippedDir);
+    //ledcWrite(2, 0.1 * 4095);
 
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);
     }
+
 }
 
 void physicsLoop()
@@ -102,49 +104,20 @@ void physicsLoop()
     // PERFMON_STOP("[ab] Calculation loop");
     PERFMON_STOP("[a] Read encoders");
 
-    PERFMON_START("[b] Calculate physics");
-    for (auto i = 0; i < pantoCount; ++i)
-    {
-        pantoPhysics[i].step();
+    float currentUpperHandleAngle = pantos[0].getActuationAngle(2);
+    if (!calibrationFinished && abs(currentUpperHandleAngle - upperHandleInitRotation) < 0.5){
+        bool isInversed = (currentUpperHandleAngle - upperHandleInitRotation >0.5);
+        uint32_t encoder_steps = isInversed? 1000 : 271;
+        CalibrationData cd = {calibrated_zeros[0], calibrated_zeros[1], calibrated_zeros[2], calibrated_zeros[3], encoder_steps, isInversed};
+        saveCalibrationData(cd);
+        calibrationFinished = true;
+        DPSerial::sendInstantDebugLog("Calibration finished!");
+        Serial.println("Calibration finished!");
     }
-    PERFMON_STOP("[b] Calculate physics");
+    if (printcounter > 10000){
+        Serial.println(pantos[0].getActuationAngle(2));
+        printcounter = 0;
+    }
+    printcounter++;
 
-    PERFMON_START("[c] Actuate motors");
-    for (auto i = 0; i < pantoCount; ++i)
-    {
-        pantos[i].actuateMotors();
-    }
-    PERFMON_STOP("[c] Actuate motors");
-
-    if(spiErrorLimiter.step()) {
-        // DPSerial::sendQueuedDebugLog("SPI Errors: %i out of %i requests", spi->getErrors(), spi->getRequests());
-        // for(int i=0; i < 2; i++){
-        // DPSerial::sendQueuedDebugLog("Encoder Errors panto[0][%i]: %i out of %i requests",i,
-        //     pantos[0].getEncoderErrorCounts(i), pantos[0].getEncoderRequestsCounts(i));
-        // }
-        // for(int i=0; i < 2; i++){
-        // DPSerial::sendQueuedDebugLog("Encoder Errors panto[1][%i]: %i out of %i requests",i,
-        //     pantos[1].getEncoderErrorCounts(i), pantos[1].getEncoderRequestsCounts(i));
-        // }
-        // spi->resetErrors();
-    }
-
-    PERFMON_START("[d] Calibrate Pantos");
-    bool flag = false;
-    for(auto i = 0; i < pantoCount; ++i){
-        if(pantos[i].getCalibrationState()){
-            flag = true;
-            break;
-        }
-    }
-    if(flag){
-        #ifdef LINKAGE_ENCODER_USE_SPI
-        std::vector<uint16_t> startPositions(numberOfSpiEncoders);
-        #endif
-        for (auto i = 0; i < pantoCount; ++i)
-        {
-            pantos[i].calibrationEnd();
-        }
-    }
-    PERFMON_STOP("[d] Calibrate Pantos");
 }

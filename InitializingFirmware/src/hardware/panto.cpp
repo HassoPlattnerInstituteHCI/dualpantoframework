@@ -273,7 +273,6 @@ void Panto::readEncoders()
     m_actuationAngle[c_localHandleIndex] =
         (m_encoder[c_localHandleIndex]) ?
         (encoderFlipped[c_globalHandleIndex] *
-        (handleEncodersInverted? -1 : 1)*
         TWO_PI * m_encoder[c_localHandleIndex]->read() /
         encoderSteps[c_globalHandleIndex]) :
         NAN;
@@ -482,45 +481,23 @@ Panto::Panto(uint8_t pantoIndex)
         // Use encoder index pin and actuate the motors to reach it
         setMotor(localIndex, false, 0);
     }
-    //Kalman
-    setKalman();
 };
 
-void Panto::setKalman() {
-    // time evolution matrix (whatever... it will be updated inloop)
-    K.F = {1.0, 0.0, 0.0,0.0,
-           0.0, 1.0, 0.0, 0.0,
-           0.0, 0.0, 1.0, 0.0,
-           0.0, 0.0, 0.0, 1.0};
-
-    // measurement matrix n the position (e.g. GPS) and acceleration (e.g. accelerometer)
-    K.H = {1.0, 0.0, 0.0, 0.0,
-           0.0, 1.0, 0.0, 0.0};
-    // measurement covariance matrix
-    K.R = {n_p*n_p,   0.0,
-           0.0, n_a*n_a};
-    // model covariance matrix
-    K.Q = {1.0, 0.0, 0.0,0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0};
-    state.Fill(0.0);
-    obs.Fill(0.0);
-
+void Panto::calibrateEncoders(){
+    #ifdef LINKAGE_ENCODER_USE_SPI
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+    {
+        //Write encoder values to EEPROM
+        EEPROM.writeInt((3*c_pantoIndex*sizeof(uint32_t)+localIndex*sizeof(uint32_t)),m_angleAccessors[localIndex]());
+    }
+    #endif
 }
 
-// void Panto::calibrateEncoders(){
-//     #ifdef LINKAGE_ENCODER_USE_SPI
-//     for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
-//     {
-//         //Write encoder values to EEPROM
-//         EEPROM.writeInt((3*c_pantoIndex*sizeof(uint32_t)+localIndex*sizeof(uint32_t)),m_angleAccessors[localIndex]());
-//     }
-//     #endif
-// }
-
 void Panto::resetActuationAngle(){
-   m_actuationAngle[c_localHandleIndex] = setupAngle[c_globalHandleIndex] * TWO_PI;
+   for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex){
+    const auto globalIndex = c_globalIndexOffset + localIndex;
+    m_actuationAngle[localIndex] = setupAngle[globalIndex] * TWO_PI;
+   }
 }
 
 bool Panto::getCalibrationState(){
@@ -535,7 +512,7 @@ void Panto::calibrationEnd()
 {
     for (auto localIndex = 0; localIndex < 3; ++localIndex)
     {
-        if (m_encoder[localIndex]) // only for handle encoders
+        if (m_encoder[localIndex])
         {
             const auto globalIndex = c_globalIndexOffset + localIndex;
             m_encoder[localIndex]->write(
@@ -568,16 +545,6 @@ void Panto::setAngleAccessor(
     const AngleAccessor accessor)
 {
     m_angleAccessors[localIndex] = accessor;
-};
-
-void Panto::setHandleEncoderParameters(
-    const uint32_t handleEncoderSteps,
-    const bool isInverted
-)
-{
-    encoderSteps[2] = handleEncoderSteps;
-    encoderSteps[5] = handleEncoderSteps;
-    handleEncodersInverted = isInverted;
 };
 
 void Panto::setTarget(const Vector2D target, const bool isForceRendering)

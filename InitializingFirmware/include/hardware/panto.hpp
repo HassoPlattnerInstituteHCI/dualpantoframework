@@ -6,7 +6,7 @@
 #include "hardware/angleAccessor.hpp"
 #include "utils/vector.hpp"
 #include <EEPROM.h>
-#include "hardware/Kalman.h"
+#include <vector>
 
 // make sure results are in range -270° ~ 0° ~ +90°
 #define ensureAngleRange(angle) \
@@ -74,12 +74,7 @@ private:
     #define n_p 0.3 // position measurement noise
     #define n_a 5.0 // acceleration measurement noise
 
-    uint32_t encoderSteps[6] = {16384, 16384, 271, 16384, 16384, 271};
-    bool handleEncodersInverted = false;
 
-    BLA::Matrix<Nobs> obs;
-    BLA::Matrix<Nstate> state;
-    KALMAN<Nstate, Nobs> K;
     unsigned long T; // current time
     unsigned long T_period;
     float DT; // delay between two updates of the filter
@@ -150,7 +145,6 @@ public:
     void setIsFrozen(bool isFrozen);
 
     void setKalman();
-    void setHandleEncoderParameters(const uint32_t handleEncoderSteps, const bool isInverted);
 };
 
 extern std::vector<Panto> pantos;

@@ -76,8 +76,8 @@ const uint8_t encoderBPin[] = {
 const uint8_t encoderIndexPin[] = {
     40, 40, 40, 40, 40, 40
 };
-const uint32_t encoderStepsFallback[] = {
-    16384, 16384, 271, 16384, 16384, 271
+const uint32_t encoderSteps[] = {
+    16384, 16384, 260, 16384, 16384, 260
 };
 const uint32_t encoderSpiIndex[] = {
     3, 2, 4294967295, 0, 1, 4294967295
