@@ -105,9 +105,13 @@ void physicsLoop()
     PERFMON_STOP("[a] Read encoders");
 
     float currentUpperHandleAngle = pantos[0].getActuationAngle(2);
-    if (!calibrationFinished && abs(currentUpperHandleAngle - upperHandleInitRotation) < 0.5){
-        bool isInversed = (currentUpperHandleAngle - upperHandleInitRotation >0.5);
-        uint32_t encoder_steps = isInversed? 1000 : 271;
+    if (!calibrationFinished && abs(currentUpperHandleAngle - upperHandleInitRotation) > 1){
+        bool isInversed = (currentUpperHandleAngle - upperHandleInitRotation > 1);
+        Serial.println(currentUpperHandleAngle);
+        Serial.println("--------");
+        Serial.println(upperHandleInitRotation);
+        Serial.println(isInversed);
+        uint32_t encoder_steps = isInversed? 810 : 271;
         CalibrationData cd = {calibrated_zeros[0], calibrated_zeros[1], calibrated_zeros[2], calibrated_zeros[3], encoder_steps, isInversed};
         saveCalibrationData(cd);
         calibrationFinished = true;
