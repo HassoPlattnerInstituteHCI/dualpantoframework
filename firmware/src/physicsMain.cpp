@@ -57,7 +57,7 @@ void physicsSetup()
             }
             if (calibrationDataExists())
             {
-                pantos[i].setHandleEncoderParameters(cd.encoder_steps, cd.inversed);
+                pantos[i].setHandleEncoderParameters(cd.encoder_steps_upper, cd.encoder_steps_lower, cd.inversed_upper, cd.inversed_lower);
             } 
         }
         #endif

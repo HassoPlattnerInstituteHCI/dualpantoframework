@@ -11,10 +11,17 @@
 
 FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 
-float upperHandleInitRotation;
 std::vector<uint16_t> calibrated_zeros;
+bool calibratedUpperHandle = false;
+bool calibratedLowerHandle = false;
 bool calibrationFinished = false;
 int printcounter = 0;
+bool isInversedUpper;
+bool isInversedLower;
+uint32_t encoder_steps_upper;
+uint32_t encoder_steps_lower;
+float upperHandleMaxAngle;
+float lowerHandleMaxAngle;
 
 #ifdef LINKAGE_ENCODER_USE_SPI
 SPIEncoderChain* spi;
@@ -67,9 +74,7 @@ void physicsSetup()
     spi->setPosition(startPositions);
     calibrated_zeros = spi->getZero();
     DPSerial::sendInstantDebugLog("saved zero positions");
-    DPSerial::sendInstantDebugLog("Please rotate the upper handle clockwise");
-    Serial.println("Saved zero Positions");
-    upperHandleInitRotation = pantos[0].getActuationAngle(2);
+    DPSerial::sendInstantDebugLog("Rotate both handles clockwise three times, than back a bit to confirm");
     #endif
     //digitalWrite(motorDirAPin[2], 1);
     //digitalWrite(motorDirBPin[globalIndex], !flippedDir);
@@ -105,19 +110,33 @@ void physicsLoop()
     PERFMON_STOP("[a] Read encoders");
 
     float currentUpperHandleAngle = pantos[0].getActuationAngle(2);
-    if (!calibrationFinished && abs(currentUpperHandleAngle - upperHandleInitRotation) > 1){
-        bool isInversed = (currentUpperHandleAngle - upperHandleInitRotation > 1);
-        Serial.println(currentUpperHandleAngle);
-        Serial.println("--------");
-        Serial.println(upperHandleInitRotation);
-        Serial.println(isInversed);
-        uint32_t encoder_steps = isInversed? 810 : 271;
-        CalibrationData cd = {calibrated_zeros[0], calibrated_zeros[1], calibrated_zeros[2], calibrated_zeros[3], encoder_steps, isInversed};
-        saveCalibrationData(cd);
-        calibrationFinished = true;
-        DPSerial::sendInstantDebugLog("Calibration finished!");
-        Serial.println("Calibration finished!");
+    float currentLowerHandleAngle = pantos[1].getActuationAngle(2);
+    upperHandleMaxAngle = max(abs(currentUpperHandleAngle), abs(upperHandleMaxAngle));
+    lowerHandleMaxAngle = max(abs(currentLowerHandleAngle), abs(lowerHandleMaxAngle));
+
+    if (!calibratedUpperHandle && (upperHandleMaxAngle - abs(currentUpperHandleAngle) > 0.5)) {
+        isInversedUpper = (currentUpperHandleAngle > 1);
+        Serial.println("----UPPER CALIBRATED----");
+        encoder_steps_upper = isInversedUpper? (abs(upperHandleMaxAngle) < 2.3*TWO_PI ? 740 : 815) : (upperHandleMaxAngle < 0.87*TWO_PI ? 271 : 308);
+        Serial.println(encoder_steps_upper);
+        calibratedUpperHandle = true;
     }
+
+    if (!calibratedLowerHandle && (lowerHandleMaxAngle - abs(currentLowerHandleAngle) > 0.5)){
+        isInversedLower = (currentLowerHandleAngle > 1);
+        Serial.println("----LOWER CALIBRATED----");
+        encoder_steps_lower = isInversedLower? (abs(lowerHandleMaxAngle) < 2.3*TWO_PI ? 740 : 815) : (lowerHandleMaxAngle < 0.87*TWO_PI ? 271 : 308);
+        Serial.println(encoder_steps_lower);
+        calibratedLowerHandle = true;
+    }
+
+    if (calibratedUpperHandle && calibratedLowerHandle && !calibrationFinished){
+        CalibrationData cd = {calibrated_zeros[0], calibrated_zeros[1], calibrated_zeros[2], calibrated_zeros[3], encoder_steps_upper, encoder_steps_lower, isInversedUpper, isInversedLower};
+        saveCalibrationData(cd);
+        DPSerial::sendInstantDebugLog("Calibration finished!");
+        calibrationFinished = true;
+    }
+
     if (printcounter > 10000){
         Serial.println(pantos[0].getActuationAngle(2));
         printcounter = 0;

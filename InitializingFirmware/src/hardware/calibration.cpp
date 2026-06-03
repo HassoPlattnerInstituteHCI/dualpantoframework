@@ -10,7 +10,7 @@ void saveCalibrationData(CalibrationData data) {
 }
 
 CalibrationData loadCalibrationData() {
-  CalibrationData data = {0, 0, 0, 0, 0, false};
+  CalibrationData data = {0, 0, 0, 0, 0, 0, false, false};
   prefs.begin("calibration", true);
   prefs.getBytes("cal_data", &data, sizeof(CalibrationData));
   prefs.end();
@@ -18,7 +18,7 @@ CalibrationData loadCalibrationData() {
 }
 
 bool calibrationDataExists() {
-  CalibrationData data = {0, 0, 0, 0, 0, false};
+  CalibrationData data = {0, 0, 0, 0, 0, 0, false, false};
   prefs.begin("calibration", true);
   size_t length = prefs.getBytes("cal_data", &data, sizeof(CalibrationData));
   prefs.end();

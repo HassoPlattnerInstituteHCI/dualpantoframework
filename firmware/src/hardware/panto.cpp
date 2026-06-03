@@ -273,7 +273,7 @@ void Panto::readEncoders()
     m_actuationAngle[c_localHandleIndex] =
         (m_encoder[c_localHandleIndex]) ?
         (encoderFlipped[c_globalHandleIndex] *
-        (handleEncodersInverted? -1 : 1)*
+        (c_pantoIndex == 0 ? (handleEncodersInvertedUpper? -1 : 1) : (handleEncodersInvertedLower? -1 : 1))*
         TWO_PI * m_encoder[c_localHandleIndex]->read() /
         encoderSteps[c_globalHandleIndex]) :
         NAN;
@@ -571,13 +571,16 @@ void Panto::setAngleAccessor(
 };
 
 void Panto::setHandleEncoderParameters(
-    const uint32_t handleEncoderSteps,
-    const bool isInverted
+    const uint32_t handleEncoderStepsUpper,
+    const uint32_t handleEncoderStepsLower,
+    const bool isInvertedUpper,
+    const bool isInvertedLower
 )
 {
-    encoderSteps[2] = handleEncoderSteps;
-    encoderSteps[5] = handleEncoderSteps;
-    handleEncodersInverted = isInverted;
+    encoderSteps[2] = handleEncoderStepsUpper;
+    encoderSteps[5] = handleEncoderStepsLower;
+    handleEncodersInvertedUpper = isInvertedUpper;
+    handleEncodersInvertedLower = isInvertedLower;
 };
 
 void Panto::setTarget(const Vector2D target, const bool isForceRendering)
