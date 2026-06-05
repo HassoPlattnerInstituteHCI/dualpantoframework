@@ -74,7 +74,7 @@ private:
     #define n_p 0.3 // position measurement noise
     #define n_a 5.0 // acceleration measurement noise
 
-    uint32_t encoderSteps[6] = {16384, 16384, 10, 16384, 16384, 10};
+    uint32_t encoderSteps[6];
     bool handleEncodersInvertedUpper = false;
     bool handleEncodersInvertedLower = false;
 

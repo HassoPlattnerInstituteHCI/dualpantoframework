@@ -417,6 +417,7 @@ Panto::Panto(uint8_t pantoIndex)
 {
     m_targetX = NAN;
     m_targetY = NAN;
+    std::copy(std::begin(encoderStepsFallback), std::end(encoderStepsFallback), encoderSteps);
 
 
 
