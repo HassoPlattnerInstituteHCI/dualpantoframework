@@ -15,7 +15,6 @@ std::vector<uint16_t> calibrated_zeros;
 bool calibratedUpperHandle = false;
 bool calibratedLowerHandle = false;
 bool calibrationFinished = false;
-int printcounter = 0;
 bool isInversedUpper;
 bool isInversedLower;
 uint32_t encoder_steps_upper;
@@ -132,15 +131,12 @@ void physicsLoop()
 
     if (calibratedUpperHandle && calibratedLowerHandle && !calibrationFinished){
         CalibrationData cd = {calibrated_zeros[0], calibrated_zeros[1], calibrated_zeros[2], calibrated_zeros[3], encoder_steps_upper, encoder_steps_lower, isInversedUpper, isInversedLower};
+        for (int i = 0; i < 40; i++) {
+            detachInterrupt(i);
+        }
         saveCalibrationData(cd);
         DPSerial::sendInstantDebugLog("Calibration finished!");
         calibrationFinished = true;
     }
-
-    if (printcounter > 10000){
-        Serial.println(pantos[0].getActuationAngle(2));
-        printcounter = 0;
-    }
-    printcounter++;
 
 }
