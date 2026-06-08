@@ -74,6 +74,9 @@ private:
     #define n_p 0.3 // position measurement noise
     #define n_a 5.0 // acceleration measurement noise
 
+    uint32_t encoderSteps[6];
+    bool handleEncodersInvertedUpper = false;
+    bool handleEncodersInvertedLower = false;
 
     BLA::Matrix<Nobs> obs;
     BLA::Matrix<Nstate> state;
@@ -148,6 +151,7 @@ public:
     void setIsFrozen(bool isFrozen);
 
     void setKalman();
+    void setHandleEncoderParameters(const uint32_t handleEncoderStepsUpper, const uint32_t handleEncoderStepsLower, const bool isInvertedUpper, const bool isInvertedLower);
 };
 
 extern std::vector<Panto> pantos;

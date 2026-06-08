@@ -7,7 +7,7 @@
 #include "utils/performanceMonitor.hpp"
 #include "utils/framerateLimiter.hpp"
 #include "utils/serial.hpp"
-
+#include "hardware/calibration.hpp"
 
 FramerateLimiter spiErrorLimiter = FramerateLimiter::fromSeconds(1);
 
@@ -32,12 +32,13 @@ void physicsSetup()
     #ifdef LINKAGE_ENCODER_USE_SPI
     std::vector<uint16_t> startPositions(numberOfSpiEncoders);
     #endif
-
-    EEPROM.begin(sizeof(uint32_t)*numberOfSpiEncoders);
+    EEPROM.begin(sizeof(uint32_t)*numberOfSpiEncoders); // is this needed?
 
     //calibrateEncoders; Comment if not needed
     // for (auto i = 0; i < pantoCount; ++i)
     // { pantos[i].calibrateEncoders(i);}
+
+    CalibrationData cd = loadCalibrationData();
 
     for (auto i = 0; i < pantoCount; ++i)
     {
@@ -51,15 +52,26 @@ void physicsSetup()
                 startPositions[index] =
                 ((uint16_t)(pantos[i].getActuationAngle(j) /
                 (TWO_PI) *
-                encoderSteps[i * 3 + j]) & 0x3fff);
-
+                encoderStepsFallback[i * 3 + j]) & 0x3fff);
                 pantos[i].setAngleAccessor(j, spi->getAngleAccessor(index));
             }
+            if (calibrationDataExists())
+            {
+                pantos[i].setHandleEncoderParameters(cd.encoder_steps_upper, cd.encoder_steps_lower, cd.inversed_upper, cd.inversed_lower);
+            } 
         }
         #endif
     }
     #ifdef LINKAGE_ENCODER_USE_SPI
-    spi->setPosition(startPositions);
+    if (calibrationDataExists())
+    {
+        std::vector<uint16_t> zero_vector = {cd.zero_1, cd.zero_2, cd.zero_3, cd.zero_4};
+        spi->setZero(zero_vector);
+    }else
+    {
+        spi->setPosition(startPositions);
+    }
+    
     #endif
 
     for (unsigned char i = 0; i < pantoCount; ++i)
@@ -132,23 +144,7 @@ void physicsLoop()
         for (auto i = 0; i < pantoCount; ++i)
         {
             pantos[i].calibrationEnd();
-            #ifdef LINKAGE_ENCODER_USE_SPI
-            for (auto j = 0; j < 3; ++j) // three encoders
-            {
-                auto index = encoderSpiIndex[i * 3 + j];
-                if(index != 0xffffffff) // excluding it / me handle.
-                {
-                    startPositions[index] =
-                        ((uint16_t)(pantos[i].getActuationAngle(j) /
-                        (TWO_PI) *
-                        encoderSteps[i * 3 + j]) & 0x3fff);
-                }
-            }
-            #endif
         }
-        #ifdef LINKAGE_ENCODER_USE_SPI
-        spi->setPosition(startPositions);
-        #endif
     }
     PERFMON_STOP("[d] Calibrate Pantos");
 }

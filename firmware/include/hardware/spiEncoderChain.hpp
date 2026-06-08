@@ -32,7 +32,6 @@ private:
     void end();
     std::vector<uint16_t> getZero();
     void transfer(uint16_t transmission);
-    void setZero(std::vector<uint16_t> newZero);
 public:
     SPIEncoderChain(uint32_t numberOfEncoders);
     void update(int channel);
@@ -47,4 +46,5 @@ public:
     uint32_t getRequests();
     void resetErrors();
     AngleAccessor getAngleAccessor(uint32_t index);
+    void setZero(std::vector<uint16_t> newZero);
 };
