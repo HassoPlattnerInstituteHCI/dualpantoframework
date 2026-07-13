@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <mutex>
 
 #include "crashAnalyzer.hpp"
 #include "libInterface.hpp"
@@ -17,6 +18,7 @@ bool DPSerial::s_workerRunning = false;
 std::queue<Packet> DPSerial::s_highPrioSendQueue;
 std::queue<Packet> DPSerial::s_lowPrioSendQueue;
 std::queue<Packet> DPSerial::s_receiveQueue;
+std::mutex DPSerial::s_queueMutex;
 uint8_t DPSerial::s_nextTrackedPacketId = 1;
 bool DPSerial::s_haveUnacknowledgedTrackedPacket = false;
 Packet DPSerial::s_lastTrackedPacket(0, 0);
@@ -45,16 +47,19 @@ void DPSerial::stopWorker()
 
 void DPSerial::sendInstantPacket(Packet p)
 {
+    std::lock_guard<std::mutex> lock(s_queueMutex);
     s_highPrioSendQueue.push(p);
 }
 
 void DPSerial::sendPacket(Packet p)
 {
+    std::lock_guard<std::mutex> lock(s_queueMutex);
     s_lowPrioSendQueue.push(p);
 }
 
 void DPSerial::reset()
 {
+    std::lock_guard<std::mutex> lock(s_queueMutex);
     std::queue<Packet> emptyHP;
     std::swap(s_highPrioSendQueue, emptyHP);
     std::queue<Packet> emptyLP;
@@ -97,16 +102,29 @@ bool DPSerial::checkQueue(std::queue<Packet> &q)
     return !tracked || !s_haveUnacknowledgedTrackedPacket;
 }
 
+// Locked pop of the next sendable packet from q. Returns false (and leaves out
+// untouched) when the queue is empty or holds back a tracked packet. The queue
+// is shared with the host thread, so the check and the pop happen under the lock.
+bool DPSerial::dequeueForSend(std::queue<Packet> &q, Packet &out)
+{
+    std::lock_guard<std::mutex> lock(s_queueMutex);
+    if (!checkQueue(q))
+    {
+        return false;
+    }
+    out = q.front();
+    q.pop();
+    return true;
+}
+
 void DPSerial::processOutput()
 {
-    bool resend = false;
     Packet packet(255, 0);
 
     // send high prio packets (sync/heartbeat)
-    if (checkQueue(s_highPrioSendQueue))
+    if (dequeueForSend(s_highPrioSendQueue, packet))
     {
-        packet = s_highPrioSendQueue.front();
-        s_highPrioSendQueue.pop();
+        // sending the dequeued high prio packet
     }
     // otherwise, check if panto buffer is critical
     else if (!s_pantoReady)
@@ -123,10 +141,9 @@ void DPSerial::processOutput()
         packet = s_lastTrackedPacket;
     }
     // otherwise, send a low prio packet
-    else if (checkQueue(s_lowPrioSendQueue))
+    else if (dequeueForSend(s_lowPrioSendQueue, packet))
     {
-        packet = s_lowPrioSendQueue.front();
-        s_lowPrioSendQueue.pop();
+        // sending the dequeued low prio packet
     }
     // no packets, nothing to do
     else
@@ -212,7 +229,10 @@ bool DPSerial::readMagicNumber()
 bool DPSerial::readHeader()
 {
     uint8_t received[c_headerSize];
-    if (!readBytesFromSerial(received, c_headerSize))
+    // Only read once the whole header is buffered. A blocking read of a
+    // partially arrived header would time out (VTIME) and latch feof, which used
+    // to trigger a reconnect from the worker thread and crash the process.
+    if (!readBytesIfAvailable(received, c_headerSize))
     {
         return false;
     }
@@ -251,7 +271,8 @@ bool DPSerial::readPayload()
     const uint16_t size = s_receiveHeader.PayloadSize;
     std::vector<char> received;
     received.reserve(size);
-    if (!readBytesFromSerial(received.data(), size))
+    // Only read once the whole payload is buffered (see readHeader).
+    if (!readBytesIfAvailable(received.data(), size))
     {
         return false;
     }
@@ -294,8 +315,11 @@ bool DPSerial::readPayload()
         break;
     }
     default:
+    {
+        std::lock_guard<std::mutex> lock(s_queueMutex);
         s_receiveQueue.push(packet);
         break;
+    }
     }
 
     return true;

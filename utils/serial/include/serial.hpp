@@ -4,6 +4,7 @@
 #include <string>
 #include <queue>
 #include <thread>
+#include <mutex>
 
 #include <protocol/header.hpp>
 #include <protocol/messageType.hpp>
@@ -43,6 +44,11 @@ protected:
     static std::queue<Packet> s_lowPrioSendQueue;
     static std::queue<Packet> s_receiveQueue;
 
+    // Guards the three queues above. The worker thread (processInput/processOutput)
+    // and the host thread (poll/send helpers) touch them concurrently, and
+    // std::queue is not thread safe, so every push/pop/front/swap holds this lock.
+    static std::mutex s_queueMutex;
+
     static uint8_t s_nextTrackedPacketId;
     static bool s_haveUnacknowledgedTrackedPacket;
     static Packet s_lastTrackedPacket;
@@ -66,6 +72,7 @@ protected:
 
     static bool isTracked(uint8_t t);
     static bool checkQueue(std::queue<Packet> &q);
+    static bool dequeueForSend(std::queue<Packet> &q, Packet &out);
     static void sendPacket(Packet p);
     static void sendInstantPacket(Packet p);
     static void write(const uint8_t *const data, const uint32_t length);
