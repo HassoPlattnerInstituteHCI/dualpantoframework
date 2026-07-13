@@ -27,15 +27,20 @@ bool DPSerial::readBytesFromSerial(void *target, uint32_t length)
     {
         if (feof(s_handle))
         {
-            std::cout
-                << "Read end of file from serial, trying to reconnect."
-                << std::endl;
-            tearDown();
-            setup(s_path);
+            // Do not tear down here. This runs on the worker thread, and
+            // tearDown() -> stopWorker() -> s_worker.join() would join the worker
+            // from within itself. Self-join throws std::system_error, which is
+            // unhandled on the worker thread and calls std::terminate, taking the
+            // whole host process down. Clear the end-of-file state and return; the
+            // host reopens the port (Close + Open) on its own thread once it
+            // notices the device stopped responding.
+            std::cout << "Read end of file from serial." << std::endl;
+            clearerr(s_handle);
         }
         else if (ferror(s_handle))
         {
             perror("Error while reading from serial");
+            clearerr(s_handle);
         }
     }
     return valid;

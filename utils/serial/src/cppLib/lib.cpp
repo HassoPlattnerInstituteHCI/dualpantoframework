@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <sstream>
+#include <mutex>
+#include <queue>
+#include <utility>
 
 #include "packet.hpp"
 
@@ -48,10 +51,19 @@ void CppLib::poll()
     double positionCoords[2 * 5];
     uint8_t pantoIndex;
 
-    while (s_receiveQueue.size() > 0)
+    // Take everything the worker thread has queued so far in one locked swap,
+    // then process it without holding the lock (the handlers below call back into
+    // Unity and may enqueue sends, which would deadlock if we still held it).
+    std::queue<Packet> pending;
     {
-        auto packet = s_receiveQueue.front();
-        s_receiveQueue.pop();
+        std::lock_guard<std::mutex> lock(s_queueMutex);
+        std::swap(pending, s_receiveQueue);
+    }
+
+    while (!pending.empty())
+    {
+        auto packet = pending.front();
+        pending.pop();
 
         if (packet.header.PayloadSize > c_maxPayloadSize)
         {
