@@ -1,5 +1,6 @@
 #include "libInterface.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <mutex>
@@ -106,6 +107,22 @@ void CppLib::poll()
             receivedTransition = true;
             pantoIndex = packet.receiveUInt8();
             break;
+        case GRAPH_STATE:
+        {
+            // handled per packet: unlike positions, no state change may get lost
+            auto graphPantoIndex = packet.receiveUInt8();
+            auto isOnGraph = packet.receiveUInt8();
+            auto graphId = packet.receiveUInt16();
+            if (graphStateHandler == nullptr)
+            {
+                logString("Received graph state, but handler not set up");
+            }
+            else
+            {
+                graphStateHandler((uint64_t)s_handle, graphPantoIndex, isOnGraph, graphId);
+            }
+            break;
+        }
         default:
             break;
         }
@@ -288,6 +305,84 @@ void CppLib::disableObstacle(uint8_t pantoIndex, uint16_t obstacleId)
     sendPacket(p);
 }
 
+void CppLib::createGraph(uint8_t pantoIndex, uint16_t graphId, float captureRadius, float junctionRadius, float breakawayDistance, float p, float i, float d)
+{
+    auto packet = Packet(CREATE_GRAPH, 27); // 1 for index, 2 for id, 6 * 4 for values
+    packet.sendUInt8(pantoIndex);
+    packet.sendUInt16(graphId);
+    packet.sendFloat(captureRadius);
+    packet.sendFloat(junctionRadius);
+    packet.sendFloat(breakawayDistance);
+    packet.sendFloat(p);
+    packet.sendFloat(i);
+    packet.sendFloat(d);
+    sendPacket(packet);
+}
+
+// Nodes and edges are split into small packets: at 115200 baud a tracked packet
+// has to stay well below c_trackedPacketTimeout (10 ms = 115 bytes) including the ack.
+void CppLib::addGraphNodes(uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* nodeIds, const float* x, const float* y, const uint8_t* flags)
+{
+    const uint32_t maxNodesPerPacket = 4;
+    for (uint32_t start = 0; start < count; start += maxNodesPerPacket)
+    {
+        const auto packetCount = (std::min)(count - start, maxNodesPerPacket);
+        auto p = Packet(ADD_GRAPH_NODES, 3 + packetCount * 11); // 1 for index, 2 for id, per node 2 for node id, 2 * 4 for position, 1 for flags
+        p.sendUInt8(pantoIndex);
+        p.sendUInt16(graphId);
+        for (auto i = start; i < start + packetCount; ++i)
+        {
+            p.sendUInt16(nodeIds[i]);
+            p.sendFloat(x[i]);
+            p.sendFloat(y[i]);
+            p.sendUInt8(flags[i]);
+        }
+        sendPacket(p);
+    }
+}
+
+void CppLib::addGraphEdges(uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* firstNodeIds, const uint16_t* secondNodeIds)
+{
+    const uint32_t maxEdgesPerPacket = 11;
+    for (uint32_t start = 0; start < count; start += maxEdgesPerPacket)
+    {
+        const auto packetCount = (std::min)(count - start, maxEdgesPerPacket);
+        auto p = Packet(ADD_GRAPH_EDGES, 3 + packetCount * 4); // 1 for index, 2 for id, 2 * 2 per edge
+        p.sendUInt8(pantoIndex);
+        p.sendUInt16(graphId);
+        for (auto i = start; i < start + packetCount; ++i)
+        {
+            p.sendUInt16(firstNodeIds[i]);
+            p.sendUInt16(secondNodeIds[i]);
+        }
+        sendPacket(p);
+    }
+}
+
+void CppLib::removeGraph(uint8_t pantoIndex, uint16_t graphId)
+{
+    auto p = Packet(REMOVE_GRAPH, 3); // 1 for index, 2 for id
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(graphId);
+    sendPacket(p);
+}
+
+void CppLib::enableGraph(uint8_t pantoIndex, uint16_t graphId)
+{
+    auto p = Packet(ENABLE_GRAPH, 3); // 1 for index, 2 for id
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(graphId);
+    sendPacket(p);
+}
+
+void CppLib::disableGraph(uint8_t pantoIndex, uint16_t graphId)
+{
+    auto p = Packet(DISABLE_GRAPH, 3); // 1 for index, 2 for id
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(graphId);
+    sendPacket(p);
+}
+
 void CppLib::reset()
 {
     DPSerial::reset();
@@ -299,6 +394,7 @@ heartbeatHandler_t heartbeatHandler;
 positionHandler_t positionHandler;
 loggingHandler_t loggingHandler;
 transitionHandler_t transitionHandler;
+graphStateHandler_t graphStateHandler;
 
 void logString(char *msg)
 {
@@ -344,6 +440,12 @@ void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler)
 {
     transitionHandler = handler;
     logString("Transition handler set");
+}
+
+void SERIAL_EXPORT SetGraphStateHandler(graphStateHandler_t handler)
+{
+    graphStateHandler = handler;
+    logString("Graph state handler set");
 }
 
 uint64_t SERIAL_EXPORT Open(char *port)
@@ -439,6 +541,42 @@ void SERIAL_EXPORT DisableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t
 {
     CppLib::setActiveHandle(handle);
     CppLib::disableObstacle(pantoIndex, obstacleId);
+}
+
+void SERIAL_EXPORT CreateGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, float captureRadius, float junctionRadius, float breakawayDistance, float p, float i, float d)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::createGraph(pantoIndex, graphId, captureRadius, junctionRadius, breakawayDistance, p, i, d);
+}
+
+void SERIAL_EXPORT AddGraphNodes(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* nodeIds, const float* x, const float* y, const uint8_t* flags)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::addGraphNodes(pantoIndex, graphId, count, nodeIds, x, y, flags);
+}
+
+void SERIAL_EXPORT AddGraphEdges(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* firstNodeIds, const uint16_t* secondNodeIds)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::addGraphEdges(pantoIndex, graphId, count, firstNodeIds, secondNodeIds);
+}
+
+void SERIAL_EXPORT RemoveGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::removeGraph(pantoIndex, graphId);
+}
+
+void SERIAL_EXPORT EnableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::enableGraph(pantoIndex, graphId);
+}
+
+void SERIAL_EXPORT DisableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::disableGraph(pantoIndex, graphId);
 }
 
 void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)

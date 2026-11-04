@@ -12,6 +12,7 @@ enum MessageType
     INVALID_PACKET_ID = 0x05,
     INVALID_DATA = 0x06,
     POSITION = 0x10,
+    GRAPH_STATE = 0x11,
     DEBUG_LOG = 0x20,
     SYNC_ACK = 0x80,
     HEARTBEAT_ACK = 0x81,
@@ -30,7 +31,18 @@ enum MessageType
     FREEZE = 0xA8,
     FREE = 0xA9,
     SPEED_CONTROL = 0xAA,
+    CREATE_GRAPH = 0xB0,
+    ADD_GRAPH_NODES = 0xB1,
+    ADD_GRAPH_EDGES = 0xB2,
+    REMOVE_GRAPH = 0xB3,
+    ENABLE_GRAPH = 0xB4,
+    DISABLE_GRAPH = 0xB5,
     DUMP_HASHTABLE = 0xC0,
+};
+
+enum GraphNodeFlag
+{
+    GRAPH_NODE_ENTRY = 0x01,
 };
 
 extern std::set<MessageType> TrackedMessageTypes;

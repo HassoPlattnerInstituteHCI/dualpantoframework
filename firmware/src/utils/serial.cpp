@@ -34,7 +34,13 @@ std::map<MessageType, ReceiveHandler>
         {CREATE_RAIL, DPSerial::receiveCreateRail},
         {FREEZE, DPSerial::receiveFreeze},
         {FREE, DPSerial::receiveFree},
-        {SPEED_CONTROL, DPSerial::receiveSpeedControl}};
+        {SPEED_CONTROL, DPSerial::receiveSpeedControl},
+        {CREATE_GRAPH, DPSerial::receiveCreateGraph},
+        {ADD_GRAPH_NODES, DPSerial::receiveAddGraphNodes},
+        {ADD_GRAPH_EDGES, DPSerial::receiveAddGraphEdges},
+        {REMOVE_GRAPH, DPSerial::receiveRemoveGraph},
+        {ENABLE_GRAPH, DPSerial::receiveEnableGraph},
+        {DISABLE_GRAPH, DPSerial::receiveDisableGraph}};
 
 // === private ===
 
@@ -532,6 +538,121 @@ void DPSerial::receiveSpeedControl()
     }
 }
 
+void DPSerial::receiveCreateGraph()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+    auto captureRadius = receiveFloat();
+    auto junctionRadius = receiveFloat();
+    auto breakawayDistance = receiveFloat();
+    auto p = receiveFloat();
+    auto i = receiveFloat();
+    auto d = receiveFloat();
+
+    for (auto panto = 0; panto < pantoPhysics.size(); ++panto)
+    {
+        if (pantoIndex == 0xFF || panto == pantoIndex)
+        {
+            pantoPhysics[panto].godObject()->createGraph(id, captureRadius, junctionRadius, breakawayDistance, p, i, d);
+        }
+    }
+}
+
+void DPSerial::receiveAddGraphNodes()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto nodeCount = (s_header.PayloadSize - 1 - 2) / (2 + 2 * 4 + 1);
+
+    std::vector<HapticGraph::NodeData> nodes;
+    nodes.reserve(nodeCount);
+
+    for (auto i = 0; i < nodeCount; ++i)
+    {
+        auto nodeId = receiveUInt16();
+        // separate statements: the evaluation order of function arguments is unspecified
+        auto x = receiveFloat();
+        auto y = receiveFloat();
+        auto flags = receiveUInt8();
+        nodes.push_back({nodeId, Vector2D(x, y), (flags & GRAPH_NODE_ENTRY) != 0});
+    }
+
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if (pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->addGraphNodes(id, nodes);
+        }
+    }
+}
+
+void DPSerial::receiveAddGraphEdges()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+
+    auto edgeCount = (s_header.PayloadSize - 1 - 2) / (2 * 2);
+
+    std::vector<std::pair<uint16_t, uint16_t>> edges;
+    edges.reserve(edgeCount);
+
+    for (auto i = 0; i < edgeCount; ++i)
+    {
+        auto firstId = receiveUInt16();
+        auto secondId = receiveUInt16();
+        edges.emplace_back(firstId, secondId);
+    }
+
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if ((pantoIndex == 0xFF || i == pantoIndex) &&
+            !pantoPhysics[i].godObject()->addGraphEdges(id, edges))
+        {
+            sendQueuedDebugLog("Could not add all edges to graph %i", id);
+        }
+    }
+}
+
+void DPSerial::receiveRemoveGraph()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if (pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->removeGraph(id);
+        }
+    }
+}
+
+void DPSerial::receiveEnableGraph()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if (pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->enableGraph(id);
+        }
+    }
+}
+
+void DPSerial::receiveDisableGraph()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if (pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->enableGraph(id, false);
+        }
+    }
+}
+
 void DPSerial::receiveCalibrationRequest()
 {
     DPSerial::sendInstantDebugLog("=== Calibration Request received ===");
@@ -624,6 +745,25 @@ void DPSerial::sendPosition()
     }
     portEXIT_CRITICAL(&s_serialMutex);
 };
+
+void DPSerial::sendGraphStateChanges()
+{
+    for (auto i = 0; i < pantoCount; ++i)
+    {
+        auto godObject = pantoPhysics[i].godObject();
+        if (!godObject->consumeGraphStateChange())
+        {
+            continue;
+        }
+        portENTER_CRITICAL(&s_serialMutex);
+        sendMagicNumber();
+        sendHeader(GRAPH_STATE, 4); // 1 for index, 1 for state, 2 for graph id
+        sendUInt8(i);
+        sendUInt8(godObject->isOnGraph() ? 1 : 0);
+        sendUInt16(godObject->getActiveGraphId());
+        portEXIT_CRITICAL(&s_serialMutex);
+    }
+}
 
 void DPSerial::sendInstantDebugLog(const char *message, ...)
 {
@@ -749,6 +889,11 @@ void DPSerial::receive()
         if (s_header.PacketId != s_expectedPacketId)
         {
             sendInvalidPacketId(s_expectedPacketId, s_header.PacketId);
+            // drop the payload, coordinates in it could otherwise be read as a magic number
+            for (auto i = 0; i < s_header.PayloadSize; ++i)
+            {
+                Serial.read();
+            }
             return;
         }
 

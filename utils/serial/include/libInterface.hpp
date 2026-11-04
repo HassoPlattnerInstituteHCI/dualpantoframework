@@ -26,6 +26,12 @@ public:
     static void removeObstacle(uint8_t pantoIndex, uint16_t obstacleId);
     static void enableObstacle(uint8_t pantoIndex, uint16_t obstacleId);
     static void disableObstacle(uint8_t pantoIndex, uint16_t obstacleId);
+    static void createGraph(uint8_t pantoIndex, uint16_t graphId, float captureRadius, float junctionRadius, float breakawayDistance, float p, float i, float d);
+    static void addGraphNodes(uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* nodeIds, const float* x, const float* y, const uint8_t* flags);
+    static void addGraphEdges(uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* firstNodeIds, const uint16_t* secondNodeIds);
+    static void removeGraph(uint8_t pantoIndex, uint16_t graphId);
+    static void enableGraph(uint8_t pantoIndex, uint16_t graphId);
+    static void disableGraph(uint8_t pantoIndex, uint16_t graphId);
     static void sendFree(uint8_t pantoIndex);
     static void sendFreeze(uint8_t pantoIndex);
     static void sendSpeedControl(uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled);
@@ -45,6 +51,8 @@ typedef void (*loggingHandler_t)(char*);
 extern loggingHandler_t loggingHandler;
 typedef void (*transitionHandler_t)(uint8_t);
 extern transitionHandler_t transitionHandler;
+typedef void (*graphStateHandler_t)(uint64_t, uint8_t, uint8_t, uint16_t);
+extern graphStateHandler_t graphStateHandler;
 
 void logString(char* msg);
 
@@ -59,6 +67,7 @@ extern "C"
     void SERIAL_EXPORT SetPositionHandler(positionHandler_t handler);
     void SERIAL_EXPORT SetLoggingHandler(loggingHandler_t handler);
     void SERIAL_EXPORT SetTransitionHandler(transitionHandler_t handler);
+    void SERIAL_EXPORT SetGraphStateHandler(graphStateHandler_t handler);
     uint64_t SERIAL_EXPORT Open(char* port);
     void SERIAL_EXPORT Close(uint64_t handle);
     void SERIAL_EXPORT Poll(uint64_t handle);
@@ -75,6 +84,12 @@ extern "C"
     void SERIAL_EXPORT RemoveObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId);
     void SERIAL_EXPORT EnableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId);
     void SERIAL_EXPORT DisableObstacle(uint64_t handle, uint8_t pantoIndex, uint16_t obstacleId);
+    void SERIAL_EXPORT CreateGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, float captureRadius, float junctionRadius, float breakawayDistance, float p, float i, float d);
+    void SERIAL_EXPORT AddGraphNodes(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* nodeIds, const float* x, const float* y, const uint8_t* flags);
+    void SERIAL_EXPORT AddGraphEdges(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, uint32_t count, const uint16_t* firstNodeIds, const uint16_t* secondNodeIds);
+    void SERIAL_EXPORT RemoveGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId);
+    void SERIAL_EXPORT EnableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId);
+    void SERIAL_EXPORT DisableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId);
     void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled);
     uint32_t SERIAL_EXPORT CheckQueuedPackets(uint32_t maxPackets);
     void SERIAL_EXPORT Reset();

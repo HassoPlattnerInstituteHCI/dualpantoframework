@@ -92,6 +92,12 @@ private:
     static void receiveFreeze();
     static void receiveFree();
     static void receiveSpeedControl();
+    static void receiveCreateGraph();
+    static void receiveAddGraphNodes();
+    static void receiveAddGraphEdges();
+    static void receiveRemoveGraph();
+    static void receiveEnableGraph();
+    static void receiveDisableGraph();
 
     // map of receive handlers
     static std::map<MessageType, ReceiveHandler> s_receiveHandlers;
@@ -106,6 +112,7 @@ public:
 
     // send
     static void sendPosition();
+    static void sendGraphStateChanges();
     static void sendTransitionEnded(uint8_t panto);
     static void sendInstantDebugLog(const char *message, ...);
     static void sendQueuedDebugLog(const char *message, ...);

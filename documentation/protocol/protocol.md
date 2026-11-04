@@ -1,4 +1,4 @@
-# Serial Communication Protocol - Revision 6
+# Serial Communication Protocol - Revision 7
 
 All messages contain a [header](#header) and an optional [payload](#payload).
 
@@ -36,6 +36,7 @@ The available values for messages from the hardware to the framework are:
   - [0x06 Invalid Data](#0x06-Invalid-data) - Informs the packet of unexpected bytes in the receive buffer.
 - 0x10 to 0x1F - Data messages
   - [0x10 Position](#0x10-Position) - This message contains the current positions of the handles, as well as the god objects' positions.
+  - [0x11 Graph state](#0x11-Graph-state) - A handle entered or left a haptic graph.
 - 0x20 to 0x2F - Auxiliary messages
   - [0x20 Debug log](#0x20-Debug-log) - This message contains a user-defined string that is meant as a debug log.
 
@@ -60,6 +61,13 @@ The available values for messages from the framework to the hardware are:
   - [0xA8 Freeze](#0xA8-Freeze) - Freeze the handle
   - [0xA9 Free](#0xA9-Free) - Free the handle
   - [0xAA Set Speed Control](#0xAA-SpeedControl) - Enable or disable speed control with different configuration options
+- 0xB0 to 0xBF - Haptic graph messages (see [Haptic graphs](#Haptic-graphs))
+  - [0xB0 Create graph](#0xB0-Create-graph) - This message creates an empty graph. Note: The graph isn't enabled automatically after creation.
+  - [0xB1 Add graph nodes](#0xB1-Add-graph-nodes) - This message adds nodes to a graph.
+  - [0xB2 Add graph edges](#0xB2-Add-graph-edges) - This message connects nodes of a graph.
+  - [0xB3 Remove graph](#0xB3-Remove-graph) - This message specifies a graph to remove.
+  - [0xB4 Enable graph](#0xB4-Enable-graph) - This message specifies a graph to enable.
+  - [0xB5 Disable graph](#0xB5-Disable-graph) - This message specifies a graph to disable.
 - 0xC0 to 0xCF - Debug tools
     [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' hashtable.
 
@@ -188,6 +196,21 @@ FFFFFFFF // y position of second handle
 FFFFFFFF // rotation of second handle
 FFFFFFFF // x position of second handle's god object
 FFFFFFFF // y position of second handle's god object
+```
+
+### 0x11 Graph state
+
+Sent when a handle entered or left a [haptic graph](#Haptic-graphs). The message contains the pantograph index and the state (0x00 left, 0x01 entered), both encoded as an 8 bit unsigned integer, and the graph ID, encoded as a 16 bit unsigned integer. While a handle is on a graph, the god object position in the [position message](#0x10-Position) is its position on the graph.
+
+Example message for the it handle entering a graph:
+```
+4450     // magic number
+11       // message type: graph state
+00       // packet ID: not utilized
+0004     // payload length: 1 byte for index, 1 for state, 2 for ID
+01       // panto index: 0x01 for it handle
+01       // state: entered
+0023     // graph ID
 ```
 
 ### 0x20 Debug log
@@ -450,6 +473,105 @@ AA       // message type: set speed contol
 01       // tether strategy (one out of 0,1,2)
 01       // "pock" enabled
 ```
+
+### Haptic graphs
+
+A haptic graph is a network of hallways without any width: nodes connected by edges, e.g. the paths of a Pac-Man maze. It feels like a groove dug into the surface instead of two walls: there is no free play across a hallway, while moving along it is free.
+
+- A handle enters the graph when it gets within the capture radius of a node with the entry flag. The force fades in over 200 ms.
+- On the graph, the god object walks along the connected edges to the point closest to the handle, and a PID force pulls the handle to that point. It doesn't jump to another hallway that is merely close by. A way ends like a wall at a dead end.
+- Within the junction radius of a node, the god object can also switch to any other edge of that node that is closer to the handle. This is what makes turning possible: the handle practically never hits a node exactly, so with a radius of 0 it could only go straight through a crossing. A value of a few millimeters is a good start, and it should be smaller than half of the shortest edge.
+- Walls and speed control are ignored while on a graph. They apply again after leaving it.
+- A handle leaves the graph when the graph gets disabled or removed, or when it is further than the breakaway distance away from the god object. To get back on, it has to enter through an entry node again.
+- Transitions (0x90 Motor) are possible while on a graph. The force is paused during the transition, so move the handle to a point on the graph.
+
+Graphs are built like obstacles: create it, add the nodes, add the edges between them, then enable it. All of these messages are state-changing and need a packet ID. Keep packets small: a tracked packet including its acknowledgement should be sent well within the 10 ms resend timeout, which is about 115 bytes at 115200 baud.
+
+### 0xB0 Create graph
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the graph ID, encoded as a 16 bit unsigned integer, followed by the capture radius, the junction radius, the breakaway distance and the P, I and D values, each encoded as a 32 bit float.
+
+Setting the pantograph index to 0xFF creates the graph for both handles. An existing graph with the same ID is replaced.
+
+A breakaway distance of 0 disables breaking away. Otherwise, it is raised to at least twice the capture radius. Passing a negative or NaN value for P, I or D uses the hardware's `forcePidFactor` of the walls instead. The I term is limited, and the D term is averaged because the encoder angles don't update every frame, so a D value may need different tuning than on the walls.
+
+Example message for creating a graph for both handles:
+```
+4450     // magic number
+B0       // message type: Create graph
+01       // packet ID
+001B     // payload length: 1 byte for index, 2 for ID, 6*4 for values
+FF       // pantograph index - both handles
+0023     // graph ID
+FFFFFFFF // capture radius in mm
+FFFFFFFF // junction radius in mm
+FFFFFFFF // breakaway distance in mm
+FFFFFFFF // P value
+FFFFFFFF // I value
+FFFFFFFF // D value
+```
+
+### 0xB1 Add graph nodes
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the graph ID, encoded as a 16 bit unsigned integer, and multiple nodes. Each node consists of the node ID, encoded as a 16 bit unsigned integer, the position, encoded as a pair of 32 bit floats, and the flags, encoded as an 8 bit unsigned integer.
+
+Available flags:
+
+- 0x01 Entry - the handle can enter the graph at this node
+
+Adding a node ID that already exists updates its position and flags.
+
+Example message for adding a node:
+```
+4450     // magic number
+B1       // message type: Add graph nodes
+01       // packet ID
+000E     // payload length: 1 byte for index, 2 for ID, 11 per node
+FF       // pantograph index - both handles
+0023     // graph ID
+0001     // node ID
+FFFFFFFF // x position
+FFFFFFFF // y position
+01       // flags: entry node
+```
+
+### 0xB2 Add graph edges
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the graph ID, encoded as a 16 bit unsigned integer, and multiple edges. Each edge consists of two node IDs, encoded as 16 bit unsigned integers. The nodes have to be added first. Edges are not directional.
+
+Example message for adding an edge:
+```
+4450     // magic number
+B2       // message type: Add graph edges
+01       // packet ID
+0007     // payload length: 1 byte for index, 2 for ID, 4 per edge
+FF       // pantograph index - both handles
+0023     // graph ID
+0001     // first node ID
+0002     // second node ID
+```
+
+### 0xB3 Remove graph
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, and the graph ID, encoded as a 16 bit unsigned integer. Setting the pantograph index to 0xFF removes the graph for both handles.
+
+Example message:
+```
+4450     // magic number
+B3       // message type: Remove graph
+01       // packet ID
+0003     // payload length: 1 byte for index, 2 for ID
+FF       // pantograph index - both handles
+0023     // graph ID
+```
+
+### 0xB4 Enable graph
+
+Same payload as [0xB3 Remove graph](#0xB3-Remove-graph).
+
+### 0xB5 Disable graph
+
+Same payload as [0xB3 Remove graph](#0xB3-Remove-graph).
 
 
 ### 0xC0 Dump hashtable

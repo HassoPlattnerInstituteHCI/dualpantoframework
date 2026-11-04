@@ -7,6 +7,7 @@
 
 #include "hardware/panto.hpp"
 #include "physics/godObjectAction.hpp"
+#include "physics/hapticGraph.hpp"
 #include "physics/indexedEdge.hpp"
 #include "physics/obstacle.hpp"
 #include "physics/rail.hpp"
@@ -64,7 +65,21 @@ private:
     OutOfTetherStrategy m_tetherStrategy = Leash;
     bool m_tetherPockEnabled = true;
 
+    // haptic graph related properties
+    static const uint16_t c_graphEngageMs = 200; // the force fades in on entering a graph so that the handle doesn't get kicked into the node
+    std::map<uint16_t, HapticGraph*> m_graphs;
+    HapticGraph* m_activeGraph = nullptr; // set while the handle is on a graph; walls and speed control don't apply then
+    uint16_t m_activeGraphId = 0;
+    HapticGraph::Position m_graphPosition;
+    unsigned long m_graphEnteredAt = 0;
+    bool m_graphStateChanged = false;
+
     Hashtable m_hashtable;
+
+    // returns if the handle is on a graph
+    bool moveOnGraph(Vector2D handlePosition, bool isTweening);
+    void enterGraph(uint16_t id, HapticGraph* graph, HapticGraph::Position position, Vector2D handlePosition);
+    void leaveGraph();
 
 public:
     GodObject(Vector2D position = Vector2D());
@@ -79,6 +94,16 @@ public:
     void addToObstacle(uint16_t id, std::vector<Vector2D> points);
     void removeObstacle(uint16_t id);
     void enableObstacle(uint16_t id, bool enable = true);
+    void createGraph(uint16_t id, double captureRadius, double junctionRadius, double breakawayDistance, double p, double i, double d);
+    void addGraphNodes(uint16_t id, const std::vector<HapticGraph::NodeData>& nodes);
+    // returns false if the graph or one of the nodes doesn't exist
+    bool addGraphEdges(uint16_t id, const std::vector<std::pair<uint16_t, uint16_t>>& edges);
+    void removeGraph(uint16_t id);
+    void enableGraph(uint16_t id, bool enable = true);
+    // returns if the handle entered or left a graph since the last call
+    bool consumeGraphStateChange();
+    bool isOnGraph();
+    uint16_t getActiveGraphId();
     Vector2D getPosition();
     Vector2D getActiveForce();
     Vector2D getCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition);

@@ -11,6 +11,10 @@ GodObject::GodObject(Vector2D position)
 GodObject::~GodObject()
 {
     delete m_possibleCollisions;
+    for (auto& graph : m_graphs)
+    {
+        delete graph.second;
+    }
 }
 
 void GodObject::setMovementDirection(Vector2D movementDirection)
@@ -85,6 +89,11 @@ bool GodObject::move(bool isTweening, bool isFrozen)
     if (isFrozen){
         renderForce(getCollisionForce(m_position, handlePosition), Vector2D(0,0));
         return true;
+    }
+    if (moveOnGraph(handlePosition, isTweening))
+    {
+        // a transition keeps control of the motors, the god object just follows along the graph
+        return !isTweening;
     }
 //    if (isTweening) {
 //        m_position = handlePosition;
@@ -175,6 +184,96 @@ bool GodObject::move(bool isTweening, bool isFrozen)
         bool newCollision = lastNumCollisions < m_numCollisions;
         return processTetheringForce(handlePosition, newCollision);
     }
+}
+
+bool GodObject::moveOnGraph(Vector2D handlePosition, bool isTweening)
+{
+    // the forward kinematics return NaN for invalid encoder values; once in the
+    // walk this would stick to the graph position forever
+    if (isnan(handlePosition.x) || isnan(handlePosition.y))
+    {
+        return m_activeGraph != nullptr;
+    }
+
+    portENTER_CRITICAL(&m_obstacleMutex);
+
+    if (m_activeGraph == nullptr && !isTweening)
+    {
+        for (auto& graph : m_graphs)
+        {
+            HapticGraph::Position entry;
+            if (graph.second->enabled() && graph.second->findEntry(handlePosition, entry))
+            {
+                enterGraph(graph.first, graph.second, entry, handlePosition);
+                break;
+            }
+        }
+    }
+
+    if (m_activeGraph == nullptr)
+    {
+        portEXIT_CRITICAL(&m_obstacleMutex);
+        return false;
+    }
+
+    auto lastEdge = m_graphPosition.edge;
+    m_activeGraph->walk(m_graphPosition, handlePosition);
+    m_position = HapticGraph::pointAt(m_graphPosition);
+    m_tetherPosition = handlePosition;
+
+    auto error = m_position - handlePosition;
+    // switching ways can make the error jump (no derivative kick), and the integral
+    // points across the previous way, which can be along the new one
+    if (isTweening || m_graphPosition.edge != lastEdge)
+    {
+        m_activeGraph->resetForce(error);
+    }
+
+    if (isTweening)
+    {
+        // no force while the transition is in control
+    }
+    else if (m_activeGraph->isBreakingAway(error))
+    {
+        // the user overpowered the motors; pulling the handle back from here would only slam it into the way
+        leaveGraph();
+        m_position = handlePosition;
+        m_tetherPosition = handlePosition;
+        portEXIT_CRITICAL(&m_obstacleMutex);
+        return false;
+    }
+    else
+    {
+        auto force = m_activeGraph->computeForce(error);
+        auto engagedMs = millis() - m_graphEnteredAt;
+        if (engagedMs < c_graphEngageMs)
+        {
+            force = force * (static_cast<double>(engagedMs) / c_graphEngageMs);
+        }
+        renderForce(force, Vector2D(0, 0));
+    }
+
+    portEXIT_CRITICAL(&m_obstacleMutex);
+    return true;
+}
+
+void GodObject::enterGraph(uint16_t id, HapticGraph* graph, HapticGraph::Position position, Vector2D handlePosition)
+{
+    m_activeGraph = graph;
+    m_activeGraphId = id;
+    m_graphPosition = position;
+    m_graphEnteredAt = millis();
+    m_graphStateChanged = true;
+    m_processingObstacleCollision = false;
+    m_doneColliding = false;
+    m_tetherState = Inner;
+    graph->resetForce(HapticGraph::pointAt(position) - handlePosition);
+}
+
+void GodObject::leaveGraph()
+{
+    m_activeGraph = nullptr;
+    m_graphStateChanged = true;
 }
 
 Vector2D GodObject::getCollisionForce(Vector2D godObjectPosition, Vector2D handlePosition){
@@ -448,6 +547,118 @@ void GodObject::enableObstacle(uint16_t id, bool enable)
     }
 }
 
+void GodObject::createGraph(uint16_t id, double captureRadius, double junctionRadius, double breakawayDistance, double p, double i, double d)
+{
+    // negative or NaN gains (the comparison fails for NaN): use the same gains as the walls
+    auto graph = new HapticGraph(
+        captureRadius,
+        junctionRadius,
+        breakawayDistance,
+        p >= 0 ? p : forcePidFactor[0][0],
+        i >= 0 ? i : forcePidFactor[0][1],
+        d >= 0 ? d : forcePidFactor[0][2]);
+
+    portENTER_CRITICAL(&m_obstacleMutex);
+
+    auto it = m_graphs.find(id);
+    if (it != m_graphs.end())
+    {
+        if (m_activeGraph == it->second)
+        {
+            leaveGraph();
+        }
+        delete it->second;
+        m_graphs.erase(it);
+    }
+    m_graphs.emplace(id, graph);
+
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::addGraphNodes(uint16_t id, const std::vector<HapticGraph::NodeData>& nodes)
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto it = m_graphs.find(id);
+    if (it != m_graphs.end())
+    {
+        for (auto& node : nodes)
+        {
+            it->second->addNode(node);
+        }
+    }
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+bool GodObject::addGraphEdges(uint16_t id, const std::vector<std::pair<uint16_t, uint16_t>>& edges)
+{
+    bool success = true;
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto it = m_graphs.find(id);
+    if (it == m_graphs.end())
+    {
+        success = false;
+    }
+    else
+    {
+        for (auto& edge : edges)
+        {
+            success = it->second->addEdge(edge.first, edge.second) && success;
+        }
+    }
+    portEXIT_CRITICAL(&m_obstacleMutex);
+    return success;
+}
+
+void GodObject::removeGraph(uint16_t id)
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto it = m_graphs.find(id);
+    if (it != m_graphs.end())
+    {
+        if (m_activeGraph == it->second)
+        {
+            leaveGraph();
+        }
+        delete it->second;
+        m_graphs.erase(it);
+    }
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::enableGraph(uint16_t id, bool enable)
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto it = m_graphs.find(id);
+    if (it != m_graphs.end())
+    {
+        it->second->enable(enable);
+        if (!enable && m_activeGraph == it->second)
+        {
+            leaveGraph();
+        }
+    }
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+bool GodObject::consumeGraphStateChange()
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto changed = m_graphStateChanged;
+    m_graphStateChanged = false;
+    portEXIT_CRITICAL(&m_obstacleMutex);
+    return changed;
+}
+
+bool GodObject::isOnGraph()
+{
+    return m_activeGraph != nullptr;
+}
+
+uint16_t GodObject::getActiveGraphId()
+{
+    return m_activeGraphId;
+}
+
 Vector2D GodObject::getPosition()
 {
     return m_position;
@@ -492,6 +703,14 @@ void GodObject::reset()
         delete it->second;
     }
     m_obstacles.clear();
+
+    // Delete all graphs
+    for (auto it = m_graphs.begin(); it != m_graphs.end(); ++it) {
+        delete it->second;
+    }
+    m_graphs.clear();
+    m_activeGraph = nullptr;
+    m_graphStateChanged = false;
 
     // Clear queues and states
     m_actionQueue.clear();

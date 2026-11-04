@@ -27,6 +27,7 @@ void ioLoop()
     if (connected && sendLimiter.step())
     {
         DPSerial::sendPosition();
+        DPSerial::sendGraphStateChanges();
     }
     PERFMON_STOP("[b] Send positions");
     
