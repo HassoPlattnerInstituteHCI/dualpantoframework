@@ -266,6 +266,44 @@ static void testForce()
     CHECK(near(integral.computeForce(Vector2D(1, 0)), Vector2D(0.1, 0)));
 }
 
+static void testSinks()
+{
+    auto graph = makeMaze(); // way 0-1 is 50 mm long, way 2-3 only 10 mm
+    auto position = enterAtNode0(graph);
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 0))); // off by default
+
+    graph.setSinks(10, 2);
+    moveTo(graph, position, Vector2D(0, 0), Vector2D(5, 1));
+    // halfway down the slope of node 0: the full depth, pointing back into the node
+    CHECK(near(graph.sinkOffset(position), Vector2D(-2, 0)));
+    moveTo(graph, position, Vector2D(5, 1), Vector2D(2.5, 1));
+    CHECK(near(graph.sinkOffset(position), Vector2D(-2 * std::sin(M_PI / 4), 0)));
+    moveTo(graph, position, Vector2D(2.5, 1), Vector2D(0, 1));
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 0))); // resting in the node
+    moveTo(graph, position, Vector2D(0, 1), Vector2D(25, 1));
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 0))); // between the sinks
+    moveTo(graph, position, Vector2D(25, 1), Vector2D(45, 1));
+    CHECK(near(graph.sinkOffset(position), Vector2D(2, 0))); // pulled on into node 1
+
+    // the radius is limited to half of a short way: halfway down way 2-3 there is no pull either way
+    moveTo(graph, position, Vector2D(45, 1), Vector2D(100, 0));
+    moveTo(graph, position, Vector2D(100, 0), Vector2D(101, -5));
+    CHECK(near(HapticGraph::pointAt(position), Vector2D(100, -5)));
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 0)));
+    moveTo(graph, position, Vector2D(101, -5), Vector2D(101, -2.5));
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 2))); // half of the 5 mm radius left, into node 2
+
+    // bumps push away from the node
+    graph.setSinks(10, -1);
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, -1)));
+
+    // invalid values disable them
+    graph.setSinks(0, 2);
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 0)));
+    graph.setSinks(10, NAN);
+    CHECK(near(graph.sinkOffset(position), Vector2D(0, 0)));
+}
+
 int main()
 {
     testEntry();
@@ -278,6 +316,7 @@ int main()
     testInvalidEdges();
     testBreakaway();
     testForce();
+    testSinks();
 
     if (failures == 0)
     {

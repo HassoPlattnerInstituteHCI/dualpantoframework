@@ -100,6 +100,7 @@ public:
     bool addGraphEdges(uint16_t id, const std::vector<std::pair<uint16_t, uint16_t>>& edges);
     void removeGraph(uint16_t id);
     void enableGraph(uint16_t id, bool enable = true);
+    void setGraphSinks(uint16_t id, double radius, double depth);
     // returns if the handle entered or left a graph since the last call
     bool consumeGraphStateChange();
     bool isOnGraph();

@@ -13,4 +13,5 @@ std::set<MessageType> TrackedMessageTypes = {
     ADD_GRAPH_EDGES,
     REMOVE_GRAPH,
     ENABLE_GRAPH,
-    DISABLE_GRAPH};
+    DISABLE_GRAPH,
+    SET_GRAPH_SINKS};

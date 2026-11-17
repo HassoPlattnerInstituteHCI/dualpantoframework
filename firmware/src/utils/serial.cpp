@@ -40,7 +40,8 @@ std::map<MessageType, ReceiveHandler>
         {ADD_GRAPH_EDGES, DPSerial::receiveAddGraphEdges},
         {REMOVE_GRAPH, DPSerial::receiveRemoveGraph},
         {ENABLE_GRAPH, DPSerial::receiveEnableGraph},
-        {DISABLE_GRAPH, DPSerial::receiveDisableGraph}};
+        {DISABLE_GRAPH, DPSerial::receiveDisableGraph},
+        {SET_GRAPH_SINKS, DPSerial::receiveSetGraphSinks}};
 
 // === private ===
 
@@ -649,6 +650,21 @@ void DPSerial::receiveDisableGraph()
         if (pantoIndex == 0xFF || i == pantoIndex)
         {
             pantoPhysics[i].godObject()->enableGraph(id, false);
+        }
+    }
+}
+
+void DPSerial::receiveSetGraphSinks()
+{
+    auto pantoIndex = receiveUInt8();
+    auto id = receiveUInt16();
+    auto radius = receiveFloat();
+    auto depth = receiveFloat();
+    for (auto i = 0; i < pantoPhysics.size(); ++i)
+    {
+        if (pantoIndex == 0xFF || i == pantoIndex)
+        {
+            pantoPhysics[i].godObject()->setGraphSinks(id, radius, depth);
         }
     }
 }

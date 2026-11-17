@@ -68,6 +68,16 @@ public:
     static Vector2D pointAt(const Position& position);
     bool isBreakingAway(const Vector2D& error) const;
 
+    // Sinks make the nodes feel like dips in the groove. Within the radius of a node, measured along
+    // the way, the handle is pulled along the way into the node. The pull is added to the error as an
+    // offset towards the node: depth * sin(pi * distance / radius). It is 0 at the rim, strongest
+    // halfway down the slope, and 0 again at the node, so the node is a stable resting point.
+    // A negative depth makes bumps that push away from the nodes instead. The radius is limited to half
+    // of each way's length, so the sinks of neighbouring nodes never overlap. A radius or depth of 0
+    // disables them, which is the default.
+    void setSinks(double radius, double depth);
+    Vector2D sinkOffset(const Position& position) const;
+
     // PID force towards the god object, with the same sign convention and gains as the walls
     Vector2D computeForce(const Vector2D& error);
     void resetForce(const Vector2D& error);
@@ -79,6 +89,7 @@ private:
     // The encoder angle only updates every 5th physics frame (see Panto::readEncoders), so the raw
     // difference per frame is 4 zeros and a spike. Averaging keeps the unit of the wall's D gain (per frame).
     static constexpr double c_derivativeFilter = 0.2;
+    static constexpr double c_pi = 3.14159265358979323846;
     static constexpr double c_integralLimit = 0.5; // force units; prevents wind-up while the user pushes against the way
 
     std::map<uint16_t, Node> m_nodes; // elements of a map and deque keep their address, so the pointers stay valid when adding
@@ -88,6 +99,8 @@ private:
     double m_captureRadius;
     double m_junctionRadius;
     double m_breakawayDistance;
+    double m_sinkRadius = 0;
+    double m_sinkDepth = 0;
 
     double m_p;
     double m_i;

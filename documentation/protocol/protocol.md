@@ -68,6 +68,7 @@ The available values for messages from the framework to the hardware are:
   - [0xB3 Remove graph](#0xB3-Remove-graph) - This message specifies a graph to remove.
   - [0xB4 Enable graph](#0xB4-Enable-graph) - This message specifies a graph to enable.
   - [0xB5 Disable graph](#0xB5-Disable-graph) - This message specifies a graph to disable.
+  - [0xB6 Set graph sinks](#0xB6-Set-graph-sinks) - This message makes the nodes of a graph feel like dips.
 - 0xC0 to 0xCF - Debug tools
     [0xC0 Dump hashtable](#0xC0-Dump-hashtable) - Request a dump of the physics' hashtable.
 
@@ -481,6 +482,7 @@ A haptic graph is a network of hallways without any width: nodes connected by ed
 - A handle enters the graph when it gets within the capture radius of a node with the entry flag. The force fades in over 200 ms.
 - On the graph, the god object walks along the connected edges to the point closest to the handle, and a PID force pulls the handle to that point. It doesn't jump to another hallway that is merely close by. A way ends like a wall at a dead end.
 - Within the junction radius of a node, the god object can also switch to any other edge of that node that is closer to the handle. This is what makes turning possible: the handle practically never hits a node exactly, so with a radius of 0 it could only go straight through a crossing. A value of a few millimeters is a good start, and it should be smaller than half of the shortest edge.
+- Optionally, [sinks](#0xB6-Set-graph-sinks) make the nodes feel like dips that pull the handle in along the way.
 - Walls and speed control are ignored while on a graph. They apply again after leaving it.
 - A handle leaves the graph when the graph gets disabled or removed, or when it is further than the breakaway distance away from the god object. To get back on, it has to enter through an entry node again.
 - Transitions (0x90 Motor) are possible while on a graph. The force is paused during the transition, so move the handle to a point on the graph.
@@ -573,6 +575,28 @@ Same payload as [0xB3 Remove graph](#0xB3-Remove-graph).
 
 Same payload as [0xB3 Remove graph](#0xB3-Remove-graph).
 
+
+### 0xB6 Set graph sinks
+
+This message contains the pantograph index, encoded as an 8 bit unsigned integer, the graph ID, encoded as a 16 bit unsigned integer, followed by the sink radius and the sink depth, both encoded as a 32 bit float. Setting the pantograph index to 0xFF sets the sinks for both handles.
+
+Sinks make every node of the graph feel like a dip in the groove. Within the radius of a node, measured along the way, the handle is pulled along the way into the node, as if the god object was moved towards the node by up to the depth in mm: the offset is `depth * sin(pi * distance / radius)`. It is 0 at the rim, strongest halfway down the slope, and 0 again at the node, so the handle comes to rest in the node. The force uses the graph's PID values, so with a P value of 0.375 a depth of 3 mm pulls as hard as the groove does with the handle 3 mm off the way.
+
+- The radius is limited to half of each way's length, so the sinks of neighbouring nodes never overlap.
+- A negative depth makes bumps that push the handle away from the nodes instead.
+- A radius or depth of 0 disables the sinks, which is the default for a new graph. Creating a graph again with the same ID resets them, so send this message after [0xB0 Create graph](#0xB0-Create-graph). It can be sent at any time, also while the graph is enabled.
+
+Example message:
+```
+4450     // magic number
+B6       // message type: Set graph sinks
+01       // packet ID
+000B     // payload length: 1 byte for index, 2 for ID, 2*4 for values
+FF       // pantograph index - both handles
+0023     // graph ID
+FFFFFFFF // sink radius in mm
+FFFFFFFF // sink depth in mm
+```
 
 ### 0xC0 Dump hashtable
 

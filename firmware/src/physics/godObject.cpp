@@ -222,11 +222,13 @@ bool GodObject::moveOnGraph(Vector2D handlePosition, bool isTweening)
     m_tetherPosition = handlePosition;
 
     auto error = m_position - handlePosition;
+    // the sinks only change the force, not how far the handle is from the graph
+    auto forceError = error + m_activeGraph->sinkOffset(m_graphPosition);
     // switching ways can make the error jump (no derivative kick), and the integral
     // points across the previous way, which can be along the new one
     if (isTweening || m_graphPosition.edge != lastEdge)
     {
-        m_activeGraph->resetForce(error);
+        m_activeGraph->resetForce(forceError);
     }
 
     if (isTweening)
@@ -244,7 +246,7 @@ bool GodObject::moveOnGraph(Vector2D handlePosition, bool isTweening)
     }
     else
     {
-        auto force = m_activeGraph->computeForce(error);
+        auto force = m_activeGraph->computeForce(forceError);
         auto engagedMs = millis() - m_graphEnteredAt;
         if (engagedMs < c_graphEngageMs)
         {
@@ -621,6 +623,17 @@ void GodObject::removeGraph(uint16_t id)
         }
         delete it->second;
         m_graphs.erase(it);
+    }
+    portEXIT_CRITICAL(&m_obstacleMutex);
+}
+
+void GodObject::setGraphSinks(uint16_t id, double radius, double depth)
+{
+    portENTER_CRITICAL(&m_obstacleMutex);
+    auto it = m_graphs.find(id);
+    if (it != m_graphs.end())
+    {
+        it->second->setSinks(radius, depth);
     }
     portEXIT_CRITICAL(&m_obstacleMutex);
 }

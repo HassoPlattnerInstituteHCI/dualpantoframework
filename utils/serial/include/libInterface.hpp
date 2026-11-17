@@ -32,6 +32,7 @@ public:
     static void removeGraph(uint8_t pantoIndex, uint16_t graphId);
     static void enableGraph(uint8_t pantoIndex, uint16_t graphId);
     static void disableGraph(uint8_t pantoIndex, uint16_t graphId);
+    static void setGraphSinks(uint8_t pantoIndex, uint16_t graphId, float radius, float depth);
     static void sendFree(uint8_t pantoIndex);
     static void sendFreeze(uint8_t pantoIndex);
     static void sendSpeedControl(uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled);
@@ -90,6 +91,7 @@ extern "C"
     void SERIAL_EXPORT RemoveGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId);
     void SERIAL_EXPORT EnableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId);
     void SERIAL_EXPORT DisableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t graphId);
+    void SERIAL_EXPORT SetGraphSinks(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, float radius, float depth);
     void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled);
     uint32_t SERIAL_EXPORT CheckQueuedPackets(uint32_t maxPackets);
     void SERIAL_EXPORT Reset();

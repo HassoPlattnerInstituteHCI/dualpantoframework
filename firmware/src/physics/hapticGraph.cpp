@@ -1,5 +1,7 @@
 #include "physics/hapticGraph.hpp"
 
+#include <cmath>
+
 HapticGraph::HapticGraph(double captureRadius, double junctionRadius, double breakawayDistance, double p, double i, double d)
     : m_captureRadius(captureRadius), m_junctionRadius(junctionRadius), m_breakawayDistance(breakawayDistance), m_p(p), m_i(i), m_d(d)
 {
@@ -146,6 +148,34 @@ Vector2D HapticGraph::pointAt(const Position& position)
 bool HapticGraph::isBreakingAway(const Vector2D& error) const
 {
     return m_breakawayDistance > 0 && error.length() > m_breakawayDistance;
+}
+
+void HapticGraph::setSinks(double radius, double depth)
+{
+    // NaN fails the comparison and disables them as well
+    const auto valid = radius > 0 && std::isfinite(depth);
+    m_sinkRadius = valid ? radius : 0;
+    m_sinkDepth = valid ? depth : 0;
+}
+
+Vector2D HapticGraph::sinkOffset(const Position& position) const
+{
+    if (m_sinkRadius <= 0 || m_sinkDepth == 0 || position.edge == nullptr)
+    {
+        return Vector2D(0, 0);
+    }
+    const auto way = position.edge->second->position - position.edge->first->position;
+    const auto length = way.length();
+    const auto radius = m_sinkRadius < length / 2 ? m_sinkRadius : length / 2;
+    const auto distanceToFirst = position.ratio * length;
+    const auto towardsFirst = distanceToFirst <= length - distanceToFirst;
+    const auto distance = towardsFirst ? distanceToFirst : length - distanceToFirst;
+    if (distance >= radius)
+    {
+        return Vector2D(0, 0);
+    }
+    const auto direction = way * ((towardsFirst ? -1 : 1) / length);
+    return direction * (m_sinkDepth * std::sin(c_pi * distance / radius));
 }
 
 Vector2D HapticGraph::computeForce(const Vector2D& error)

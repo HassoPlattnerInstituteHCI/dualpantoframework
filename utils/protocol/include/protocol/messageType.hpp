@@ -37,6 +37,7 @@ enum MessageType
     REMOVE_GRAPH = 0xB3,
     ENABLE_GRAPH = 0xB4,
     DISABLE_GRAPH = 0xB5,
+    SET_GRAPH_SINKS = 0xB6,
     DUMP_HASHTABLE = 0xC0,
 };
 

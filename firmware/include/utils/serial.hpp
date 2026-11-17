@@ -98,6 +98,7 @@ private:
     static void receiveRemoveGraph();
     static void receiveEnableGraph();
     static void receiveDisableGraph();
+    static void receiveSetGraphSinks();
 
     // map of receive handlers
     static std::map<MessageType, ReceiveHandler> s_receiveHandlers;

@@ -383,6 +383,16 @@ void CppLib::disableGraph(uint8_t pantoIndex, uint16_t graphId)
     sendPacket(p);
 }
 
+void CppLib::setGraphSinks(uint8_t pantoIndex, uint16_t graphId, float radius, float depth)
+{
+    auto p = Packet(SET_GRAPH_SINKS, 11); // 1 for index, 2 for id, 2 * 4 for values
+    p.sendUInt8(pantoIndex);
+    p.sendUInt16(graphId);
+    p.sendFloat(radius);
+    p.sendFloat(depth);
+    sendPacket(p);
+}
+
 void CppLib::reset()
 {
     DPSerial::reset();
@@ -577,6 +587,12 @@ void SERIAL_EXPORT DisableGraph(uint64_t handle, uint8_t pantoIndex, uint16_t gr
 {
     CppLib::setActiveHandle(handle);
     CppLib::disableGraph(pantoIndex, graphId);
+}
+
+void SERIAL_EXPORT SetGraphSinks(uint64_t handle, uint8_t pantoIndex, uint16_t graphId, float radius, float depth)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::setGraphSinks(pantoIndex, graphId, radius, depth);
 }
 
 void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)
