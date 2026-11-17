@@ -115,18 +115,77 @@ void Panto::forwardKinematics()
     m_jacobian[1][0] = delta_1_y_3;
     m_jacobian[1][1] = delta_5_y_3;
     // PERFMON_STOP("[abbl] set jacobian matrix");
+    updateMove();
     inverseKinematics();
 }
 
-void Panto::inverseKinematics()
+void Panto::startMove(const Vector2D target, const double speed)
 {
+    m_move.start(Vector2D(m_handleX, m_handleY), target, speed);
+    m_isforceRendering = false;
+    for (auto localIndex = 0; localIndex < c_dofCount - 1; ++localIndex)
+    {
+        m_previousDiff[localIndex] = NAN;
+        m_derivative[localIndex] = 0.0;
+        m_integral[localIndex] = 0.0;
+    }
+}
 
+void Panto::updateMove()
+{
     //update tweening delta micro here
     unsigned long now = micros();
     float tweening_dt = now - m_tweeningPrevtime;
     m_tweeningPrevtime = now;
+    const auto dt = 0.000001 * tweening_dt;
+    const auto handlePosition = Vector2D(m_handleX, m_handleY);
 
-    if (isnan(m_targetX) || isnan(m_targetY))
+    portENTER_CRITICAL(&m_moveMutex);
+    const auto command = m_moveCommand;
+    const auto commandTarget = m_moveCommandTarget;
+    m_moveCommand = NoMoveCommand;
+    portEXIT_CRITICAL(&m_moveMutex);
+
+    if (command == CancelMove)
+    {
+        m_move.cancel();
+    }
+    else if (command == StartMove)
+    {
+        startMove(commandTarget, m_tweeningSpeed);
+    }
+
+    const auto status = m_move.update(handlePosition, dt);
+    if (status == HandleMove::Running)
+    {
+        const auto reference = m_move.reference();
+        m_filteredX = reference.x;
+        m_filteredY = reference.y;
+    }
+    else if (status != HandleMove::Idle)
+    {
+        m_targetX = NAN;
+        m_targetY = NAN;
+        if (status != HandleMove::Landed)
+        {
+            m_targetAngle[c_localHandleIndex] = NAN;
+        }
+        portENTER_CRITICAL(&m_moveMutex);
+        m_moveResult = status;
+        // a new move could have been requested in the meantime
+        if (m_moveCommand != StartMove)
+        {
+            m_inTransition = false;
+        }
+        portEXIT_CRITICAL(&m_moveMutex);
+    }
+}
+
+void Panto::inverseKinematics()
+{
+    const auto isMoving = m_move.active();
+    if ((!isMoving && (isnan(m_targetX) || isnan(m_targetY))) ||
+        (isMoving && m_move.resting() && !m_isforceRendering))
     {
         m_targetAngle[c_localLeftIndex] = NAN;
         m_targetAngle[c_localRightIndex] = NAN;
@@ -162,11 +221,13 @@ void Panto::inverseKinematics()
     }
     else
     {
-        // tweening
-        const auto leftBaseToTargetX = m_filteredX - c_leftBaseX;
-        const auto leftBaseToTargetY = m_filteredY - c_leftBaseY;
-        const auto rightBaseToTargetX = m_filteredX - c_rightBaseX;
-        const auto rightBaseToTargetY = m_filteredY - c_rightBaseY;
+        // position control
+        const auto referenceX = isMoving ? m_filteredX : m_targetX;
+        const auto referenceY = isMoving ? m_filteredY : m_targetY;
+        const auto leftBaseToTargetX = referenceX - c_leftBaseX;
+        const auto leftBaseToTargetY = referenceY - c_leftBaseY;
+        const auto rightBaseToTargetX = referenceX - c_rightBaseX;
+        const auto rightBaseToTargetY = referenceY - c_rightBaseY;
         const auto leftBaseToTargetSquared =
             leftBaseToTargetX * leftBaseToTargetX +
             leftBaseToTargetY * leftBaseToTargetY;
@@ -198,16 +259,6 @@ void Panto::inverseKinematics()
 
         m_targetAngle[c_localLeftIndex] = ensureAngleRange(leftAngle);
         m_targetAngle[c_localRightIndex] = ensureAngleRange(rightAngle);
-
-        if(abs(m_filteredX - m_targetX) + abs(m_filteredY - m_targetY) < 0.01f && m_inTransition){
-            m_inTransition = false;
-        }
-
-        m_filteredX = (m_targetX-m_startX)*m_tweeningValue+m_startX;
-        m_filteredY = (m_targetY-m_startY)*m_tweeningValue+m_startY;
-        float stepValue = 0.000001 * tweening_dt * m_tweeningSpeed;
-        m_tweeningValue=min(m_tweeningValue+stepValue, 1.0f);
-
     }
 };
 
@@ -319,14 +370,22 @@ void Panto::readEncoders()
 
 void Panto::actuateMotors()
 {
+    // once per frame: measured per motor, all but the first one would get a dt of almost 0
+    unsigned long now = micros();
+    float dt = max(static_cast<float>(now - m_prevTime), 1.0f);
+    m_prevTime = now;
     for (auto localIndex = 0; localIndex < c_dofCount; ++localIndex)
     {
         if (isnan(m_targetAngle[localIndex]))
         {
             // free motor
+            m_previousDiff[localIndex] = NAN;
+            m_derivative[localIndex] = 0.0;
             setMotor(localIndex, false, 0);
         } else if (m_isforceRendering)
         {
+            m_previousDiff[localIndex] = NAN;
+            m_derivative[localIndex] = 0.0;
             setMotor(
                 localIndex,
                 m_targetAngle[localIndex] < 0,
@@ -352,26 +411,19 @@ void Panto::actuateMotors()
                 }
                 if(encoderFlipped[c_globalHandleIndex]==1) error*=-1;
             }
-            unsigned char dir = error < 0;
-            unsigned long now = micros();
-            float dt = now - m_prevTime;
-            m_prevTime = now;
-            error = fabs(error);
-            // Power: PID
-            m_integral[localIndex] = min(0.5f, m_integral[localIndex] + error * dt);
-            float derivative = (error - m_previousDiff[localIndex]) / dt;
+            // Power: PID. All terms are signed, so that the derivative can brake the handle
+            m_integral[localIndex] = constrain(m_integral[localIndex] + error * dt, -0.5f, 0.5f);
+            // no derivative kick when the motor just got engaged
+            const auto previousError = isnan(m_previousDiff[localIndex]) ? error : m_previousDiff[localIndex];
+            m_derivative[localIndex] += c_derivativeFilter * ((error - previousError) / dt - m_derivative[localIndex]);
             m_previousDiff[localIndex] = error;
             const auto globalIndex = c_globalIndexOffset + localIndex;
             const auto& pid = pidFactor[globalIndex];
-            float pVal = pid[0] * error;
-            float dVal = pid[2] * derivative;
-            dVal = pVal + dVal > 0 ? dVal : 0;
-            setMotor(
-                localIndex,
-                dir,
-                pVal +
+            const auto power =
+                pid[0] * error +
                 pid[1] * m_integral[localIndex] +
-                dVal);
+                pid[2] * m_derivative[localIndex];
+            setMotor(localIndex, power < 0, fabs(power));
         }
     }
 };
@@ -427,7 +479,8 @@ Panto::Panto(uint8_t pantoIndex)
         const auto globalIndex = c_globalIndexOffset + localIndex;
         m_actuationAngle[localIndex] = setupAngle[globalIndex] * TWO_PI;
         m_targetAngle[localIndex] = NAN;
-        m_previousDiff[localIndex] = 0.0;
+        m_previousDiff[localIndex] = NAN;
+        m_derivative[localIndex] = 0.0;
         m_integral[localIndex] = 0.0;
         if (encoderAPin[globalIndex] != dummyPin &&
             encoderBPin[globalIndex] != dummyPin)
@@ -589,20 +642,42 @@ void Panto::setTarget(const Vector2D target, const bool isForceRendering)
     m_isforceRendering = isForceRendering;
     m_targetX = target.x;
     m_targetY = target.y;
-    m_startX = m_handleX;
-    m_startY = m_handleY;
-    m_filteredX = m_startX;
-    m_filteredY = m_startY;
-    m_tweeningValue = 0.0f;
-
-    float dx = (m_targetX - m_startX);
-    float dy = (m_targetY - m_startY);
-    float d  = max((float)sqrt(dx*dx + dy*dy), 1.0f); //distance to target: avoiding 0 division
-
-    const float velocity = 0.001 * m_tweeningSpeed; //[mm / s] maybe?
-
-    m_tweeningStep = velocity / d;
     inverseKinematics();
+};
+
+void Panto::moveTo(const Vector2D target)
+{
+    portENTER_CRITICAL(&m_moveMutex);
+    m_moveCommand = StartMove;
+    m_moveCommandTarget = target;
+    m_inTransition = true;
+    portEXIT_CRITICAL(&m_moveMutex);
+};
+
+void Panto::cancelMove()
+{
+    portENTER_CRITICAL(&m_moveMutex);
+    m_moveCommand = CancelMove;
+    m_inTransition = false;
+    portEXIT_CRITICAL(&m_moveMutex);
+};
+
+void Panto::resumeMove()
+{
+    if (m_move.active() && m_moveCommand != CancelMove)
+    {
+        m_isforceRendering = false;
+        inverseKinematics();
+    }
+};
+
+HandleMove::Status Panto::consumeMoveResult()
+{
+    portENTER_CRITICAL(&m_moveMutex);
+    const auto result = m_moveResult;
+    m_moveResult = HandleMove::Idle;
+    portEXIT_CRITICAL(&m_moveMutex);
+    return result;
 };
 
 void Panto::setSpeed(const float _speed){

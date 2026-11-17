@@ -55,6 +55,10 @@ void PantoPhysics::step()
             // TODO: is there actually another case?
             m_panto->setTarget(Vector2D(NAN, NAN), false);
         }
+        else
+        {
+            m_panto->resumeMove();
+        }
     }
     // PERFMON_STOP("[bac] Physics::step::motor");
     // PERFMON_STOP("[ba] Physics::step");

@@ -49,7 +49,7 @@ The available values for messages from the framework to the hardware are:
   - [0x90 Motor](#0x90-Motor) - This message contains a motor movement.
   - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one 
   - [0x92 Speed](#0x92-Speed) - This message specifies the speed to use for tweening positions 
-  - [0x93 Transition ended](#0x93-transition-ended) - DOCUMENTATION MISSING
+  - [0x93 Transition ended](#0x93-transition-ended) - This message reports that a move has ended, and whether the handle landed, the move timed out or the handle left its path.
   - [0xA0 Create obstacle](#0xA0-Create-obstacle) - This message specifies an obstacle to be added to one or both handles. Note: The obstacle isn't enabled automatically after creation. An enable message is required to enable it.
   - [0xA1 Add to obstacle](#0xA1-Add-to-obstacle) - This message specifies positions to be appended to an obstacle.
   - [0xA2 Remove obstacle](#0xA2-Remove-obstacle) - This message specifies an obstacle to remove.
@@ -321,7 +321,25 @@ FFFFFFFF // speed
 
 ### 0x93 Transition ended
 
-DOCUMENTATION MISSING
+This message is sent once a move started with [0x90 Motor](#0x90-Motor) in position mode has ended. The motors are released at this point. It contains the pantograph index and the result, both encoded as an 8 bit unsigned integer.
+
+Available result values:
+
+- 0x00 The handle landed: it stayed within 0.5 mm of the target for 100 ms, and was still within 0.5 mm 250 ms after the motors were released. If it springs back further than that, the motors take over again to correct for it.
+- 0x01 Timed out: the handle didn't land within the duration of the movement (1 / speed, at most 30 seconds) plus 3 seconds, for example because it is blocked or the target is out of reach.
+- 0x02 Off the path: the handle got more than 10 mm away from the straight line between its start and the target, including past the target. The motors are released immediately, but the handle can still coast further.
+
+No message is sent if the move is replaced or canceled by another motor, freeze or free message.
+
+Example message:
+```
+4450     // magic number
+93       // message type: transition ended
+00       // packet ID: not utilized
+0002     // payload length: 1 byte for index, 1 for result
+01       // panto index: 0x01 for it handle
+00       // result: 0x00 for landed
+```
 
 ### 0xA0 Create obstacle
 

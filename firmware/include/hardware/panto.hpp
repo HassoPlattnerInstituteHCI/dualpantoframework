@@ -4,6 +4,7 @@
 
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
+#include "hardware/handleMove.hpp"
 #include "utils/vector.hpp"
 #include <EEPROM.h>
 #include "hardware/Kalman.h"
@@ -65,6 +66,8 @@ private:
     float m_targetAngle[c_dofCount];
     float m_previousDiff[c_dofCount];
     float m_integral[c_dofCount];
+    float m_derivative[c_dofCount];
+    static constexpr float c_derivativeFilter = 0.2f; // the encoders only update about every 5th frame
     uint32_t m_prevTime = 0;
 
 //    kalman
@@ -102,12 +105,8 @@ private:
 
     float m_targetX = 0;
     float m_targetY = 0;
-    float m_startX = 0;
-    float m_startY = 0;
     float m_filteredX = 0;
     float m_filteredY = 0;
-    float m_tweeningValue = 0.0f;
-    float m_tweeningStep = 0.00001f;
     float m_tweeningSpeed = 1.0f;
     uint32_t m_tweeningPrevtime = 0;
     float m_dt = 0.0001f;
@@ -119,6 +118,21 @@ private:
     bool m_isFrozen = false;
     bool m_isCalibrating = false;
 
+    // Moves are requested by the I/O task, but only the physics task touches m_move.
+    enum MoveCommand
+    {
+        NoMoveCommand,
+        StartMove,
+        CancelMove
+    };
+    HandleMove m_move;
+    MoveCommand m_moveCommand = NoMoveCommand;
+    Vector2D m_moveCommandTarget = Vector2D(0, 0);
+    HandleMove::Status m_moveResult = HandleMove::Idle;
+    portMUX_TYPE m_moveMutex = portMUX_INITIALIZER_UNLOCKED;
+
+    void startMove(const Vector2D target, const double speed);
+    void updateMove();
     void inverseKinematics();
     void setMotor(
         const uint8_t& localIndex, const bool& dir, const float& power);
@@ -130,6 +144,12 @@ public:
     float getRotation() const;
     void setAngleAccessor(const uint8_t index, const AngleAccessor accessor);
     void setTarget(const Vector2D target, const bool isForceRendering);
+    void moveTo(const Vector2D target);
+    void cancelMove();
+    // gives the motors back to a running move after a force interrupted it
+    void resumeMove();
+    // returns Landed, TimedOut or Deviated once per finished move, otherwise Idle
+    HandleMove::Status consumeMoveResult();
     void setSpeed(const float speed);
     void setRotation(const float rotation);
     bool getCalibrationState();

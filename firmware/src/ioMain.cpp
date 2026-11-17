@@ -28,6 +28,7 @@ void ioLoop()
     {
         DPSerial::sendPosition();
         DPSerial::sendGraphStateChanges();
+        DPSerial::sendMoveResults();
     }
     PERFMON_STOP("[b] Send positions");
     

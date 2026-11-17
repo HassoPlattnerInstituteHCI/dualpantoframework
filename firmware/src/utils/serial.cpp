@@ -312,13 +312,24 @@ void DPSerial::receiveMotor()
     const auto pantoIndex = receiveUInt8();
 
     const auto target = Vector2D(receiveFloat(), receiveFloat());
-    if (!isnan(target.x) && !isnan(target.y))
-    {
-        pantos[pantoIndex].setInTransition(true);
-        //DPSerial::sendInstantDebugLog("In Transition");
-    }
     pantos[pantoIndex].setRotation(receiveFloat());
-    pantos[pantoIndex].setTarget(target, controlMethod == 1);
+    const auto hasTarget = !isnan(target.x) && !isnan(target.y);
+    if (controlMethod == 1)
+    {
+        pantos[pantoIndex].cancelMove();
+        // this keeps the physics from overwriting the force
+        pantos[pantoIndex].setInTransition(hasTarget);
+        pantos[pantoIndex].setTarget(target, true);
+    }
+    else if (hasTarget)
+    {
+        pantos[pantoIndex].moveTo(target);
+    }
+    else
+    {
+        pantos[pantoIndex].cancelMove();
+        pantos[pantoIndex].setTarget(target, false);
+    }
 };
 
 void DPSerial::receivePID()
@@ -488,6 +499,7 @@ void DPSerial::receiveFreeze()
         if (pantoIndex == 0xFF || i == pantoIndex)
         {
             const auto target = pantos[i].getPosition();
+            pantos[i].cancelMove();
             pantos[i].setTarget(target, 0);
             pantos[i].setRotation(pantos[i].getRotation());
             pantos[i].setIsFrozen(true);
@@ -502,9 +514,9 @@ void DPSerial::receiveFree()
     {
         if (pantoIndex == 0xFF || i == pantoIndex)
         {
+            pantos[i].cancelMove();
             pantos[i].setTarget(Vector2D(NAN, NAN), 0);
             pantos[i].setRotation(NAN);
-            pantos[i].setInTransition(false);
             pantos[i].setIsFrozen(false);
         }
     }
@@ -807,15 +819,42 @@ void DPSerial::sendQueuedDebugLog(const char *message, ...)
     portEXIT_CRITICAL(&s_serialMutex);
 };
 
-void DPSerial::sendTransitionEnded(uint8_t panto)
+void DPSerial::sendTransitionEnded(uint8_t panto, uint8_t result)
 {
     // signal when tweening is over
     portENTER_CRITICAL(&s_serialMutex);
     sendMagicNumber();
-    sendHeader(TRANSITION_ENDED, 1); // 1 byte for the panto index is enough
+    sendHeader(TRANSITION_ENDED, 2); // 1 for the panto index, 1 for the result
     sendUInt8(panto);
+    sendUInt8(result);
     portEXIT_CRITICAL(&s_serialMutex);
 };
+
+void DPSerial::sendMoveResults()
+{
+    for (auto i = 0; i < pantoCount; ++i)
+    {
+        const auto result = pantos[i].consumeMoveResult();
+        if (result == HandleMove::Idle)
+        {
+            continue;
+        }
+        if (result == HandleMove::Landed)
+        {
+            sendTransitionEnded(i, 0);
+        }
+        else if (result == HandleMove::TimedOut)
+        {
+            sendTransitionEnded(i, 1);
+            sendQueuedDebugLog("Move of handle %i timed out, motors released", i);
+        }
+        else
+        {
+            sendTransitionEnded(i, 2);
+            sendQueuedDebugLog("Handle %i got too far off the path of its move, motors released", i);
+        }
+    }
+}
 
 void DPSerial::processDebugLogQueue()
 {
