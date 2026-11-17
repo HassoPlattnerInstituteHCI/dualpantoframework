@@ -92,6 +92,7 @@ private:
     static void receiveFreeze();
     static void receiveFree();
     static void receiveSpeedControl();
+    static void receiveCalibratePid();
     static void receiveCreateGraph();
     static void receiveAddGraphNodes();
     static void receiveAddGraphEdges();
@@ -116,6 +117,7 @@ public:
     static void sendGraphStateChanges();
     static void sendTransitionEnded(uint8_t panto, uint8_t result);
     static void sendMoveResults();
+    static void sendPidCalibrationResults();
     static void sendInstantDebugLog(const char *message, ...);
     static void sendQueuedDebugLog(const char *message, ...);
     static void processDebugLogQueue();

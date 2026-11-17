@@ -107,6 +107,21 @@ void CppLib::poll()
             receivedTransition = true;
             pantoIndex = packet.receiveUInt8();
             break;
+        case PID_CALIBRATION_ENDED:
+        {
+            // the firmware already saved and applied the gains, this is for information only
+            auto calibratedPantoIndex = packet.receiveUInt8();
+            auto result = packet.receiveUInt8();
+            auto p = packet.receiveFloat();
+            auto i = packet.receiveFloat();
+            auto d = packet.receiveFloat();
+            std::ostringstream oss;
+            oss << "PID calibration of handle " << (int)calibratedPantoIndex << ": "
+                << (result == 0 ? "calibrated" : result == 1 ? "failed" : "canceled")
+                << ", gains in use P " << p << ", I " << i << ", D " << d;
+            logString((char *)oss.str().c_str());
+            break;
+        }
         case GRAPH_STATE:
         {
             // handled per packet: unlike positions, no state change may get lost
@@ -217,6 +232,13 @@ void CppLib::sendFree(uint8_t pantoIndex)
 void CppLib::sendFreeze(uint8_t pantoIndex)
 {
     auto p = Packet(FREEZE, 1);
+    p.sendUInt8(pantoIndex);
+    sendPacket(p);
+}
+
+void CppLib::sendCalibratePid(uint8_t pantoIndex)
+{
+    auto p = Packet(CALIBRATE_PID, 1);
     p.sendUInt8(pantoIndex);
     sendPacket(p);
 }
@@ -593,6 +615,12 @@ void SERIAL_EXPORT SetGraphSinks(uint64_t handle, uint8_t pantoIndex, uint16_t g
 {
     CppLib::setActiveHandle(handle);
     CppLib::setGraphSinks(pantoIndex, graphId, radius, depth);
+}
+
+void SERIAL_EXPORT CalibratePid(uint64_t handle, uint8_t pantoIndex)
+{
+    CppLib::setActiveHandle(handle);
+    CppLib::sendCalibratePid(pantoIndex);
 }
 
 void SERIAL_EXPORT SetSpeedControl(uint64_t handle, uint8_t tethered, float tetherFactor, float tetherInnerRadius, float tetherOuterRadius, uint8_t strategy, uint8_t pockEnabled)

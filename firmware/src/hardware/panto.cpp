@@ -131,6 +131,30 @@ void Panto::startMove(const Vector2D target, const double speed)
     }
 }
 
+void Panto::setLinkageGains(const PidTuner::Gains gains)
+{
+    for (const auto globalIndex : {c_globalLeftIndex, c_globalRightIndex})
+    {
+        pidFactor[globalIndex][0] = gains.p;
+        pidFactor[globalIndex][1] = gains.i;
+        pidFactor[globalIndex][2] = gains.d;
+    }
+}
+
+void Panto::finishPidCalibration(const PidCalibrationResult result)
+{
+    const auto gains = result == PidCalibrated ? m_tuner.best() : m_tuner.initial();
+    setLinkageGains(gains);
+    portENTER_CRITICAL(&m_moveMutex);
+    m_pidCalibrationResult = result;
+    m_pidCalibrationGains = gains;
+    m_pidCalibrationBaseline = m_tuner.baselineScore();
+    m_pidCalibrationScore = m_tuner.bestScore();
+    m_pidCalibrationTrials = m_tuner.trials();
+    portEXIT_CRITICAL(&m_moveMutex);
+    m_tuner.cancel();
+}
+
 void Panto::updateMove()
 {
     //update tweening delta micro here
@@ -146,6 +170,12 @@ void Panto::updateMove()
     m_moveCommand = NoMoveCommand;
     portEXIT_CRITICAL(&m_moveMutex);
 
+    if (command != NoMoveCommand && m_tuner.active())
+    {
+        // anything else the host asks for ends the calibration, with the gains from before
+        m_move.cancel();
+        finishPidCalibration(PidCalibrationCanceled);
+    }
     if (command == CancelMove)
     {
         m_move.cancel();
@@ -154,15 +184,48 @@ void Panto::updateMove()
     {
         startMove(commandTarget, m_tweeningSpeed);
     }
+    else if (command == StartPidCalibration)
+    {
+        m_move.cancel();
+        const auto& pid = pidFactor[c_globalLeftIndex];
+        // the middle of the workspace, scaled with the linkage, so that the test moves stay well within reach.
+        // The workspace is centered on x = 0 (both handles close there), not between the bases of the asymmetric arms.
+        const auto reach =
+            (c_leftInnerLength + c_leftOuterLength + c_rightInnerLength + c_rightOuterLength) / 4;
+        const auto center = Vector2D(
+            0,
+            (c_leftBaseY + c_rightBaseY) / 2 - c_pidCalibrationCenterDistance * reach);
+        m_tuner.start({pid[0], pid[1], pid[2]}, center, c_pidCalibrationAmplitude * reach);
+    }
 
-    const auto status = m_move.update(handlePosition, dt);
+    const auto isTuning = m_tuner.active();
+    if (isTuning && !m_move.active())
+    {
+        Vector2D target;
+        double speed;
+        if (m_tuner.nextMove(handlePosition, target, speed))
+        {
+            setLinkageGains(m_tuner.gains());
+            startMove(target, speed);
+        }
+    }
+
+    auto status = m_move.update(handlePosition, dt);
+    if (isTuning && status == HandleMove::Running &&
+        !m_tuner.sample(handlePosition, m_move.reference(), dt))
+    {
+        // the candidate gains are unstable
+        m_move.cancel();
+        status = HandleMove::Deviated;
+    }
+
     if (status == HandleMove::Running)
     {
         const auto reference = m_move.reference();
         m_filteredX = reference.x;
         m_filteredY = reference.y;
     }
-    else if (status != HandleMove::Idle)
+    else if (status == HandleMove::Landed || status == HandleMove::TimedOut || status == HandleMove::Deviated)
     {
         m_targetX = NAN;
         m_targetY = NAN;
@@ -170,10 +233,45 @@ void Panto::updateMove()
         {
             m_targetAngle[c_localHandleIndex] = NAN;
         }
+        if (isTuning)
+        {
+            // the moves of the calibration aren't reported to the host
+            const auto trials = m_tuner.trials();
+            m_tuner.moveEnded(status);
+            if (m_tuner.trials() != trials)
+            {
+                const auto gains = m_tuner.lastTrialGains();
+                DPSerial::sendQueuedDebugLog(
+                    "PID calibration of handle %i, trial %i: P %.3f, D %.1f, score %.3f (best %.3f)",
+                    c_pantoIndex, m_tuner.trials(), gains.p, gains.d, m_tuner.lastTrialScore(), m_tuner.bestScore());
+            }
+            if (m_tuner.status() == PidTuner::Finished || m_tuner.status() == PidTuner::Failed)
+            {
+                finishPidCalibration(m_tuner.status() == PidTuner::Finished ? PidCalibrated : PidCalibrationFailed);
+            }
+        }
+        else
+        {
+            portENTER_CRITICAL(&m_moveMutex);
+            m_moveResult = status;
+            portEXIT_CRITICAL(&m_moveMutex);
+        }
+    }
+
+    if (isTuning && !m_tuner.active())
+    {
         portENTER_CRITICAL(&m_moveMutex);
-        m_moveResult = status;
         // a new move could have been requested in the meantime
-        if (m_moveCommand != StartMove)
+        if (m_moveCommand == NoMoveCommand)
+        {
+            m_inTransition = false;
+        }
+        portEXIT_CRITICAL(&m_moveMutex);
+    }
+    else if (!isTuning && status != HandleMove::Running && status != HandleMove::Idle)
+    {
+        portENTER_CRITICAL(&m_moveMutex);
+        if (m_moveCommand != StartMove && m_moveCommand != StartPidCalibration)
         {
             m_inTransition = false;
         }
@@ -669,6 +767,33 @@ void Panto::resumeMove()
         m_isforceRendering = false;
         inverseKinematics();
     }
+};
+
+void Panto::calibratePid()
+{
+    portENTER_CRITICAL(&m_moveMutex);
+    m_moveCommand = StartPidCalibration;
+    m_inTransition = true;
+    portEXIT_CRITICAL(&m_moveMutex);
+};
+
+Panto::PidCalibrationResult Panto::consumePidCalibrationResult(
+    PidTuner::Gains& gains, double& baselineScore, double& score, int& trials)
+{
+    portENTER_CRITICAL(&m_moveMutex);
+    const auto result = m_pidCalibrationResult;
+    gains = m_pidCalibrationGains;
+    baselineScore = m_pidCalibrationBaseline;
+    score = m_pidCalibrationScore;
+    trials = m_pidCalibrationTrials;
+    m_pidCalibrationResult = NoPidCalibrationResult;
+    portEXIT_CRITICAL(&m_moveMutex);
+    return result;
+};
+
+void Panto::setLinkagePid(const float p, const float i, const float d)
+{
+    setLinkageGains({p, i, d});
 };
 
 HandleMove::Status Panto::consumeMoveResult()

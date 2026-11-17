@@ -5,6 +5,7 @@
 #include "config/config.hpp"
 #include "hardware/angleAccessor.hpp"
 #include "hardware/handleMove.hpp"
+#include "hardware/pidTuner.hpp"
 #include "utils/vector.hpp"
 #include <EEPROM.h>
 #include "hardware/Kalman.h"
@@ -21,6 +22,15 @@
 
 class Panto
 {
+public:
+    enum PidCalibrationResult
+    {
+        NoPidCalibrationResult,
+        PidCalibrated,
+        PidCalibrationFailed,
+        PidCalibrationCanceled
+    };
+
 private:
     static const uint16_t c_ledcFrequency = 20000;
     static const uint16_t c_ledcResolution = 12;
@@ -123,7 +133,8 @@ private:
     {
         NoMoveCommand,
         StartMove,
-        CancelMove
+        CancelMove,
+        StartPidCalibration
     };
     HandleMove m_move;
     MoveCommand m_moveCommand = NoMoveCommand;
@@ -131,7 +142,19 @@ private:
     HandleMove::Status m_moveResult = HandleMove::Idle;
     portMUX_TYPE m_moveMutex = portMUX_INITIALIZER_UNLOCKED;
 
+    // The PID calibration drives the moves itself, only the physics task touches m_tuner.
+    static constexpr double c_pidCalibrationCenterDistance = 0.5; // times the mean arm reach, from the bases
+    static constexpr double c_pidCalibrationAmplitude = 0.12; // times the mean arm reach
+    PidTuner m_tuner;
+    PidCalibrationResult m_pidCalibrationResult = NoPidCalibrationResult;
+    PidTuner::Gains m_pidCalibrationGains = {0, 0, 0};
+    double m_pidCalibrationBaseline = 0;
+    double m_pidCalibrationScore = 0;
+    int m_pidCalibrationTrials = 0;
+
     void startMove(const Vector2D target, const double speed);
+    void setLinkageGains(const PidTuner::Gains gains);
+    void finishPidCalibration(const PidCalibrationResult result);
     void updateMove();
     void inverseKinematics();
     void setMotor(
@@ -150,6 +173,12 @@ public:
     void resumeMove();
     // returns Landed, TimedOut or Deviated once per finished move, otherwise Idle
     HandleMove::Status consumeMoveResult();
+    // tunes P and D of the linkage motors with test moves, any other move, force, freeze or free cancels it
+    void calibratePid();
+    // returns the result once per finished calibration, otherwise NoPidCalibrationResult. The gains are in use already.
+    PidCalibrationResult consumePidCalibrationResult(
+        PidTuner::Gains& gains, double& baselineScore, double& score, int& trials);
+    void setLinkagePid(const float p, const float i, const float d);
     void setSpeed(const float speed);
     void setRotation(const float rotation);
     bool getCalibrationState();

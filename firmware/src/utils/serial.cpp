@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "hardware/calibration.hpp"
 #include "hardware/panto.hpp"
 #include "physics/pantoPhysics.hpp"
 #include "utils/vector.hpp"
@@ -35,6 +36,7 @@ std::map<MessageType, ReceiveHandler>
         {FREEZE, DPSerial::receiveFreeze},
         {FREE, DPSerial::receiveFree},
         {SPEED_CONTROL, DPSerial::receiveSpeedControl},
+        {CALIBRATE_PID, DPSerial::receiveCalibratePid},
         {CREATE_GRAPH, DPSerial::receiveCreateGraph},
         {ADD_GRAPH_NODES, DPSerial::receiveAddGraphNodes},
         {ADD_GRAPH_EDGES, DPSerial::receiveAddGraphEdges},
@@ -507,6 +509,19 @@ void DPSerial::receiveFreeze()
     }
 }
 
+void DPSerial::receiveCalibratePid()
+{
+    const auto pantoIndex = receiveUInt8();
+    for (auto i = 0; i < pantoCount; ++i)
+    {
+        if (pantoIndex == 0xFF || i == pantoIndex)
+        {
+            sendQueuedDebugLog("Calibrating the PID of handle %i, this takes a few minutes", i);
+            pantos[i].calibratePid();
+        }
+    }
+}
+
 void DPSerial::receiveFree()
 {
     auto pantoIndex = receiveUInt8();
@@ -853,6 +868,49 @@ void DPSerial::sendMoveResults()
             sendTransitionEnded(i, 2);
             sendQueuedDebugLog("Handle %i got too far off the path of its move, motors released", i);
         }
+    }
+}
+
+void DPSerial::sendPidCalibrationResults()
+{
+    for (auto i = 0; i < pantoCount; ++i)
+    {
+        PidTuner::Gains gains;
+        double baselineScore;
+        double score;
+        int trials;
+        const auto result = pantos[i].consumePidCalibrationResult(gains, baselineScore, score, trials);
+        if (result == Panto::NoPidCalibrationResult)
+        {
+            continue;
+        }
+        if (result == Panto::PidCalibrated)
+        {
+            savePidCalibrationData(i, {0, static_cast<float>(gains.p), static_cast<float>(gains.i), static_cast<float>(gains.d)});
+            sendQueuedDebugLog(
+                "PID of handle %i calibrated and saved: P %.3f, I %.3f, D %.1f. Score %.3f -> %.3f in %i trials",
+                i, gains.p, gains.i, gains.d, baselineScore, score, trials);
+        }
+        else if (result == Panto::PidCalibrationFailed)
+        {
+            sendQueuedDebugLog(
+                "PID calibration of handle %i failed, kept P %.3f, I %.3f, D %.1f. Is it blocked, or are the current gains unstable?",
+                i, gains.p, gains.i, gains.d);
+        }
+        else
+        {
+            sendQueuedDebugLog("PID calibration of handle %i canceled, kept the previous gains", i);
+        }
+
+        portENTER_CRITICAL(&s_serialMutex);
+        sendMagicNumber();
+        sendHeader(PID_CALIBRATION_ENDED, 14); // index, result, 3 floats
+        sendUInt8(i);
+        sendUInt8(result == Panto::PidCalibrated ? 0 : result == Panto::PidCalibrationFailed ? 1 : 2);
+        sendFloat(gains.p);
+        sendFloat(gains.i);
+        sendFloat(gains.d);
+        portEXIT_CRITICAL(&s_serialMutex);
     }
 }
 

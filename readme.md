@@ -55,6 +55,9 @@ For each end effector:
 
 When you have finished the calibration, proceed to uploading the regular `firmware`.
 
+### PID calibration
+The regular `firmware` can tune the PID gains of the linkage motors itself. Send a [0xAB Calibrate PID](documentation/protocol/protocol.md#0xAB-Calibrate-PID) message (`CalibratePid(handle, 0xFF)` in the serial library) while the device is connected and nothing else is running. Each handle then moves through a pattern of test moves for up to about 4 minutes. Don't touch the handles meanwhile. The gains found are saved on the device and are used from then on, instead of the `pidFactor` of the hardware config. Run it again after changing the mechanics.
+
 ### Regular Use
 Wether you chose to calibrate the device or not, the regular `firmware` is required to use the device with Unity. Just follow the regular upload instructions.
 

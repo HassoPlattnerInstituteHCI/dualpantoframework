@@ -29,6 +29,7 @@ void ioLoop()
         DPSerial::sendPosition();
         DPSerial::sendGraphStateChanges();
         DPSerial::sendMoveResults();
+        DPSerial::sendPidCalibrationResults();
     }
     PERFMON_STOP("[b] Send positions");
     

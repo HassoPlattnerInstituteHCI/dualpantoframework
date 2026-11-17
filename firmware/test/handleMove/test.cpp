@@ -20,6 +20,8 @@ static int failures = 0;
 static const double c_dt = 0.001;
 static const Vector2D c_start(0, -40);
 static const Vector2D c_target(20, -70);
+// long enough to finish the tween of a fast move from c_start to c_target, which is limited by the max speed
+static const double c_tween = 0.7;
 
 // A handle that follows the reference at limited speed, but doesn't move at all until the reference
 // is further away than the friction, and ends up offset by the difference between the kinematics.
@@ -162,7 +164,7 @@ static void testMovingHandleDoesNotLand()
 {
     HandleMove move;
     move.start(c_start, c_target, 1000);
-    move.update(c_start, 0.01); // finishes the tween
+    move.update(c_start, c_tween); // finishes the tween
     // crawls through the whole tolerance, 0.8 mm in 0.2 s
     auto position = Vector2D(c_target.x, c_target.y + 0.4);
     for (auto frame = 0; frame < 200; ++frame)
@@ -175,7 +177,7 @@ static void testMovingHandleDoesNotLand()
     // jitter below the limit is still
     HandleMove jitter;
     jitter.start(c_start, c_target, 1000);
-    jitter.update(c_start, 0.01);
+    jitter.update(c_start, c_tween);
     for (auto frame = 0; frame < 110; ++frame)
     {
         jitter.update(Vector2D(c_target.x, c_target.y + (frame % 2 ? 0.1 : 0)), c_dt);
@@ -185,7 +187,7 @@ static void testMovingHandleDoesNotLand()
     // neither is noise around the edge of the tolerance
     HandleMove edge;
     edge.start(c_start, c_target, 1000);
-    edge.update(c_start, 0.01);
+    edge.update(c_start, c_tween);
     for (auto frame = 0; frame < 110; ++frame)
     {
         edge.update(Vector2D(c_target.x, c_target.y + (frame % 2 ? 0.55 : 0.45)), c_dt);
@@ -195,7 +197,7 @@ static void testMovingHandleDoesNotLand()
     // but leaving it for real does
     HandleMove left;
     left.start(c_start, c_target, 1000);
-    left.update(c_start, 0.01);
+    left.update(c_start, c_tween);
     for (auto frame = 0; frame < 110; ++frame)
     {
         left.update(Vector2D(c_target.x, c_target.y + (frame % 2 ? 0.7 : 0.45)), c_dt);
@@ -207,7 +209,7 @@ static void testNoJumpAfterRest()
 {
     HandleMove move;
     move.start(c_start, c_target, 1000);
-    move.update(c_start, 0.01);
+    move.update(c_start, c_tween);
     move.update(c_target, 0.11);
     CHECK(move.resting());
 
@@ -217,10 +219,10 @@ static void testNoJumpAfterRest()
     CHECK(!move.resting());
     CHECK((move.reference() - coasted).length() < 0.000001);
     auto previous = move.reference();
-    for (auto frame = 0; frame < 300; ++frame)
+    for (auto frame = 0; frame < 600; ++frame) // 6 mm at a mean of 20 / 1.875 mm/s
     {
         move.update(coasted, c_dt);
-        CHECK((move.reference() - previous).length() < 0.021); // 20 mm/s
+        CHECK((move.reference() - previous).length() < 0.021); // 20 mm/s at the peak
         previous = move.reference();
     }
     CHECK((move.reference() - c_target).length() < 0.000001);
@@ -228,12 +230,12 @@ static void testNoJumpAfterRest()
     // a rebound is compensated, also without a jump
     HandleMove rebound;
     rebound.start(c_start, c_target, 1000);
-    rebound.update(c_start, 0.01);
+    rebound.update(c_start, c_tween);
     rebound.update(c_target, 0.11);
     const Vector2D sprung(c_target.x, c_target.y + 1);
     rebound.update(sprung, 0.3);
     CHECK((rebound.reference() - sprung).length() < 0.000001);
-    for (auto frame = 0; frame < 150; ++frame)
+    for (auto frame = 0; frame < 250; ++frame) // 2 mm at a mean of 20 / 1.875 mm/s
     {
         rebound.update(sprung, c_dt);
     }
@@ -264,14 +266,14 @@ static void testRunawayIsStopped()
     // past the target
     HandleMove past;
     past.start(Vector2D(0, -28), Vector2D(0, -45), 1000);
-    CHECK(past.update(Vector2D(0, -28), 0.01) == HandleMove::Running);
+    CHECK(past.update(Vector2D(0, -28), c_tween) == HandleMove::Running);
     CHECK(past.update(Vector2D(0, -54), c_dt) == HandleMove::Running);
     CHECK(past.update(Vector2D(0, -56), c_dt) == HandleMove::Deviated);
 
     // also while resting
     HandleMove resting;
     resting.start(c_start, c_target, 1000);
-    resting.update(c_target, 0.01);
+    resting.update(c_target, c_tween);
     resting.update(c_target, 0.11);
     CHECK(resting.resting());
     CHECK(resting.update(Vector2D(c_target.x, c_target.y - 11), c_dt) == HandleMove::Deviated);
@@ -285,7 +287,7 @@ static void testRunawayIsStopped()
     // being stuck far behind the reference is fine as long as it is on the path
     HandleMove stuck;
     stuck.start(c_start, c_target, 1000);
-    CHECK(stuck.update(c_start, 0.01) == HandleMove::Running);
+    CHECK(stuck.update(c_start, c_tween) == HandleMove::Running);
     CHECK(stuck.update(c_start, c_dt) == HandleMove::Running);
 }
 
@@ -300,7 +302,7 @@ static void testNoCorrectionForLargeErrors()
         CHECK((move.reference() - c_target).length() < 37);
     }
     move.start(c_start, c_target, 1000);
-    CHECK(move.update(c_start, 0.01) == HandleMove::Running);
+    CHECK(move.update(c_start, c_tween) == HandleMove::Running);
     for (auto frame = 0; frame < 1000; ++frame)
     {
         move.update(c_start, c_dt);
@@ -386,25 +388,25 @@ static void testInvalidPositions()
     HandleMove move;
     move.start(c_start, c_target, 1000);
     const Vector2D invalid(NAN, NAN);
-    CHECK(move.update(c_start, 0.01) == HandleMove::Running); // finishes the tween
+    CHECK(move.update(c_start, c_tween) == HandleMove::Running); // finishes the tween
     for (auto frame = 0; frame < 1000; ++frame)
     {
         CHECK(move.update(invalid, c_dt) == HandleMove::Running);
         CHECK(!std::isnan(move.reference().x));
     }
     // doesn't land on invalid values, and neither does it time out any later
-    auto time = 1.0;
+    auto time = c_tween + 1.0;
     while (move.update(invalid, c_dt) == HandleMove::Running)
     {
         time += c_dt;
-        CHECK(time < 3.5);
+        CHECK(time < 3.8); // the tween takes 0.675 s, then 3 s to settle
     }
     CHECK(!move.active());
 
     // valid values again: landing works, the NaN didn't stick
     HandleMove recovering;
     recovering.start(c_start, c_target, 1000);
-    recovering.update(c_start, 0.01);
+    recovering.update(c_start, c_tween);
     recovering.update(invalid, c_dt);
     recovering.update(c_target, 0.11);
     CHECK(recovering.resting());
@@ -430,6 +432,44 @@ static void testCancelAndRestart()
     CHECK(run(move, handle).status == HandleMove::Landed);
 }
 
+static void testTweenIsSmoothAndLimited()
+{
+    // a long move at the default speed would take 1 s, the max speed makes it longer
+    const Vector2D far(c_start.x + 120, c_start.y);
+    HandleMove move;
+    move.start(c_start, far, 1);
+    auto previous = move.reference();
+    auto largestStep = 0.0;
+    auto firstStep = -1.0;
+    auto time = 0.0;
+    while ((move.reference() - far).length() > 0.000001)
+    {
+        move.update(move.reference(), c_dt);
+        time += c_dt;
+        const auto step = (move.reference() - previous).length();
+        if (firstStep < 0)
+        {
+            firstStep = step;
+        }
+        largestStep = std::max(largestStep, step);
+        previous = move.reference();
+    }
+    CHECK(time > 2.2 && time < 2.3); // 120 mm * 1.875 / 100 mm/s
+    CHECK(largestStep <= 100 * c_dt * 1.0001); // the peak speed
+    CHECK(firstStep < 0.001); // starts without a jump of the speed
+
+    // a short one still takes 1 / speed
+    HandleMove shortMove;
+    shortMove.start(c_start, Vector2D(c_start.x + 10, c_start.y), 1);
+    time = 0;
+    while ((shortMove.reference() - Vector2D(c_start.x + 10, c_start.y)).length() > 0.000001)
+    {
+        shortMove.update(shortMove.reference(), c_dt);
+        time += c_dt;
+    }
+    CHECK(time > 0.99 && time < 1.01);
+}
+
 int main()
 {
     testLandsWithoutDisturbance();
@@ -447,6 +487,7 @@ int main()
     testInvalidSpeedTimesOut();
     testInvalidPositions();
     testCancelAndRestart();
+    testTweenIsSmoothAndLimited();
 
     if (failures == 0)
     {

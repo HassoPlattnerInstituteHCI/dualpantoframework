@@ -9,6 +9,18 @@ Vector2D HandleMove::limited(Vector2D vector, double maxLength)
     return length > maxLength ? vector * (maxLength / length) : vector;
 }
 
+double HandleMove::profile(double tweenValue)
+{
+    const auto t = tweenValue;
+    return t * t * t * (10 + t * (-15 + t * 6));
+}
+
+double HandleMove::tweenRate(double distance, double duration)
+{
+    const auto shortest = distance * c_profilePeak / c_maxSpeed;
+    return 1 / (duration > shortest ? duration : shortest);
+}
+
 double HandleMove::pathDeviation(Vector2D handlePosition)
 {
     return m_start == m_target
@@ -27,11 +39,13 @@ void HandleMove::start(Vector2D start, Vector2D target, double speed)
     m_reference = start;
     m_tweenStart = start;
     m_tweenEnd = target;
-    m_speed = speed > 0 ? speed : 0; // also catches NaN; never reaches the target, so it times out
     m_tweenValue = 0;
     m_settleTime = 0;
     m_dwellTime = 0;
     m_restTime = 0;
+
+    // no speed (also NaN) never reaches the target, so it times out
+    m_speed = speed > 0 ? tweenRate((target - start).length(), 1 / speed) : 0;
 
     const auto tweenDuration = 1 / m_speed; // infinite for no speed
     m_timeLeft = (tweenDuration < c_maxTweenDuration ? tweenDuration : c_maxTweenDuration) + c_settleTimeout;
@@ -68,7 +82,7 @@ HandleMove::Status HandleMove::update(Vector2D handlePosition, double dt)
     if (m_tweenValue < 1)
     {
         m_tweenValue = std::min(m_tweenValue + dt * m_speed, 1.0);
-        m_reference = m_tweenStart + (m_tweenEnd - m_tweenStart) * m_tweenValue;
+        m_reference = m_tweenStart + (m_tweenEnd - m_tweenStart) * profile(m_tweenValue);
         return Running;
     }
 
@@ -102,7 +116,7 @@ HandleMove::Status HandleMove::update(Vector2D handlePosition, double dt)
         m_reference = handlePosition;
         m_tweenEnd = m_target + m_restCompensation;
         m_tweenValue = 0;
-        m_speed = c_retrySpeed / (m_tweenEnd - m_tweenStart).length();
+        m_speed = c_retrySpeed / (c_profilePeak * (m_tweenEnd - m_tweenStart).length());
         m_settleTime = 0;
         m_dwellTime = 0;
         return Running;

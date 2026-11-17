@@ -74,6 +74,16 @@ void physicsSetup()
     
     #endif
 
+    for (auto i = 0; i < pantoCount; ++i)
+    {
+        PidCalibrationData pid;
+        if (loadPidCalibrationData(i, pid))
+        {
+            pantos[i].setLinkagePid(pid.p, pid.i, pid.d);
+            DPSerial::sendQueuedDebugLog("Using calibrated PID for handle %i: P %.3f, I %.3f, D %.1f", i, pid.p, pid.i, pid.d);
+        }
+    }
+
     for (unsigned char i = 0; i < pantoCount; ++i)
     {
         pantoPhysics.emplace_back(&pantos[i]);

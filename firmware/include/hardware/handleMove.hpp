@@ -5,7 +5,8 @@
 /*
 A move of the handle to a target position. Runs in three phases:
 
-1. Tween: the reference moves from the start to the target in 1 / speed seconds.
+1. Tween: the reference moves from the start to the target in 1 / speed seconds, but not faster than c_maxSpeed.
+   It speeds up and slows down smoothly (minimum jerk), since a jump of the reference's speed makes the linkage oscillate.
 2. Settle: the reference stays at the target until the handle was within c_landingTolerance and still for c_landingDwell.
    If the handle stops short of the target (friction, kinematics offset), the reference is slowly shifted past the target until it gets there.
 3. Rest: the motors are released for c_restTime, since the handle springs back a bit. If it comes to rest outside of the tolerance, the
@@ -32,7 +33,11 @@ private:
     static constexpr double c_landingStillness = 0.25; // mm; moved further during the dwell it is only passing through, and would coast on after the release
     static constexpr double c_restTime = 0.25; // s
     static constexpr double c_maxRebound = 4; // mm; a larger rest error isn't a rebound that would happen again
-    static constexpr double c_retrySpeed = 20; // mm/s
+    static constexpr double c_retrySpeed = 20; // mm/s, peak
+    // mm/s, peak speed of the reference. Long moves at 1 / speed seconds would otherwise be fast enough to leave the path.
+    static constexpr double c_maxSpeed = 100;
+    // peak speed of the minimum jerk profile, relative to the mean speed
+    static constexpr double c_profilePeak = 1.875;
     static constexpr double c_correctionDelay = 0.2; // s; the handle lags behind at the end of the tween, this isn't an error to correct yet
     static constexpr double c_correctionRate = 4; // mm/s per mm of error
     static constexpr double c_correctionRange = 5; // mm; a larger error isn't friction. Pushing on would only make the handle jump once it gets free
@@ -59,6 +64,10 @@ private:
     double m_restTime = 0;
 
     static Vector2D limited(Vector2D vector, double maxLength);
+    // 0 to 1 with zero speed and acceleration at both ends
+    static double profile(double tweenValue);
+    // tween value per second for a tween over distance that takes at least duration
+    static double tweenRate(double distance, double duration);
     double pathDeviation(Vector2D handlePosition);
 
 public:

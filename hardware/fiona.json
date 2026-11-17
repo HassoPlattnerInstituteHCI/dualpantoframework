@@ -30,7 +30,7 @@
           "flipped": false,
           "powerLimit": 0.2,
           "powerLimitForce": 0.6,
-          "pidFactor": [3, 0, 5000]
+          "pidFactor": [3, 0, 10000]
         },
         "encoder": {
           "steps": 16384,
@@ -52,7 +52,7 @@
           "flipped": false,
           "powerLimit": 0.2,
           "powerLimitForce": 0.6,
-          "pidFactor": [3, 0, 5000]
+          "pidFactor": [3, 0, 10000]
         },
         "encoder": {
           "steps": 16384,

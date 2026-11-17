@@ -50,6 +50,7 @@ The available values for messages from the framework to the hardware are:
   - [0x91 PID values](#0x91-PID-values) - This message contains PID values for one 
   - [0x92 Speed](#0x92-Speed) - This message specifies the speed to use for tweening positions 
   - [0x93 Transition ended](#0x93-transition-ended) - This message reports that a move has ended, and whether the handle landed, the move timed out or the handle left its path.
+  - [0x94 PID calibration ended](#0x94-PID-calibration-ended) - This message reports the result of a PID calibration and the gains now in use.
   - [0xA0 Create obstacle](#0xA0-Create-obstacle) - This message specifies an obstacle to be added to one or both handles. Note: The obstacle isn't enabled automatically after creation. An enable message is required to enable it.
   - [0xA1 Add to obstacle](#0xA1-Add-to-obstacle) - This message specifies positions to be appended to an obstacle.
   - [0xA2 Remove obstacle](#0xA2-Remove-obstacle) - This message specifies an obstacle to remove.
@@ -61,6 +62,7 @@ The available values for messages from the framework to the hardware are:
   - [0xA8 Freeze](#0xA8-Freeze) - Freeze the handle
   - [0xA9 Free](#0xA9-Free) - Free the handle
   - [0xAA Set Speed Control](#0xAA-SpeedControl) - Enable or disable speed control with different configuration options
+  - [0xAB Calibrate PID](#0xAB-Calibrate-PID) - This message starts the automatic tuning of the linkage motors' PID gains.
 - 0xB0 to 0xBF - Haptic graph messages (see [Haptic graphs](#Haptic-graphs))
   - [0xB0 Create graph](#0xB0-Create-graph) - This message creates an empty graph. Note: The graph isn't enabled automatically after creation.
   - [0xB1 Add graph nodes](#0xB1-Add-graph-nodes) - This message adds nodes to a graph.
@@ -341,6 +343,29 @@ Example message:
 00       // result: 0x00 for landed
 ```
 
+### 0x94 PID calibration ended
+
+This message is sent once a PID calibration started with [0xAB Calibrate PID](#0xAB-Calibrate-PID) has ended. The motors are released at this point. It contains the pantograph index and the result, both encoded as an 8 bit unsigned integer, followed by the P, I and D gains now in use for the linkage motors of that handle, each encoded as a 32 bit float.
+
+Available result values:
+
+- 0x00 Calibrated: the gains were tuned, are in use and are saved on the device. They are also used after a restart, instead of the ones from the hardware config.
+- 0x01 Failed: the handle couldn't reach the center of the test pattern, or already the gains from before were unstable. These gains are kept.
+- 0x02 Canceled: another motor, freeze or free message, or another calibration request, arrived during the calibration. The gains from before are kept.
+
+Example message:
+```
+4450     // magic number
+94       // message type: PID calibration ended
+00       // packet ID: not utilized
+000E     // payload length: 1 byte for index, 1 for result, 3x4 for P, I and D
+00       // panto index: 0x00 for me handle
+00       // result: 0x00 for calibrated
+FFFFFFFF // P
+FFFFFFFF // I
+FFFFFFFF // D
+```
+
 ### 0xA0 Create obstacle
 
 This message contains the pantograph index, encoded as an 8 bit unsigned integer, the obstacle ID, encoded as a 16 bit unsigned integer, and multiple 2D vectors, each encoded as a pair of 32 bit floats.
@@ -491,6 +516,26 @@ AA       // message type: set speed contol
 0000000000000000 // outer radius (value between 0 and 10)
 01       // tether strategy (one out of 0,1,2)
 01       // "pock" enabled
+```
+
+### 0xAB Calibrate PID
+
+This message starts the automatic tuning of the P and D gains of the linkage motors of one or both handles. It contains the pantograph index, encoded as an 8 bit unsigned integer. 0xFF calibrates both handles at the same time.
+
+The handle first moves to the middle of its workspace (half of the mean arm reach in front of the motors). Then it repeatedly runs a pattern of test moves out and back in four directions (about 12 % of the arm reach, around 24 mm), each time with other gains, and scores how far it lags behind, how long it takes to settle on the target, how far it overshoots and how much it oscillates. Starting from the current gains, P and D are scaled up and down, keeping changes that are clearly better, with smaller and smaller steps. This takes up to 20 rounds of about 10 seconds each, so up to about 4 minutes. I isn't tuned.
+
+- Don't hold the handle during the calibration, and keep the workspace clear. Obstacles and graphs should be disabled.
+- Any motor, freeze or free message cancels the calibration.
+- The result is reported with [0x94 PID calibration ended](#0x94-PID-calibration-ended). No [0x93 Transition ended](#0x93-transition-ended) messages are sent for the test moves.
+- Both linkage motors of a handle get the same gains. [0x91 PID values](#0x91-PID-values) still overrides them until the next restart.
+
+Example message:
+```
+4450     // magic number
+AB       // message type: calibrate PID
+00       // packet ID: not utilized
+0001     // payload length: 1 byte for index
+FF       // panto index: 0xFF for both handles
 ```
 
 ### Haptic graphs
